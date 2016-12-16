@@ -258,4 +258,4 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 
 ## License
 
-[MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://yunojuno.com/p/larryg)
+[MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://app.yunojuno.com/p/larryg)
