@@ -1,0 +1,53 @@
+{
+  "name": "webdriverio-cucumber-js",
+  "version": "1.0.0",
+  "description": "A debuggable JS BDD framework that uses webdriver.io the Selenium 2.0 bindings for NodeJS and cucumber-js"
+  ,
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Larry Goddard",
+    "email": "larryg@lcgtech.co.uk",
+    "url": "https://app.yunojuno.com/p/larryg"
+  },
+  "license": "MIT",
+  "keywords": [
+    "webdriverio",
+    "webdrivercss",
+    "cucumber",
+    "cucumber-js",
+    "webdriver",
+    "geckodriver",
+    "chromedriver",
+    "phantomjs",
+    "testing",
+    "bdd"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/larryg01/webdriverio-cucumber-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/larryg01/webdriverio-cucumber-js/issues"
+  },
+  "engines": {
+    "node": ">= 6.9.0"
+  },
+  "homepage": "https://github.com/larryg01/webdriverio-cucumber-js#readme",
+  "dependencies": {
+    "chai": "3.5.0",
+    "chalk": "1.1.3",
+    "chromedriver": "2.25.1",
+    "commander": "2.9.0",
+    "cucumber": "1.2.2",
+    "cucumber-html-reporter": "0.2.8",
+    "fs-plus": "2.9.1",
+    "geckodriver": "1.1.2",
+    "merge": "1.2.0",
+    "phantomjs-prebuilt": "2.1.12",
+    "require-dir": "0.3.0",
+    "webdriverio": "4.4.0"
+  }
+}

@@ -4,6 +4,7 @@
 ## Installation
 
 ```bash
+npm install webdriverio-cucumber-js
 
 # install and launch a selenium standalone server with chrome, ie, firefox and phantomjs drivers to run your tests locally.
 
@@ -13,7 +14,7 @@ npm install selenium-standalone@latest -g --save-dev && selenium-standalone inst
 ## Usage
 
 ```bash
-node ./projects/webdriverio-cucumber-js/index.js -s ./step-definitions
+node ./webdriverio-cucumber-js/index.js -s ./step-definitions
 or
 node index.js -t @search -b firefox     // if you are already inside the project directory
 ```
@@ -246,7 +247,7 @@ You can use the framework without any command line arguments if your application
 This project includes an example feature file and step definition to help you get started. You can run the example using the following command:
 
 ```bash
-node ./projects/webdriverio-cucumber-js/index.js
+node ./webdriverio-cucumber-js/index.js
 ```
 
 ## Bugs
