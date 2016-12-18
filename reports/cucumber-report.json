@@ -1,0 +1,71 @@
+[
+  {
+    "description": "  As an internet user\n  In order to find out more about certain user apps\n  I want to be able to search for information about the required apps",
+    "elements": [
+      {
+        "id": "searching-for-apps-with-google;google-search-for-the-britain's-got-talent-app",
+        "keyword": "Scenario",
+        "line": 7,
+        "name": "Google search for the britain's got talent app",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "name": "I search Google for \"britain's got talent app\"",
+            "result": {
+              "status": "passed",
+              "duration": 4478873857
+            },
+            "line": 8,
+            "match": {
+              "location": "/home/larryg/IdeaProjects/webdriverio-cucumber-js/step-definitions/google-search-steps.js:3"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "name": "I should see some results",
+            "result": {
+              "status": "passed",
+              "duration": 1540918765
+            },
+            "line": 9,
+            "match": {
+              "location": "/home/larryg/IdeaProjects/webdriverio-cucumber-js/step-definitions/google-search-steps.js:13"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "After ",
+            "result": {
+              "status": "passed",
+              "duration": 104027167
+            },
+            "hidden": true,
+            "match": {
+              "location": "/home/larryg/IdeaProjects/webdriverio-cucumber-js/runtime/world.js:206"
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@search",
+            "line": 1
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "searching-for-apps-with-google",
+    "keyword": "Feature",
+    "line": 2,
+    "name": "Searching for apps with google",
+    "tags": [
+      {
+        "name": "@search",
+        "line": 1
+      }
+    ],
+    "uri": "/home/larryg/IdeaProjects/webdriverio-cucumber-js/features/google-search.feature"
+  }
+]
