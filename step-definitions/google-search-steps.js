@@ -14,7 +14,7 @@ module.exports = function (){
 
         /** driver waitUntil returns a promise so return that
          */
-        return driver.waitUntil(driver.element('div.g'), 10000).then(function(){
+        return driver.waitUntil(driver.element('div.g'), 10).then(function(){
 
             /** return the promise of an element to the following then.
              */

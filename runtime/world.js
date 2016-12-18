@@ -24,49 +24,21 @@ var driver = {};
  */
 function getDriverInstance(){
 
-    switch (browserName || ''){
-
-        case 'firefox':{
-            driver = new webdriverio.remote({
-                desiredCapabilities: {
-                    browserName: 'firefox',
-                    javascriptEnabled: true,
-                    acceptSslCerts: true,
-                    // 'geckodriver -b /usr/bin/firefox': firefox.path
-                    'geckodriver.firefox.bin': firefox.path
-                }
-            }).init()
-        }break;
-
-        case 'phantomjs':{
-            driver = new webdriverio.remote({
-                desiredCapabilities: {
-                    browseName: 'phantomjs',
-                    javascriptEnabled: true,
-                    acceptSslCerts: true,
-                    'phantomjs.binary.path': phantomjs.path
-                }
-            }).init();
-        }break;
-
-        /** default to chrome
-         */
-        default:{
-            driver = webdriverio.remote({
-                desiredCapabilities: {
-                    browserName: 'chrome',
-                    javascriptEnabled: true,
-                    acceptSslCerts: true,
-                    chromeOptions: {
-                        "args": ["start-maximized"]
-                    },
-                    path: chromedriver.path
-                }
-            }).init();
+    driver = webdriverio.remote({
+        desiredCapabilities: {
+            browserName: browserName,
+            javascriptEnabled: true,
+            acceptSslCerts: false,
+            chromeOptions: {
+                "args": ["start-maximized"]
+            },
+            'phantomjs.binary.path': phantomjs.path,
+            'geckodriver.firefox.bin': firefox.path,
+            path: chromedriver.path
         }
+    }).init();
 
     return driver;
-    }
 }
 
 function consoleInfo(){
@@ -161,7 +133,9 @@ module.exports = function (){
     this.registerHandler('BeforeScenario', function(){
 
         if (!global.driver){
-            global.driver = getDriverInstance();
+
+            global.driver = getDriverInstance()
+
         }
         return driver;
     });

@@ -6,12 +6,17 @@ module.exports = {
      * @example
      *      helpers.loadPage('http://www.google.co.uk');
      */
-    loadPage: function(url, waitInSeconds){
+    loadPage: function(url, seconds){
 
          /** use either passed in timeout or global 10 seconds default
           * @type {number}
           */
-         var timeout = (waitInSeconds) ? (waitInSeconds * 1000) : DEFAULT_TIMEOUT;
+
+        /**
+         * Wait function - measured in seconds for pauses during tests to give time for processes such as a page loading or the user to see what the test is doing
+         * @param seconds
+         */
+         var timeout = (seconds) ? (seconds * 1000) : DEFAULT_TIMEOUT;
 
          /** load the url and wait for it to complete
           */
