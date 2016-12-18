@@ -28,7 +28,7 @@ function getDriverInstance(){
         desiredCapabilities: {
             browserName: browserName,
             javascriptEnabled: true,
-            acceptSslCerts: false,
+            acceptSslCerts: true,
             chromeOptions: {
                 "args": ["start-maximized"]
             },
@@ -54,8 +54,8 @@ function World(){
      */
     var runtime = {
         driver: null,               // the browser object
-        webdriverio: webdriverio,   // the raw webdriverio nodejs driver
-        waitUntil: webdriverio.waitUntil,  // provide easy access to selenium until methods
+        webdriverio: webdriverio,   // the raw webdriverio driver
+        waitUntil: webdriverio.waitUntil,  // provide easy access to webdriverio 'wait until' methods
         expect: expect,             // expose chai expect to allow variable testing
         assert: assert,             // expose chai assert to allow variable testing
         trace: consoleInfo,         // expose an info method to log output to the console in a readable/visible format
@@ -134,10 +134,14 @@ module.exports = function (){
 
         if (!global.driver){
 
-            global.driver = getDriverInstance()
+            global.driver = getDriverInstance();
+
+            /** sets the broswer window size to maximum
+             */
+            driver.windowHandleSize({width: 1600, height: 768})
 
         }
-        return driver;
+        return driver
     });
 
     this.registerHandler('AfterFeatures', function (features, done){
@@ -152,9 +156,9 @@ module.exports = function (){
                 launchReport: true,
                 ignoreBadJsonFile: true
             };
-            reporter.generate(reportOptions);
+            reporter.generate(reportOptions)
         }
-        done();
+        done()
     });
 
     /** executed after each scenario (always closes the browser to ensure fresh tests)
@@ -169,10 +173,10 @@ module.exports = function (){
                 scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
 
                 return driver.end()
-            });
+            })
         }
         else {
             return driver.end()
         }
-    });
+    })
 };

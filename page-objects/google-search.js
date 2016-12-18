@@ -18,6 +18,6 @@ module.exports = {
 
         /** return a promise so the calling function knows the task has completed
          */
-        return driver.element(selector, driver.keys(searchQuery), driver.keys('Enter'));
+        return driver.elements(selector, driver.keys(searchQuery).keys('Enter'));
     }
 };
