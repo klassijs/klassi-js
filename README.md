@@ -1,4 +1,4 @@
-
+[![stats](https://nodei.co/npm/webdriverio-cucumber-js.png?downloads=true)](https://www.npmjs.com/package/webdriverio-cucumber-js)
 
 
 # webdriverio-cucumber-js
@@ -9,7 +9,7 @@
 ```bash
 npm install webdriverio-cucumber-js
 
-# install and launch a selenium standalone server with chrome, ie, firefox and phantomjs drivers to run your tests locally.
+# install and launch a selenium standalone server with chrome, firefox and phantomjs drivers to run your tests locally.
 
 npm install selenium-standalone@latest -g --save-dev && selenium-standalone install && selenium-standalone start
 ```
