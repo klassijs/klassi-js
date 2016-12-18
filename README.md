@@ -1,3 +1,6 @@
+
+
+
 # webdriverio-cucumber-js
   A debuggable JS BDD framework that uses [webdriver.io the Selenium 2.0 bindings for NodeJS](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation")
 
@@ -14,7 +17,7 @@ npm install selenium-standalone@latest -g --save-dev && selenium-standalone inst
 ## Usage
 
 ```bash
-node ./webdriverio-cucumber-js/index.js -s ./step-definitions
+node ./node_modules/webdriverio-cucumber-js/index.js -s ./step-definitions
 or
 node index.js -t @search -b firefox     // if you are already inside the project directory
 ```
@@ -247,7 +250,7 @@ You can use the framework without any command line arguments if your application
 This project includes an example feature file and step definition to help you get started. You can run the example using the following command:
 
 ```bash
-node ./webdriverio-cucumber-js/index.js
+node ./node_modules/webdriverio-cucumber-js/index.js
 ```
 
 ## Bugs
