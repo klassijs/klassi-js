@@ -8,13 +8,9 @@ module.exports = {
      */
     loadPage: function(url, seconds){
 
-         /** use either passed in timeout or global 10 seconds default
-          * @type {number}
-          */
-
-        /**
-         * Wait function - measured in seconds for pauses during tests to give time for processes such as a page loading or the user to see what the test is doing
+        /** Wait function - measured in seconds for pauses during tests to give time for processes such as a page loading or the user to see what the test is doing
          * @param seconds
+         * @type {number}
          */
          var timeout = (seconds) ? (seconds * 1000) : DEFAULT_TIMEOUT;
 
