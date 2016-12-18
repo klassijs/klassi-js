@@ -21,5 +21,3 @@ jspm_packages
 .idea/
 webdriverio-cucumber-js.iml
 README123.md
-
-/runtime/helpers.js
