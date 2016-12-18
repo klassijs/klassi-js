@@ -1,5 +1,4 @@
-[![stats](https://nodei.co/npm/webdriverio-cucumber-js.png?downloads=true)](https://www.npmjs.com/package/webdriverio-cucumber-js)
-
+[![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?downloads=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
 
 # webdriverio-cucumber-js
   A debuggable JS BDD framework that uses [webdriver.io the Selenium 2.0 bindings for NodeJS](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation")

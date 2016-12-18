@@ -25,63 +25,52 @@ program.on('--help', function(){
     console.log('  For more details please visit https://github.com/larryg01/webdriverio-cucumber-js#readme\n');
 });
 
-/**
- * store browserName globally (used within world.js to build driver)
+/** store browserName globally (used within world.js to build driver)
  */
 global.browserName = program.browser;
 
-/**
- * used within world.js to import page objects
+/** used within world.js to import page objects
  */
 global.pageObjectPath = path.resolve(program.pageObjects);
 
-/**
- * used within world.js to output reports
+/** used within world.js to output reports
  */
 global.reportsPath = path.resolve(program.reports);
 
-/**
- * used within world.js to import shared objects into the shared namespace
+/** used within world.js to import shared objects into the shared namespace
  * @type {any}
  */
 global.sharedObjectPaths = program.sharedObjects.map(function(item){
     return path.resolve(item);
 });
 
-/**
- * rewrite command line switches for cucumber
+/** rewrite command line switches for cucumber
  */
 process.argv.splice(2, 100);
 
-/**
- * add switch to tell cucumber to produce json report files
+/** add switch to tell cucumber to produce json report files
  */
 process.argv.push('-f', 'pretty', '-f', 'json:' + path.resolve(__dirname, global.reportsPath, 'cucumber-report.json'));
 
-/**
- * add cucumber world as first required script (this sets up the globals)
+/** add cucumber world as first required script (this sets up the globals)
  */
 process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
 
-/**
- * add path to import step definitions
+/** add path to import step definitions
  */
 process.argv.push('-r', path.resolve(program.steps));
 
-/**
- * add tag to the scenarios
+/** add tag to the scenarios
  */
 if (program.tags) {
     process.argv.push('-t', program.tags);
 }
 
-/**
- * add strict option (fail if there are any undefined or pending steps)
+/** add strict option (fail if there are any undefined or pending steps)
  */
 process.argv.push('-S');
 
-/**
- * execute cucumber
+/** execute cucumber
  */
 var cucumberCli = cucumber.Cli(process.argv);
 
@@ -97,8 +86,8 @@ cucumberCli.run(function (succeeded){
   if (process.stdout.write('')){
     exitNow();
   } else {
-      /**
-       * write() returned false, kernel buffer is not empty yet...
+
+      /** write() returned false, kernel buffer is not empty yet...
        */
     process.stdout.on('drain', exitNow);
   }
