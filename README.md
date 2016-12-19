@@ -259,6 +259,11 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 ## Troubleshooting
 
 
+## History
+
+Webdriverio-cucumber-js was originated from [John Doherty's](https://courseof.life/johndoherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
+
+
 ## License
 
 [MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://app.yunojuno.com/p/larryg)
