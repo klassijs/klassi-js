@@ -14,11 +14,13 @@ var fs = require('fs-plus'),
     firefox = require('geckodriver'),
     expect = require('chai').expect,
     assert = require("chai").assert,
+    webdrivercss = require('webdrivercss-custom-v4-compatible'),
     reporter = require('cucumber-html-reporter');
 
-global.DEFAULT_TIMEOUT = 10 * 1000; // 10 second default
+global.DEFAULT_TIMEOUT = 30 * 1000; // 30 second default
 
-var driver = {};
+var driver = {},
+    screenWidth = [752, 1008]; //[240, 496, 752, 1008];
 
 /** create the web browser based on global var set in index.js
  */
@@ -31,6 +33,7 @@ function getDriverInstance(){
             acceptSslCerts: true,
             chromeOptions: {
                 "args": ["start-maximized"]
+
             },
             'phantomjs.binary.path': phantomjs.path,
             'geckodriver.firefox.bin': firefox.path,
@@ -38,8 +41,20 @@ function getDriverInstance(){
         }
     }).init();
 
+    /**
+     * initialise WebdriverCSS for `driver` instance
+     */
+    webdrivercss.init(driver, {
+        screenshotRoot: './webdrivercss/baseline/',
+        failedComparisonsRoot: './webdrivercss/diffs/',
+        misMatchTolerance: 1.15,
+        screenWidth: screenWidth,
+        updateBaseline: true
+    });
+
     return driver;
 }
+
 
 function consoleInfo(){
     var args = [].slice.call(arguments),
@@ -48,13 +63,16 @@ function consoleInfo(){
     console.log(output);
 }
 
+
 function World(){
     /** create a list of variables to expose globally and therefore accessible within each step definition
      * @type {{driver: null, webdriverio, waitUntil: *, expect: *, assert: (any), trace: consoleInfo, page: {}, shared: {}}}
      */
     var runtime = {
         driver: null,               // the browser object
-        webdriverio: webdriverio,   // the raw webdriverio driver
+        webdriverio: webdriverio,   // the raw webdriverio driver module, providing access to static properties/methods
+        webdrivercss: webdrivercss, // the raw webdrivercss driver function
+        screenWidth: screenWidth,
         waitUntil: webdriverio.waitUntil,  // provide easy access to webdriverio 'wait until' methods
         expect: expect,             // expose chai expect to allow variable testing
         assert: assert,             // expose chai assert to allow variable testing
@@ -138,7 +156,7 @@ module.exports = function (){
 
             /** sets the broswer window size to maximum
              */
-            driver.windowHandleSize({width: 1600, height: 768})
+            // driver.windowHandleSize({width: 1600, height: 768})
 
         }
         return driver

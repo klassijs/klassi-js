@@ -20,8 +20,22 @@ module.exports = {
 
              /** now wait for the body element to be present
               */
-             return driver.waitUntil(driver.element('body'), timeout);
+             return driver.waitUntil(driver.element('body'));
          });
+    },
+
+    /** Takes screen shots of page in sections for comparison to previous screenshots
+     *  to look for any changes that may have occurred, intended or not during regression.
+     * @params page
+     */
+    cssImages: function(page){
+
+        if (page.cssImages) {
+            for (var a = 0, b = page.cssImages.length; a < b; a++) {
+                var item = page.cssImages[a];
+                driver.webdrivercss([item]);
+            }
+        }
     }
 
 };

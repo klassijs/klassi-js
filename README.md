@@ -1,7 +1,10 @@
 [![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?downloads=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
 
-# webdriverio-cucumber-js
+# webdriverio-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f)
   A debuggable JS BDD framework that uses [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation")
+
+
+[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originated from [John Doherty's](https://www.linkedin.com/in/john-i-doherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
 
 ## Installation
 
@@ -259,11 +262,6 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 ## Troubleshooting
 
 
-## History
-
-Webdriverio-cucumber-js was originated from [John Doherty's](https://courseof.life/johndoherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
-
-
 ## License
 
-[MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://app.yunojuno.com/p/larryg)
+[MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://uk.linkedin.com/in/goddardl)
