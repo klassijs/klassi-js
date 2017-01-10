@@ -12,12 +12,11 @@ module.exports = {
      * @param {string} searchQuery
      * @returns {Promise} a promise to enter the search values
      */
-    preformSearch: function (searchQuery) {
+    performSearch: function (searchQuery) {
 
         var selector = page.googleSearch.elements.searchInput;
 
-        /** return a promise so the calling function knows the task has completed
-         */
-        return driver.elements(selector, driver.keys(searchQuery).keys('Enter'));
+        /** return a promise so the calling function knows the task has completed */
+        return driver.elements(selector, driver.keys(searchQuery).keys('Enter')).pause(200);
     }
 };

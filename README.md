@@ -1,19 +1,20 @@
 [![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?downloads=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
 
-# webdriverio-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f)
+# webdriverio-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/webdriverio-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/webdriverio-cucumber-js)
+
   A debuggable JS BDD framework that uses [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation")
 
-
-[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originated from [John Doherty's](https://www.linkedin.com/in/john-i-doherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
 
 ## Installation
 
 ```bash
 npm install webdriverio-cucumber-js
-
-# install and launch a selenium standalone server with chrome, firefox and phantomjs drivers to run your tests locally.
-
-npm install selenium-standalone@latest -g --save-dev && selenium-standalone install && selenium-standalone start
+&&
+# To run your test locally, you'll need a local selenium server running, you can install and launch a selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a seperate terminal:
+&&
+npm install selenium-standalone@latest -g --save-dev
+selenium-standalone install
+selenium-standalone start
 ```
 
 ## Usage
@@ -152,9 +153,41 @@ this.When(/^I search Google for "([^"]*)"$/, function (searchQuery) {
     return helpers.loadPage('http://www.google.co.uk').then(function() {
 
         // use a method on the page object which also returns a promise
-        return page.googleSearch.preformSearch(searchQuery);
+        return page.googleSearch.performSearch(searchQuery);
     })
 });
+```
+
+### CSS regression functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
+
+Automatic visual regression testing, gives the ability to take and save fullpage screenshots or of specific parts of the application / page under test.
+
+You will need to have GraphicsMagick preinstalled on your system because WebdriverCSS uses it for image processing. To install GraphicsMagick follow the [instructions here](https://github.com/webdriverio/webdrivercss#install) .
+
+```js
+// ./runtime/helpers.js
+
+cssImages: function(pageName){
+    return driver.webdrivercss(pageName, {
+        name: '',
+        elem: ''
+    })
+}
+```
+And its usage within a step definition:
+
+```js
+module.exports = function (){
+
+    this.Given(/^I am on klassifashion home page$/, function () {
+
+        return helpers.loadPage('http://klassifashion.com', 10).then(function(){
+
+            /** Take an image of the page under test */
+            return helpers.cssImages(pageName)
+        })
+    });
+};
 ```
 
 ### Shared objects
@@ -259,8 +292,13 @@ node ./node_modules/webdriverio-cucumber-js/index.js
 
 Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github.com/larryg01/webdriverio-cucumber-js/issues) and, if possible, please provide enough information to allow the bug to be reproduced.
 
-## Troubleshooting
+## Contributing
 
+Please fork, add specs, and send pull requests! In lieu of a formal styleguide, take care to maintain the existing coding style.
+
+## Credits
+
+[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originated from [John Doherty's](https://www.linkedin.com/in/john-i-doherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
 
 ## License
 

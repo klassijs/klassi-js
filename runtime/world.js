@@ -17,12 +17,13 @@ var fs = require('fs-plus'),
     webdrivercss = require('webdrivercss-custom-v4-compatible'),
     reporter = require('cucumber-html-reporter');
 
-global.DEFAULT_TIMEOUT = 30 * 1000; // 30 second default
+global.DEFAULT_TIMEOUT = 30 * 1000; // 30 seconds default
 
 var driver = {},
-    screenWidth = [752, 1008]; //[240, 496, 752, 1008];
+    screenWidth = [1008]; //[752, 1008, 1280];
 
 /** create the web browser based on global var set in index.js
+ * @returns {{}}
  */
 function getDriverInstance(){
 
@@ -35,21 +36,20 @@ function getDriverInstance(){
                 "args": ["start-maximized"]
 
             },
-            'phantomjs.binary.path': phantomjs.path,
             'geckodriver.firefox.bin': firefox.path,
+            'phantomjs.binary.path': phantomjs.path,
             path: chromedriver.path
         }
     }).init();
 
-    /**
-     * initialise WebdriverCSS for `driver` instance
+    /** initialise WebdriverCSS for `driver` instance
      */
     webdrivercss.init(driver, {
         screenshotRoot: './webdrivercss/baseline/',
         failedComparisonsRoot: './webdrivercss/diffs/',
         misMatchTolerance: 1.15,
         screenWidth: screenWidth,
-        updateBaseline: true
+        updateBaseline: false
     });
 
     return driver;
@@ -57,23 +57,30 @@ function getDriverInstance(){
 
 
 function consoleInfo(){
+
     var args = [].slice.call(arguments),
         output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
 
     console.log(output);
 }
 
+/**
+ * Wait function - measured in seconds for pauses during tests to give time for processes such as a page loading or the user to see what the test is doing
+ * @param seconds
+ */
+function wait(seconds) {
+    driver.pause(seconds * 1000);
+    return driver;
+}
 
 function World(){
     /** create a list of variables to expose globally and therefore accessible within each step definition
-     * @type {{driver: null, webdriverio, waitUntil: *, expect: *, assert: (any), trace: consoleInfo, page: {}, shared: {}}}
+     * @type {{driver: null, webdriverio: *, webdrivercss: *, expect: *, assert: (any), trace: consoleInfo, page: {}, shared: {}}}
      */
     var runtime = {
         driver: null,               // the browser object
         webdriverio: webdriverio,   // the raw webdriverio driver module, providing access to static properties/methods
         webdrivercss: webdrivercss, // the raw webdrivercss driver function
-        screenWidth: screenWidth,
-        waitUntil: webdriverio.waitUntil,  // provide easy access to webdriverio 'wait until' methods
         expect: expect,             // expose chai expect to allow variable testing
         assert: assert,             // expose chai assert to allow variable testing
         trace: consoleInfo,         // expose an info method to log output to the console in a readable/visible format
@@ -84,7 +91,6 @@ function World(){
     /** expose properties to step definition methods via global variables
      */
     Object.keys(runtime).forEach(function (key){
-
         /** make property/method avaiable as a global (no this. prefix required)
          */
         global[key] = runtime[key];
@@ -124,13 +130,13 @@ function World(){
         /** if we managed to import some directories, expose them
          */
         if (Object.keys(allDirs).length > 0){
-
             /** expose globally
              * @type {{}}
              */
             global.shared = allDirs;
         }
     }
+
     /** add helpers
      */
     global.helpers = require('../runtime/helpers.js');
@@ -153,15 +159,15 @@ module.exports = function (){
         if (!global.driver){
 
             global.driver = getDriverInstance();
-
             /** sets the broswer window size to maximum
              */
             // driver.windowHandleSize({width: 1600, height: 768})
-
         }
         return driver
     });
 
+    /**  compile and generate a report at the end of the test run
+     */
     this.registerHandler('AfterFeatures', function (features, done){
 
         if (global.reportsPath && fs.existsSync(global.reportsPath)){
