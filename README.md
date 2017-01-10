@@ -9,9 +9,9 @@
 
 ```bash
 npm install webdriverio-cucumber-js
-&&
+
 # To run your test locally, you'll need a local selenium server running, you can install and launch a selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a seperate terminal:
-&&
+
 npm install selenium-standalone@latest -g --save-dev
 selenium-standalone install
 selenium-standalone start
@@ -101,7 +101,6 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `page`       | collection of **page** objects loaded from disk and keyed by filename |
 | `shared`     | collection of **shared** objects loaded from disk and keyed by filename |
 | `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
-| `waituntil`  | the webdriver [waitUntil](http://webdriver.io/api/utility/waitUntil.html) class used to wait for elements/events |
 | `expect`     | instance of [chai expect](http://chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
 | `assert`     | instance of [chai assert](http://chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |
@@ -294,7 +293,7 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 
 ## Contributing
 
-Please fork, add specs, and send pull requests! In lieu of a formal styleguide, take care to maintain the existing coding style.
+Every and anyone is welcome to contribute to this project. you can contribute by forking, adding specs and sending pull requests, submitting bugs or suggesting improvements by [opening an issue on GitHub](https://github.com/larryg01/webdriverio-cucumber-js/issues)  In lieu of a formal styleguide, please take care to maintain the existing coding style.
 
 ## Credits
 
