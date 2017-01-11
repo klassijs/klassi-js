@@ -1,4 +1,4 @@
-[![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?downloads=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
+[![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?compact=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
 
 # webdriverio-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/webdriverio-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/webdriverio-cucumber-js)
 
