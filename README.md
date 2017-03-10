@@ -293,11 +293,7 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 
 ## Contributing
 
-Every and anyone is welcome to contribute to this project. you can contribute by forking, adding specs and sending pull requests, submitting bugs or suggesting improvements by [opening an issue on GitHub](https://github.com/larryg01/webdriverio-cucumber-js/issues)  In lieu of a formal styleguide, please take care to maintain the existing coding style.
-
-## Credits
-
-[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originated from [John Doherty's](https://www.linkedin.com/in/john-i-doherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
+You are welcome to contributes to this project, if you have any comments or suggestions, please [raise an issue on GitHub](https://github.com/larryg01/webdriverio-cucumber-js/issues)  or fork the project and then issue a pull request with suggested improvements.
 
 ## License
 
