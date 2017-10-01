@@ -1,6 +1,6 @@
 'use strict';
 
-var path = require('path'),
+const path = require('path'),
     program = require('commander'),
     pjson = require('./package.json'),
     cucumber = require('cucumber');
@@ -70,25 +70,23 @@ if (program.tags) {
  */
 process.argv.push('-S');
 
-/** execute cucumber
+/** execute cucumber Cli
  */
-var cucumberCli = cucumber.Cli(process.argv);
-
+let cucumberCli = cucumber.Cli(process.argv);
 global.cucumber = cucumber;
 
-cucumberCli.run(function (succeeded){
-  var code = succeeded ? 0 : 1;
+cucumberCli.run(function (succeeded) {
+    let code = succeeded ? 0 : 1;
 
-  function exitNow(){
-    process.exit(code);
-  }
-
-  if (process.stdout.write('')){
-    exitNow();
-  } else {
-
-      /** write() returned false, kernel buffer is not empty yet...
-       */
-    process.stdout.on('drain', exitNow);
-  }
+    function exitNow() {
+        process.exit(code);
+    }
+    if (process.stdout.write('')) {
+        exitNow();
+    }
+    else {
+        /** write() returned false, kernel buffer is not empty yet...
+         */
+        process.stdout.on('drain', exitNow);
+    }
 });

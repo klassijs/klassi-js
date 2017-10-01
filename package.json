@@ -1,6 +1,6 @@
 {
   "name": "webdriverio-cucumber-js",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "A debuggable JS BDD framework that uses webdriver.io (the Selenium 2.0 bindings for NodeJS) and cucumber-js",
   "main": "index.js",
   "scripts": {
@@ -33,22 +33,22 @@
     "url": "https://github.com/larryg01/webdriverio-cucumber-js/issues"
   },
   "engines": {
-    "node": ">= 6.9.0"
+    "node": ">= 8.4.0"
   },
   "homepage": "https://github.com/larryg01/webdriverio-cucumber-js#readme",
   "dependencies": {
-    "chai": "3.5.0",
-    "chalk": "1.1.3",
-    "chromedriver": "2.25.1",
-    "commander": "2.9.0",
-    "cucumber": "1.2.2",
-    "cucumber-html-reporter": "0.2.8",
-    "fs-plus": "2.9.1",
-    "geckodriver": "1.1.2",
-    "merge": "1.2.0",
-    "phantomjs-prebuilt": "2.1.12",
-    "require-dir": "0.3.0",
-    "webdrivercss-custom-v4-compatible": "github:deniskudelin/webdrivercss#beta-rc1",
-    "webdriverio": "4.4.0"
+    "chai": "^4.1.2",
+    "chalk": "^2.1.0",
+    "chromedriver": "^2.32.3",
+    "commander": "^2.11.0",
+    "cucumber": "^1.3.3",
+    "cucumber-html-reporter": "^3.0.4",
+    "fs-plus": "^3.0.1",
+    "geckodriver": "^1.9.0",
+    "merge": "^1.2.0",
+    "phantomjs-prebuilt": "^2.1.15",
+    "require-dir": "^0.3.2",
+    "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1",
+    "webdriverio": "^4.8.0"
   }
 }

@@ -51,16 +51,25 @@ By default tests are run using Google Chrome, to run tests using another browser
 A feature file is a [Business Readable, Domain Specific Language](http://martinfowler.com/bliki/BusinessReadableDSL.html) file that lets you describe software’s behaviour without detailing how that behaviour is implemented. Feature files are written using the [Gherkin syntax](https://github.com/cucumber/cucumber/wiki/Gherkin) and must live in a folder named **features** within the root of your project.
 
 ```gherkin
-# ./features/google-search.feature
+duckDuckGo-search.feature
 
-Feature: Searching for apps with google
+Feature: Searching for apps with duckduckgo
   As an internet user
   In order to find out more about certain user apps
   I want to be able to search for information about the required apps
 
-  Scenario: Google search for the britain's got talent app
-    When I search Google for "britain's got talent app"
-    Then I should see some results
+  Background:
+    Given The user arrives on the duckduckgo search page
+
+  Scenario Outline: User inputs some search data
+    When they input <searchword>
+    Then they should see some results
+
+    Examples:
+      |searchword |
+      |britian's got talent |
+      |angry birds          |
+
 ```
 
 The browser automatically closes after each scenario to ensure the next scenario uses a fresh browser environment.
@@ -72,7 +81,7 @@ Step definitions act as the glue between features files and the actual system un
 _To avoid confusion **always** return a JavaScript promise your step definition in order to let cucumber know when your task has completed._
 
 ```javascript
-// ./step-definitions/google-search-steps.js
+// ./step-definitions/duckDuckGo-search-steps.js
 
 module.exports = function () {
 
@@ -109,36 +118,38 @@ The following variables are available within the ```Given()```, ```When()``` and
 
 ### Page objects
 
-Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/google-search.js``` becomes ```page.googleSearch```.
+Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/duckDuckGo-search.js``` becomes ```page.googleSearch```.
 
 Page objects also have access to the same runtime variables available to step definitions.
 
 An example page object:
 
 ```javascript
-// ./page-objects/gogole-search.js
+// ./page-objects/duckDuckGo-search.js
 
 module.exports = {
 
-    url: 'http://google.co.uk',
-    elements: {
-        searchInput: ('q'),
-        searchResultLink: ('div.g > h3 > a')
-    },
+    /** test searching for inputted data
+     */
+    url: 'https://duckduckgo.com/',
 
-    /**
-     * enters a search term into Google's search box and presses enter
-     * @param {string} searchQuery
+    /** enters a search term into ebay's search box and presses enter
+     * @param {string} searchWord
      * @returns {Promise} a promise to enter the search values
      */
-    preformSearch: function (searchQuery) {
+    performSearch: function (searchWord) {
 
-        var selector = page.googleSearch.elements.searchInput;
+        let elements = {
+            searchInput: ('#search_form_input_homepage'),
+            searchResultLink: ('div.g > h3 > a')
+        };
 
-        /**
-         * return a promise so the calling function knows the task has completed
-         */
-        return driver.element(selector, driver.keys(searchQuery), driver.keys('Enter'));
+        let selector = elements.searchInput;
+
+        return driver.setValue(selector, searchWord).then(function(){
+            
+            return driver.click('#search_button_homepage')
+        });
     }
 };
 ```
@@ -146,15 +157,17 @@ module.exports = {
 And its usage within a step definition:
 
 ```js
-// ./step-definitions/google-search-steps.js
-this.When(/^I search Google for "([^"]*)"$/, function (searchQuery) {
+// ./step-definitions/duckDuckGo-search-steps.js
 
-    return helpers.loadPage('http://www.google.co.uk').then(function() {
-
-        // use a method on the page object which also returns a promise
-        return page.googleSearch.performSearch(searchQuery);
-    })
-});
+     this.Then(/^The user arrives on the duckduckgo search page$/, function() {
+            return helpers.loadPage(page.duckDuckGoSearch.url, 10)
+        });
+    
+        this.Then(/^they input (.*)$/, function(searchWord) {
+    
+                /** use a method on the page object which also returns a promise */
+                return page.duckDuckGoSearch.performSearch(searchWord);
+        });
 ```
 
 ### CSS regression functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
@@ -178,14 +191,18 @@ And its usage within a step definition:
 ```js
 module.exports = function (){
 
-    this.Given(/^I am on klassifashion home page$/, function () {
-
-        return helpers.loadPage('http://klassifashion.com', 10).then(function(){
-
-            /** Take an image of the page under test */
-            return helpers.cssImages(pageName)
-        })
-    });
+    this.Then(/^they should see some results$/, function() {
+            return driver.waitUntil(driver.element('div.g'), 10).then(function(){
+                return driver.element('div.g')
+            })
+                .then(function(elements){
+                    expect(elements.length).to.not.equal(0);
+                }).then(function(){
+                    
+                    /** Take an image of the page under test */
+                    return helpers.cssImages('search')
+                })
+        });
 };
 ```
 
@@ -213,8 +230,8 @@ module.exports = function () {
 
     this.Given(/^I am logged in"$/, function () {
 
-        driver.element('usn').keys(shared.testData.username);
-        driver.element('pass').keys(shared.testData.password);
+        driver.setValue('usn', shared.testData.username);
+        driver.setValue('pass', shared.testData.password);
     });
 };
 ```
@@ -243,16 +260,16 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 ```js
 module.exports = function () {
 
-    this.When(/^I search Google for "([^"]*)"$/, function (searchQuery, done) {
+    this.When(/^I search DuckDuckGo for "([^"]*)"$/, function (searchQuery, done) {
 
-        driver.element('q').then(function(input) {
+        driver.element('#search_form_input_homepage').then(function(input) {
             expect(input).to.exist;
             debugger; // <<- your IDE should step in at this point, with the browser open
             return input;
         })
         .then(function(input){
-            input.keys(searchQuery);
-            input.keys(driver.keys('Enter'));
+            input.setValue(selector, searchQuery);
+            input.setValue(selector, 'Enter');
 
             done(); // <<- let cucumber know you're done
         });
@@ -266,11 +283,11 @@ You can use the framework without any command line arguments if your application
 ```
 .
 ├── features
-│   └── google-search.feature
+│   └── duckDuckGo-search.feature
 ├── step-definitions
-│   └── google-search-steps.js
+│   └── duckDuckGo-search-steps.js
 ├── page-objects
-│   └── google-search.js
+│   └── duckDuckGo-search.js
 └── shared-objects
 │   ├── test-data.js
 │   └── stuff.json
@@ -293,7 +310,7 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 
 ## Contributing
 
-You are welcome to contributes to this project, if you have any comments or suggestions, please [raise an issue on GitHub](https://github.com/larryg01/webdriverio-cucumber-js/issues)  or fork the project and then issue a pull request with suggested improvements.
+You are welcome to contribute to this project, for comments or suggestions, feel free to [raise an issue on GitHub](https://github.com/larryg01/webdriverio-cucumber-js/issues)  or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
 
 ## Credits
 
@@ -301,4 +318,4 @@ You are welcome to contributes to this project, if you have any comments or sugg
 
 ## License
 
-[MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://uk.linkedin.com/in/goddardl)
+[MIT License](LICENSE) &copy; [Larry Goddard](https://uk.linkedin.com/in/goddardl)
