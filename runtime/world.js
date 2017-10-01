@@ -18,58 +18,44 @@ let fs = require('fs-plus'),
     webdrivercss = require('webdrivercss-custom-v4-compatible'),
     reporter = require('cucumber-html-reporter');
 
-global.DEFAULT_TIMEOUT = 30 * 1000; // 30 seconds default
+// Browser drivers
+let PhantomJsDriver = require('./phantomJsDriver'),
+    ChromeDriver = require('./chromeDriver'),
+    FirefoxDriver = require('./firefoxDriver');
 
-let driver = {},
-    screenWidth = []; //[752, 1008, 1280];
+global.DEFAULT_TIMEOUT = 30 * 1000; // 30 seconds default
 
 /** create the web browser based on global let set in index.js
  * @returns {{}}
  */
-function getDriverInstance(){
+function getDriverInstance() {
+    let driver;
+
+    let screenWidth = []; //[752, 1008, 1280];
 
     switch (browserName || '') {
 
         case 'firefox': {
-            driver = new webdriverio.remote({
-                desiredCapabilities: {
-                    browserName: 'firefox',
-                    javascriptEnabled: true,
-                    acceptSslCerts: true,
-                    'geckodriver.firefox.bin': firefox.path
-                }
-            }).init()
-        }
-            break;
+            driver = new FirefoxDriver();
+        } break;
 
         case 'phantomjs': {
-            driver = new webdriverio.remote({
-                desiredCapabilities: {
-                    browseName: 'phantomjs',
-                    javascriptEnabled: true,
-                    acceptSslCerts: true,
-                    'phantomjs.binary.path': phantomjs.path
-                }
-            }).init();
-        }
-            break;
+            driver = new PhantomJsDriver();
+        } break;
 
-        /**
-         * default to chrome
-         */
-        default: {
-            driver = webdriverio.remote({
-                desiredCapabilities: {
-                    browserName: 'chrome',
-                    javascriptEnabled: true,
-                    acceptSslCerts: true,
-                    chromeOptions: {
-                    //     "args": ["start-maximized"]
-                    },
-                    path: chrome.path
-                }
-            }).init();
+        case 'chrome': {
+            driver = new ChromeDriver();
         }
+
+        // try to load from file
+        // default: {
+        //     let driverFileName = path.resolve(process.cwd(), browserName);
+        //
+        //     if (!fs.isFileSync(driverFileName)) {
+        //         throw new Error('Could not find driver file: ' + driverFileName);
+        //     }
+        //     driver = require(driverFileName)();
+        // }
     }
 
     /** initialise WebdriverCSS for `driver` instance
@@ -185,16 +171,16 @@ module.exports = function (){
 
     /** create the driver before scenario if it's not instantiated
      */
-    this.registerHandler('BeforeScenario', function(){
-
-        if (!global.driver){
-
-            global.driver = getDriverInstance();
-            /** sets the broswer window size to maximum
-             */
-            driver.windowHandleMaximize();
+    this.registerHandler('BeforeScenario', function () {
+        if (!global.driver) {
+            global.driver = getDriverInstance().
+            then(function () {
+                /** sets the browser window size to maximum
+                 */
+                driver.windowHandleFullscreen();
+            }).init()
         }
-        return driver;
+        return driver
     });
 
     /**  compile and generate a report at the end of the test run
@@ -208,7 +194,7 @@ module.exports = function (){
                 jsonFile: path.resolve(global.reportsPath, 'cucumber-report.json'),
                 output: path.resolve(global.reportsPath, 'cucumber-report.html'),
                 reportSuiteAsScenarios: true,
-                launchReport: true,
+                launchReport: (!global.disableTestReport),
                 ignoreBadJsonFile: true
             };
             reporter.generate(reportOptions)
