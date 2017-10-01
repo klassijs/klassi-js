@@ -63,9 +63,9 @@ function getDriverInstance(){
                     browserName: 'chrome',
                     javascriptEnabled: true,
                     acceptSslCerts: true,
-                    // chromeOptions: {
+                    chromeOptions: {
                     //     "args": ["start-maximized"]
-                    // },
+                    },
                     path: chrome.path
                 }
             }).init();
@@ -192,7 +192,7 @@ module.exports = function (){
             global.driver = getDriverInstance();
             /** sets the broswer window size to maximum
              */
-            // driver.windowHandleMaximize();
+            driver.windowHandleMaximize();
         }
         return driver;
     });
