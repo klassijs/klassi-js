@@ -1,6 +1,6 @@
 [![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?download=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
 
-# webdriverio-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/webdriverio-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/webdriverio-cucumber-js)
+# webdriverio-cucumber-js 
 
   A debuggable JS BDD framework that uses [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation")
 
@@ -118,7 +118,7 @@ The following variables are available within the ```Given()```, ```When()``` and
 
 ### Page objects
 
-Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/duckDuckGo-search.js``` becomes ```page.googleSearch```.
+Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/duckDuckGo-search.js``` becomes ```page.duckDuckGoSearch```.
 
 Page objects also have access to the same runtime variables available to step definitions.
 
