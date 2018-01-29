@@ -316,7 +316,7 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## Credits
 
-[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 but has been completely independent of the that project since then. Since the fork many improvements have been made to include the complete change from using [selenium](https://github.com/SeleniumHQ/selenium) to using [webdriverio](http://webdriver.io/) using the open development model but without breaking the utilities operation.
+[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork there are many improvements and changes made including the complete move from [selenium](https://github.com/SeleniumHQ/selenium) to using [webdriverio](http://webdriver.io/) still using the open development model but without breaking the utilities operation.
  
 
 ## License
