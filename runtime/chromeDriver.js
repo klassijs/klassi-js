@@ -1,3 +1,8 @@
+/**
+ * Klassi Automated Testing Tool
+ * Created by Larry Goddard
+ * Contributors:
+ */
 'use strict';
 
 const webdriverio = require('webdriverio'),
@@ -8,17 +13,19 @@ const webdriverio = require('webdriverio'),
  */
 module.exports = function chromeDriver(){
 
-    let driver = webdriverio.remote({
+    let driver = new webdriverio.remote({
         desiredCapabilities: {
             browserName: 'chrome',
             javascriptEnabled: true,
             acceptSslCerts: true,
             chromeOptions: {
-                args: ['start-maximized']
+                args: ['start-maximized',
+                // 'headless',
+                // 'disable-gpu'
+                ],
             },
             path: chromedriver.path
         }
     });
-
     return driver;
 };

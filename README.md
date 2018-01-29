@@ -9,6 +9,7 @@
 
 ```bash
 npm install webdriverio-cucumber-js
+&
 
 # To run your test locally, you'll need a local selenium server running, you can install and launch a selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a seperate terminal:
 
@@ -32,9 +33,10 @@ node index.js -t @search -b firefox     // if you are already inside the project
 -v, --version                output the version number
 -s, --steps <path>           path to step definitions. defaults to ./step-definitions
 -p, --pageObjects <path>     path to page objects. defaults to ./page-objects
--o, --sharedObjects [paths]  path to shared objects (repeatable). defaults to ./shared-objects
+-o, --sharedObjects [paths]  path to shared objects - repeatable. defaults to ./shared-objects
 -b, --browser <path>         name of browser to use. defaults to chrome
 -r, --reports <path>         output path to save reports. defaults to ./reports
+-d, --disableTestReport [optional]  disables the test report from opening after test completion
 -t, --tags <tagName>         name of tag to run
 ```
 
@@ -310,11 +312,12 @@ Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github
 
 ## Contributing
 
-You are welcome to contribute to this project, for comments or suggestions, feel free to [raise an issue on GitHub](https://github.com/larryg01/webdriverio-cucumber-js/issues)  or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
+Anyone can contribute to this project simply by [opening an issue here](https://github.com/larryg01/webdriverio-cucumber-js/issues)  or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
 
 ## Credits
 
-[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originated from [John Doherty's](https://www.linkedin.com/in/john-i-doherty) initial npm javaScript project called [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js)
+[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 but has been completely independent of the that project since then. Since the fork many improvements have been made to include the complete change from using [selenium](https://github.com/SeleniumHQ/selenium) to using [webdriverio](http://webdriver.io/) using the open development model but without breaking the utilities operation.
+ 
 
 ## License
 

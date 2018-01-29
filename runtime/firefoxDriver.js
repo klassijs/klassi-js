@@ -1,3 +1,8 @@
+/**
+ * Klassi Automated Testing Tool
+ * Created by Larry Goddard
+ * Contributors:
+ */
 'use strict';
 
 const webdriverio = require('webdriverio'),
@@ -8,13 +13,19 @@ const webdriverio = require('webdriverio'),
  */
 module.exports = function firefoxDriver(){
 
-    let driver = webdriverio.remote({
-        desiredCapabilities: {
+    let options = {desiredCapabilities: {
             browserName: 'firefox',
             javascriptEnabled: true,
             acceptSslCerts: true,
-            'geckodriver.firefox.bin': firefox.path
+            setFirefoxOptions: {
+                args: ['--headless'],
+            'geckodriver.firefox.bin': firefox.path,
         }
+    }};
+    let driver = webdriverio.remote(options).then(function(){
+        /** sets the browser window size to maximum
+         */
+        driver.windowHandleMaximize();
     });
 
     return driver;

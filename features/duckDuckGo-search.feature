@@ -13,5 +13,5 @@ Feature: Searching for apps with duckduckgo
 
     Examples:
       |searchword |
-      |britian's got talent |
-      |angry birds          |
+      |space 1999 |
+#      |angry birds |

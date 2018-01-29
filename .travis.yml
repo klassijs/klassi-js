@@ -10,4 +10,4 @@ before_script:
   - npm install selenium-standalone@latest -g
   - selenium-standalone install
   - selenium-standalone start &
-  - sleep 5
+  - pause 5
