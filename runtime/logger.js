@@ -1,5 +1,5 @@
 /**
- * Klassi Automated Testing Tool
+ * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
  * Contributors:
  */
@@ -18,18 +18,18 @@ module.exports = {
         MyDate.setDate(MyDate.getDate());
         date = ('-' + '0' + MyDate.getDate()).slice(-2) + '-' + ('0' + (MyDate.getMonth()+1)).slice(-2) + '-' + MyDate.getFullYear() + ('-' + MyDate.getHours() + ':' + MyDate.getMinutes() );
 
-        let infoJsonFile = path.join('./log/infoLog/', date + '.json').replace(/ /gi, ''),
-            errorJsonFile = path.join('./log/errorLog/', date + '.json').replace(/ /gi, '');
-
+        let infoJsonFile = path.join('./log/infoLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, ''),
+            errorJsonFile = path.join('./log/errorLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, '');
+        
         fse.ensureFile(infoJsonFile, function (err) {
             if(err){
-                console.log('The infoLog Folder has NOT been created: ' + err);
+                log.error('The infoLog File has NOT been created: ' + err.stack);
             }
         });
 
         fse.ensureFile(errorJsonFile, function (err) {
             if(err){
-                console.log('The errorLog Folder has NOT been created: ' + err);
+                log.error('The errorLog File has NOT been created: ' + err.stack);
             }
         });
 

@@ -1,7 +1,7 @@
 {
   "name": "Klassi-Automated-Testing-Tool",
-  "version": "1.5.0",
-  "description": "A debuggable JS BDD framework that uses webdriver.io, JavaScript and cucumber-js",
+  "version": "2.0.0",
+  "description": "A debuggable JS BDD framework that uses webdriver.io, nodeJs, JavaScript and cucumber-js",
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
@@ -17,7 +17,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": " nyc node index.js -d "
+    "test": " nyc node index.js -d -t ~@wip"
   },
   "nyc": {
     "include": [
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/larryg01/webdriverio-cucumber-js#readme",
   "dependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "chalk": "^2.3.0",
     "chromedriver": "^2.33.2",
     "commander": "^2.11.0",
@@ -41,18 +41,17 @@
     "geckodriver": "^1.10.0",
     "merge": "^1.2.0",
     "moment": "^2.20.1",
+    "node-dir": "^0.1.17",
     "nodemailer": "^4.3.1",
-    "nodemailer-ses-transport": "^1.5.1",
     "phantomjs-prebuilt": "^2.1.16",
     "random-words": "0.0.1",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
     "require-dir": "^0.3.2",
+    "targz": "^1.0.1",
     "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1",
     "webdriverio": "^4.9.6",
     "winston": "^3.0.0-rc1"
   },
-  "devDependencies": {
-    "tar": "^4.2.0"
-  }
+  "devDependencies": {}
 }

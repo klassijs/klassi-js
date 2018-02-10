@@ -6,7 +6,7 @@ module.exports = {
    * Getting the Response Timing
    */
   resTime: function () {
-    let endPoint = (envConfig.ga_narnia_api_base_url + shared.apiData.url.baseUrl + shared.apiData.url.docID);
+    let endPoint = (envConfig.ga_narnia_api_base_url + shared.apiData.url.baseUrl + shared.apiData.url.docId);
     
     let options = {
       method: 'GET',

@@ -1,5 +1,5 @@
 /**
- * Klassi Automated Testing Tool
+ * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
  * Contributors:
  */
@@ -8,7 +8,7 @@
 const webdriverio = require('webdriverio'),
     chromedriver = require('chromedriver');
 
-/** create the web browser based on global let set in index.js
+/** createUrl the web browser based on globals set in index.js
  * @returns {{}}
  */
 module.exports = function chromeDriver(){
@@ -26,6 +26,7 @@ module.exports = function chromeDriver(){
             },
             path: chromedriver.path
         }
-    });
+    }).init();
+    
     return driver;
 };

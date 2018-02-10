@@ -1,10 +1,9 @@
 {
   "Details" : {
-    "Name": "klassi Automated Testing Tool",
+    "Name": "KlassiTech Automated Testing Tool",
     "Created by": "Larry Goddard",
     "Contributors": ""
   },
 
-  "ga_narnia_api_base_url": "http://gcms-api.eu-west-1.elasticbeanstalk.com/",
-  "ga_narnia_ccms_admin_base_url": "https://oup.cloudcms.net/#/"
+  "ga_narnia_api_base_url": "http://gcms-api.eu-west-1.elasticbeanstalk.com/"
 }

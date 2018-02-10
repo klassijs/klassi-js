@@ -1,5 +1,5 @@
 /**
- * Klassi Automated Testing Tool
+ * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
  * Contributors:
  */
@@ -14,6 +14,12 @@ function collectPaths(value, paths){
   paths.push(value);
   return paths;
 }
+
+/**
+ * Setting and Naming the Project Report files Globally
+ * @type {string}
+ */
+global.reportName = 'KlassiTech Automated Test Report';
 
 program
     .version(pjson.version)
@@ -31,11 +37,23 @@ program.on('--help', function(){
     console.log('  For more details please visit https://github.com/larryg01/webdriverio-cucumber-js#readme\n');
 });
 
-/** store browserName globally (used within world.js to build driver)
+/**
+ * add helpers
+ */
+global.helpers = require('./runtime/helpers.js');
+
+/**
+ *  adding global date function
+ */
+let date = helpers.currentDate();
+
+/**
+ * store browserName globally (used within world.js to build driver)
  */
 global.browserName = program.browser;
 
-/** used within world.js to import page objects
+/**
+ * used within world.js to import page objects
  */
 global.pageObjectPath = path.resolve(program.pageObjects);
 
@@ -60,7 +78,7 @@ process.argv.splice(2, 100);
 
 /** add switch to tell cucumber to produce json report files
  */
-process.argv.push('-f', 'pretty', '-f', 'json:' + path.resolve(__dirname, global.reportsPath, 'KlassiTech-report.json'));
+process.argv.push('-f', 'pretty', '-f', 'json:' + path.resolve(__dirname, global.reportsPath, global.reportName + '-' + date + '.json'));
 
 /** add cucumber world as first required script (this sets up the globals)
  */
@@ -76,7 +94,8 @@ if (program.tags) {
     process.argv.push('-t', program.tags);
 }
 
-/** add strict option (fail if there are any undefined or pending steps)
+/**
+ * add strict option (fail if there are any undefined or pending steps)
  */
 process.argv.push('-S');
 
@@ -94,7 +113,8 @@ oupCli.run(function (succeeded) {
     if (process.stdout.write('')) {
         exitNow();
     } else {
-        /** write() returned false, kernel buffer is not empty yet...
+        /**
+         * write() returned false, kernel buffer is not empty yet...
          */
         process.stdout.on('drain', exitNow);
     }
