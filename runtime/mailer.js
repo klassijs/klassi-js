@@ -11,7 +11,6 @@
 const nodemailer = require('nodemailer');
 
 module.exports = {
-    
     klassiSendMail: function () {
         let devTeam = (shared.emailList.nameList);
         /**
@@ -19,17 +18,16 @@ module.exports = {
          */
 
         let transporter = nodemailer.createTransport({
-            host: emailHost,
+            host: shared.emailList.auth.host,
             port: 465,
             secure: true,
-            auth: { user: sender, pass: password },
+            auth: { user: shared.emailList.auth.user, pass: shared.emailList.auth.pass },
             tls: { rejectUnauthorized: false }
         });
         
         let mailOptions = {
             to: devTeam,
-            // to: 'QA Analyst <larryg@klassitech.co.uk>',
-            from: 'OUP-QATEST <qatest@oup.com>',
+            from: 'Klassi-QATEST <email@email.com>',
             subject: global.reportName,
             alternative: true,
             attachments: [

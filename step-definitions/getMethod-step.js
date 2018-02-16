@@ -14,12 +14,4 @@ module.exports = function () {
     return page.getMethod.contApi();
   });
   
-  this.Then(/^That I verify the data type of the API$/, function () {
-    return page.getMethod.apiDataType();
-  });
-  
-  this.Then(/^That I verify the status codes and content of the API$/, function () {
-    return page.getMethod.contCode();
-  });
-  
 };

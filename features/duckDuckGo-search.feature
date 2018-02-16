@@ -1,4 +1,4 @@
-@search
+@search @wip
 Feature: Searching for apps with duckduckgo
   As an internet user
   In order to find out more about certain user apps
@@ -14,4 +14,4 @@ Feature: Searching for apps with duckduckgo
     Examples:
       |searchword |
       |space 1999 |
-#      |angry birds |
+      |angry birds |

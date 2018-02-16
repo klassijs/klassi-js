@@ -1,10 +1,15 @@
 {
   "Details" : {
     "Name": "KlassiTech Automated Testing Tool",
-    "Created by": "Larry Goddard",
-    "Contributors": ""
+    "Created by": "Larry Goddard"
   },
 
-  "nameList": "QA Analyst <larryg@klassitech.co.uk>, Larry <lcg1@hotmail.com>"
+  "auth":{
+    "host": "domain.com",
+    "user": "userEmail",
+    "pass": "password"
+  },
+
+  "nameList": "QA Analyst <email1@email.com>, Me <email2@email.com>"
 }
 

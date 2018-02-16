@@ -1,9 +1,8 @@
 {
   "Details" : {
     "Name": "KlassiTech Automated Testing Tool",
-    "Created by": "Larry Goddard",
-    "Contributors": ""
+    "Created by": "Larry Goddard"
   },
 
-  "ga_narnia_api_base_url": "http://gcms-api.eu-west-1.elasticbeanstalk.com/"
+  "api_base_url": "http://httpbin.org/"
 }

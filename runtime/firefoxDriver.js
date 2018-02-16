@@ -1,7 +1,6 @@
 /**
  * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
- * Contributors:
  */
 'use strict';
 
@@ -19,8 +18,7 @@ module.exports = function firefoxDriver(){
       javascriptEnabled: true,
       acceptSslCerts: true,
       setFirefoxOptions: {
-        args: ['--headless'],
-        // 'geckodriver.firefox.bin': firefox.path,
+        args: ['--headless']
       },
       'geckodriver.firefox.bin': firefox.path
     }

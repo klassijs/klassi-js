@@ -1,7 +1,6 @@
 /**
  * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
- * Contributors:
  */
 'use strict';
 

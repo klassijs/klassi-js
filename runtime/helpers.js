@@ -1,7 +1,6 @@
 /**
  * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
- * Contributors:
  */
 'use strict';
 
@@ -192,7 +191,7 @@ module.exports = {
         if (seconds < 10) {
             seconds = '0' + seconds
         }
-        return dd + '/' + mm + '/' + yyyy + ' ' + hours + ':' + minutes + ':' + seconds;
+        return dd + '-' + mm + '-' + yyyy + '-' + hours + ':' + minutes + ':' + seconds;
     },
 
     /**
@@ -230,36 +229,10 @@ module.exports = {
         }
         catch(err){
             if(err) {
-                log.info('This is a Email system error: ', err.stack);
+                console.log('This is a Email system error: ', err.stack);
             }
         }
-    },
-    
-/**
-   * ========== For all ASSERTIONS functions ==========
-   */
-    /**
-     *  Reformats date string into string
-     * @param dateString
-     * @returns {string}
-     */
-    reformatDateString: function (dateString) {
-        let months = {
-            '01': 'January',
-            '02': 'February',
-            '03': 'March',
-            '04': 'April',
-            '05': 'May',
-            '06': 'June',
-            '07': 'July',
-            '08': 'August',
-            '09': 'September',
-            '10': 'October',
-            '11': 'November',
-            '12': 'December'
-        };
-        let b = dateString.split('/');
-        return b[0] + ' ' + months[b[1]] + ' ' + b[2];
+        return this;
     },
 
     /**
@@ -325,9 +298,13 @@ module.exports = {
             return this;
         })
     },
-
+    
     /**
-     * ========== All API reusable functions ==========
+     *  ========== API calls for GET, PUT, POST and DELETE reusable functionality ==========
+     * @param endPoint
+     * @param method
+     * @param body
+     * @param url
      */
     /**
      * GET API function
@@ -344,59 +321,15 @@ module.exports = {
         };
 
         return request(options)
-            .then(function (response, err) {
+            .then(function (res, err) {
                 if (err) {
                     log.error('GET Api error msg: ', err.stack)
                 }
-                log.info(response.timings.response);
-                return response;
+                log.info(res.timings.response);
+                return res;
             });
     },
     
-    /**
-     *  API call for GET, PUT, POST and DELETE functionality
-     * @param endPoint
-     * @param method
-     * @param body
-     * @param fileName
-     * @param statusCode
-     */
-    apiCall: function (endPoint, method, body, fileName, statusCode) {
-        let options = {
-            url: endPoint,
-            method: method,
-            // body: {
-                body: body,
-                docId: fileName,
-            // },
-            json: true,
-            time: true,
-            resolveWithFullResponse: true,
-        };
-        
-        // if (method === 'DELETE' || 'POST'){
-        //     return fs.readFileSync(fileName, 'utf8', function (docId) {
-        //             console.log('this is something', docId);
-        //             options.body['docId'] = docId;
-        //
-        //     });
-        // }
-        return request(options)
-        .then(function (res) {
-            // expect(res.statusCode).to.equal(statusCode);
-            if (method === 'DELETE' || 'POST'){
-                console.log('this is a Delete or Post ' + (fs.readFileSync(fileName)));
-                return fs.readFileSync(fileName, "utf8")
-            }else{
-                console.log('this is a Create');
-                return helpers.writeTextFile(fileName, res.body.docId)
-            }
-            // console.log(options.body['docId']);
-            // return options.body['docId'];
-        });
-       
-    },
-  
   /**
    * Create 'PUT' API function
    * @param url
@@ -406,10 +339,9 @@ module.exports = {
   putApi: function (url, body, fileName) {
         url = (url);
         body = (body);
-        // fileName = (fileName);
 
     let options = {
-      method: 'PUT', //param
+      method: 'PUT',
       url: url,
       body: body,
       json: true,
@@ -434,21 +366,15 @@ module.exports = {
    * @param body
    * @returns {*|Promise<T>}
    */
-  // TODO: uncomment after API refactor
-  // postApi: function (url, body) {
   postApi: function (url, docId, body) {
         url = (url);
-        // TODO: to be deleted after API refactor (docId)
         docId = (docId);
         body = (body);
     
     let options = {
       method: 'POST',
       url: url,
-      // body: body,
-      // docId: docId,
       body: {
-        // TODO: to be deleted after API refactor (docId)
         docId: docId,
         payload: body,
       },

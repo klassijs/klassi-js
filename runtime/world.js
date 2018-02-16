@@ -22,51 +22,22 @@ const fs = require('fs-plus'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
 /**
- * Create the download folder for storing of all downloaded files
+ * Create the docs folder for storing all files
  * @type {string}
  */
-let fileDnldFldr = ('./shared-objects/fileDnldFolder/');
-  fse.ensureDir(fileDnldFldr, function (err) {
-    if(err){
-      log.error('The File Download Folder has NOT been created: ' + err.stack);
-    }
+let docsFolder = ('./shared-objects/docs');
+  fse.ensureDir(docsFolder,  function (err) {
+      if(err){
+          log.error('The Docs Folder has NOT been created: ' + err.stack);
+      }
   });
 
-let docsFolder = ('./shared-objects/docs');
-    fse.ensureDir(docsFolder,  function (err) {
-        if(err){
-            log.error('The Docs Folder has NOT been created: ' + err.stack);
-        }
-    });
-
-let apiUrlIdFile = path.join('./shared-objects/docs/apiUrlIdFile.txt'),
-    journalCodeFile = path.join('./shared-objects/docs/journalCodeFile.txt'),
-    journalNameFile = path.join('./shared-objects/docs/journalNameFile.txt'),
-    UrlIdFile = path.join('./shared-objects/docs/UrlIdFile.txt');
-
-fse.ensureFile(apiUrlIdFile, function (err) {
-    if(err){
-        log.error('The apiUrlIdFile File has NOT been created: ' + err.stack);
-    }
-});
-
-fse.ensureFile(journalCodeFile, function (err) {
-    if(err){
-        log.error('The journalCodeFile File has NOT been created: ' + err.stack);
-    }
-});
-
-fse.ensureFile(journalNameFile, function (err) {
-    if(err){
-        log.error('The journalNameFile File has NOT been created: ' + err.stack);
-    }
-});
-
-fse.ensureFile(UrlIdFile, function (err) {
-    if(err){
-        log.error('The UrlIdFile File has NOT been created: ' + err.stack);
-    }
-});
+let fileName = path.join('./shared-objects/docs/fileName.txt');
+  fse.ensureFile(fileName, function (err) {
+      if(err){
+          log.error('The fileName File has NOT been created: ' + err.stack);
+      }
+  });
 
 /**
  * for the Logging feature
@@ -119,11 +90,6 @@ function getDriverInstance() {
     case 'chrome': {
       driver = new ChromeDriver();
     } break;
-
-    default:{
-        driver = new ChromeDriver();
-      }
-      break;
 
   }
 
@@ -276,7 +242,6 @@ module.exports = function () {
    * compile and generate a report at the END of the test run and send an Email
    */
   this.registerHandler('AfterFeatures', function (features, done) {
-
     if (global.reportsPath && fs.existsSync(global.reportsPath)) {
       let reportOptions = {
         theme: 'bootstrap',
@@ -311,11 +276,11 @@ module.exports = function () {
       return driver.saveScreenshot().then(function (screenShot) {
           scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
           return driver.pause(500).then(function () {
-              // return driver.end()
+              return driver.end()
           })
       })
     }
-       // return driver.end();
+       return driver.end();
   });
   
   

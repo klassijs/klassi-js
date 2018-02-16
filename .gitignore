@@ -22,7 +22,6 @@ node_modules
 files
 cssImages
 reports
-shared-objects/docs
 coverage
 testDir
 

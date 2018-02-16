@@ -1,7 +1,6 @@
 /**
  * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
- * Contributors:
  */
 'use strict';
 
@@ -19,10 +18,11 @@ module.exports = function chromeDriver(){
             javascriptEnabled: true,
             acceptSslCerts: true,
             chromeOptions: {
-                args: ['start-maximized',
-                // 'headless',
-                // 'disable-gpu'
+                args: [
+                'start-maximized',
+                'headless',
                 ],
+                binary: '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
             },
             path: chromedriver.path
         }
