@@ -20,6 +20,7 @@ function collectPaths(value, paths){
  * @type {string}
  */
 global.reportName = 'KlassiTech Automated Test Report';
+global.projectName = 'Klassi Technologies';
 
 program
     .version(pjson.version)

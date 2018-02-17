@@ -34,16 +34,16 @@ let fileDnldFldr = ('./shared-objects/fileDnldFolder/'),
             log.error('The File Download Folder has NOT been created: ' + err.stack);
         }
     });
-  fse.ensureDir(docsFolder,  function (err) {
-      if(err){
-          log.error('The Docs Folder has NOT been created: ' + err.stack);
-      }
-  });
-  fse.ensureFile(fileName, function (err) {
-      if(err){
-          log.error('The fileName File has NOT been created: ' + err.stack);
-      }
-  });
+    fse.ensureDir(docsFolder,  function (err) {
+        if(err){
+            log.error('The Docs Folder has NOT been created: ' + err.stack);
+        }
+    });
+    fse.ensureFile(fileName, function (err) {
+        if(err){
+            log.error('The fileName File has NOT been created: ' + err.stack);
+        }
+    });
 
 /**
  * for the Logging feature
@@ -198,9 +198,7 @@ function World(){
      */
     global.sharedObjectPaths.forEach(function (itemPath){
       if (fs.existsSync(itemPath)){
-
         let dir = requireDir(itemPath, { camelcase: true });
-
         merge(allDirs, dir);
       }
     });
@@ -263,7 +261,7 @@ module.exports = function () {
           'Executed': 'Remote'
         },
         brandTitle: global.reportName + '-' + date,
-        name: 'Any Awesome Project'
+        name: global.projectName
       };
       reporter.generate(reportOptions);
           return helpers.klassiEmail();
