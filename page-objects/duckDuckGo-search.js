@@ -23,7 +23,6 @@ module.exports = {
           console.log(elements);
           expect(elements.length).to.not.equal(0);
       }).then(function(){
-          "use strict";
           // return helpers.cssImages('search')
       })
   }

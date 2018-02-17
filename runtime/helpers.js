@@ -311,7 +311,7 @@ module.exports = {
      */
     getAPI: function (endpoint) {
         let endPoint = (endpoint);
-
+        
         let options = {
             method: 'GET',
             url: endPoint,
@@ -319,102 +319,146 @@ module.exports = {
             time: true,
             resolveWithFullResponse: true,
         };
-
+        
         return request(options)
-            .then(function (res, err) {
-                if (err) {
-                    log.error('GET Api error msg: ', err.stack)
-                }
-                log.info(res.timings.response);
-                return res;
-            });
+        .then(function (response, err) {
+            if (err) {
+                log.error('GET Api error msg: ', err.stack)
+            }
+            log.info(response.timings.response);
+            return response;
+        });
     },
     
-  /**
-   * Create 'PUT' API function
-   * @param url
-   * @param body
-   * @returns {*|Promise<T>}
-   */
-  putApi: function (url, body, fileName) {
+    /**
+     *  API call for GET, PUT, POST and DELETE functionality
+     * @param url
+     * @param method
+     * @param body
+     * @param fileName
+     * @param statusCode
+     */
+    apiCall: function (endPoint, method, body, fileName) {
+        
+        // let random;
+        let options = {
+            url: endPoint,
+            method: method,
+            // body: {
+            body: body,
+            docId: fileName,
+            // },
+            json: true,
+            time: true,
+            resolveWithFullResponse: true,
+        };
+        
+        // if (method === 'DELETE' || 'POST'){
+        //     return fs.readFileSync(fileName, 'utf8', function (docId) {
+        //             console.log('this is something', docId);
+        //             options.body['docId'] = docId;
+        //
+        //     });
+        // }
+        return request(options)
+        .then(function (res) {
+            // expect(res.statusCode).to.equal(statusCode);
+            if (method === 'DELETE' || 'POST'){
+                console.log('this is a Delete or Post ' + (fs.readFileSync(fileName)));
+                return fs.readFileSync(fileName, "utf8")
+            }else{
+                console.log('this is a Create');
+                return helpers.writeTextFile(fileName, res.body.docId)
+            }
+            // console.log(options.body['docId']);
+            // return options.body['docId'];
+        });
+        
+    },
+    
+    /**
+     * Create 'PUT' API function
+     * @param url
+     * @param body
+     * @returns {*|Promise<T>}
+     */
+    putApi: function (url, body, fileName) {
         url = (url);
         body = (body);
-
-    let options = {
-      method: 'PUT',
-      url: url,
-      body: body,
-      json: true,
-      time: true,
-      resolveWithFullResponse: true,
-    };
-
-    return request(options)
-    .then(function (res) {
-      log.info('This is the doc_Id:- ', res);
-      return helpers.writeTextFile(fileName, res.body.docId);
-    })
-    .catch(function (err) {
-      log.error('PUT Api error msg:', err.stack)
-    });
-  },
-  
-  /**
-   * Edit 'POST' Api function
-   * @param url
-   * @param docId
-   * @param body
-   * @returns {*|Promise<T>}
-   */
-  postApi: function (url, docId, body) {
+        // fileName = (fileName);
+        
+        let options = {
+            method: 'PUT', //param
+            url: url,
+            body: body,
+            json: true,
+            time: true,
+            resolveWithFullResponse: true,
+        };
+        
+        return request(options)
+        .then(function (res) {
+            log.info('This is the doc_Id:- ', res);
+            return helpers.writeTextFile(fileName, res.body.docId);
+        })
+        .catch(function (err) {
+            console.log('PUT Api error msg:', err.stack)
+        });
+    },
+    
+    /**
+     * Edit 'POST' Api function
+     * @param url
+     * @param docId
+     * @param body
+     * @returns {*|Promise<T>}
+     */
+    postApi: function (url, body) {
         url = (url);
-        docId = (docId);
         body = (body);
+        
+        let options = {
+            method: 'POST',
+            url: url,
+            body: body,
+            json: true,
+            resolveWithFullResponse: true,
+        };
+        
+        return request(options)
+        .then(function (res) {
+            log.info('this is the status: ', res);
+        })
+        .catch(function (err) {
+            log.error('Post Api error msg: ', err.stack)
+        });
+    },
     
-    let options = {
-      method: 'POST',
-      url: url,
-      body: {
-        docId: docId,
-        payload: body,
-      },
-      json: true
-    };
-    
-    return request(options)
-    .then(function (res) {
-      log.info('this is the status: ', res);
-    })
-    .catch(function (err) {
-      log.error('Post Api error msg: ', err.stack)
-    });
-  },
-  
-  /**
-   * Delete Api function
-   * @returns {*|Promise<T>}
-   */
-  deleteApi: function (url, docId) {
+    /**
+     * Delete Api function
+     * @returns {*|Promise<T>}
+     */
+    deleteApi: function (url, docId) {
         url = (url);
         docId = (docId);
-
-    let options = {
-      method: 'DELETE',
-      url: url,
-      body: {
-          docId: docId,
-      },
-      json: true
-    };
-
-    return request(options)
-    .then(function (res) {
-      log.info('Delete Api response: ', res);
-      return res;
-    })
-    .catch(function (err) {
-      log.error('Delete Api error msg: ', err.stack)
-    });
-  },
+        
+        let options = {
+            method: 'DELETE',
+            url: url,
+            body: {
+                docId: docId,
+            },
+            json: true
+        };
+        
+        return request(options)
+        .then(function (res) {
+            log.info('Delete Api response: ', res);
+            return res;
+        })
+        .catch(function (err) {
+            log.error('Delete Api error msg: ', err.stack)
+        });
+    },
   
 };

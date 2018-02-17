@@ -22,17 +22,23 @@ const fs = require('fs-plus'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
 /**
- * Create the docs folder for storing all files
+ * Create the download and docs folder for storing all files
  * @type {string}
  */
-let docsFolder = ('./shared-objects/docs');
+let fileDnldFldr = ('./shared-objects/fileDnldFolder/'),
+    docsFolder = ('./shared-objects/docs'),
+    fileName = path.join('./shared-objects/docs/fileName.txt');
+
+    fse.ensureDir(fileDnldFldr, function (err) {
+        if(err){
+            log.error('The File Download Folder has NOT been created: ' + err.stack);
+        }
+    });
   fse.ensureDir(docsFolder,  function (err) {
       if(err){
           log.error('The Docs Folder has NOT been created: ' + err.stack);
       }
   });
-
-let fileName = path.join('./shared-objects/docs/fileName.txt');
   fse.ensureFile(fileName, function (err) {
       if(err){
           log.error('The fileName File has NOT been created: ' + err.stack);
@@ -107,10 +113,10 @@ function getDriverInstance() {
 }
 
 /**
- * Global timeout
+ * Global timeout 60 seconds default
  * @type {number}
  */
-global.DEFAULT_TIMEOUT = 300 * 1000; // 30 seconds default
+global.DEFAULT_TIMEOUT = 60 * 1000;
 
 function consoleInfo(){
     let args = [].slice.call(arguments),
@@ -256,7 +262,7 @@ module.exports = function () {
           'Platform': 'AWS Debian 9',
           'Executed': 'Remote'
         },
-        brandTitle: reportName + '-' + date,
+        brandTitle: global.reportName + '-' + date,
         name: 'Any Awesome Project'
       };
       reporter.generate(reportOptions);

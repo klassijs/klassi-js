@@ -21,8 +21,13 @@ module.exports = {
             host: shared.emailList.auth.host,
             port: 465,
             secure: true,
-            auth: { user: shared.emailList.auth.user, pass: shared.emailList.auth.pass },
-            tls: { rejectUnauthorized: false }
+            auth: {
+                user: shared.emailList.auth.user,
+                pass: shared.emailList.auth.pass
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
         });
         
         let mailOptions = {
