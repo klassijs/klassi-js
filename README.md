@@ -23,7 +23,7 @@ selenium-standalone start
 ```bash
 node ./node_modules/webdriverio-cucumber-js/index.js -s ./step-definitions
 or
-node index.js -t @search -b firefox     // if you are already inside the project directory
+node index.js -d -t @search
 ```
 
 ### Options
@@ -115,7 +115,12 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `expect`     | instance of [chai expect](http://chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
 | `assert`     | instance of [chai assert](http://chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |
-
+| `fs`         | exposes fs (file system) for use globally |
+| `dir`        | exposes dir for getting an array of files, subdirectories or both |
+| `request`    | exposes the request-promise for API testing | ```use for making API calls``` |
+| `date`       | exposes the date method for logs and reports  |
+| `log`        | exposes the log method for output to files and emailing  |
+| `envConfig`  | exposes the global environment configuration file  | ```for use when changing environment types (i.e. dev, test, preprod)``` |
 
 
 ### Page objects
@@ -252,8 +257,8 @@ You can register event handlers for the following events within the cucumber lif
 |----------------|-------------------------------------------------------------|
 | BeforeFeature  | ```this.BeforeFeatures(function(feature, callback) {}) ```  |
 | BeforeScenario | ```this.BeforeScenario(function(scenario, callback) {});``` |
-| AfterScenario  | ```this.AfterScenario(function(scenario, callback) {});```  |
 | AfterFeature   | ```this.AfterFeature(function(feature, callback) {});```    |
+| AfterScenario  | ```this.AfterScenario(function(scenario, callback) {});```  |
 
 ## How to debug
 
@@ -298,14 +303,6 @@ You can use the framework without any command line arguments if your application
     └── cucumber-report.html
 ```
 
-## Demo
-
-This project includes an example feature file and step definition to help you get started. You can run the example using the following command:
-
-```bash
-node ./node_modules/webdriverio-cucumber-js/index.js
-```
-
 ## Bugs
 
 Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github.com/larryg01/webdriverio-cucumber-js/issues) and, if possible, please provide enough information to allow the bug to be reproduced.
@@ -316,7 +313,7 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## Credits
 
-[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork there are many improvements and changes made including the complete move from [selenium](https://github.com/SeleniumHQ/selenium) to using [webdriverio](http://webdriver.io/) still using the open development model but without breaking the utilities operation.
+[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork many improvements and changes have been made including the complete move from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) still using the open development model without breaking the utilities operation.
  
 
 ## License
