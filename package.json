@@ -1,5 +1,5 @@
 {
-  "name": "Klassi-Automated-Testing-Tool",
+  "name": "webdriverio-cucumber-js",
   "version": "2.0.0",
   "description":"A debuggable JS BDD framework using webdriver.io, nodeJs and cucumber-js, complete with built-in API testing",
   "Author": {
