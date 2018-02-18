@@ -1,13 +1,26 @@
 {
   "name": "Klassi-Automated-Testing-Tool",
   "version": "2.0.0",
-  "description": "A debuggable JS BDD framework that uses webdriver.io, nodeJs, JavaScript and cucumber-js",
+  "description":"A debuggable JS BDD framework using webdriver.io, nodeJs and cucumber-js, complete with built-in API testing",
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
     "url": "linkedin.com/in/larryg"
   },
   "license": "MIT",
+  "keywords": [
+    "webdriverio",
+    "cucumber",
+    "cucumber-js",
+    "webdriver",
+    "api testing",
+    "chromedriver",
+    "phantomjs",
+    "functional testing",
+    "bdd",
+    "api",
+    "webdrivercss"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/larryg01/webdriverio-cucumber-js.git"

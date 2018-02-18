@@ -2,7 +2,7 @@
 
 # webdriverio-cucumber-js 
 
-  A debuggable JS BDD framework that uses [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation")
+  A debuggable JS BDD framework using [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/),[nodeJs](https://nodejs.org/en/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation"), complete with built-in API Testing. 
 
 
 ## Installation
@@ -211,6 +211,30 @@ module.exports = function (){
                 })
         });
 };
+```
+### API Testing functionality with [request-promise](https://github.com/request/request-promise)
+Getting something from a JSON REST API
+```js
+// ./runtime/helpers.js
+ getAPI: function (endpoint) {
+        let endPoint = (endpoint);
+        
+        let options = {
+            method: 'GET',
+            url: endPoint,
+            json: true,
+            simple: false,
+            resolveWithFullResponse: true,
+        };
+        
+        return request(options)
+        .then(function (response, err) {
+            if (err) {
+               // API call failed
+            }
+            // API call is successful
+        });
+    },
 ```
 
 ### Shared objects
