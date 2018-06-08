@@ -36,17 +36,6 @@ global.logger = require('./logger');
 
 global.envConfig = require('./envConfig.json');
 
-switch(envName) {
-
-  case 'dev':
-    global.envConfig = require('./envConfig.json').dev;
-  break;
-
-  case 'test':
-      global.envConfig = require('./envConfig.json').test;
-  break;
-  
-}
 
 /**
  *  for the Download of all file types
@@ -243,7 +232,7 @@ module.exports = function () {
    * ALL CUCUMBER HOOKS
    */
 
-  // start the recording of the Test run time
+  // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
   
   /**
