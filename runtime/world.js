@@ -279,52 +279,9 @@ module.exports = function () {
       }
       done();
     }
-  
-    // if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-    //   global.endDateTime = helpers.getEndDateTime();
-    //
-    //   let reportOptions = {
-    //     jsonDir: path.resolve(global.paths.reports),
-    //     reportPath: path.resolve(global.paths.reports),
-    //     openReportInBrowser: (!global.settings.disableReport),
-    //     disableLog: true,
-    //     pageTitle: 'Global CMS Test Report',
-    //     reportName: reportName + '-' + date,
-    //     displayDuration: true,
-    //     durationInMS: false,
-    //     metadata:{
-    //       browser: {
-    //         name: settings.browserName,
-    //         version: '65.0'
-    //       },
-    //       device: 'Virtual Machine',
-    //       platform: {
-    //         name: 'osx',
-    //         version: '10.13.2'
-    //       }
-    //     },
-    //     customData: {
-    //       title: 'Test Execution info',
-    //       data: [
-    //         {label: 'Project', value: 'Global CMS'},
-    //         {label: 'Environment', value: 'AWS Pipeline'},
-    //         {label: 'Browser', value: settings.browserName },
-    //         {label: 'Execution Start Time', value: startDateTime },
-    //         {label: 'Execution End Time', value: endDateTime }
-    //       ]
-    //     }
-    //   };
-    //   reporter.generate(reportOptions);
-    //   /**
-    //    * send email with the report to stakeholders after test run
-    //    */
-    //   if (program.email) {
-    //     return helpers.oupEmail();
-    //   }
-    //   done();
-    // }
     
   });
+  
   /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
