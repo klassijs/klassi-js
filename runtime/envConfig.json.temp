@@ -1,0 +1,9 @@
+{
+  "Details" : {
+    "Name": "KlassiTech Automated Testing Tool",
+    "Created by": "Larry Goddard"
+  },
+
+  "ga_narnia_overlay_base_url": "<base overlay url holder>",
+  "ga_narnia_api_base_url": "<base api url holder>",
+}

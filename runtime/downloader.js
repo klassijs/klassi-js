@@ -4,7 +4,7 @@
 */
 'use strict';
 
-const fse = require('fs-extra-promise'),
+const fs = require('fs-extra'),
   request = require('request');
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
    */
   fileDownload: function (url, dest, cb) {
     
-    let file = fse.createWriteStream(dest);
+    let file = fs.createWriteStream(dest);
     let sendReq = request.get(url);
     /**
     * verify response code

@@ -7,7 +7,7 @@ module.exports = {
    */
   resTime: function () {
       let endPoint = (envConfig.api_base_url + shared.apiData.url.baseUrl);
-    return helpers.getAPI(endPoint);
+      return helpers.apiCall(endPoint, 'GET');
   },
   
   /**

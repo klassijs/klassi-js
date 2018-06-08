@@ -51,9 +51,16 @@ module.exports = {
      * @param  string   output     Data to be written
      */
     writeTextFile: function (filepath, output) {
-        fs.writeFile(filepath, output, function (err) {
-            if (err) throw err;
-        })
+      try {
+        fs.writeFile(filepath, output, (err) => {
+          if (err) {
+            log.error(err.message);
+          }
+        });
+        log.info('File has been written successfully')
+      } catch (err) {
+        log.info('Error in writing file ' + err);
+      }
     },
 
     /**
@@ -100,7 +107,25 @@ module.exports = {
          */
         return driver.elements(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
     },
-
+  
+  /**
+   * Generates a random 13 digit number
+   * @param length
+   * @returns {number}
+   */
+  randomNumberGenerator: function(length=13) {
+    let baseNumber = Math.pow(10, length -1 );
+    let number = Math.floor(Math.random()*baseNumber);
+    /**
+     * Check if number have 0 as first digit
+     */
+    if (number < baseNumber) {
+      number += baseNumber;
+    }
+    log.info('this is the number ' + number);
+    return number;
+  },
+  
     /**
      * Generate random integer from a given range
      */
@@ -193,6 +218,20 @@ module.exports = {
         }
         return dd + '-' + mm + '-' + yyyy + '-' + hours + ':' + minutes + ':' + seconds;
     },
+  
+  getEndDateTime: function () {
+    let eDate = helpers.getCurrentDateTime();
+    return eDate;
+  },
+  
+  getStartDateTime: function () {
+    let sDate = helpers.getCurrentDateTime();
+    return sDate;
+  },
+  
+  getCurrentDateFormatted: function () {
+    return helpers.getCurrentDateTime().replace(/\//g, '').replace(/:/g, '').replace(' ', '');
+  },
 
     /**
      * Get the text of an Element
@@ -216,24 +255,73 @@ module.exports = {
         return driver.getAttribute(selector, 'href')
     },
   
+  waitAndClick: async function (selector) {
+    try {
+      await driver.waitForVisible(selector, MID_DELAY_MILLISECOND);
+      await driver.waitForEnabled(selector, SHORT_DELAY_MILLISECOND);
+      await driver.click(selector);
+      await driver.pause(DELAY_500_MILLISECOND);
+    }
+    catch (err) {
+      log.error(err.message);
+      throw err;
+    }
+  },
+  
+  waitAndSetValue: async function (selector, value) {
+    try{
+      await driver.waitForEnabled(selector, MID_DELAY_MILLISECOND);
+      await driver.click(selector);
+      await driver.pause(DELAY_500_MILLISECOND);
+      await driver.keys(value);
+    }
+    catch (err) {
+      log.error(err.message);
+      throw err;
+    }
+  },
+  
 /**
  * ========== EMAIL FUNCTIONALITY ==========
  */
     /**
      *   Sends an Email to the concerned users with the log and the test report
      */
-    klassiEmail: function () {
-        try{
-            let mailer = require('../runtime/mailer').klassiSendMail();
-                return mailer;
+    klassiEmail: function (err) {
+        let mailer = require('../runtime/mailer').klassiSendMail();
+        if(err) {
+            console.log('This is a Email system error: ' + err.stack);
+            throw err;
         }
-        catch(err){
-            if(err) {
-                console.log('This is a Email system error: ', err.stack);
-            }
-        }
-        return this;
+        return mailer;
     },
+  
+  /**
+   * ========== For all ASSERTIONS functions ==========
+   */
+  /**
+   *  Reformats date string into string
+   * @param dateString
+   * @returns {string}
+   */
+  reformatDateString: function (dateString) {
+    let months = {
+      '01': 'January',
+      '02': 'February',
+      '03': 'March',
+      '04': 'April',
+      '05': 'May',
+      '06': 'June',
+      '07': 'July',
+      '08': 'August',
+      '09': 'September',
+      '10': 'October',
+      '11': 'November',
+      '12': 'December'
+    };
+    let b = dateString.split('/');
+    return b[0] + ' ' + months[b[1]] + ' ' + b[2];
+  },
 
     /**
      *  Sorts results by date
@@ -269,196 +357,115 @@ module.exports = {
      * @param selector
      * @param expectedText
      */
-    assertText: function (selector, expectedText) {
-        return driver.getText(selector).then(function (actualText) {
-            assert.equal(actualText, expectedText);
-            return this;
-        })
+    assertText: async function (selector, expected) {
+      await driver.waitForEnabled(selector, DELAY_10_SECOND);
+      let actual = await driver.getText(selector);
+      actual = actual.trim();
+      assert.equal(actual, expected);
+      return this;
     },
-
-    /**
-     * This will assert 'to include' text being returned
-     * @param selector
-     * @param expectedText
-     */
-    expectToIncludeText: function (selector, expectedText) {
-        return driver.getText(selector).then(function (actualText) {
-            expect(actualText).to.include(expectedText);
-            return this;
-        })
-    },
-
-    /**
-     * This will assert url being returned
-     * @param expected
-     */
-    assertUrl: function (expected) {
-        return driver.getUrl().then(function (actual) {
-            assert.equal(actual, expected);
-            return this;
-        })
-    },
+  
+  /**
+   *
+   * @param selector
+   * @param expectedText
+   */
+  expectToIncludeText: async function (selector, expectedText) {
+    let actual = await driver.getText(selector);
+    expect(actual).to.include(expectedText);
+    return this;
+  },
+  
+  /**
+   *
+   * @param expected
+   */
+  assertUrl: async function (expected) {
+    let actual = await driver.getUrl();
+    assert.equal(actual, expected);
+  },
+  
+  /**
+   *  API call for GET, PUT, POST and DELETE functionality
+   * @param url
+   * @param method
+   * @param body
+   * @param fileName
+   * @param statusCode
+   * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
+   */
+  apiCall: function (url, method, body, fileName, statusCode) {
     
-    /**
-     *  ========== API calls for GET, PUT, POST and DELETE reusable functionality ==========
-     * @param endPoint
-     * @param method
-     * @param body
-     * @param url
-     */
-    /**
-     * GET API function
-     */
-    getAPI: function (endpoint) {
-        let endPoint = (endpoint);
-        
-        let options = {
-            method: 'GET',
-            url: endPoint,
-            json: true,
-            time: true,
-            resolveWithFullResponse: true,
-        };
-        
-        return request(options)
-        .then(function (response, err) {
-            if (err) {
-                log.error('GET Api error msg: ', err.stack)
+    let options = {
+      url: url,
+      method: method,
+      body: body,
+      // proxy:'http://proxyServer.com:8080', // if needed
+      json: true,
+      time: true,
+      resolveWithFullResponse: true,
+    };
+  
+    return request(options)
+      .then(async function (res) {
+        if (statusCode != null) {
+          assert.equal(res.statusCode, statusCode);
+          log.info('API Response time : ' + res.timings.response);
+        }
+      
+        if (method === 'GET') {
+          return res;
+        }
+      
+        if (method === 'DELETE' && fileName != null || method === 'PUT' && fileName != null) {
+          return fs.readFileSync(fileName, "utf8", function (err) {
+            if (err){
+              log.error(err.message);
             }
-            log.info(response.timings.response);
-            return response;
-        });
-    },
-    
-    /**
-     *  API call for GET, PUT, POST and DELETE functionality
-     * @param url
-     * @param method
-     * @param body
-     * @param fileName
-     * @param statusCode
-     */
-    apiCall: function (endPoint, method, body, fileName) {
-        
-        // let random;
-        let options = {
-            url: endPoint,
-            method: method,
-            // body: {
-            body: body,
-            docId: fileName,
-            // },
-            json: true,
-            time: true,
-            resolveWithFullResponse: true,
-        };
-        
-        // if (method === 'DELETE' || 'POST'){
-        //     return fs.readFileSync(fileName, 'utf8', function (docId) {
-        //             console.log('this is something', docId);
-        //             options.body['docId'] = docId;
-        //
-        //     });
-        // }
-        return request(options)
-        .then(function (res) {
-            // expect(res.statusCode).to.equal(statusCode);
-            if (method === 'DELETE' || 'POST'){
-                console.log('this is a Delete or Post ' + (fs.readFileSync(fileName)));
-                return fs.readFileSync(fileName, "utf8")
-            }else{
-                console.log('this is a Create');
-                return helpers.writeTextFile(fileName, res.body.docId)
+          });
+        }
+      
+        if (method === 'POST' && fileName != null) {
+          let data = res.body.adminDoc;
+          doc_Id = data.replace(/.*documents\/([^\/]+)\/properties.*/, '$1');
+          await helpers.writeTextFile(fileName, doc_Id, function (err) {
+            if (err){
+              log.error(err.message);
             }
-            // console.log(options.body['docId']);
-            // return options.body['docId'];
-        });
+          });
+          log.info('====== DocId API ===== ' + doc_Id);
         
-    },
-    
-    /**
-     * Create 'PUT' API function
-     * @param url
-     * @param body
-     * @returns {*|Promise<T>}
-     */
-    putApi: function (url, body, fileName) {
-        url = (url);
-        body = (body);
-        // fileName = (fileName);
-        
-        let options = {
-            method: 'PUT', //param
-            url: url,
-            body: body,
-            json: true,
-            time: true,
-            resolveWithFullResponse: true,
-        };
-        
-        return request(options)
-        .then(function (res) {
-            log.info('This is the doc_Id:- ', res);
-            return helpers.writeTextFile(fileName, res.body.docId);
-        })
-        .catch(function (err) {
-            console.log('PUT Api error msg:', err.stack)
-        });
-    },
-    
-    /**
-     * Edit 'POST' Api function
-     * @param url
-     * @param docId
-     * @param body
-     * @returns {*|Promise<T>}
-     */
-    postApi: function (url, body) {
-        url = (url);
-        body = (body);
-        
-        let options = {
-            method: 'POST',
-            url: url,
-            body: body,
-            json: true,
-            resolveWithFullResponse: true,
-        };
-        
-        return request(options)
-        .then(function (res) {
-            log.info('this is the status: ', res);
-        })
-        .catch(function (err) {
-            log.error('Post Api error msg: ', err.stack)
-        });
-    },
-    
-    /**
-     * Delete Api function
-     * @returns {*|Promise<T>}
-     */
-    deleteApi: function (url, docId) {
-        url = (url);
-        docId = (docId);
-        
-        let options = {
-            method: 'DELETE',
-            url: url,
-            body: {
-                docId: docId,
-            },
-            json: true
-        };
-        
-        return request(options)
-        .then(function (res) {
-            log.info('Delete Api response: ', res);
-            return res;
-        })
-        .catch(function (err) {
-            log.error('Delete Api error msg: ', err.stack)
-        });
-    },
+          await doc_Id;
+        }
+        return res;
+      })
+  },
+  
+  filterItem: async function (itemToFilter) {
+    try{
+      await driver.waitForExist(shared.adminData.filter.filterInput, LONG_DELAY_MILLISECOND);
+      await driver.waitForEnabled(shared.adminData.filter.filterInput, LONG_DELAY_MILLISECOND);
+      await driver.pause(DELAY_500_MILLISECOND);
+      await driver.click(shared.adminData.filter.filterInput);
+      await driver.keys(itemToFilter);
+    }
+    catch (err) {
+      log.error(err.message);
+      throw err;
+    }
+  },
+  
+  filterItemAndClick: async function (itemToFilter) {
+    try{
+      await helpers.filterItem(itemToFilter);
+      await driver.pause(MID_DELAY_MILLISECOND);
+      await driver.click(shared.adminData.filter.filteredItem);
+      await driver.pause(MID_DELAY_MILLISECOND);
+    }
+    catch (err) {
+      log.error(err.message);
+      throw err;
+    }
+  },
   
 };

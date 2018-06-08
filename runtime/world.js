@@ -7,58 +7,51 @@
 /** world.js is loaded by the cucumber framework before loading the step definitions and feature files
  * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step definition
  */
-const fs = require('fs-plus'),
-  fse = require('fs-extra-promise'),
+const fs = require('fs'),
   path = require('path'),
   requireDir = require('require-dir'),
   merge = require('merge'),
   chalk = require('chalk'),
   dir = require('node-dir'),
-  assert = require('chai').assert,
-  expect = require('chai').expect,
+  chai = require('chai'),
+  // reporter = require('multiple-cucumber-html-reporter'),
   reporter = require('cucumber-html-reporter'),
   rp = require('request-promise'),
   webdriverio = require('webdriverio'),
+  program = require('commander'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
-/**
- * Create the download and docs folder for storing all files
- * @type {string}
- */
-let fileDnldFldr = ('./shared-objects/fileDnldFolder/'),
-    docsFolder = ('./shared-objects/docs'),
-    fileName = path.join('./shared-objects/docs/fileName.txt');
-
-    fse.ensureDir(fileDnldFldr, function (err) {
-        if(err){
-            log.error('The File Download Folder has NOT been created: ' + err.stack);
-        }
-    });
-    fse.ensureDir(docsFolder,  function (err) {
-        if(err){
-            log.error('The Docs Folder has NOT been created: ' + err.stack);
-        }
-    });
-    fse.ensureFile(fileName, function (err) {
-        if(err){
-            log.error('The fileName File has NOT been created: ' + err.stack);
-        }
-    });
+const assert = chai.assert,
+    expect = chai.expect;
+const getRemote = require('./getRemote.js');
 
 /**
  * for the Logging feature
  */
-global.logger = require('../runtime/logger');
+global.logger = require('./logger');
 
 /**
  * for the environment variables
  */
-global.envConfig = require('../runtime/envConfig.json');
+
+global.envConfig = require('./envConfig.json');
+
+switch(envName) {
+
+  case 'dev':
+    global.envConfig = require('./envConfig.json').dev;
+  break;
+
+  case 'test':
+      global.envConfig = require('./envConfig.json').test;
+  break;
+  
+}
 
 /**
  *  for the Download of all file types
  */
-global.downloader = require('../runtime/downloader.js');
+global.downloader = require('./downloader.js');
 
 /**
  * for all assertions for variable testing
@@ -70,32 +63,45 @@ global.expect = expect;
  * Environment variables
  * @type {*|(function(): driver)}
  */
-let PhantomJsDriver = require('./phantomJsDriver'),
-  ChromeDriver = require('./chromeDriver'),
-  FirefoxDriver = require('./firefoxDriver');
+let ChromeDriver = require('./chromeDriver'),
+  FirefoxDriver = require('./firefoxDriver'),
+  BrowserStackDriver = require('./browserStackDriver');
+
+let remoteService = getRemote(settings.remoteService);
 
 /**
- * createUrl the web browser based on global let set in index.js
+ * create the web browser based on global let set in index.js
  * @returns {{}}
  */
 function getDriverInstance() {
 
   let driver = {};
   let screenWidth = []; //[752, 1008, 1280];
+  let browser = settings.browserName;
 
-  switch (browserName || '') {
+  let options = {};
+
+  if (remoteService && remoteService.type === "browserstack") {
+
+    let configType = settings.remoteConfig;
+    assert.isString(configType,"BrowserStack requires a config type e.g. win10-chrome");
+
+    driver = new BrowserStackDriver(options, configType);
+    return driver;
+  }
+  assert.isNotEmpty(browser,"Browser must be defined");
+  
+  switch (browser || '') {
 
     case 'firefox': {
-      driver = FirefoxDriver();
-    } break;
-
-    case 'phantomjs': {
-      driver = new PhantomJsDriver();
-    } break;
+      driver = FirefoxDriver(options);
+    }
+      break;
 
     case 'chrome': {
-      driver = new ChromeDriver();
-    } break;
+      driver = new ChromeDriver(options);
+    }
+      break;
 
   }
 
@@ -113,34 +119,41 @@ function getDriverInstance() {
 }
 
 /**
- * Global timeout 60 seconds default
+ * Global timeout
  * @type {number}
  */
-global.DEFAULT_TIMEOUT = 60 * 1000;
+global.DELAY_500_MILLISECOND = 1000;     // 1000 millisecond delay
+global.SHORT_DELAY_MILLISECOND = 3000;  // 3 second delay in milliseconds
+global.MID_DELAY_MILLISECOND = 5000;    // 5 second delay in milliseconds
+global.LONG_DELAY_MILLISECOND = 10000;  // 10 second delay in milliseconds
+global.EXTRA_LONG_DELAY_MILLISECOND = 20000;  // 20 second delay in milliseconds
+global.DELAY_3_SECOND = 3;              // 3 second delay
+global.DELAY_10_SECOND = 10;            // 10 second delay
+global.DELAY_15_SECOND = 15;            // 15 second delay
+global.DELAY_20_SECOND = 20;            // 20 second delay
 
-function consoleInfo(){
-    let args = [].slice.call(arguments),
-        output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
-    console.log(output);
+function consoleInfo() {
+  let args = [].slice.call(arguments),
+    output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
+  console.log(output);
 }
 
 /**
  * All Global variables
  * @constructor
  */
-function World(){
-    /**
-     * This is the Global date functionality
-     */
-    let date = helpers.currentDate();
+function World() {
+  /**
+   * This is the Global date functionality
+   */
+  global.date = helpers.currentDate();
 
   /**
    * Adding logging
    */
-  let log = logger.oupLog();
-
+  global.log = logger.klassiLog();
   /**
-   * createUrl a list of variables to expose globally and therefore accessible within each step definition
+   * create a list of variables to expose globally and therefore accessible within each step definition
    * @type {{driver: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
    * log: log, page: {}, shared: {}}}
    */
@@ -155,17 +168,17 @@ function World(){
     trace: consoleInfo,           // expose an info method to log output to the console in a readable/visible format
     page: [],                     // empty page objects placeholder
     shared: {},                   // empty shared objects placeholder
-    log: log,                     // expose the log method for output to files for emailing
+    log: global.log,                     // expose the log method for output to files for emailing
     envConfig: global.envConfig,  // expose the global environment configuration file for use when changing environment types (i.e. dev, test, preprod)
     downloader: global.downloader,// exposes the downloader for global usage
     request: rp,                  // exposes the request-promise for API testing
-    date: date,                   // expose the date method for logs and reports
+    date: global.date,                   // expose the date method for logs and reports
   };
-  
-/**
- *  expose properties to step definition methods via global variables
-     */
-  Object.keys(runtime).forEach(function (key){
+
+  /**
+   *  expose properties to step definition methods via global variables
+   */
+  Object.keys(runtime).forEach(function (key) {
     /** make property/method available as a global (no this. prefix required)
      */
     global[key] = runtime[key];
@@ -174,11 +187,10 @@ function World(){
   /**
    * import page objects (after global lets have been created)
    */
-  if (global.pageObjectPath && fs.existsSync(global.pageObjectPath)){
-    /**
-     * require all page objects using camelcase as object names
+  if (global.paths.pageObjects && fs.existsSync(global.paths.pageObjects)){
+    /** require all page objects using camelcase as object names
      */
-    runtime.page = requireDir(global.pageObjectPath, { camelcase: true });
+    runtime.page = requireDir(global.paths.pageObjects, { camelcase: true });
 
     /**
      * expose globally
@@ -190,15 +202,17 @@ function World(){
   /**
    * import shared objects from multiple paths (after global lets have been created)
    */
-  if (global.sharedObjectPaths && Array.isArray(global.sharedObjectPaths) && global.sharedObjectPaths.length > 0) {
+  if (global.paths.sharedObjects && Array.isArray(global.paths.sharedObjects) && global.paths.sharedObjects.length > 0) {
     let allDirs = {};
 
     /**
      * first require directories into objects by directory
      */
-    global.sharedObjectPaths.forEach(function (itemPath){
+    global.paths.sharedObjects.forEach(function (itemPath){
       if (fs.existsSync(itemPath)){
+        
         let dir = requireDir(itemPath, { camelcase: true });
+        
         merge(allDirs, dir);
       }
     });
@@ -212,11 +226,6 @@ function World(){
     }
   }
 
-  /**
-   * add helpers
-   */
-  global.helpers = require('../runtime/helpers.js');
-
 }
 
 /**
@@ -227,66 +236,122 @@ module.exports = function () {
 
   /** set the default timeout for all tests
    */
-  this.setDefaultTimeout(DEFAULT_TIMEOUT);
+  // this.setDefaultTimeout(DEFAULT_TIMEOUT);
+  this.setDefaultTimeout(global.settings.defaultTimeout);
 
   /**
    * ALL CUCUMBER HOOKS
    */
+
+  // start the recording of the Test run time
+  global.startDateTime = helpers.getStartDateTime();
+  
   /**
    * create the driver before scenario if it's not instantiated
    */
-  this.registerHandler('BeforeScenario', function (){
+  this.registerHandler('BeforeScenario', function () {
     if (!global.driver) {
       global.driver = getDriverInstance();
+      global.browser = global.driver; // ensure standard WebDriver global also works
     }
     return driver;
   });
-  
+
   /**
    * compile and generate a report at the END of the test run and send an Email
    */
   this.registerHandler('AfterFeatures', function (features, done) {
-    if (global.reportsPath && fs.existsSync(global.reportsPath)) {
+
+    if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+      global.endDateTime = helpers.getEndDateTime();
       let reportOptions = {
         theme: 'bootstrap',
-        jsonFile: path.resolve(global.reportsPath, global.reportName + '-' + date + '.json'),
-        output: path.resolve(global.reportsPath, global.reportName + '-' + date + '.html'),
+        jsonFile: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.json'),
+        output: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.html'),
         reportSuiteAsScenarios: true,
-        launchReport: (!global.disableReport),
+        launchReport: (!global.settings.disableReport),
         ignoreBadJsonFile: true,
         metadata: {
-          'Test Completion': (helpers.getCurrentDateTime()),
+          'Test Started': startDateTime,
+          'Test Completion': endDateTime,
           'Test Environment': 'DEVELOPMENT',
           'Platform': 'AWS Debian 9',
           'Executed': 'Remote'
         },
-        brandTitle: global.reportName + '-' + date,
-        name: global.projectName
+        brandTitle: reportName + '-' + date,
+        name: projectName
       };
       reporter.generate(reportOptions);
-          return helpers.klassiEmail();
-        }
+      /**
+       * send email with the report to stakeholders after test run
+       */
+      if (program.email) {
+        return helpers.klassiEmail();
+      }
       done();
-    });
+    }
   
-    /**
+    // if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+    //   global.endDateTime = helpers.getEndDateTime();
+    //
+    //   let reportOptions = {
+    //     jsonDir: path.resolve(global.paths.reports),
+    //     reportPath: path.resolve(global.paths.reports),
+    //     openReportInBrowser: (!global.settings.disableReport),
+    //     disableLog: true,
+    //     pageTitle: 'Global CMS Test Report',
+    //     reportName: reportName + '-' + date,
+    //     displayDuration: true,
+    //     durationInMS: false,
+    //     metadata:{
+    //       browser: {
+    //         name: settings.browserName,
+    //         version: '65.0'
+    //       },
+    //       device: 'Virtual Machine',
+    //       platform: {
+    //         name: 'osx',
+    //         version: '10.13.2'
+    //       }
+    //     },
+    //     customData: {
+    //       title: 'Test Execution info',
+    //       data: [
+    //         {label: 'Project', value: 'Global CMS'},
+    //         {label: 'Environment', value: 'AWS Pipeline'},
+    //         {label: 'Browser', value: settings.browserName },
+    //         {label: 'Execution Start Time', value: startDateTime },
+    //         {label: 'Execution End Time', value: endDateTime }
+    //       ]
+    //     }
+    //   };
+    //   reporter.generate(reportOptions);
+    //   /**
+    //    * send email with the report to stakeholders after test run
+    //    */
+    //   if (program.email) {
+    //     return helpers.oupEmail();
+    //   }
+    //   done();
+    // }
+    
+  });
+  /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
-  this.After(function(scenario){
-    if(scenario.isFailed()) {
+  this.After(async function (scenario) {
+    if (remoteService){
+      await remoteService.after(scenario);
+    }
+    if (scenario.isFailed() && remoteService) {
       /**
        * add a screenshot to the error report
        */
-      return driver.saveScreenshot().then(function (screenShot) {
-          scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
-          return driver.pause(500).then(function () {
-              return driver.end()
-          })
-      })
+      let screenShot = await driver.saveScreenshot();
+      await scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
+      await driver.end();
     }
-       return driver.end();
+    await driver.end();
   });
-  
-  
   
 };

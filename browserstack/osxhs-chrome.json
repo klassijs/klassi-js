@@ -1,0 +1,20 @@
+{
+  "project":"GCMS Automated Test Report",
+
+  "os": "OS X",
+  "os_version": "High Sierra",
+  "browser": "Chrome",
+  "browser_version": "65.0",
+  "resolution": "1024x768",
+
+  "javascriptEnabled":true,
+  "locationContextEnabled":true,
+  "handlesAlerts":true,
+  "rotatable":true,
+  "logLevel":"silent",
+
+  "browserstack.local": true,
+  "browserstack.debug": true,
+  "acceptSslCerts": true,
+  "browserstack.networkLogs": true
+}

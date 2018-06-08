@@ -54,6 +54,7 @@ module.exports = {
                 }
                 else {
                     log.info('Results Email successfully sent');
+                    process.exit();
                 }
             })
         }
