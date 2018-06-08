@@ -17,7 +17,8 @@ git-checkout: git checkout klassi-cucumber-js
 npm install klassi-cucumber-js 
 
 
-# To run your test locally, you'll need a local selenium server running, you can install and launch a selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a separate terminal:
+# To run your test locally, you'll need a local selenium server running, you can install and launch a 
+# selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a separate terminal:
 
 npm install selenium-standalone@latest -g --save-dev
 selenium-standalone install
@@ -351,8 +352,7 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## Credits
 
-[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was originally derived from [John Doherty's]
-(https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork many improvements and changes have been made including the complete move from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) still using the open development model without breaking the utilities operation.
+[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork many improvements and changes have been made including the complete move from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) still using the open development model without breaking the utilities operation.
  
 
 ## License
