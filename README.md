@@ -1,17 +1,24 @@
-[![STAT](https://nodei.co/npm/webdriverio-cucumber-js.png?download=true)](https://nodei.co/npm/webdriverio-cucumber-js/)
+[![STAT](https://nodei.co/npm/klassi-cucumber-js.png?download=true)](https://nodei.co/npm/klassi-cucumber-js/)
 
-# webdriverio-cucumber-js 
+# klassi-cucumber-js 
 
-  A debuggable JS BDD framework using [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/),[nodeJs](https://nodejs.org/en/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation"), complete with built-in API Testing. 
+  A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
+  any other tool or library. It's built with [nodeJs](https://nodejs.org/en/), [webdriver.io (the Selenium 2.0 
+  bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view 
+  cucumber js documentation") complete with integrated API Testing. 
 
 
 ## Installation
 
 ```bash
-npm install webdriverio-cucumber-js 
-#
+clone: git@github.com:larryg01/klassi-cucumber-js
+download: https://github.com/larryg01/klassi-cucumber-js/archive/development.zip
+git-checkout: git checkout klassi-cucumber-js
+npm install klassi-cucumber-js 
 
-# To run your test locally, you'll need a local selenium server running, you can install and launch a selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a seperate terminal:
+
+# To run your test locally, you'll need a local selenium server running, you can install and launch a 
+# selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a separate terminal:
 
 npm install selenium-standalone@latest -g --save-dev
 selenium-standalone install
@@ -21,7 +28,8 @@ selenium-standalone start
 ## Usage
 
 ```bash
-node ./node_modules/webdriverio-cucumber-js/index.js -s ./step-definitions
+# run 'npm install' in a terminal window from within the project folder
+node ./node_modules/klassi-cucumber-js/index.js -s ./step-definitions
 or
 node index.js -d -t @search
 ```
@@ -38,6 +46,13 @@ node index.js -d -t @search
 -r, --reports <path>         output path to save reports. defaults to ./reports
 -d, --disableTestReport [optional]  disables the test report from opening after test completion
 -t, --tags <tagName>         name of tag to run
+-c, --context <path>        contextual root path for project-specific features, steps, objects etc
+-f, --featuresPath <path>   path to feature definitions. defaults to ./features
+-e, --email [optional]      sends email reports to stakeholders
+-n, --environment [<path>]  name of environment to run the framework/test in. default to dev
+-g, --reportName [optional] basename for report files e.g. use report for report.json
+-x, --extraSettings [optional]  further piped configs split with pipes
+-w, --remoteService [optional]  which remote driver service, if any, should be used e.g. browserstack
 ```
 
 By default tests are run using Google Chrome, to run tests using another browser supply the name of that browser along with the `-b` switch. Available options are:
@@ -46,7 +61,6 @@ By default tests are run using Google Chrome, to run tests using another browser
 | :--- | :--- |
 | Chrome | `-b chrome` |
 | Firefox | `-b firefox` |
-| Phantom JS | `-b phantomjs` |
 
 ### Feature files
 
@@ -80,7 +94,8 @@ The browser automatically closes after each scenario to ensure the next scenario
 
 Step definitions act as the glue between features files and the actual system under test.
 
-_To avoid confusion **always** return a JavaScript promise your step definition in order to let cucumber know when your task has completed._
+_To avoid confusion **always** return a JavaScript promise after your step definition in order to let cucumber know 
+when your task has completed._
 
 ```javascript
 // ./step-definitions/duckDuckGo-search-steps.js
@@ -139,25 +154,24 @@ module.exports = {
     /** test searching for inputted data
      */
     url: 'https://duckduckgo.com/',
-
+    
     /** enters a search term into ebay's search box and presses enter
      * @param {string} searchWord
      * @returns {Promise} a promise to enter the search values
      */
-    performSearch: function (searchWord) {
-
+    performSearch: async function (searchWord) {
+    
         let elements = {
             searchInput: ('#search_form_input_homepage'),
             searchResultLink: ('div.g > h3 > a')
         };
-
+    
         let selector = elements.searchInput;
-
-        return driver.setValue(selector, searchWord).then(function(){
-            
-            return driver.click('#search_button_homepage')
-        });
+    
+        await driver.setValue(selector, searchWord);
+        await driver.click('#search_button_homepage');
     }
+    
 };
 ```
 
@@ -166,15 +180,15 @@ And its usage within a step definition:
 ```js
 // ./step-definitions/duckDuckGo-search-steps.js
 
-     this.Then(/^The user arrives on the duckduckgo search page$/, function() {
+    this.Then(/^The user arrives on the duckduckgo search page$/, function() {
             return helpers.loadPage(page.duckDuckGoSearch.url, 10)
         });
     
-        this.Then(/^they input (.*)$/, function(searchWord) {
-    
-                /** use a method on the page object which also returns a promise */
-                return page.duckDuckGoSearch.performSearch(searchWord);
-        });
+    this.Then(/^they input (.*)$/, function(searchWord) {
+
+            /** use a method on the page object which also returns a promise */
+            return page.duckDuckGoSearch.performSearch(searchWord);
+    });
 ```
 
 ### CSS regression functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
@@ -186,8 +200,8 @@ You will need to have GraphicsMagick preinstalled on your system because Webdriv
 ```js
 // ./runtime/helpers.js
 
-cssImages: function(pageName){
-    return driver.webdrivercss(pageName, {
+cssImages: async function(pageName){
+    await driver.webdrivercss(pageName, {
         name: '',
         elem: ''
     })
@@ -213,7 +227,7 @@ module.exports = function (){
 };
 ```
 ### API Testing functionality with [request-promise](https://github.com/request/request-promise)
-Getting something from a JSON REST API
+Getting data from a JSON REST API
 ```js
 // ./runtime/helpers.js
  getAPI: function (endpoint) {
@@ -271,7 +285,7 @@ module.exports = function () {
 
 HTML and JSON reports are automatically generated and stored in the default `./reports` folder. This location can be changed by providing a new path using the `-r` command line switch:
 
-![Cucumber HTML report](img/cucumber-html-report.png)
+![Cucumber HTML report](runtime/img/cucumber-html-report.png)
 
 ### Event handlers
 
@@ -315,7 +329,7 @@ You can use the framework without any command line arguments if your application
 .
 ├── features
 │   └── duckDuckGo-search.feature
-├── step-definitions
+├── step_definitions
 │   └── duckDuckGo-search-steps.js
 ├── page-objects
 │   └── duckDuckGo-search.js
@@ -329,15 +343,16 @@ You can use the framework without any command line arguments if your application
 
 ## Bugs
 
-Please raise bugs via the [webdriverio-cucumber-js issue tracker](https://github.com/larryg01/webdriverio-cucumber-js/issues) and, if possible, please provide enough information to allow the bug to be reproduced.
+Please raise bugs via the [klassi-cucumber-js issue tracker](https://github.com/larryg01/klassi-cucumber-js/issues) and, if possible, please provide enough information to allow the bug to be 
+reproduced.
 
 ## Contributing
 
-Anyone can contribute to this project simply by [opening an issue here](https://github.com/larryg01/webdriverio-cucumber-js/issues)  or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
+Anyone can contribute to this project simply by [opening an issue here](https://github.com/larryg01/klassi-cucumber-js/issues) or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
 
 ## Credits
 
-[Webdriverio-cucumber-js](https://github.com/larryg01/webdriverio-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork many improvements and changes have been made including the complete move from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) still using the open development model without breaking the utilities operation.
+[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork many improvements and changes have been made including the complete move from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) still using the open development model without breaking the utilities operation.
  
 
 ## License

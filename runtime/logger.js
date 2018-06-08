@@ -5,22 +5,22 @@
 'use strict';
 
 const path = require('path'),
-    fse = require('fs-extra-promise'),
+    fs = require('fs-extra'),
     winston = require('winston');
 
 module.exports = {
 
-    oupLog: function () {
+    klassiLog: function () {
         let infoJsonFile = path.join('./log/infoLog/' + global.reportName + '-' + (helpers.getCurrentDateTime()) + '.json').replace(/ /gi, ''),
             errorJsonFile = path.join('./log/errorLog/' + global.reportName + '-' + (helpers.getCurrentDateTime()) + '.json').replace(/ /gi, '');
         
-        fse.ensureFile(infoJsonFile, function (err) {
+        fs.ensureFile(infoJsonFile, function (err) {
             if(err){
                 log.error('The infoLog File has NOT been created: ' + err.stack);
             }
         });
 
-        fse.ensureFile(errorJsonFile, function (err) {
+        fs.ensureFile(errorJsonFile, function (err) {
             if(err){
                 log.error('The errorLog File has NOT been created: ' + err.stack);
             }

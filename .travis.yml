@@ -1,11 +1,11 @@
 language: node_js
+
 node_js:
-  - "6.7.0"
-  - "6.9.0"
   - "7.0.0"
   - "7.4.0"
   - "8.0.0"
   - "8.4.0"
+
 before_script:
   - npm install selenium-standalone@latest -g
   - selenium-standalone install
