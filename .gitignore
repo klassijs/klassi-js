@@ -15,10 +15,12 @@ node_modules
 
 # Files and Directory
 .npm
+.iml
 .node_repl_history
 .directory
 .files
 .nyc*
+.txt
 files
 cssImages
 reports

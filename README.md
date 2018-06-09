@@ -11,10 +11,10 @@
 ## Installation
 
 ```bash
-clone: git@github.com:larryg01/klassi-cucumber-js
+git-clone-ssh: git@github.com:larryg01/klassi-cucumber-js.git
+git-clone-http: https://github.com/larryg01/klassi-cucumber-js.git
 download: https://github.com/larryg01/klassi-cucumber-js/archive/development.zip
-git-checkout: git checkout klassi-cucumber-js
-npm install klassi-cucumber-js 
+npm i klassi-cucumber-js 
 
 
 # To run your test locally, you'll need a local selenium server running, you can install and launch a 

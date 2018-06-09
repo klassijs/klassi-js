@@ -8,6 +8,25 @@
     "url": "linkedin.com/in/larryg"
   },
   "license": "MIT",
+  "keywords": [
+    "webdriverio",
+    "cucumber",
+    "cucumber-js",
+    "webdriver",
+    "api testing",
+    "browserstack",
+    "functional testing",
+    "bdd",
+    "api",
+    "webdrivercss",
+    "selenium",
+    "framework",
+    "javascript",
+    "tdd",
+    "test-framework",
+    "testing-framework",
+    "testing"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/larryg01/klassi-cucumber-js.git"
