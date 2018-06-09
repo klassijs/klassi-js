@@ -5,28 +5,42 @@
 'use strict';
 
 const webdriverio = require('webdriverio'),
-    chromedriver = require('chromedriver');
+  chromedriver = require('chromedriver');
 
-/** createUrl the web browser based on globals set in index.js
+/**
+ * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = function chromeDriver(){
-
-    let driver = new webdriverio.remote({
-        desiredCapabilities: {
-            chromeOptions: {
-                args: [
-                    'start-maximized',
-                    // 'headless',
-                    // 'disable-popup-blocking',
-                    // 'always-authorize-plugins'
-                ],
-                // binary: "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-            },
-            path: chromedriver.path
-        }
-    }).init();
+module.exports = async function chromeDriver(options){
+  
+  const defaults = {
     
-    return driver;
+    desiredCapabilities: {
+      browserName: 'chrome',
+      proxy: {
+        httpProxy: 'http://domain.com:8080',
+        proxyType: 'MANUAL',
+        autodetect: false
+      },
+      javascriptEnabled: true,
+      acceptSslCerts: true,
+      chromeOptions: {
+        // args: ['--headless',
+        // ],
+      },
+      path: chromedriver.path
+    }
+  };
+  
+  const extendedOptions = Object.assign(defaults, options);
+  
+  let driver = new webdriverio.remote(extendedOptions).init();
+  
+  driver.then(function () {
+    /** sets the browser window size to maximum
+     */
+    driver.windowHandleMaximize();
+  });
+  
+  return driver;
 };
-

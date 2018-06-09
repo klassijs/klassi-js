@@ -1,0 +1,20 @@
+{
+  "project":"KlassiTech Automated Test",
+
+  "os": "Windows",
+  "os_version": "10",
+  "browser": "Chrome",
+  "browser_version": "65.0",
+  "resolution": "1024x768",
+
+  "javascriptEnabled":true,
+  "locationContextEnabled":true,
+  "handlesAlerts":true,
+  "rotatable":true,
+  "logLevel":"silent",
+
+  "browserstack.local": true,
+  "browserstack.debug": true,
+  "acceptSslCerts": true,
+  "browserstack.networkLogs": true
+}
