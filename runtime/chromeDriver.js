@@ -11,7 +11,7 @@ const webdriverio = require('webdriverio'),
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function chromeDriver(options){
+module.exports = function chromeDriver(options){
   
   const defaults = {
     
