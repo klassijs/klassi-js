@@ -1,3 +1,7 @@
+/**
+ * KlassiTech Automated Testing Tool
+ * Created by Larry Goddard
+ */
 'use strict';
 /*global assert:false */
 
