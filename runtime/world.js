@@ -5,7 +5,8 @@
 'use strict';
 
 /** world.js is loaded by the cucumber framework before loading the step definitions and feature files
- * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step definition
+ * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step
+ * definition
  */
 const fs = require('fs'),
   path = require('path'),
@@ -23,6 +24,8 @@ const fs = require('fs'),
 const assert = chai.assert,
     expect = chai.expect;
 const getRemote = require('./getRemote.js');
+
+// global.driver = require(webdriverio);
 
 /**
  * for the Logging feature
@@ -130,7 +133,15 @@ function consoleInfo() {
  * All Global variables
  * @constructor
  */
+
+// function World({attach, parameters}) {
+//   this.attach = attach
+//   this.parameters = parameters
+// }
+const {After, AfterAll, BeforeAll, Before} = require('cucumber');
 function World() {
+  
+  
   /**
    * This is the Global date functionality
    */
@@ -219,25 +230,31 @@ function World() {
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
-module.exports = function () {
+// module.exports = function () {
+// const {After, AfterAll, BeforeAll, Before} = require('cucumber');
+  
   this.World = World;
 
-  /** set the default timeout for all tests
+/** set the default timeout for all tests
    */
   // this.setDefaultTimeout(DEFAULT_TIMEOUT);
-  this.setDefaultTimeout(global.settings.defaultTimeout);
+  // setDefaultTimeout(global.settings.defaultTimeout);
+  // this.setDefaultTimeout(global.settings.defaultTimeout);
 
   /**
    * ALL CUCUMBER HOOKS
    */
 
+  // let {After, AfterAll, BeforeAll, Before} = require('cucumber');
+  
+  
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
   
   /**
    * create the driver before scenario if it's not instantiated
    */
-  this.registerHandler('BeforeScenario', function () {
+  BeforeAll(function () {
     if (!global.driver) {
       global.driver = getDriverInstance();
       global.browser = global.driver; // ensure standard WebDriver global also works
@@ -248,8 +265,8 @@ module.exports = function () {
   /**
    * compile and generate a report at the END of the test run and send an Email
    */
-  this.registerHandler('AfterFeatures', function (features, done) {
-
+  AfterAll(function () {
+    
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
       let reportOptions = {
@@ -269,14 +286,16 @@ module.exports = function () {
         brandTitle: reportName + '-' + date,
         name: projectName
       };
-      reporter.generate(reportOptions);
+      driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
+        reporter.generate(reportOptions);
+      });
+      
       /**
        * send email with the report to stakeholders after test run
        */
       if (program.email) {
         return helpers.klassiEmail();
       }
-      done();
     }
   
     // if (global.paths.reports && fs.existsSync(global.paths.reports)) {
@@ -327,11 +346,12 @@ module.exports = function () {
   /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
-  this.After(async function (scenario) {
+  After(async function (scenario) {
     if (remoteService){
       await remoteService.after(scenario);
     }
-    if (scenario.isFailed() && remoteService) {
+    // if (scenario.isFailed() && remoteService) {
+    if (scenario.isFailed && remoteService) {
       /**
        * add a screenshot to the error report
        */
@@ -339,7 +359,6 @@ module.exports = function () {
       await scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
       await driver.end();
     }
-    await driver.end();
+    // await driver.end();
   });
   
-};

@@ -12,6 +12,7 @@ Feature: Searching for apps with duckduckgo
     Then they should see some results
 
     Examples:
-      |searchword |
-      |space 1999 |
-      |angry birds |
+      |searchword  |
+      |space 1999  |
+#      |angry birds |
+#      |starch      |

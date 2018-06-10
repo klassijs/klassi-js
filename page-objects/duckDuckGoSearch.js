@@ -1,3 +1,10 @@
+
+// let duckDuckGoSearch = require('../page-objects/duckDuckGoSearch');
+let searchData = require('../shared-objects/searchData');
+
+let shared = ({searchData});
+// let page = ({duckDuckGoSearch});
+
 module.exports = {
   
   /** enters a search term into ebay's search box and presses enter
@@ -8,9 +15,11 @@ module.exports = {
       let selector = shared.searchData.elem.searchInput;
     return driver.click(selector).keys(searchWord).then(function(){
       return driver.getTitle(selector).then(function (title) {
-        log.info('this is checking whats being returned:- ' + title);
+        console.log('this is checking whats being returned:- ' + title);
+        // log.info('this is checking whats being returned:- ' + title);
         return driver.click(shared.searchData.elem.searchBtn).then(function () {
-          log.info('Search function completed');
+          console.log('Search function completed');
+          // log.info('Search function completed');
         })
       })
     })
@@ -21,10 +30,10 @@ module.exports = {
       return driver.element(shared.searchData.elem.resultLink).then(function(elements){
           /** verify this element has children */
           console.log(elements); // prints to screen
-        log.info(elements); // prints to a log file
+        // log.info(elements); // prints to a log file
           expect(elements.length).to.not.equal(0);
       }).then(function(){
-          return helpers.cssImages('search')
+          // return helpers.cssImages('search')
       })
   }
 
