@@ -21,11 +21,11 @@ const fs = require('fs'),
   program = require('commander'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
+const {After, AfterAll, BeforeAll, Before} = require('cucumber');
+
 const assert = chai.assert,
     expect = chai.expect;
 const getRemote = require('./getRemote.js');
-
-// global.driver = require(webdriverio);
 
 /**
  * for the Logging feature
@@ -134,13 +134,7 @@ function consoleInfo() {
  * @constructor
  */
 
-// function World({attach, parameters}) {
-//   this.attach = attach
-//   this.parameters = parameters
-// }
-const {After, AfterAll, BeforeAll, Before} = require('cucumber');
 function World() {
-  
   
   /**
    * This is the Global date functionality
@@ -151,6 +145,7 @@ function World() {
    * Adding logging
    */
   global.log = logger.klassiLog();
+  
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
    * @type {{driver: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
@@ -230,23 +225,16 @@ function World() {
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
-// module.exports = function () {
-// const {After, AfterAll, BeforeAll, Before} = require('cucumber');
-  
+
   this.World = World;
 
 /** set the default timeout for all tests
    */
-  // this.setDefaultTimeout(DEFAULT_TIMEOUT);
-  // setDefaultTimeout(global.settings.defaultTimeout);
   // this.setDefaultTimeout(global.settings.defaultTimeout);
 
   /**
    * ALL CUCUMBER HOOKS
    */
-
-  // let {After, AfterAll, BeforeAll, Before} = require('cucumber');
-  
   
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
@@ -350,7 +338,6 @@ function World() {
     if (remoteService){
       await remoteService.after(scenario);
     }
-    // if (scenario.isFailed() && remoteService) {
     if (scenario.isFailed && remoteService) {
       /**
        * add a screenshot to the error report
