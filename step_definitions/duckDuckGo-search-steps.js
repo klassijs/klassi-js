@@ -1,10 +1,7 @@
 
 let {Given, Then, When} = require('cucumber');
-
 let duckDuckGoSearch = require('../page-objects/duckDuckGoSearch');
-
 let searchData = require('../shared-objects/searchData');
-
 
 let shared = ({searchData});
 let page = ({duckDuckGoSearch});

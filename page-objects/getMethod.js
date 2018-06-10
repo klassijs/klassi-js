@@ -1,5 +1,11 @@
 "use strict";
 
+let getMethod = require('../page-objects/getMethod');
+let apiData = require('../shared-objects/apiData');
+
+let page = ({getMethod});
+let shared = ({apiData});
+
 module.exports = {
   
   /**

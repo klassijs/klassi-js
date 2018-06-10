@@ -38,6 +38,7 @@
   "scripts": {
     "all": "node index.js -e -d -t ~@wip ",
     "dev": "node index.js -d -t ~@wip",
+    "test": "node index.js -d -t @search",
     "osxhs-chrome": "node index.js -e -d -w browserstack/osxhs-chrome -t ~@wip",
     "stack": "node index.js -e -d -w browserstack -x"
   },

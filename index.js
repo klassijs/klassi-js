@@ -199,35 +199,35 @@ process.argv.push('-S');
 /**
  * execute cucumber Cli
  */
-let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
 
 global.cucumber = cucumber;
+let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
+
 return new Promise(function (resolve, reject) {
   try{
+    
     klassiCli.run()
-      .then(success => resolve((success === true) ? 0 : 1));
-      // .then(succeeded => {
-      // let code = succeeded ? 0 : 1;
-    //
-    //   function exitNow() {
-    //     process.exit(code);
-    //   }
-    //   if (process.stdout.write('')) {
-    //     exitNow();
-    //   } else {
-    //     /**
-    //      * write() returned false, kernel buffer is not empty yet...
-    //      */
-    //     process.stdout.on('drain', exitNow);
-    //   }
-    // })
+      .then(function resolve(succeeded){
+      
+      let code = succeeded ? 0 : 1;
+
+      function exitNow() {
+        process.exit(code);
+      }
+      if (process.stdout.write('')) {
+        exitNow();
+      } else {
+        /**
+         * write() returned false, kernel buffer is not empty yet...
+         */
+        process.stdout.on('drain', exitNow);
+      }
+    })
   }catch (err) {
     return reject(err);
   }
   
 });
-
-
 
 // let klassiCli = cucumber.Cli(process.argv);
 //
