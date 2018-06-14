@@ -21,7 +21,7 @@ const fs = require('fs'),
   program = require('commander'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
-const {After, AfterAll, BeforeAll, Before} = require('cucumber');
+// const {After, AfterAll, BeforeAll, Before} = require('cucumber');
 
 const assert = chai.assert,
     expect = chai.expect;

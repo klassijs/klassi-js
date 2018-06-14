@@ -197,13 +197,11 @@ process.argv.push('-S');
 /**
  * execute cucumber Cli
  */
-let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
-
 global.cucumber = cucumber;
-return new Promise(async function (resolve, reject) {
+
 let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
 
-return new Promise(function (resolve, reject) {
+return new Promise(async function (resolve, reject) {
   try{
     klassiCli.run()
       .then(success => resolve((success === true) ? 0 : 1));
