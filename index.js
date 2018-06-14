@@ -131,7 +131,6 @@ function getProjectPath(objectName){
   return path.resolve(settings.projectRoot+program[objectName]);
 }
 
-
 let paths = {
   pageObjects:getProjectPath("pageObjects"),
   reports:getProjectPath("reports"),
@@ -142,7 +141,6 @@ let paths = {
     return path.resolve(settings.projectRoot+item);
   })
 };
-
 
 // expose settings and paths for global use
 global.settings = settings;
@@ -199,32 +197,38 @@ process.argv.push('-S');
 /**
  * execute cucumber Cli
  */
+let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
 
 global.cucumber = cucumber;
+return new Promise(async function (resolve, reject) {
 let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
 
 return new Promise(function (resolve, reject) {
   try{
-    
     klassiCli.run()
-      .then(function resolve(succeeded){
-      
-      let code = succeeded ? 0 : 1;
-
-      function exitNow() {
-        process.exit(code);
-      }
-      if (process.stdout.write('')) {
-        exitNow();
-      } else {
-        /**
-         * write() returned false, kernel buffer is not empty yet...
-         */
-        process.stdout.on('drain', exitNow);
-      }
-    })
+      .then(success => resolve((success === true) ? 0 : 1));
+      // .then(succeeded => {
+      // let code = succeeded ? 0 : 1;
+    //
+    //   function exitNow() {
+    //     process.exit(code);
+    //   }
+    //   if (process.stdout.write('')) {
+    //     exitNow();
+    //   } else {
+    //     /**
+    //      * write() returned false, kernel buffer is not empty yet...
+    //      */
+    //     process.stdout.on('drain', exitNow);
+    //   }
+    // })
   }catch (err) {
-    return reject(err);
+    if (err){
+      log.error('cucumber integration has failed ' + err.message);
+      await reject(err);
+      throw err;
+    }
+    
   }
   
 });

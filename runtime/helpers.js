@@ -59,7 +59,11 @@ module.exports = {
         });
         log.info('File has been written successfully')
       } catch (err) {
-        log.info('Error in writing file ' + err);
+        if (err){
+          log.info('Error in writing file ' + err.message);
+          throw err;
+        }
+        
       }
     },
 

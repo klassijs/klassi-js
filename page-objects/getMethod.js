@@ -3,47 +3,37 @@
 let getMethod = require('../page-objects/getMethod');
 let apiData = require('../shared-objects/apiData');
 
-let page = ({getMethod});
 let shared = ({apiData});
+let page = ({getMethod});
+
+let res;
 
 module.exports = {
   
   /**
    * Getting the Response Timing
    */
-  resTime: function () {
-      let endPoint = (envConfig.api_base_url + shared.apiData.url.baseUrl);
-      return helpers.apiCall(endPoint, 'GET');
+  resTime: async function () {
+      let endPoint = (envConfig.url.api_base_url + shared.apiData.url.baseUrl);
+      res =  await helpers.apiCall(endPoint, 'GET');
+      log.info(res);
   },
   
   /**
    * Getting the Status Code
    */
-  staCode: function () {
-    return page.getMethod.resTime().then(function (res, err) {
-      if (err) {
-        log.error('Help am Drowning ', err);
-      }
-      else if (expect(res.statusCode).to.equal(200)) {
-        log.info(res.statusCode);
-      } else {
-        log.error('Assert error - ', res.AssertionError);
-      }
-    })
+  staCode: async function () {
+    driver.pause(SHORT_DELAY_MILLISECOND);
+    expect(res.statusCode).to.equal(200);
+    
   },
   
   /**
    * Getting the Content of the API
    */
-  contApi: function () {
-    driver.timeouts(3000);
-    return page.getMethod.resTime().then(function (res, err) {
-      if (err){
-        log.error('Help am Drowning ', err);
-      }else {
-        log.info('content:- ', res.body);
-      }
-    })
+  contApi: async function () {
+    driver.pause(SHORT_DELAY_MILLISECOND);
+    log.info('content:- ', res.body);
   },
   
   

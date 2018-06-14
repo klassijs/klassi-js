@@ -30,14 +30,25 @@ const getRemote = require('./getRemote.js');
 /**
  * for the Logging feature
  */
-global.logger = require('./logger');
+// global.logger = require('./logger');
 
 /**
  * for the environment variables
  */
+global.envConfig = require('./envConfig');
 
-global.envConfig = require('./envConfig.json');
+global.request = rp;
 
+/**
+ * Adding logging
+ */
+let logger = require('./logger');
+global.log = logger.klassiLog();
+
+/**
+ * This is the Global date functionality
+ */
+global.date = helpers.currentDate();
 
 /**
  *  for the Download of all file types
@@ -134,18 +145,18 @@ function consoleInfo() {
  * @constructor
  */
 
-function World() {
-  
-  /**
-   * This is the Global date functionality
-   */
-  global.date = helpers.currentDate();
+// function World({attach, parameters}) {
+//   this.attach = attach
+//   this.parameters = parameters
+// }
+const {After, AfterAll, BeforeAll, Before} = require('cucumber');
+const {Given, When, Then} = require('cucumber');
 
-  /**
-   * Adding logging
-   */
-  global.log = logger.klassiLog();
-  
+global.Given = Given;
+global.When = When;
+global.Then = Then;
+
+function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
    * @type {{driver: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
@@ -165,7 +176,7 @@ function World() {
     log: global.log,                     // expose the log method for output to files for emailing
     envConfig: global.envConfig,  // expose the global environment configuration file for use when changing environment types (i.e. dev, test, preprod)
     downloader: global.downloader,// exposes the downloader for global usage
-    request: rp,                  // exposes the request-promise for API testing
+    request: global.request,                  // exposes the request-promise for API testing
     date: global.date,                   // expose the date method for logs and reports
   };
 
@@ -192,7 +203,6 @@ function World() {
      */
     global.page = runtime.page;
   }
-
   /**
    * import shared objects from multiple paths (after global lets have been created)
    */
@@ -228,14 +238,11 @@ function World() {
 
   this.World = World;
 
-/** set the default timeout for all tests
-   */
-  // this.setDefaultTimeout(global.settings.defaultTimeout);
+  /** set the default timeout for all tests
+     */
+  const {setDefaultTimeout} = require('cucumber');
+  setDefaultTimeout(10 * 1000);
 
-  /**
-   * ALL CUCUMBER HOOKS
-   */
-  
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
   
@@ -344,8 +351,10 @@ function World() {
        */
       let screenShot = await driver.saveScreenshot();
       await scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
+      // await driver.end();
+    }else{
       await driver.end();
     }
-    // await driver.end();
+    
   });
   

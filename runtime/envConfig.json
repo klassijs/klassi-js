@@ -4,5 +4,9 @@
     "Created by": "Larry Goddard"
   },
 
-  "api_base_url": "http://httpbin.org/"
+  "url" : {
+    "api_base_url": "http://httpbin.org/"
+  }
+
+
 }
