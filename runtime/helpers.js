@@ -59,7 +59,11 @@ module.exports = {
         });
         log.info('File has been written successfully')
       } catch (err) {
-        log.info('Error in writing file ' + err);
+        if (err){
+          log.info('Error in writing file ' + err.message);
+          throw err;
+        }
+        
       }
     },
 
@@ -75,37 +79,37 @@ module.exports = {
         /**
          * method to execute within the DOM to find elements containing text
          */
-        function clickElementInDom(query, content) {
-            /**
-             * get the list of elements to inspect
-             */
-            let elements = document.querySelectorAll(query);
-            /**
-             * workout which property to use to get inner text
-             */
-            let txtProp = ('textContent' in document) ? 'textContent' : 'innerText';
+      function clickElementInDom(query, content) {
+        /**
+         * get the list of elements to inspect
+         */
+        let elements = document.querySelectorAll(query);
+        /**
+         * workout which property to use to get inner text
+         */
+        let txtProp = ('textContent' in document) ? 'textContent' : 'innerText';
 
-            for (let i = 0, l = elements.length; i < l; i++) {
-                /**
+        for (let i = 0, l = elements.length; i < l; i++) {
+              /**
                  * If we have content, only click items matching the content
                  */
-                if (content) {
-                    if (elements[i][txtProp] === content) {
-                        elements[i].click();
-                    }
-                }
-                /**
-                 * otherwise click all
-                 */
-                else {
-                    elements[i].click();
-                }
+          if (content) {
+            if (elements[i][txtProp] === content) {
+                elements[i].click();
             }
+          }
+          /**
+           * otherwise click all
+           */
+          else {
+              elements[i].click();
+          }
         }
-        /**
-         * grab the matching elements
-         */
-        return driver.elements(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
+      }
+      /**
+       * grab the matching elements
+       */
+      return driver.elements(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
     },
   
   /**
@@ -140,12 +144,12 @@ module.exports = {
      * @returns randomNumber excluding index 0
      */
     getRandomIntegerExcludeFirst: function (range) {
-        let randomNumber = helpers.generateRandomInteger(range);
+      let randomNumber = helpers.generateRandomInteger(range);
 
-        if (randomNumber <= 1) {
-            randomNumber += 2;
-        }
-        return randomNumber;
+      if (randomNumber <= 1) {
+          randomNumber += 2;
+      }
+      return randomNumber;
     },
 
     /**
@@ -163,15 +167,15 @@ module.exports = {
      * stringToDate("9-17-2014","mm-dd-yyyy","-")
      */
     stringToDate: function (_date, _format, _delimiter) {
-        let formatLowerCase = _format.toLowerCase();
-        let formatItems = formatLowerCase.split(_delimiter);
-        let dateItems = _date.split(_delimiter);
-        let monthIndex = formatItems.indexOf("mm");
-        let dayIndex = formatItems.indexOf("dd");
-        let yearIndex = formatItems.indexOf("yyyy");
-        let month = parseInt(dateItems[monthIndex]);
-        month -= 1;
-        return new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
+      let formatLowerCase = _format.toLowerCase();
+      let formatItems = formatLowerCase.split(_delimiter);
+      let dateItems = _date.split(_delimiter);
+      let monthIndex = formatItems.indexOf("mm");
+      let dayIndex = formatItems.indexOf("dd");
+      let yearIndex = formatItems.indexOf("yyyy");
+      let month = parseInt(dateItems[monthIndex]);
+      month -= 1;
+      return new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
     },
     
     /**
@@ -179,44 +183,50 @@ module.exports = {
      * @returns {string|*}
      */
     currentDate: function () {
-        let MyDate = new Date();
-        let date;
-        MyDate.setDate(MyDate.getDate());
-        date = ('-' + '0' + MyDate.getDate())
-        .slice(-2) + '-' + ('0' + (MyDate.getMonth()+1))
-        .slice(-2) + '-' + MyDate.getFullYear();
-        return date;
+      let today = new Date();
+      let dd = today.getDate();
+      let mm = today.getMonth() + 1; //January is 0!
+      let yyyy = today.getFullYear();
+  
+      if (dd < 10) {
+        dd = '0' + dd
+      }
+      if (mm < 10) {
+        mm = '0' + mm
+      }
+  
+      return yyyy + '-' + mm + '-' + dd ;
     },
 
     /**
      * Get current date and time dd/mm/yyy 00:00:00
      */
     getCurrentDateTime: function () {
-        let today = new Date();
-        let dd = today.getDate();
-        let mm = today.getMonth() + 1; //January is 0!
-        let yyyy = today.getFullYear();
-        let hours = today.getHours();
-        let minutes = today.getMinutes();
-        let seconds= today.getSeconds();
-        
-        if (dd < 10) {
-            dd = '0' + dd
-        }
-        if (mm < 10) {
-            mm = '0' + mm
-        }
-        
-        if (hours < 10){
-            hours = '0' + hours
-        }
-        if (minutes < 10) {
-            minutes = '0' + minutes
-        }
-        if (seconds < 10) {
-            seconds = '0' + seconds
-        }
-        return dd + '-' + mm + '-' + yyyy + '-' + hours + ':' + minutes + ':' + seconds;
+      let today = new Date();
+      let dd = today.getDate();
+      let mm = today.getMonth() + 1; //January is 0!
+      let yyyy = today.getFullYear();
+      let hours = today.getHours();
+      let minutes = today.getMinutes();
+      let seconds= today.getSeconds();
+      
+      if (dd < 10) {
+          dd = '0' + dd
+      }
+      if (mm < 10) {
+          mm = '0' + mm
+      }
+      
+      if (hours < 10){
+          hours = '0' + hours
+      }
+      if (minutes < 10) {
+          minutes = '0' + minutes
+      }
+      if (seconds < 10) {
+          seconds = '0' + seconds
+      }
+      return dd + '-' + mm + '-' + yyyy + '-' + hours + ':' + minutes + ':' + seconds;
     },
   
   getEndDateTime: function () {
@@ -239,11 +249,11 @@ module.exports = {
      * @returns text
      */
     getElementText: function (selector) {
-        return driver.waitForExist(selector, 10000).pause(3000).then(function () {
-            return driver.getText(selector).then(function (text) {
-                return text;
-            })
-        })
+  return driver.waitForExist(selector, 10000).pause(3000).then(function () {
+      return driver.getText(selector).then(function (text) {
+        return text;
+      })
+      })
     },
 
     /**
@@ -252,7 +262,7 @@ module.exports = {
      * @returns {String|String[]|*|string}
      */
     getLink: function (selector) {
-        return driver.getAttribute(selector, 'href')
+      return driver.getAttribute(selector, 'href')
     },
   
   waitAndClick: async function (selector) {
@@ -288,12 +298,12 @@ module.exports = {
      *   Sends an Email to the concerned users with the log and the test report
      */
     klassiEmail: function (err) {
-        let mailer = require('../runtime/mailer').klassiSendMail();
-        if(err) {
-            console.log('This is a Email system error: ' + err.stack);
-            throw err;
-        }
-        return mailer;
+      let mailer = require('../runtime/mailer').klassiSendMail();
+      if(err) {
+        log.info('This is a Email system error: ' + err.stack);
+        throw err;
+      }
+      return mailer;
     },
   
   /**
@@ -463,8 +473,10 @@ module.exports = {
       await driver.pause(MID_DELAY_MILLISECOND);
     }
     catch (err) {
-      log.error(err.message);
-      throw err;
+      if (err) {
+        log.error(err.message);
+        throw err;
+      }
     }
   },
   

@@ -17,8 +17,9 @@ download: https://github.com/larryg01/klassi-cucumber-js/archive/development.zip
 npm i klassi-cucumber-js 
 
 
-# To run your test locally, you'll need a local selenium server running, you can install and launch a 
-# selenium standalone server with chrome, firefox and phantomjs drivers via the following commands in a separate terminal:
+# To run your test locally, you'll need a local selenium server running, you can install and
+# launch a selenium standalone server with chrome, firefox and phantomjs drivers via the 
+# following commands in a separate terminal:
 
 npm install selenium-standalone@latest -g --save-dev
 selenium-standalone install
@@ -140,14 +141,14 @@ The following variables are available within the ```Given()```, ```When()``` and
 
 ### Page objects
 
-Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/duckDuckGo-search.js``` becomes ```page.duckDuckGoSearch```.
+Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/duckDuckGoSearch.js``` becomes ```page.duckDuckGoSearch```.
 
 Page objects also have access to the same runtime variables available to step definitions.
 
 An example page object:
 
 ```javascript
-// ./page-objects/duckDuckGo-search.js
+// ./page-objects/duckDuckGoSearch.js
 
 module.exports = {
 
@@ -332,7 +333,7 @@ You can use the framework without any command line arguments if your application
 ├── step_definitions
 │   └── duckDuckGo-search-steps.js
 ├── page-objects
-│   └── duckDuckGo-search.js
+│   └── duckDuckGoSearch.js
 └── shared-objects
 │   ├── test-data.js
 │   └── stuff.json
@@ -352,7 +353,7 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## Credits
 
-[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was originally derived from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) as of December 2016 it has been completely independent of the that project. Since the fork many improvements and changes have been made including the complete move from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) still using the open development model without breaking the utilities operation.
+[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was forked from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) and as of December 2016 it has been completely independent of the that project. Since the fork many changes and improvements have been made, most notably the complete switch from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) but still using the open development model without breaking the utilities operation.
  
 
 ## License
