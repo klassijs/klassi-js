@@ -71,7 +71,6 @@ fs.ensureFile(fileName, function (err) {
   }
 });
 
-
 program
   .version(pjson.version)
   .description(pjson.description)
@@ -96,7 +95,6 @@ program.on('--help', function(){
     console.log('  For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
 });
 
-
 let settings = {
   projectRoot:program.context,
   reportName:program.reportName,
@@ -120,11 +118,9 @@ if (program.remoteService && program.extraSettings){
     if (program.tags){
       throw new Error("Cannot sent two types of tags - either use -x or -t");
     }
-    
     // TODO: test this on multiple tags
     program.tags = additionalSettings.tags;
   }
-  
 }
 
 function getProjectPath(objectName){
@@ -171,8 +167,7 @@ process.argv.push( paths.featuresPath );
 
 /** add switch to tell cucumber to produce json report files
  */
-// process.argv.push('-f', 'pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
-process.argv.push('-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
+process.argv.push('-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
 
 /** add cucumber world as first required script (this sets up the globals)
  */
@@ -193,7 +188,6 @@ if (program.tags) {
  */
 process.argv.push('-S');
 
-
 /**
  * execute cucumber Cli
  */
@@ -205,59 +199,20 @@ return new Promise(async function (resolve, reject) {
   try{
     klassiCli.run()
       .then(success => resolve((success === true) ? 0 : 1));
-      // .then(succeeded => {
-      // let code = succeeded ? 0 : 1;
-    //
-    //   function exitNow() {
-    //     process.exit(code);
-    //   }
-    //   if (process.stdout.write('')) {
-    //     exitNow();
-    //   } else {
-    //     /**
-    //      * write() returned false, kernel buffer is not empty yet...
-    //      */
-    //     process.stdout.on('drain', exitNow);
-    //   }
-    // })
+     let exitNow = function() {
+        process.exit(code);
+      };
+      if (process.stdout.write('')) {
+        exitNow();
+      } else {
+        /**
+         * write() returned false, kernel buffer is not empty yet...
+         */
+        process.stdout.on('drain', exitNow);
+      }
   }catch (err) {
-    if (err){
-      log.error('cucumber integration has failed ' + err.message);
-      await reject(err);
-      throw err;
-    }
-    
+    log.error('cucumber integration has failed ' + err.message);
+    await reject(err);
+    throw err;
   }
-  
 });
-
-// let klassiCli = cucumber.Cli(process.argv);
-//
-// global.cucumber = cucumber;
-//
-// klassiCli.run(function (succeeded) {
-//   let code = succeeded ? 0 : 1;
-//   function exitNow() {
-//     process.exit(code);
-//   }
-//   if (process.stdout.write('')) {
-//     exitNow();
-//   } else {
-//     /**
-//      * write() returned false, kernel buffer is not empty yet...
-//      */
-//     process.stdout.on('drain', exitNow);
-//   }
-// });
-
-  // let cli = new (require('cucumber').Cli)({argv: runArgs, cwd: process.cwd(), stdout: process.stdout});
-  //
-  // //CLI.run returns a promise
-  // return new Promise(function (resolve, reject) {
-  //   try {
-  //     return cli.run()
-  //       .then(success => resolve((success === true) ? 0 : 1));
-  //   } catch (e) {
-  //     return reject(e);
-  //   }
-  // });

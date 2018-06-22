@@ -38,7 +38,7 @@
   "scripts": {
     "all": "node index.js -e -d -t ~@wip ",
     "dev": "node index.js -d -t ~@wip",
-    "test": "node index.js -d -t @search",
+    "test": "node index.js -d",
     "osxhs-chrome": "node index.js -e -d -w browserstack/osxhs-chrome -t ~@wip",
     "stack": "node index.js -e -d -w browserstack -x"
   },
@@ -58,8 +58,9 @@
     "chalk": "^2.4.1",
     "chromedriver": "^2.38.3",
     "commander": "^2.11.0",
-    "cucumber": "^3.2.1",
+    "cucumber": "^4.2.1",
     "cucumber-html-reporter": "^4.0.2",
+    "cucumber-pretty": "^1.4.4",
     "fs-extra": "^5.0.0",
     "geckodriver": "^1.10.0",
     "merge": "^1.2.0",

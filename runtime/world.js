@@ -21,22 +21,19 @@ const fs = require('fs'),
   program = require('commander'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
-// const {After, AfterAll, BeforeAll, Before} = require('cucumber');
-
 const assert = chai.assert,
     expect = chai.expect;
 const getRemote = require('./getRemote.js');
-
-/**
- * for the Logging feature
- */
-// global.logger = require('./logger');
 
 /**
  * for the environment variables
  */
 global.envConfig = require('./envConfig');
 
+/**
+ * for all API test calls
+ * @type {Function}
+ */
 global.request = rp;
 
 /**
@@ -44,6 +41,7 @@ global.request = rp;
  */
 let logger = require('./logger');
 global.log = logger.klassiLog();
+
 
 /**
  * This is the Global date functionality
@@ -145,11 +143,7 @@ function consoleInfo() {
  * @constructor
  */
 
-// function World({attach, parameters}) {
-//   this.attach = attach
-//   this.parameters = parameters
-// }
-const {After, AfterAll, BeforeAll, Before} = require('cucumber');
+const {After, AfterAll, BeforeAll, Before, Status} = require('cucumber');
 const {Given, When, Then} = require('cucumber');
 
 global.Given = Given;
@@ -256,7 +250,7 @@ function World() {
     }
     return driver;
   });
-
+  
   /**
    * compile and generate a report at the END of the test run and send an Email
    */
@@ -292,69 +286,37 @@ function World() {
         return helpers.klassiEmail();
       }
     }
-  
-    // if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-    //   global.endDateTime = helpers.getEndDateTime();
-    //
-    //   let reportOptions = {
-    //     jsonDir: path.resolve(global.paths.reports),
-    //     reportPath: path.resolve(global.paths.reports),
-    //     openReportInBrowser: (!global.settings.disableReport),
-    //     disableLog: true,
-    //     pageTitle: 'Global CMS Test Report',
-    //     reportName: reportName + '-' + date,
-    //     displayDuration: true,
-    //     durationInMS: false,
-    //     metadata:{
-    //       browser: {
-    //         name: settings.browserName,
-    //         version: '65.0'
-    //       },
-    //       device: 'Virtual Machine',
-    //       platform: {
-    //         name: 'osx',
-    //         version: '10.13.2'
-    //       }
-    //     },
-    //     customData: {
-    //       title: 'Test Execution info',
-    //       data: [
-    //         {label: 'Project', value: 'Global CMS'},
-    //         {label: 'Environment', value: 'AWS Pipeline'},
-    //         {label: 'Browser', value: settings.browserName },
-    //         {label: 'Execution Start Time', value: startDateTime },
-    //         {label: 'Execution End Time', value: endDateTime }
-    //       ]
-    //     }
-    //   };
-    //   reporter.generate(reportOptions);
-    //   /**
-    //    * send email with the report to stakeholders after test run
-    //    */
-    //   if (program.email) {
-    //     return helpers.oupEmail();
-    //   }
-    //   done();
-    // }
-    
   });
+
+  /**
+   * this initiates the driver before every scenario is run
+   */
+  Before(function () {
+      global.driver = getDriverInstance();
+  });
+
   /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
   After(async function (scenario) {
-    if (remoteService){
-      await remoteService.after(scenario);
-    }
-    if (scenario.isFailed && remoteService) {
-      /**
-       * add a screenshot to the error report
-       */
-      let screenShot = await driver.saveScreenshot();
-      await scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
-      // await driver.end();
+    if (scenario.result.status === Status.FAILED) {
+      return driver.end();
     }else{
-      await driver.end();
+      return driver.end();
     }
-    
   });
+
+  /**
+   * get executed only if there is an error within a scenario
+   */
+  After(async function (scenario) {
+    let world = this;
+    if (scenario.result.status === Status.FAILED) {
+      await driver.saveScreenshot().then(function (screenShot) {
+        world.attach(screenShot, 'image/png');
+      });
+    }
+  });
+  
+  
   

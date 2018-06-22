@@ -2,6 +2,7 @@
 
 let apiData = require('../shared-objects/apiData');
 let shared = ({apiData});
+let log = global.log;
 
 let res;
 
@@ -11,16 +12,15 @@ module.exports = {
    * making a call to the Api
    */
   getCall: async function () {
-      let endPoint = (envConfig.url.api_base_url + shared.apiData.url.baseUrl);
-      res = await helpers.apiCall(endPoint, 'GET');
+    let endPoint = (envConfig.url.api_base_url + shared.apiData.url.baseUrl);
+    res = await helpers.apiCall(endPoint, 'GET');
   },
   
   /**
    * Getting the Response Timing
    */
   resTime: async function () {
-      // log.info(res.timings.response);
-      console.log(res.timings.response);
+    log.info(res.timings.response);
   },
   
   /**
@@ -29,8 +29,7 @@ module.exports = {
   staCode: async function () {
     driver.pause(SHORT_DELAY_MILLISECOND);
     expect(res.statusCode).to.equal(200);
-    console.log(res.statusCode)
-    
+    log.info(res.statusCode)
   },
   
   /**
@@ -38,9 +37,7 @@ module.exports = {
    */
   contApi: async function () {
     driver.pause(SHORT_DELAY_MILLISECOND);
-    // log.info('content:- ', res.body);
-    console.log(res.body);
+    log.info(res.body);
   },
-  
   
 };
