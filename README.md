@@ -101,23 +101,10 @@ when your task has completed._
 ```javascript
 // ./step-definitions/duckDuckGo-search-steps.js
 
-module.exports = function () {
-
-    this.Then(/^I should see some results$/, function(){
-
-            /** driver waitUntil returns a promise so return that */
-            return driver.waitUntil(driver.element('div.g'), 10000).then(function(){
-
-                /** return the promise of an element to the following then. */
-                return driver.element('div.g')
-            })
-            .then(function(elements){
-
-                /** verify this element has children */
-                expect(elements.length).to.not.equal(0);
-            })
-        });
-};
+  Then(/^they should see some results$/, function() {
+     /** return the promise of an element to the following then */
+     return page.duckDuckGoSearch.searchResult();
+  });
 ```
 The following variables are available within the ```Given()```, ```When()``` and ```Then()``` functions:
 
@@ -152,27 +139,24 @@ An example page object:
 
 module.exports = {
 
-    /** test searching for inputted data
-     */
-    url: 'https://duckduckgo.com/',
+  /** test searching for inputted data
+   */
+  url: 'https://duckduckgo.com/',
     
-    /** enters a search term into ebay's search box and presses enter
-     * @param {string} searchWord
-     * @returns {Promise} a promise to enter the search values
-     */
-    performSearch: async function (searchWord) {
-    
-        let elements = {
-            searchInput: ('#search_form_input_homepage'),
-            searchResultLink: ('div.g > h3 > a')
-        };
-    
-        let selector = elements.searchInput;
-    
-        await driver.setValue(selector, searchWord);
-        await driver.click('#search_button_homepage');
-    }
-    
+  /** enters a search term into duckduckgo search box and presses enter
+   * @param {string} searchWord
+   * @returns {Promise} a promise to enter the search values
+   */
+  performSearch: async function (searchWord) {
+    let selector = shared.searchData.elem.searchInput;
+    await driver.click(selector).keys(searchWord);
+      
+    let title = await driver.getTitle(selector);
+    log.info('this is the page title:- ' + title);
+      
+    await driver.click(shared.searchData.elem.searchBtn);
+    log.info('Search function completed');
+  },
 };
 ```
 
@@ -181,15 +165,13 @@ And its usage within a step definition:
 ```js
 // ./step-definitions/duckDuckGo-search-steps.js
 
-    this.Then(/^The user arrives on the duckduckgo search page$/, function() {
-            return helpers.loadPage(page.duckDuckGoSearch.url, 10)
-        });
-    
-    this.Then(/^they input (.*)$/, function(searchWord) {
-
-            /** use a method on the page object which also returns a promise */
-            return page.duckDuckGoSearch.performSearch(searchWord);
-    });
+  Given(/^The user arrives on the duckduckgo search page$/, function() {
+     return helpers.loadPage(shared.searchData.url, 10);
+  });
+      
+  When(/^they input (.*)$/, function(searchWord) {
+     return page.duckDuckGoSearch.performSearch(searchWord);
+  });
 ```
 
 ### CSS regression functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
@@ -202,54 +184,45 @@ You will need to have GraphicsMagick preinstalled on your system because Webdriv
 // ./runtime/helpers.js
 
 cssImages: async function(pageName){
-    await driver.webdrivercss(pageName, {
-        name: '',
-        elem: ''
-    })
+  await driver.webdrivercss(pageName, {
+    name: '',
+    elem: ''
+  })
 }
 ```
 And its usage within a step definition:
 
 ```js
-module.exports = function (){
-
-    this.Then(/^they should see some results$/, function() {
-            return driver.waitUntil(driver.element('div.g'), 10).then(function(){
-                return driver.element('div.g')
-            })
-                .then(function(elements){
-                    expect(elements.length).to.not.equal(0);
-                }).then(function(){
-                    
-                    /** Take an image of the page under test */
-                    return helpers.cssImages('search')
-                })
-        });
-};
+  Then(/^they should see some results$/, async function() {
+    /** return the promise of an element to the following then */
+    await page.duckDuckGoSearch.searchResult();
+     /** Take an image of the page under test */
+    await helpers.cssImages('search');
+  });
 ```
 ### API Testing functionality with [request-promise](https://github.com/request/request-promise)
 Getting data from a JSON REST API
 ```js
 // ./runtime/helpers.js
  getAPI: function (endpoint) {
-        let endPoint = (endpoint);
-        
-        let options = {
-            method: 'GET',
-            url: endPoint,
-            json: true,
-            simple: false,
-            resolveWithFullResponse: true,
-        };
-        
-        return request(options)
-        .then(function (response, err) {
-            if (err) {
-               // API call failed
-            }
-            // API call is successful
-        });
-    },
+    let endPoint = (endpoint);
+    
+    let options = {
+        method: 'GET',
+        url: endPoint,
+        json: true,
+        simple: false,
+        resolveWithFullResponse: true,
+    };
+    
+    return request(options)
+    .then(function (response, err) {
+        if (err) {
+           // API call failed
+        }
+        // API call is successful
+    });
+ },
 ```
 
 ### Shared objects
@@ -264,22 +237,18 @@ An example shared object:
 // ./shared-objects/test-data.js
 
 module.exports = {
-    username: "import-test-user",
-    password: "import-test-pa**word"
+  username: "import-test-user",
+  password: "import-test-pa**word"
 }
 ```
 
 And its usage within a step definition:
 
 ```js
-module.exports = function () {
-
-    this.Given(/^I am logged in"$/, function () {
-
-        driver.setValue('usn', shared.testData.username);
-        driver.setValue('pass', shared.testData.password);
-    });
-};
+  Given(/^I am logged in"$/, function () {
+    driver.setValue('usn', shared.testData.username);
+    driver.setValue('pass', shared.testData.password);
+  });
 ```
 
 ### Reports
@@ -292,35 +261,33 @@ HTML and JSON reports are automatically generated and stored in the default `./r
 
 You can register event handlers for the following events within the cucumber lifecycle.
 
+const {After, Before, AfterAll, BeforeAll} = require('cucumber');
+
 | Event          | Example                                                     |
 |----------------|-------------------------------------------------------------|
-| BeforeFeature  | ```this.BeforeFeatures(function(feature, callback) {}) ```  |
-| BeforeScenario | ```this.BeforeScenario(function(scenario, callback) {});``` |
-| AfterFeature   | ```this.AfterFeature(function(feature, callback) {});```    |
-| AfterScenario  | ```this.AfterScenario(function(scenario, callback) {});```  |
+| Before    | ```Before(function() { // This hook will be executed before all scenarios}) ```  |
+| After     | ```After(function() {// This hook will be executed after all scenarios});```    |
+| BeforeAll | ```BeforeAll(function() {// perform some shared setup});``` |
+| AfterAll  | ```AfterAll(function() {// perform some shared teardown});```  |
 
 ## How to debug
 
 Most webdriverio methods return a [JavaScript Promise](https://spring.io/understanding/javascript-promises "view JavaScript promise introduction") that is resolved when the method completes. The easiest way to step in with a debugger is to add a ```.then``` method to a selenium function and place a ```debugger``` statement within it, for example:
 
 ```js
-module.exports = function () {
+  When(/^I search DuckDuckGo for "([^"]*)"$/, function (searchQuery, done) {
+    driver.element('#search_form_input_homepage').then(function(input) {
+      expect(input).to.exist;
+      debugger; // <<- your IDE should step in at this point, with the browser open
+      return input;
+    })
+    .then(function(input){
+       input.setValue(selector, searchQuery);
+       input.setValue(selector, 'Enter');
 
-    this.When(/^I search DuckDuckGo for "([^"]*)"$/, function (searchQuery, done) {
-
-        driver.element('#search_form_input_homepage').then(function(input) {
-            expect(input).to.exist;
-            debugger; // <<- your IDE should step in at this point, with the browser open
-            return input;
-        })
-        .then(function(input){
-            input.setValue(selector, searchQuery);
-            input.setValue(selector, 'Enter');
-
-            done(); // <<- let cucumber know you're done
-        });
+       done(); // <<- let cucumber know you're done
     });
-};
+  });
 ```
 
 ## Default directory structure
