@@ -1,6 +1,6 @@
 {
   "name": "klassi-cucumber-js",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to any other tool or library. It's built with Nodejs, webdriverio and cucumber-js",
   "Author": {
     "name": "Larry Goddard",
