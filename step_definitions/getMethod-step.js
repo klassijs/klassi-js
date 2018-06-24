@@ -1,17 +1,21 @@
 'use strict';
 
-module.exports = function () {
+  let getMethod = require('../page-objects/getMethod');
+  let page = ({getMethod});
   
-  this.Given(/^That I capture the response time$/, function () {
-    return page.getMethod.resTime()
+  Given('That I make a GET call to an endPoint', function () {
+    return page.getMethod.getCall();
   });
   
-  this.Then(/^I expect status code of '(\d+)'$/, function (stcode) {
+  When(/^That I capture the response time$/, function () {
+    return page.getMethod.resTime();
+  });
+  
+  Then(/^I expect status code of '(\d+)'$/, function (stcode) {
     return page.getMethod.staCode(stcode);
   });
   
-  this.Then(/^I return the content of the API$/, function () {
+  Then(/^I return the content of the API$/, function () {
     return page.getMethod.contApi();
   });
   
-};

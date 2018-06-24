@@ -1,44 +1,43 @@
 "use strict";
 
+let apiData = require('../shared-objects/apiData');
+let shared = ({apiData});
+let log = global.log;
+
+let res;
+
 module.exports = {
+  
+  /**
+   * making a call to the Api
+   */
+  getCall: async function () {
+    let endPoint = (envConfig.url.api_base_url + shared.apiData.url.baseUrl);
+    res = await helpers.apiCall(endPoint, 'GET');
+  },
   
   /**
    * Getting the Response Timing
    */
-  resTime: function () {
-      let endPoint = (envConfig.api_base_url + shared.apiData.url.baseUrl);
-      return helpers.apiCall(endPoint, 'GET');
+  resTime: async function () {
+    log.info(res.timings.response);
   },
   
   /**
    * Getting the Status Code
    */
-  staCode: function () {
-    return page.getMethod.resTime().then(function (res, err) {
-      if (err) {
-        log.error('Help am Drowning ', err);
-      }
-      else if (expect(res.statusCode).to.equal(200)) {
-        log.info(res.statusCode);
-      } else {
-        log.error('Assert error - ', res.AssertionError);
-      }
-    })
+  staCode: async function () {
+    driver.pause(SHORT_DELAY_MILLISECOND);
+    expect(res.statusCode).to.equal(200);
+    log.info(res.statusCode)
   },
   
   /**
    * Getting the Content of the API
    */
-  contApi: function () {
-    driver.timeouts(3000);
-    return page.getMethod.resTime().then(function (res, err) {
-      if (err){
-        log.error('Help am Drowning ', err);
-      }else {
-        log.info('content:- ', res.body);
-      }
-    })
+  contApi: async function () {
+    driver.pause(SHORT_DELAY_MILLISECOND);
+    log.info(res.body);
   },
-  
   
 };

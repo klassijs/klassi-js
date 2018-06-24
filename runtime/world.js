@@ -25,19 +25,28 @@ const assert = chai.assert,
     expect = chai.expect;
 const getRemote = require('./getRemote.js');
 
-// global.driver = require(webdriverio);
-
-/**
- * for the Logging feature
- */
-global.logger = require('./logger');
-
 /**
  * for the environment variables
  */
+global.envConfig = require('./envConfig');
 
-global.envConfig = require('./envConfig.json');
+/**
+ * for all API test calls
+ * @type {Function}
+ */
+global.request = rp;
 
+/**
+ * Adding logging
+ */
+let logger = require('./logger');
+global.log = logger.klassiLog();
+
+
+/**
+ * This is the Global date functionality
+ */
+global.date = helpers.currentDate();
 
 /**
  *  for the Download of all file types
@@ -134,23 +143,14 @@ function consoleInfo() {
  * @constructor
  */
 
-// function World({attach, parameters}) {
-//   this.attach = attach
-//   this.parameters = parameters
-// }
-const {After, AfterAll, BeforeAll, Before} = require('cucumber');
-function World() {
-  
-  
-  /**
-   * This is the Global date functionality
-   */
-  global.date = helpers.currentDate();
+const {After, AfterAll, BeforeAll, Before, Status} = require('cucumber');
+const {Given, When, Then} = require('cucumber');
 
-  /**
-   * Adding logging
-   */
-  global.log = logger.klassiLog();
+global.Given = Given;
+global.When = When;
+global.Then = Then;
+
+function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
    * @type {{driver: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
@@ -170,7 +170,7 @@ function World() {
     log: global.log,                     // expose the log method for output to files for emailing
     envConfig: global.envConfig,  // expose the global environment configuration file for use when changing environment types (i.e. dev, test, preprod)
     downloader: global.downloader,// exposes the downloader for global usage
-    request: rp,                  // exposes the request-promise for API testing
+    request: global.request,                  // exposes the request-promise for API testing
     date: global.date,                   // expose the date method for logs and reports
   };
 
@@ -197,7 +197,6 @@ function World() {
      */
     global.page = runtime.page;
   }
-
   /**
    * import shared objects from multiple paths (after global lets have been created)
    */
@@ -230,24 +229,14 @@ function World() {
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
-// module.exports = function () {
-// const {After, AfterAll, BeforeAll, Before} = require('cucumber');
-  
+
   this.World = World;
 
-/** set the default timeout for all tests
-   */
-  // this.setDefaultTimeout(DEFAULT_TIMEOUT);
-  // setDefaultTimeout(global.settings.defaultTimeout);
-  // this.setDefaultTimeout(global.settings.defaultTimeout);
+  /** set the default timeout for all tests
+     */
+  const {setDefaultTimeout} = require('cucumber');
+  setDefaultTimeout(10 * 1000);
 
-  /**
-   * ALL CUCUMBER HOOKS
-   */
-
-  // let {After, AfterAll, BeforeAll, Before} = require('cucumber');
-  
-  
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
   
@@ -261,7 +250,7 @@ function World() {
     }
     return driver;
   });
-
+  
   /**
    * compile and generate a report at the END of the test run and send an Email
    */
@@ -297,68 +286,37 @@ function World() {
         return helpers.klassiEmail();
       }
     }
-  
-    // if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-    //   global.endDateTime = helpers.getEndDateTime();
-    //
-    //   let reportOptions = {
-    //     jsonDir: path.resolve(global.paths.reports),
-    //     reportPath: path.resolve(global.paths.reports),
-    //     openReportInBrowser: (!global.settings.disableReport),
-    //     disableLog: true,
-    //     pageTitle: 'Global CMS Test Report',
-    //     reportName: reportName + '-' + date,
-    //     displayDuration: true,
-    //     durationInMS: false,
-    //     metadata:{
-    //       browser: {
-    //         name: settings.browserName,
-    //         version: '65.0'
-    //       },
-    //       device: 'Virtual Machine',
-    //       platform: {
-    //         name: 'osx',
-    //         version: '10.13.2'
-    //       }
-    //     },
-    //     customData: {
-    //       title: 'Test Execution info',
-    //       data: [
-    //         {label: 'Project', value: 'Global CMS'},
-    //         {label: 'Environment', value: 'AWS Pipeline'},
-    //         {label: 'Browser', value: settings.browserName },
-    //         {label: 'Execution Start Time', value: startDateTime },
-    //         {label: 'Execution End Time', value: endDateTime }
-    //       ]
-    //     }
-    //   };
-    //   reporter.generate(reportOptions);
-    //   /**
-    //    * send email with the report to stakeholders after test run
-    //    */
-    //   if (program.email) {
-    //     return helpers.oupEmail();
-    //   }
-    //   done();
-    // }
-    
   });
+
+  /**
+   * this initiates the driver before every scenario is run
+   */
+  Before(function () {
+      global.driver = getDriverInstance();
+  });
+
   /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
   After(async function (scenario) {
-    if (remoteService){
-      await remoteService.after(scenario);
+    if (scenario.result.status === Status.FAILED) {
+      return driver.end();
+    }else{
+      return driver.end();
     }
-    // if (scenario.isFailed() && remoteService) {
-    if (scenario.isFailed && remoteService) {
-      /**
-       * add a screenshot to the error report
-       */
-      let screenShot = await driver.saveScreenshot();
-      await scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
-      await driver.end();
-    }
-    // await driver.end();
   });
+
+  /**
+   * get executed only if there is an error within a scenario
+   */
+  After(async function (scenario) {
+    let world = this;
+    if (scenario.result.status === Status.FAILED) {
+      await driver.saveScreenshot().then(function (screenShot) {
+        world.attach(screenShot, 'image/png');
+      });
+    }
+  });
+  
+  
   
