@@ -325,4 +325,4 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## License
 
-[MIT License](LICENSE) &copy; [Larry Goddard](https://uk.linkedin.com/in/goddardl)
+[MIT License](LICENSE) &copy; [Larry Goddard](https://uk.linkedin.com/in/larryg)
