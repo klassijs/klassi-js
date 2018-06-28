@@ -8,6 +8,7 @@ const path = require('path'),
   program = require('commander'),
   fs = require('fs-extra'),
   pjson = require('./package.json'),
+  // pretty = require('pretty'),
   cucumber = require('cucumber');
 
 function collectPaths(value, paths){
@@ -167,6 +168,7 @@ process.argv.push( paths.featuresPath );
 
 /** add switch to tell cucumber to produce json report files
  */
+// process.argv.push('-f', 'node_modules/pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
 process.argv.push('-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
 
 /** add cucumber world as first required script (this sets up the globals)
@@ -197,11 +199,12 @@ let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.
 
 return new Promise(async function (resolve, reject) {
   try{
-    klassiCli.run()
-      .then(success => resolve((success === true) ? 0 : 1));
-     let exitNow = function() {
-        process.exit(code);
-      };
+    klassiCli.run(function (success) {
+      resolve = success ? 0 : 1;
+
+      function exitNow() {
+        process.exit(resolve);
+      }
       if (process.stdout.write('')) {
         exitNow();
       } else {
@@ -210,8 +213,9 @@ return new Promise(async function (resolve, reject) {
          */
         process.stdout.on('drain', exitNow);
       }
+    })
   }catch (err) {
-    log.error('cucumber integration has failed ' + err.message);
+    console.log('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
   }

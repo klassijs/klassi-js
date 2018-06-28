@@ -21,9 +21,14 @@ const fs = require('fs'),
   program = require('commander'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
+/**
+ * global const
+ */
 const assert = chai.assert,
-    expect = chai.expect;
-const getRemote = require('./getRemote.js');
+    expect = chai.expect,
+    logger = require('./logger.js'),
+    getRemote = require('./getRemote.js');
+
 
 /**
  * for the environment variables
@@ -35,13 +40,6 @@ global.envConfig = require('./envConfig');
  * @type {Function}
  */
 global.request = rp;
-
-/**
- * Adding logging
- */
-let logger = require('./logger');
-global.log = logger.klassiLog();
-
 
 /**
  * This is the Global date functionality
@@ -102,7 +100,6 @@ function getDriverInstance() {
       driver = new ChromeDriver(options);
     }
       break;
-
   }
 
   /**
@@ -139,11 +136,17 @@ function consoleInfo() {
 }
 
 /**
+ * Adding logging
+ */
+let log = logger.klassiLog();
+global.log = log;
+
+/**
  * All Global variables
  * @constructor
  */
 
-const {After, AfterAll, BeforeAll, Before, Status} = require('cucumber');
+const {Before, After, BeforeAll, AfterAll, Status} = require('cucumber');
 const {Given, When, Then} = require('cucumber');
 
 global.Given = Given;
@@ -317,6 +320,3 @@ function World() {
       });
     }
   });
-  
-  
-  
