@@ -5,7 +5,8 @@
 'use strict';
 
 /** world.js is loaded by the cucumber framework before loading the step definitions and feature files
- * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step definition
+ * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step
+ * definition
  */
 const fs = require('fs'),
   path = require('path'),
@@ -25,16 +26,27 @@ const assert = chai.assert,
 const getRemote = require('./getRemote.js');
 
 /**
- * for the Logging feature
- */
-global.logger = require('./logger');
-
-/**
  * for the environment variables
  */
+global.envConfig = require('./envConfig');
 
-global.envConfig = require('./envConfig.json');
+/**
+ * for all API test calls
+ * @type {Function}
+ */
+global.request = rp;
 
+/**
+ * Adding logging
+ */
+let logger = require('./logger');
+global.log = logger.klassiLog();
+
+
+/**
+ * This is the Global date functionality
+ */
+global.date = helpers.currentDate();
 
 /**
  *  for the Download of all file types
@@ -130,16 +142,15 @@ function consoleInfo() {
  * All Global variables
  * @constructor
  */
-function World() {
-  /**
-   * This is the Global date functionality
-   */
-  global.date = helpers.currentDate();
 
-  /**
-   * Adding logging
-   */
-  global.log = logger.klassiLog();
+const {After, AfterAll, BeforeAll, Before, Status} = require('cucumber');
+const {Given, When, Then} = require('cucumber');
+
+global.Given = Given;
+global.When = When;
+global.Then = Then;
+
+function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
    * @type {{driver: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
@@ -159,7 +170,7 @@ function World() {
     log: global.log,                     // expose the log method for output to files for emailing
     envConfig: global.envConfig,  // expose the global environment configuration file for use when changing environment types (i.e. dev, test, preprod)
     downloader: global.downloader,// exposes the downloader for global usage
-    request: rp,                  // exposes the request-promise for API testing
+    request: global.request,                  // exposes the request-promise for API testing
     date: global.date,                   // expose the date method for logs and reports
   };
 
@@ -186,7 +197,6 @@ function World() {
      */
     global.page = runtime.page;
   }
-
   /**
    * import shared objects from multiple paths (after global lets have been created)
    */
@@ -219,17 +229,13 @@ function World() {
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
-module.exports = function () {
+
   this.World = World;
 
   /** set the default timeout for all tests
-   */
-  // this.setDefaultTimeout(DEFAULT_TIMEOUT);
-  this.setDefaultTimeout(global.settings.defaultTimeout);
-
-  /**
-   * ALL CUCUMBER HOOKS
-   */
+     */
+  const {setDefaultTimeout} = require('cucumber');
+  setDefaultTimeout(10 * 1000);
 
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
@@ -237,19 +243,19 @@ module.exports = function () {
   /**
    * create the driver before scenario if it's not instantiated
    */
-  this.registerHandler('BeforeScenario', function () {
+  BeforeAll(function () {
     if (!global.driver) {
       global.driver = getDriverInstance();
       global.browser = global.driver; // ensure standard WebDriver global also works
     }
     return driver;
   });
-
+  
   /**
    * compile and generate a report at the END of the test run and send an Email
    */
-  this.registerHandler('AfterFeatures', function (features, done) {
-
+  AfterAll(function () {
+    
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
       let reportOptions = {
@@ -269,34 +275,48 @@ module.exports = function () {
         brandTitle: reportName + '-' + date,
         name: projectName
       };
-      reporter.generate(reportOptions);
+      driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
+        reporter.generate(reportOptions);
+      });
+      
       /**
        * send email with the report to stakeholders after test run
        */
       if (program.email) {
         return helpers.klassiEmail();
       }
-      done();
     }
-    
   });
-  
+
+  /**
+   * this initiates the driver before every scenario is run
+   */
+  Before(function () {
+      global.driver = getDriverInstance();
+  });
+
   /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
-  this.After(async function (scenario) {
-    if (remoteService){
-      await remoteService.after(scenario);
+  After(async function (scenario) {
+    if (scenario.result.status === Status.FAILED) {
+      return driver.end();
+    }else{
+      return driver.end();
     }
-    if (scenario.isFailed() && remoteService) {
-      /**
-       * add a screenshot to the error report
-       */
-      let screenShot = await driver.saveScreenshot();
-      await scenario.attach(new Buffer(screenShot, 'base64'), 'image/png');
-      await driver.end();
+  });
+
+  /**
+   * get executed only if there is an error within a scenario
+   */
+  After(async function (scenario) {
+    let world = this;
+    if (scenario.result.status === Status.FAILED) {
+      await driver.saveScreenshot().then(function (screenShot) {
+        world.attach(screenShot, 'image/png');
+      });
     }
-    await driver.end();
   });
   
-};
+  
+  
