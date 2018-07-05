@@ -1,3 +1,4 @@
+@search
 Feature: Upgrade a listing to Showcase
 
     Scenario: Purchase an upgrade for a listing
