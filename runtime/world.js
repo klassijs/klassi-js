@@ -235,7 +235,7 @@ function World() {
   /** set the default timeout for all tests
      */
   const {setDefaultTimeout} = require('cucumber');
-  setDefaultTimeout(10 * 1000);
+  setDefaultTimeout(60 * 1000);
 
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
