@@ -13,7 +13,7 @@
   "rotatable":true,
   "logLevel":"silent",
 
-  "browserstack.local": true,
+  "browserstack.local": false,
   "browserstack.debug": true,
   "acceptSslCerts": true,
   "browserstack.networkLogs": true

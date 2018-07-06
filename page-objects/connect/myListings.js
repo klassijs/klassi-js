@@ -106,11 +106,7 @@ module.exports = {
 	},
 
 	seesTheShowcasedWebsite: async function(){
-		// Wait 30 seconds to refresh the showcase website
-		await driver.pause( 40000 )
-		await driver.refresh();
-
-		//Ensure that the showcase page was loaded
-		await driver.waitForVisible( shared.myListingData.elements.descriptionMeasurents , 5000 );
+		// Waits one minute to have the listing provisioned in the Showcase side
+		await driver.waitForVisible( shared.myListingData.elements.descriptionMeasurents , 60000 );
 	}
 };
