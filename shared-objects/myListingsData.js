@@ -24,7 +24,8 @@ module.exports = {
         confirmButton: '#purchase button[type="submit"]',
         purchaseSuccessAlert: '#purchase-success div',
         closePurchaseModal: '#purchase button[data-dismiss="modal"]',
-        showcasedItem: 'a[data-card-title="Miami"]:nth-child(3)'
+		showcasedItem: 'a[data-card-title="Miami"]:nth-child(3)',
+		descriptionMeasurents: '.description-measurements'
 	},
 
 	paymentInfo: {

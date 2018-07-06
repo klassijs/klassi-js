@@ -100,16 +100,17 @@ module.exports = {
 	},
 
 	clickOnShowcasedItem: async function(){
-		// This code is commented because the showcase-staging does not have a SSL and the webdriver doesn't open websites with http
-		// Click on the Showcased Button
-		//await driver.waitForVisible( shared.myListingData.elements.upgradeButton , 4000 );
-		//await driver.click( shared.myListingData.elements.upgradeButton );
+		// Click on the Showcased Item
+		await driver.waitForVisible( shared.myListingData.elements.showcasedItem , 4000 );
+		await driver.click( shared.myListingData.elements.showcasedItem );
 	},
 
-	visitShowcasedWebsite: async function(){
-		// This code is used while the showcase-staging does not have the SSL.
-		// Check if the showcased listing href attribute contains showcase-staging
-		const showCasedHref = await driver.getAttribute( shared.myListingData.elements.showcasedItem , 'href' );
-		expect( showCasedHref ).to.contain( shared.myListingData.showcaseUrl );
+	seesTheShowcasedWebsite: async function(){
+		// Wait 30 seconds to refresh the showcase website
+		await driver.pause( 40000 )
+		await driver.refresh();
+
+		//Ensure that the showcase page was loaded
+		await driver.waitForVisible( shared.myListingData.elements.descriptionMeasurents , 5000 );
 	}
 };

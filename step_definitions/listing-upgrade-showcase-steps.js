@@ -22,7 +22,7 @@ let page = ({loginPage,myListing});
 	});
 
 	Then('he sees the Showcase website', function () {
-		return page.myListing.visitShowcasedWebsite();
+		return page.myListing.seesTheShowcasedWebsite();
 	});
 
   After(function() {
