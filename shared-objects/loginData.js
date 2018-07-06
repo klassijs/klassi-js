@@ -13,7 +13,7 @@ module.exports = {
 	},
 
 	userData: {
-        Email: 'ricardorodriguez25@123realstate.com',
+        Email: 'ricardorodriguez@123realstate.com',
         Password: 'px1234',
         License: '665589',
         OfficeName: '123 Real State, Inc',

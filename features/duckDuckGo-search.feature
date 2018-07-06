@@ -1,4 +1,3 @@
-@search
 Feature: Searching for apps with duckduckgo
   As an internet user
   In order to find out more about certain user apps
