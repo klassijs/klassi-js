@@ -8,7 +8,6 @@ module.exports = {
   	goToMyListings: async function(){
 		// Go to My Listings
 		// Click on the menu item "Search For Properties"
-		await driver.waitForVisible( shared.myListingData.elements.searchForPropertiesMenu , 4000 );
 		await driver.click( shared.myListingData.elements.searchForPropertiesMenu );
 
 		// Click on the "My Listings" tab
@@ -30,61 +29,59 @@ module.exports = {
 		// Click on Choose button
 		await driver.waitForVisible( shared.myListingData.elements.chooseThisPlanButton , 6000 );
 		await driver.click( shared.myListingData.elements.chooseThisPlanButton );
-		await driver.pause( 1200 );
 
 		// Click on the Checkout button
 		await driver.waitForVisible( shared.myListingData.elements.checkoutButton , 6000 );
 		await driver.click( shared.myListingData.elements.checkoutButton );
-		await driver.pause( 1200 );
 
 		// Fill the information field
 	    // Filling the payment method form
         // First name
-        await driver.waitForVisible( shared.myListingData.elements.firstName , 1600 );
+        await driver.waitForVisible( shared.myListingData.elements.firstName , 3000 );
         await driver.addValue( shared.myListingData.elements.firstName , shared.myListingData.paymentInfo.firstName );
 
         // Last name
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.lastName, 1000);
         await driver.addValue( shared.myListingData.elements.lastName , shared.myListingData.paymentInfo.lastName );
 
         // Card number
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.cardNumber, 1000 );
         await driver.addValue( shared.myListingData.elements.cardNumber , shared.myListingData.paymentInfo.cardNumber );
 
         // CVV
-        await driver.pause( 1000 );
+		await driver.waitForVisible( shared.myListingData.elements.cvv , 1000 );
         await driver.addValue( shared.myListingData.elements.cvv , shared.myListingData.paymentInfo.cvv );
 
         // MM
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.month , 1000 );
         await driver.addValue( shared.myListingData.elements.month , shared.myListingData.paymentInfo.month );
 
         // YYYY
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.year , 1000 );
 		await driver.addValue( shared.myListingData.elements.year , shared.myListingData.paymentInfo.year );
 
         // Address line 1
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.addressLine1 , 1000 );
         await driver.addValue( shared.myListingData.elements.addressLine1 , shared.myListingData.paymentInfo.addressline1 );
 
         // Address line 2
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.addressLine2 , 1000 );
         await driver.addValue( shared.myListingData.elements.addressLine2, shared.myListingData.paymentInfo.addressLine2 );
 
         // city
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.city , 1000 );
         await driver.addValue( shared.myListingData.elements.city , shared.myListingData.paymentInfo.city );
 
         // State
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.state , 1000 );
         await driver.addValue( shared.myListingData.elements.state , shared.myListingData.paymentInfo.state );
 
         // country
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.country , 1000 );
         await driver.addValue( shared.myListingData.elements.country , shared.myListingData.paymentInfo.country );
 
         // PostCode
-        await driver.pause( 1000 );
+        await driver.waitForVisible( shared.myListingData.elements.postCode , 1000 );
         await driver.addValue( shared.myListingData.elements.postCode , shared.myListingData.paymentInfo.postCode );
 
 		// Click on Confirm button
