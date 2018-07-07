@@ -5,7 +5,7 @@
   "os_version": "10",
   "browser": "Chrome",
   "browser_version": "65.0",
-  "resolution": "1024x768",
+  "resolution": "1440x900",
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,
