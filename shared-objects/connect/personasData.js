@@ -1,4 +1,7 @@
+const listingData = require('./listingsData');
+
 module.exports = {
+	// Persona data.
 	Ricardo: {
 		Email: 'ricardorodriguez@123realstate.com',
         Password: 'px1234',
@@ -17,6 +20,10 @@ module.exports = {
                 office_name: '123 Real State, Inc',
                 office_address: 'Miami, Florida'
             },
-        },
+		},
+		Listings: [
+			listingData.miami,
+			listingData.miamiBeach,
+		],
 	},
 };

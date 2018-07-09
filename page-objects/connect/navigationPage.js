@@ -1,16 +1,22 @@
+/**
+ * Navigation at homepage.
+ *
+ * @package connect
+ */
 'use strict';
 
+// The elements to be selected by methods.
 let navigationPageData = require( '../../shared-objects/connect/navigationPageData' );
 
 let shared = ({navigationPageData});
 
 module.exports = {
   	goToMyListings: async function(){
-		// Go to My Listings
-		// Click on the menu item "Search For Properties"
+
+		// Click on the Search For Properties menu item.
 		await driver.click( shared.navigationPageData.elements.searchForPropertiesMenu );
 
-		// Click on the "My Listings" tab
+		// Waits 4 seconds for My Listings tab appears and click it.
 		await driver.waitForVisible( shared.navigationPageData.elements.myListingsTab , 4000 );
 		await driver.click( shared.navigationPageData.elements.myListingsTab );
 	},
