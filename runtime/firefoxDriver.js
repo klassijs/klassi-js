@@ -15,12 +15,12 @@ module.exports = function firefoxDriver(options){
   const defaults = {
     desiredCapabilities: {
       browserName: 'firefox',
-      proxy: {
-        httpProxy: 'http://ouparray.oup.com:8080',
-        // sslProxy: '',
-        proxyType: 'MANUAL',
-        autodetect: false
-      },
+      //proxy: {
+      //  httpProxy: 'http://ouparray.oup.com:8080',
+      //  // sslProxy: '',
+      //  proxyType: 'MANUAL',
+      //  autodetect: false
+      //},
       javascriptEnabled: true,
       acceptSslCerts: true,
       setFirefoxOptions: {

@@ -5,7 +5,7 @@
   "os_version": "High Sierra",
   "browser": "Chrome",
   "browser_version": "65.0",
-  "resolution": "1024x768",
+  "resolution": "1440x900",
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,
@@ -13,7 +13,7 @@
   "rotatable":true,
   "logLevel":"silent",
 
-  "browserstack.local": true,
+  "browserstack.local": false,
   "browserstack.debug": true,
   "acceptSslCerts": true,
   "browserstack.networkLogs": true

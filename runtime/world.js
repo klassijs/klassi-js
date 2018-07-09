@@ -90,7 +90,7 @@ function getDriverInstance() {
     return driver;
   }
   assert.isNotEmpty(browser,"Browser must be defined");
-  
+
   switch (browser || '') {
 
     case 'firefox': {
@@ -208,9 +208,9 @@ function World() {
      */
     global.paths.sharedObjects.forEach(function (itemPath){
       if (fs.existsSync(itemPath)){
-        
+
         let dir = requireDir(itemPath, { camelcase: true });
-        
+
         merge(allDirs, dir);
       }
     });
@@ -235,11 +235,11 @@ function World() {
   /** set the default timeout for all tests
      */
   const {setDefaultTimeout} = require('cucumber');
-  setDefaultTimeout(10 * 1000);
+  setDefaultTimeout(80 * 1000);
 
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
-  
+
   /**
    * create the driver before scenario if it's not instantiated
    */
@@ -250,12 +250,12 @@ function World() {
     }
     return driver;
   });
-  
+
   /**
    * compile and generate a report at the END of the test run and send an Email
    */
   AfterAll(function () {
-    
+
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
       let reportOptions = {
@@ -278,7 +278,7 @@ function World() {
       driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
         reporter.generate(reportOptions);
       });
-      
+
       /**
        * send email with the report to stakeholders after test run
        */
@@ -291,9 +291,9 @@ function World() {
   /**
    * this initiates the driver before every scenario is run
    */
-  Before(function () {
-      global.driver = getDriverInstance();
-  });
+  // Before(function () {
+  //     global.driver = getDriverInstance();
+  // });
 
   /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
@@ -317,6 +317,5 @@ function World() {
       });
     }
   });
-  
-  
-  
+
+
