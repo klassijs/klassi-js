@@ -1,11 +1,6 @@
 module.exports = {
 
-	url: 'https://v2-staging.proxiopro.com/',
-	showcaseUrl: 'http://showcase-staging.com/',
-
 	elements: {
-		searchForPropertiesMenu: '#menu-item-163 a',
-    	myListingsTab: 'a[href="#my-listings"]',
 		upgradeButton: '.card-listing:nth-child(1) .upgrade-listing button',
         chooseThisPlanButton: '#purchase .product-box button.purchase-next',
         checkoutButton: '#purchase .purchase-form button.btn-checkout',

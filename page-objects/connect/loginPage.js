@@ -1,40 +1,44 @@
 'use strict';
-let loginData = require('../../shared-objects/loginData');
-let apiHelpers = require('../../shared-objects/apiHelpers');
+let loginPageData = require('../../shared-objects/connect/loginPageData');
+let personasData = require('../../shared-objects/connect/personasData');
+let listingsData = require('../../shared-objects/connect/listingsData');
+let apiHelpers = require('../../shared-objects/connect/apiHelpers');
 
-let shared = ({loginData});
+let shared = ({loginPageData, personasData, listingsData});
 
 module.exports = {
-  loginAs: async function() {
+  loginAs: async function( persona ) {
+
+	// @TODO: thrown error if persona not exists.
 
     // Create user
-	apiHelpers.createUser( shared.loginData.userData );
+	apiHelpers.createUser( shared.personasData[ persona ] );
 
 	// Create the first listing
-	apiHelpers.addListing( shared.loginData.listingsData[0] );
+	apiHelpers.addListing( shared.listingsData.listingsData[0] );
 
 	// Create the second listing
-	apiHelpers.addListing( shared.loginData.listingsData[1] );
+	apiHelpers.addListing( shared.listingsData.listingsData[1] );
 
     // Go to the login page
-	await driver.url( shared.loginData.url );
+	await driver.url( shared.loginPageData.url );
 
 	// Waits 3 seconds to load the login page
-	await driver.waitForVisible( shared.loginData.elements.loginUsernameField, 3000 );
+	await driver.waitForVisible( shared.loginPageData.elements.loginUsernameField, 3000 );
 
 	// username
-    await driver.clearElement( shared.loginData.elements.loginUsernameField );
-    await driver.addValue( shared.loginData.elements.loginUsernameField, apiHelpers.currentUser.username );
+    await driver.clearElement( shared.loginPageData.elements.loginUsernameField );
+    await driver.addValue( shared.loginPageData.elements.loginUsernameField, apiHelpers.currentUser.username );
 
     // password
-    await driver.clearElement( shared.loginData.elements.loginPasswordField );
-    await driver.addValue( shared.loginData.elements.loginPasswordField, apiHelpers.currentUser.password );
+    await driver.clearElement( shared.loginPageData.elements.loginPasswordField );
+    await driver.addValue( shared.loginPageData.elements.loginPasswordField, apiHelpers.currentUser.password );
 
     // click on the sign in button
-    await driver.click( shared.loginData.elements.signInButton );
+    await driver.click( shared.loginPageData.elements.signInButton );
 
     // Waits 6 seconds to load the homepage.
-    await driver.waitForVisible( shared.loginData.elements.mainNavBar , 8000 );
+    await driver.waitForVisible( shared.loginPageData.elements.mainNavBar , 8000 );
   },
 
   tearDown: async function() {

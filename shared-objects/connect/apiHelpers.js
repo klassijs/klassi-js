@@ -42,23 +42,59 @@ module.exports = {
 	},
 
 	/**
+     * Get user Token and delete the user if the token already exist
+    */
+   deleteUserIfItAlreadyExist() {
+	   // Get the required token.
+		const getToken = request( 'POST', API_ENDPOINT + '/sessions/?api_key=' + API_KEY, {
+			json: {
+				Login: this.currentUser.username,
+				Password: this.currentUser.password,
+			}
+		} );
+
+		// It do not exists... proceed!
+		if ( getToken.statusCode != '201' ) {
+			return;
+		}
+
+		// Else, the user exists and should be deleted.
+		const getTokenBody = JSON.parse( getToken.getBody('utf8') );
+
+		const userToken = getTokenBody.Token;
+		const userId	= getTokenBody.User.Id;
+
+		// Delete the user.
+        const deleteUser = request( 'DELETE', API_ENDPOINT + '/users/' + userId + '/?api_key=' + API_KEY + '&token=' + userToken );
+
+        // User could not be deleted
+        if ( deleteUser.statusCode != '200' ) {
+            throw new Error('User could not be deleted! ID:' + userId );
+        }
+	},
+
+	/**
      * Create a user with specific user data.
      *
      * @param object userData User's information.
      */
-    createUser( userData ) {
+    createUser( persona ) {
+		// Set the current credentials.
+		this.currentUser.username = persona.Email;
+		this.currentUser.password = persona.Password;
+
+		// Ensure to delete user if already exists.
+		this.deleteUserIfItAlreadyExist();
+
         // Create the user.
         const createUser = request( 'POST', API_ENDPOINT + '/users/?api_key=' + API_KEY, {
-            json: userData
+            json: persona
         } );
 
         // User created with success.
         if ( createUser.statusCode == '201' ) {
             const userInformation = JSON.parse( createUser.getBody('utf8') );
-
             this.currentUser.userId = userInformation.Id;
-            this.currentUser.username = userData.Email;
-            this.currentUser.password = userData.Password;
         } else {
             throw new Error('User could not be created!');
         }

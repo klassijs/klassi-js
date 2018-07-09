@@ -1,39 +1,5 @@
 module.exports = {
-
-	url: 'https://v2-staging.proxiopro.com/',
-
-    elements: {
-        myAccountDropdown: '#dropdown-user a',
-	    logoutButton: '.pad-all a',
-	    loginUsernameField: '#username',
-	    loginPasswordField: '#password',
-	    signInButton: 'button[value="Login"]',
-	    navbar: '.navbar-content',
-	    mainNavBar: '#mainnav-menu'
-	},
-
-	userData: {
-        Email: 'ricardorodriguez@12345realstate.com',
-        Password: 'px1234',
-        License: '665589',
-        OfficeName: '123 Real State, Inc',
-        OfficeAddress: 'Miami, Florida',
-        country: 'us',
-        LocationText: 'Miami, Florida',
-        EntityType: 'agent',
-        Status: 'active',
-        Name: 'Ricardo Rodriguez',
-        Country: 'us',
-        Licenses: [{LicenseNumber: '665589', Country: 'us'}],
-        CustomFields:{
-            pxpv2: {
-                office_name: '123 Real State, Inc',
-                office_address: 'Miami, Florida'
-            },
-        },
-	},
-
-	listingsData: [
+	listingsData:[
 		{
 			EntityType:"Resale",
 			PriceType:"Default",
@@ -79,6 +45,6 @@ module.exports = {
 			Headlines:[{"Language":"en","Value":"Miami Beach house","Default":"true"}],
 			Descriptions:[{"Language":"en","Value":"Visit this property.","Default":"true"}],
 			LatLong:[25.790654,-80.1300455]
-		}
+		},
 	],
 };
