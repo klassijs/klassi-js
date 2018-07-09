@@ -44,7 +44,7 @@ module.exports = {
 	/**
      * Get user Token and delete the user if the token already exist
     */
-   deleteUserIfItAlreadyExist() {
+   deleteUserIfItExists() {
 	   // Get the required token.
 		const getToken = request( 'POST', API_ENDPOINT + '/sessions/?api_key=' + API_KEY, {
 			json: {
@@ -84,7 +84,7 @@ module.exports = {
 		this.currentUser.password = persona.Password;
 
 		// Ensure to delete user if already exists.
-		this.deleteUserIfItAlreadyExist();
+		this.deleteUserIfItExists();
 
         // Create the user.
         const createUser = request( 'POST', API_ENDPOINT + '/users/?api_key=' + API_KEY, {
