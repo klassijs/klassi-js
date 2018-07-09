@@ -1,5 +1,7 @@
 module.exports = {
-
+	/**
+		* selectors present in the listing upgrade to showcase flow.
+	*/
 	elements: {
 		upgradeButton: '.card-listing:nth-child(1) .upgrade-listing button',
         chooseThisPlanButton: '#purchase .product-box button.purchase-next',
@@ -23,6 +25,9 @@ module.exports = {
 		descriptionMeasurents: '.description-measurements'
 	},
 
+	/**
+		* Values that will be used to fill the checkout form.
+	*/
 	paymentInfo: {
 		firstName: 'Ricardo',
 		lastName: 'Rodriguez',
