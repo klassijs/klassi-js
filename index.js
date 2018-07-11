@@ -39,8 +39,8 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-global.reportName = 'KlassiTech Automated Test Report';
-global.projectName = 'Klassi Technologies';
+global.reportName = process.env.REPORT_NAME || 'KlassiTech Automated Test Report';
+global.projectName = process.env.PROJECT_NAME || 'Klassi Technologies';
 
 
 /**
