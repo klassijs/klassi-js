@@ -289,13 +289,6 @@ function World() {
   });
 
   /**
-   * this initiates the driver before every scenario is run
-   */
-  Before(function () {
-      global.driver = getDriverInstance();
-  });
-
-  /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
   After(async function (scenario) {
