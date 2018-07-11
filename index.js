@@ -8,9 +8,11 @@ const path = require('path'),
   program = require('commander'),
   fs = require('fs-extra'),
   pjson = require('./package.json'),
-  cucumber = require('cucumber'),
-  Log = require('log'),
-  log = new Log('info');
+  cucumber = require('cucumber');
+
+let logger = require('./runtime/logger');
+global.log = logger.klassiLog();
+let log = global.log;
 
 function collectPaths(value, paths){
   paths.push(value);
@@ -109,7 +111,6 @@ let settings = {
 if (program.remoteService && program.extraSettings){
   
   let additionalSettings = parseRemoteArguments(program.extraSettings);
-  
   settings.remoteConfig = additionalSettings.config;
   
   /* this approach supports a single string defining both the target config and tags
@@ -199,15 +200,12 @@ let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.
 
 return new Promise(async function (resolve, reject) {
   try{
-    klassiCli.run()
-      .then(success => resolve((success === true) ? 0 : 1));
-     let exitNow = function() {
-      try {
-        process.exit(code);
-      } catch (err) {
+    klassiCli.run(function (success) {
+      resolve = success ? 0 : 1;
 
+      function exitNow() {
+        process.exit(resolve);
       }
-      };
       if (process.stdout.write('')) {
         exitNow();
       } else {
@@ -216,7 +214,8 @@ return new Promise(async function (resolve, reject) {
          */
         process.stdout.on('drain', exitNow);
       }
-  } catch (err) {
+    })
+  }catch (err) {
     log.error('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
