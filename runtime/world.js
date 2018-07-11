@@ -273,7 +273,7 @@ function World() {
           'Test Completion': endDateTime,
           'Test Environment': process.env.NODE_ENV || 'PRODUCTION',
           'Platform': process.platform,
-          'Executed':  remoteService ? 'Remote' : 'Local',
+          'Executed':  remoteService && remoteService.type === "browserstack" ? 'Remote' : 'Local',
         },
         brandTitle: reportName + '-' + date,
         name: projectName
