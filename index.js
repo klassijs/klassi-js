@@ -9,6 +9,8 @@ const path = require('path'),
   fs = require('fs-extra'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
+  Log = require('log'),
+  log = new Log('info');
 
 function collectPaths(value, paths){
   paths.push(value);
@@ -214,7 +216,7 @@ return new Promise(async function (resolve, reject) {
          */
         process.stdout.on('drain', exitNow);
       }
-  }catch (err) {
+  } catch (err) {
     log.error('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
