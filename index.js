@@ -8,8 +8,11 @@ const path = require('path'),
   program = require('commander'),
   fs = require('fs-extra'),
   pjson = require('./package.json'),
-  // pretty = require('pretty'),
   cucumber = require('cucumber');
+
+let logger = require('./runtime/logger');
+global.log = logger.klassiLog();
+let log = global.log;
 
 function collectPaths(value, paths){
   paths.push(value);
@@ -38,8 +41,8 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-global.reportName = 'KlassiTech Automated Test Report';
-global.projectName = 'Klassi Technologies';
+global.reportName = process.env.REPORT_NAME || 'KlassiTech Automated Test Report';
+global.projectName = process.env.PROJECT_NAME || 'Klassi Technologies';
 
 
 /**
@@ -108,7 +111,6 @@ let settings = {
 if (program.remoteService && program.extraSettings){
   
   let additionalSettings = parseRemoteArguments(program.extraSettings);
-  
   settings.remoteConfig = additionalSettings.config;
   
   /* this approach supports a single string defining both the target config and tags
@@ -168,7 +170,6 @@ process.argv.push( paths.featuresPath );
 
 /** add switch to tell cucumber to produce json report files
  */
-// process.argv.push('-f', 'node_modules/pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
 process.argv.push('-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
 
 /** add cucumber world as first required script (this sets up the globals)
@@ -215,7 +216,7 @@ return new Promise(async function (resolve, reject) {
       }
     })
   }catch (err) {
-    console.log('cucumber integration has failed ' + err.message);
+    log.error('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
   }

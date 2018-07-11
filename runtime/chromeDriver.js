@@ -17,11 +17,11 @@ module.exports = function chromeDriver(options){
     
     desiredCapabilities: {
       browserName: 'chrome',
-      proxy: {
-        httpProxy: 'http://domain.com:8080',
-        proxyType: 'MANUAL',
-        autodetect: false
-      },
+      // proxy: {
+      //   httpProxy: 'http://domain.com:8080',
+      //   proxyType: 'MANUAL',
+      //   autodetect: false
+      // },
       javascriptEnabled: true,
       acceptSslCerts: true,
       chromeOptions: {

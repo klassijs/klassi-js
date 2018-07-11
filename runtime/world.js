@@ -4,7 +4,8 @@
  */
 'use strict';
 
-/** world.js is loaded by the cucumber framework before loading the step definitions and feature files
+/**
+ * world.js is loaded by the cucumber framework before loading the step definitions and feature files
  * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step
  * definition
  */
@@ -29,11 +30,15 @@ const assert = chai.assert,
     logger = require('./logger.js'),
     getRemote = require('./getRemote.js');
 
+/**
+ * Adding logging
+ */
+global.log = logger.klassiLog();
 
 /**
- * for the environment variables
+ * This is the Global date functionality
  */
-global.envConfig = require('./envConfig');
+global.date = helpers.currentDate();
 
 /**
  * for all API test calls
@@ -42,9 +47,9 @@ global.envConfig = require('./envConfig');
 global.request = rp;
 
 /**
- * This is the Global date functionality
+ * for the environment variables
  */
-global.date = helpers.currentDate();
+global.envConfig = require('./envConfig.json');
 
 /**
  *  for the Download of all file types
@@ -235,10 +240,11 @@ function World() {
 
   this.World = World;
 
-  /** set the default timeout for all tests
-     */
+  /**
+   * set the default timeout for all tests
+   */
   const {setDefaultTimeout} = require('cucumber');
-  setDefaultTimeout(10 * 1000);
+  setDefaultTimeout(60 * 1000);
 
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
@@ -247,18 +253,24 @@ function World() {
    * create the driver before scenario if it's not instantiated
    */
   BeforeAll(function () {
-    if (!global.driver) {
+    if(!global.driver) {
       global.driver = getDriverInstance();
       global.browser = global.driver; // ensure standard WebDriver global also works
+      return driver;
     }
-    return driver;
   });
   
   /**
+   * this initiates the driver before every scenario is run
+   */
+  // Before(function () {
+  //     global.driver = getDriverInstance();
+  // });
+
+/**
    * compile and generate a report at the END of the test run and send an Email
    */
   AfterAll(function () {
-    
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
       let reportOptions = {
@@ -271,9 +283,9 @@ function World() {
         metadata: {
           'Test Started': startDateTime,
           'Test Completion': endDateTime,
-          'Test Environment': 'DEVELOPMENT',
-          'Platform': 'AWS Debian 9',
-          'Executed': 'Remote'
+          'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
+          'Platform': process.platform,
+          'Executed':  remoteService && remoteService.type === "browserstack" ? 'Remote' : 'Local',
         },
         brandTitle: reportName + '-' + date,
         name: projectName
@@ -292,19 +304,13 @@ function World() {
   });
 
   /**
-   * this initiates the driver before every scenario is run
-   */
-  Before(function () {
-      global.driver = getDriverInstance();
-  });
-
-  /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
   After(async function (scenario) {
     if (scenario.result.status === Status.FAILED) {
       return driver.end();
-    }else{
+    }else if
+      (scenario.result.status === Status.PASSED){
       return driver.end();
     }
   });
@@ -317,6 +323,6 @@ function World() {
     if (scenario.result.status === Status.FAILED) {
       await driver.saveScreenshot().then(function (screenShot) {
         world.attach(screenShot, 'image/png');
-      });
+      })
     }
   });
