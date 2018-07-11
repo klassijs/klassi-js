@@ -235,7 +235,10 @@ function World() {
   /** set the default timeout for all tests
      */
   const {setDefaultTimeout} = require('cucumber');
-  setDefaultTimeout(10 * 1000);
+
+  // Add timeout based on env var.
+  const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 10000;
+  setDefaultTimeout( cucumberTimeout);
 
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
@@ -268,9 +271,9 @@ function World() {
         metadata: {
           'Test Started': startDateTime,
           'Test Completion': endDateTime,
-          'Test Environment': 'DEVELOPMENT',
-          'Platform': 'AWS Debian 9',
-          'Executed': 'Remote'
+          'Test Environment': process.env.NODE_ENV || 'PRODUCTION',
+          'Platform': process.platform,
+          'Executed':  remoteService && remoteService.type === "browserstack" ? 'Remote' : 'Local',
         },
         brandTitle: reportName + '-' + date,
         name: projectName
@@ -286,13 +289,6 @@ function World() {
         return helpers.klassiEmail();
       }
     }
-  });
-
-  /**
-   * this initiates the driver before every scenario is run
-   */
-  Before(function () {
-      global.driver = getDriverInstance();
   });
 
   /**
