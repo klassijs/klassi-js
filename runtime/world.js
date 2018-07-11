@@ -252,21 +252,14 @@ function World() {
   /**
    * create the driver before scenario if it's not instantiated
    */
-  BeforeAll(function () {
+  BeforeAll(async function () {
     if(!global.driver) {
       global.driver = getDriverInstance();
       global.browser = global.driver; // ensure standard WebDriver global also works
-      return driver;
+      await driver;
     }
   });
   
-  /**
-   * this initiates the driver before every scenario is run
-   */
-  // Before(function () {
-  //     global.driver = getDriverInstance();
-  // });
-
 /**
    * compile and generate a report at the END of the test run and send an Email
    */
@@ -304,6 +297,15 @@ function World() {
   });
 
   /**
+   * this initiates the driver before every scenario is run
+   */
+  Before(function () {
+    if(global.driver) {
+      global.driver = getDriverInstance();
+    }
+  });
+  
+/**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
   After(async function (scenario) {

@@ -27,7 +27,7 @@ performSearch: async function (searchWord) {
       log.info(elements); // prints to a log
     
       expect(elements.length).to.not.equal(0);
-      // await helpers.cssImages('search')
+      await helpers.cssImages('search')
   
     }
 };
