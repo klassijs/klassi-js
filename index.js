@@ -8,7 +8,9 @@ const path = require('path'),
   program = require('commander'),
   fs = require('fs-extra'),
   pjson = require('./package.json'),
-  cucumber = require('cucumber');
+  cucumber = require('cucumber'),
+  Log = require('log'),
+  log = new Log('info');
 
 function collectPaths(value, paths){
   paths.push(value);
@@ -200,7 +202,11 @@ return new Promise(async function (resolve, reject) {
     klassiCli.run()
       .then(success => resolve((success === true) ? 0 : 1));
      let exitNow = function() {
+      try {
         process.exit(code);
+      } catch (err) {
+
+      }
       };
       if (process.stdout.write('')) {
         exitNow();
@@ -210,7 +216,7 @@ return new Promise(async function (resolve, reject) {
          */
         process.stdout.on('drain', exitNow);
       }
-  }catch (err) {
+  } catch (err) {
     log.error('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
