@@ -320,7 +320,7 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## Credits
 
-[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was forked from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js) and as of December 2016 it has been completely independent of the that project. Since the fork many changes and improvements have been made, most notably the complete switch from [selenium webdriver](https://github.com/SeleniumHQ/selenium) to [webdriverio](http://webdriver.io/) but still using the open development model without breaking the utilities operation.
+[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was forked from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js). It has been completely independent of that project since December 2016. Many changes and improvements have been made since, most notably the complete switch to using [webdriverio](http://webdriver.io/) from [selenium webdriver](https://github.com/SeleniumHQ/selenium) and also upgraded to [cucumber 4.2.1](https://github.com/cucumber/cucumber-js).
  
 
 ## License
