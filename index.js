@@ -8,7 +8,7 @@ const path = require('path'),
   program = require('commander'),
   fs = require('fs-extra'),
   pjson = require('./package.json'),
-  cucumber = require('cucumber');
+  cucumber = require('cucumber'),
   Log = require('log'),
   log = new Log('info');
 
