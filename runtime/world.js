@@ -22,9 +22,6 @@ const fs = require('fs'),
   program = require('commander'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
-/**
- * global const
- */
 const assert = chai.assert,
     expect = chai.expect,
     logger = require('./logger.js'),
@@ -244,7 +241,10 @@ function World() {
    * set the default timeout for all tests
    */
   const {setDefaultTimeout} = require('cucumber');
-  setDefaultTimeout(60 * 1000);
+
+  // Add timeout based on env var.
+  const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 10000;
+  setDefaultTimeout( cucumberTimeout);
 
   // start recording of the Test run time
   global.startDateTime = helpers.getStartDateTime();
@@ -309,8 +309,7 @@ function World() {
   After(async function (scenario) {
     if (scenario.result.status === Status.FAILED) {
       return driver.end();
-    }else if
-      (scenario.result.status === Status.PASSED){
+    }else{
       return driver.end();
     }
   });

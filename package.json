@@ -63,6 +63,7 @@
     "cucumber-pretty": "^1.4.4",
     "fs-extra": "^5.0.0",
     "geckodriver": "^1.10.0",
+    "log": "^1.4.0",
     "merge": "^1.2.0",
     "moment": "^2.22.1",
     "node-dir": "^0.1.17",

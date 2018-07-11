@@ -10,17 +10,11 @@ const webdriverio = require('webdriverio'),
 /** createUrl the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = function firefoxDriver(options){
-  
+module.exports = function firefoxDriver(options) {
+
   const defaults = {
     desiredCapabilities: {
       browserName: 'firefox',
-      proxy: {
-        httpProxy: 'http://ouparray.oup.com:8080',
-        // sslProxy: '',
-        proxyType: 'MANUAL',
-        autodetect: false
-      },
       javascriptEnabled: true,
       acceptSslCerts: true,
       setFirefoxOptions: {
@@ -30,6 +24,18 @@ module.exports = function firefoxDriver(options){
       'geckodriver.firefox.bin': firefox.path
     }
   };
+
+  // Add proxy based on env var.
+  const useProxy = process.env.USE_PROXY || false;
+
+  if ( useProxy ) {
+    defaults.desiredCapabilities.proxy = {
+      httpProxy: 'http://ouparray.oup.com:8080',
+      // sslProxy: '',
+      proxyType: 'MANUAL',
+      autodetect: false
+    };
+  }
   
   const extendedOptions = Object.assign(defaults, options);
   
