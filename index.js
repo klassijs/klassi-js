@@ -200,7 +200,11 @@ return new Promise(async function (resolve, reject) {
     klassiCli.run()
       .then(success => resolve((success === true) ? 0 : 1));
      let exitNow = function() {
+      try {
         process.exit(code);
+      } catch (err) {
+
+      }
       };
       if (process.stdout.write('')) {
         exitNow();
