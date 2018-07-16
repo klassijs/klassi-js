@@ -26,13 +26,13 @@ module.exports = {
   
     fs.ensureFile(infoJsonFile, function (err) {
       if (err) {
-        // log.error('The infoLog File has NOT been created: ' + err.stack);
+        log.error('The infoLog File has NOT been created: ' + err.stack);
       }
     });
   
     fs.ensureFile(errorJsonFile, function (err) {
       if (err) {
-        // log.error('The errorLog File has NOT been created: ' + err.stack);
+        log.error('The errorLog File has NOT been created: ' + err.stack);
       }
     });
   
@@ -42,11 +42,11 @@ module.exports = {
     const log = (winston.createLogger({
       level: 'verbose',
       transports: [
-        // new winston.transports.Console({
-        //   colorize: 'all',
-        //   timestamp: true,
-        //   prettyPrint: true
-        // }),
+        new winston.transports.Console({
+          colorize: 'all',
+          timestamp: true,
+          prettyPrint: true
+        }),
         new winston.transports.File({
           name: 'info-file',
           filename: infoJsonFile,
