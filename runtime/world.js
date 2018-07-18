@@ -243,7 +243,7 @@ function World() {
   const {setDefaultTimeout} = require('cucumber');
 
   // Add timeout based on env var.
-  const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 10000;
+  const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 60000;
   setDefaultTimeout( cucumberTimeout);
 
   // start recording of the Test run time
@@ -252,12 +252,10 @@ function World() {
   /**
    * create the driver before scenario if it's not instantiated
    */
-  BeforeAll(async function () {
-    if(!global.driver) {
-      global.driver = getDriverInstance();
-      global.browser = global.driver; // ensure standard WebDriver global also works
-      await driver;
-    }
+  Before(async function () {
+    global.driver = getDriverInstance();
+    global.browser = global.driver; // ensure standard WebDriver global also works
+    await driver;
   });
   
 /**
@@ -293,15 +291,6 @@ function World() {
       if (program.email) {
         return helpers.klassiEmail();
       }
-    }
-  });
-
-  /**
-   * this initiates the driver before every scenario is run
-   */
-  Before(function () {
-    if(global.driver) {
-      global.driver = getDriverInstance();
     }
   });
   
