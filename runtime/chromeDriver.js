@@ -19,8 +19,10 @@ module.exports = function chromeDriver(options){
       javascriptEnabled: true,
       acceptSslCerts: true,
       chromeOptions: {
-        // args: ['--headless',
-        // ],
+        args: [
+          '--incognito',
+          '--start-maximized'
+        ]
       },
       path: chromedriver.path
     }

@@ -252,10 +252,10 @@ function World() {
   /**
    * create the driver before scenario if it's not instantiated
    */
-  Before(async function () {
+  Before(function () {
     global.driver = getDriverInstance();
     global.browser = global.driver; // ensure standard WebDriver global also works
-    await driver;
+    return driver;
   });
   
 /**
@@ -284,13 +284,6 @@ function World() {
       driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
         reporter.generate(reportOptions);
       });
-      
-      /**
-       * send email with the report to stakeholders after test run
-       */
-      if (program.email) {
-        return helpers.klassiEmail();
-      }
     }
   });
   
@@ -313,6 +306,17 @@ function World() {
     if (scenario.result.status === Status.FAILED) {
       await driver.saveScreenshot().then(function (screenShot) {
         world.attach(screenShot, 'image/png');
+      })
+    }
+  });
+
+  /**
+ * send email with the report to stakeholders after test run
+ */
+  After(function () {
+    if (program.email) {
+      driver.pause(MID_DELAY_MILLISECOND).then(function () {
+        return helpers.klassiEmail();
       })
     }
   });
