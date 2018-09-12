@@ -1,7 +1,7 @@
 'use strict';
-let searchData = require('../shared-objects/searchData');
 
-let shared = ({searchData});
+  let searchData = require('../shared-objects/searchData'),
+  shared = ({searchData});
 
 module.exports = {
   

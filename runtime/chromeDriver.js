@@ -12,7 +12,7 @@ const webdriverio = require('webdriverio'),
  * @returns {{}}
  */
 module.exports = function chromeDriver(options){
-  
+ 
   const defaults = {
     desiredCapabilities: {
       browserName: 'chrome',

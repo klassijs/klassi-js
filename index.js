@@ -10,9 +10,9 @@ const path = require('path'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
 
-let logger = require('./runtime/logger');
+const logger = require('./runtime/logger');
 global.log = logger.klassiLog();
-let log = global.log;
+const log = global.log;
 
 function collectPaths(value, paths){
   paths.push(value);
@@ -23,17 +23,13 @@ function parseRemoteArguments(argumentString) {
   if (!argumentString) {
     throw new Error("Expected an argumentString");
   }
-  
   let argSplit = argumentString.split("/");
-  
   let CONFIG = 0;
   let TAGS = 1;
-  
   let parsed = {
     config: argSplit[CONFIG],
     tags: argSplit[TAGS]
   };
-  
   return parsed;
 }
 
