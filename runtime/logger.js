@@ -5,15 +5,15 @@
 'use strict';
 
 const path = require('path'),
-    fs = require('fs-extra'),
-    winston = require('winston');
+  fs = require('fs-extra'),
+  winston = require('winston');
 
 module.exports = {
   
   klassiLog: function (err) {
     if (err) {
       console.log(err.message);
-      throw err
+      throw err;
     }
     let MyDate = new Date();
     let date;

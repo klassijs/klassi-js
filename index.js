@@ -92,7 +92,7 @@ program
   .parse(process.argv);
 
 program.on('--help', function(){
-    console.log('  For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
+    console.log('For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
 });
 
 let settings = {

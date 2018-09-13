@@ -16,7 +16,7 @@ module.exports = function browserstackDriver(options,configType){
   let user = credentials.user;
   let key = credentials.key;
   
-  let buildNameFromConfig = configType.replace(/-/g," "); // BrowserStack will do this anyway, this is to make it explicit
+  let buildNameFromConfig = configType.replace(/-/g,' '); // BrowserStack will do this anyway, this is to make it explicit
   
   // configs can define their own build name or it is inferred from the configType
   if (!config.build){

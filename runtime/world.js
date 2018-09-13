@@ -86,15 +86,15 @@ function getDriverInstance() {
 
   let options = {};
 
-  if (remoteService && remoteService.type === "browserstack") {
+  if (remoteService && remoteService.type === 'browserstack') {
 
     let configType = global.settings.remoteConfig;
-    assert.isString(configType,"BrowserStack requires a config type e.g. win10-chrome");
+    assert.isString(configType, 'BrowserStack requires a config type e.g. win10-chrome');
 
     driver = new BrowserStackDriver(options, configType);
     return driver;
   }
-  assert.isNotEmpty(browser,"Browser must be defined");
+  assert.isNotEmpty(browser, 'Browser must be defined');
   
   switch (browser || '') {
 
@@ -233,7 +233,6 @@ function World() {
       global.shared = allDirs;
     }
   }
-
 }
 
 /**
@@ -259,6 +258,7 @@ global.startDateTime = helpers.getStartDateTime();
  */
 Before(function () {
   global.driver = getDriverInstance();
+  let driver = global.driver;
   global.browser = global.driver; // ensure standard WebDriver global also works
   return driver;
 });
