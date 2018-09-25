@@ -23,9 +23,14 @@ const fs = require('fs'),
   webdrivercss = require('webdrivercss-custom-v4-compatible');
 
 const assert = chai.assert,
-    expect = chai.expect,
-    logger = require('./logger.js'),
-    getRemote = require('./getRemote.js');
+  expect = chai.expect,
+  logger = require('./logger.js'),
+  getRemote = require('./getRemote.js');
+
+/**
+ * Adding visual regression
+ */
+// global.visual =
 
 /**
  * Adding logging
@@ -67,7 +72,7 @@ let ChromeDriver = require('./chromeDriver'),
   FirefoxDriver = require('./firefoxDriver'),
   BrowserStackDriver = require('./browserStackDriver');
 
-let remoteService = getRemote(settings.remoteService);
+let remoteService = getRemote(global.settings.remoteService);
 
 /**
  * create the web browser based on global let set in index.js
@@ -77,31 +82,31 @@ function getDriverInstance() {
 
   let driver = {};
   let screenWidth = []; //[752, 1008, 1280];
-  let browser = settings.browserName;
+  let browser = global.settings.browserName;
 
   let options = {};
 
-  if (remoteService && remoteService.type === "browserstack") {
+  if (remoteService && remoteService.type === 'browserstack') {
 
-    let configType = settings.remoteConfig;
-    assert.isString(configType,"BrowserStack requires a config type e.g. win10-chrome");
+    let configType = global.settings.remoteConfig;
+    assert.isString(configType, 'BrowserStack requires a config type e.g. win10-chrome');
 
     driver = new BrowserStackDriver(options, configType);
     return driver;
   }
-  assert.isNotEmpty(browser,"Browser must be defined");
+  assert.isNotEmpty(browser, 'Browser must be defined');
   
   switch (browser || '') {
 
-    case 'firefox': {
-      driver = FirefoxDriver(options);
-    }
-      break;
+  case 'firefox': {
+    driver = FirefoxDriver(options);
+  }
+    break;
 
-    case 'chrome': {
-      driver = new ChromeDriver(options);
-    }
-      break;
+  case 'chrome': {
+    driver = new ChromeDriver(options);
+  }
+    break;
   }
 
   /**
@@ -228,91 +233,107 @@ function World() {
       global.shared = allDirs;
     }
   }
-
 }
 
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
 
-  this.World = World;
+this.World = World;
 
-  /**
-   * set the default timeout for all tests
-   */
-  const {setDefaultTimeout} = require('cucumber');
+/**
+ * set the default timeout for all tests
+ */
+const {setDefaultTimeout} = require('cucumber');
 
-  // Add timeout based on env var.
-  const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 60000;
-  setDefaultTimeout( cucumberTimeout);
+// Add timeout based on env var.
+const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 60000;
+setDefaultTimeout( cucumberTimeout);
 
-  // start recording of the Test run time
-  global.startDateTime = helpers.getStartDateTime();
-  
-  /**
-   * create the driver before scenario if it's not instantiated
-   */
-  Before(async function () {
-    global.driver = getDriverInstance();
-    global.browser = global.driver; // ensure standard WebDriver global also works
-    await driver;
-  });
-  
+// start recording of the Test run time
+global.startDateTime = helpers.getStartDateTime();
+
+/**
+ * create the driver before scenario if it's not instantiated
+ */
+Before(function () {
+  global.driver = getDriverInstance();
+  let driver = global.driver;
+  global.browser = global.driver; // ensure standard WebDriver global also works
+  return driver;
+});
+
+
+/**
+ * send email with the report to stakeholders after test run
+ */
+AfterAll(function () {
+  if (program.email) {
+    driver.pause(MID_DELAY_MILLISECOND).then(function () {
+      return helpers.klassiEmail();
+    });
+  }
+});
+
 /**
    * compile and generate a report at the END of the test run and send an Email
    */
-  AfterAll(function () {
-    if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-      global.endDateTime = helpers.getEndDateTime();
-      let reportOptions = {
-        theme: 'bootstrap',
-        jsonFile: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.json'),
-        output: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.html'),
-        reportSuiteAsScenarios: true,
-        launchReport: (!global.settings.disableReport),
-        ignoreBadJsonFile: true,
-        metadata: {
-          'Test Started': startDateTime,
-          'Test Completion': endDateTime,
-          'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
-          'Platform': process.platform,
-          'Executed':  remoteService && remoteService.type === "browserstack" ? 'Remote' : 'Local',
-        },
-        brandTitle: reportName + '-' + date,
-        name: projectName
-      };
-      driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
-        reporter.generate(reportOptions);
-      });
-      
-      /**
-       * send email with the report to stakeholders after test run
-       */
-      if (program.email) {
-        return helpers.klassiEmail();
-      }
-    }
-  });
+AfterAll(function () {
+  if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+    global.endDateTime = helpers.getEndDateTime();
+    let reportOptions = {
+      theme: 'bootstrap',
+      jsonFile: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.json'),
+      output: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.html'),
+      reportSuiteAsScenarios: true,
+      launchReport: (!global.settings.disableReport),
+      ignoreBadJsonFile: true,
+      metadata: {
+        'Test Started': startDateTime,
+        'Test Completion': endDateTime,
+        'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
+        'Platform': process.platform,
+        'Browser': browserName,
+        'Executed':  remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
+      },
+      brandTitle: reportName + '-' + date,
+      name: projectName
+    };
+    driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
+      reporter.generate(reportOptions);
+    });
+  }
+});
   
 /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
-  After(async function (scenario) {
-    if (scenario.result.status === Status.FAILED) {
+After(function (scenario) {
+  if (scenario.result.status === Status.FAILED) {
+    if (remoteService && remoteService.type === 'browserstack'){
       return driver.end();
     }else{
       return driver.end();
+      // Do nothing | leave browser open
     }
-  });
+  }else{
+    if (remoteService && remoteService.type !== 'browserstack'){
+      return driver.end();
+      // Do nothing | leave browser open
+    }else{
+      return driver.end();
+    }
+  }
+});
 
-  /**
-   * get executed only if there is an error within a scenario
-   */
-  After(async function (scenario) {
-    let world = this;
-    if (scenario.result.status === Status.FAILED) {
-      await driver.saveScreenshot().then(function (screenShot) {
-        world.attach(screenShot, 'image/png');
-      })
-    }
-  });
+/**
+ * get executed only if there is an error within a scenario
+ */
+After(async function (scenario) {
+  let world = this;
+  if (scenario.result.status === Status.FAILED) {
+    await driver.saveScreenshot().then(function (screenShot) {
+      world.attach(screenShot, 'image/png');
+    });
+  }
+});

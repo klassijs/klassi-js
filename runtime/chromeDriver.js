@@ -12,15 +12,17 @@ const webdriverio = require('webdriverio'),
  * @returns {{}}
  */
 module.exports = function chromeDriver(options){
-  
+ 
   const defaults = {
     desiredCapabilities: {
       browserName: 'chrome',
       javascriptEnabled: true,
       acceptSslCerts: true,
       chromeOptions: {
-        // args: ['--headless',
-        // ],
+        args: [
+          '--incognito',
+          '--start-maximized'
+        ]
       },
       path: chromedriver.path
     }

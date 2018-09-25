@@ -84,4 +84,3 @@ typings/
 # next.js build output
 .next
 webdriverio-cucumber-js.iml
-package-lock.json

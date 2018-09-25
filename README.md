@@ -1,6 +1,7 @@
 [![STAT](https://nodei.co/npm/klassi-cucumber-js.png?download=true)](https://nodei.co/npm/klassi-cucumber-js/)
 
-# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js)
+# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?&webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01) [![Downloads](https://img.shields.io/npm/dt/klassi-cucumber-js.svg?&klassi-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
+
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
   any other tool or library. It's built with [nodeJs](https://nodejs.org/en/), [webdriver.io (the Selenium 2.0 
@@ -63,49 +64,6 @@ By default tests are run using Google Chrome, to run tests using another browser
 | Chrome | `-b chrome` |
 | Firefox | `-b firefox` |
 
-### Feature files
-
-A feature file is a [Business Readable, Domain Specific Language](http://martinfowler.com/bliki/BusinessReadableDSL.html) file that lets you describe software’s behaviour without detailing how that behaviour is implemented. Feature files are written using the [Gherkin syntax](https://github.com/cucumber/cucumber/wiki/Gherkin) and must live in a folder named **features** within the root of your project.
-
-```gherkin
-duckDuckGo-search.feature
-
-Feature: Searching for apps with duckduckgo
-  As an internet user
-  In order to find out more about certain user apps
-  I want to be able to search for information about the required apps
-
-  Background:
-    Given The user arrives on the duckduckgo search page
-
-  Scenario Outline: User inputs some search data
-    When they input <searchword>
-    Then they should see some results
-
-    Examples:
-      |searchword |
-      |britian's got talent |
-      |angry birds          |
-
-```
-
-The browser automatically closes after each scenario to ensure the next scenario uses a fresh browser environment.
-
-### Step definitions
-
-Step definitions act as the glue between features files and the actual system under test.
-
-_To avoid confusion **always** return a JavaScript promise after your step definition in order to let cucumber know 
-when your task has completed._
-
-```javascript
-// ./step-definitions/duckDuckGo-search-steps.js
-
-  Then(/^they should see some results$/, function() {
-     /** return the promise of an element to the following then */
-     return page.duckDuckGoSearch.searchResult();
-  });
-```
 The following variables are available within the ```Given()```, ```When()``` and ```Then()``` functions:
 
 | Variable | Description |
@@ -125,55 +83,6 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `log`        | exposes the log method for output to files and emailing  |
 | `envConfig`  | exposes the global environment configuration file  | ```for use when changing environment types (i.e. dev, test, preprod)``` |
 
-
-### Page objects
-
-Page objects are accessible via a global ```page``` object and are automatically loaded from ```./page-objects``` _(or the path specified using the ```-p``` switch)_. Page objects are exposed via a camel-cased version of their filename, for example ```./page-objects/duckDuckGoSearch.js``` becomes ```page.duckDuckGoSearch```.
-
-Page objects also have access to the same runtime variables available to step definitions.
-
-An example page object:
-
-```javascript
-// ./page-objects/duckDuckGoSearch.js
-
-module.exports = {
-
-  /** test searching for inputted data
-   */
-  url: 'https://duckduckgo.com/',
-    
-  /** enters a search term into duckduckgo search box and presses enter
-   * @param {string} searchWord
-   * @returns {Promise} a promise to enter the search values
-   */
-  performSearch: async function (searchWord) {
-    let selector = shared.searchData.elem.searchInput;
-    await driver.click(selector).keys(searchWord);
-      
-    let title = await driver.getTitle(selector);
-    log.info('this is the page title:- ' + title);
-      
-    await driver.click(shared.searchData.elem.searchBtn);
-    log.info('Search function completed');
-  },
-};
-```
-
-And its usage within a step definition:
-
-```js
-// ./step-definitions/duckDuckGo-search-steps.js
-
-  Given(/^The user arrives on the duckduckgo search page$/, function() {
-     return helpers.loadPage(shared.searchData.url, 10);
-  });
-      
-  When(/^they input (.*)$/, function(searchWord) {
-     return page.duckDuckGoSearch.performSearch(searchWord);
-  });
-```
-
 ### CSS regression functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
 
 Automatic visual regression testing, gives the ability to take and save fullpage screenshots or of specific parts of the application / page under test.
@@ -190,22 +99,13 @@ cssImages: async function(pageName){
   })
 }
 ```
-And its usage within a step definition:
 
-```js
-  Then(/^they should see some results$/, async function() {
-    /** return the promise of an element to the following then */
-    await page.duckDuckGoSearch.searchResult();
-     /** Take an image of the page under test */
-    await helpers.cssImages('search');
-  });
-```
 ### API Testing functionality with [request-promise](https://github.com/request/request-promise)
 Getting data from a JSON REST API
 ```js
 // ./runtime/helpers.js
- getAPI: function (endpoint) {
-    let endPoint = (endpoint);
+ apiCall: function (endpoint) {
+    let endPoint = ('http://endpoint.com');
     
     let options = {
         method: 'GET',
@@ -216,39 +116,13 @@ Getting data from a JSON REST API
     };
     
     return request(options)
-    .then(function (response, err) {
+    .then(async function (response, err) {
         if (err) {
            // API call failed
         }
-        // API call is successful
+        // response = API call is successful
     });
  },
-```
-
-### Shared objects
-
-Shared objects allow you to share anything from test data to helper methods throughout your project via a global ```shared``` object. Shared objects are automatically loaded from ```./shared-objects``` _(or the path specified using the ```-o``` switch)_ and made available via a camel-cased version of their filename, for example ```./shared-objects/test-data.js``` becomes ```shared.testData```.
-
-Shared objects also have access to the same runtime variables available to step definitions.
-
-An example shared object:
-
-```javascript
-// ./shared-objects/test-data.js
-
-module.exports = {
-  username: "import-test-user",
-  password: "import-test-pa**word"
-}
-```
-
-And its usage within a step definition:
-
-```js
-  Given(/^I am logged in"$/, function () {
-    driver.setValue('usn', shared.testData.username);
-    driver.setValue('pass', shared.testData.password);
-  });
 ```
 
 ### Reports
@@ -301,9 +175,10 @@ You can use the framework without any command line arguments if your application
 │   └── duckDuckGo-search-steps.js
 ├── page-objects
 │   └── duckDuckGoSearch.js
+|__ runtime
+|   |__ world.js
 └── shared-objects
 │   ├── test-data.js
-│   └── stuff.json
 └── reports
     ├── cucumber-report.json
     └── cucumber-report.html
@@ -320,7 +195,7 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## Credits
 
-[klassi-cucumber-js](https://github.com/larryg01/klassi-cucumber-js) was forked from [John Doherty's](https://www.linkedin.com/in/john-i-doherty), [selenium-cucumber-js](https://github.com/john-doherty/selenium-cucumber-js). It has been completely independent of that project since December 2016. Many changes and improvements have been made since, most notably the complete switch to using [webdriverio](http://webdriver.io/) from [selenium webdriver](https://github.com/SeleniumHQ/selenium) and also upgraded to [cucumber 4.2.1](https://github.com/cucumber/cucumber-js).
+[John Doherty's](https://www.linkedin.com/in/john-i-doherty)
  
 
 ## License

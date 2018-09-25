@@ -10,9 +10,9 @@ const path = require('path'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
 
-let logger = require('./runtime/logger');
+const logger = require('./runtime/logger');
 global.log = logger.klassiLog();
-let log = global.log;
+const log = global.log;
 
 function collectPaths(value, paths){
   paths.push(value);
@@ -23,17 +23,13 @@ function parseRemoteArguments(argumentString) {
   if (!argumentString) {
     throw new Error("Expected an argumentString");
   }
-  
   let argSplit = argumentString.split("/");
-  
   let CONFIG = 0;
   let TAGS = 1;
-  
   let parsed = {
     config: argSplit[CONFIG],
     tags: argSplit[TAGS]
   };
-  
   return parsed;
 }
 
@@ -96,7 +92,7 @@ program
   .parse(process.argv);
 
 program.on('--help', function(){
-    console.log('  For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
+    console.log('For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
 });
 
 let settings = {
@@ -140,6 +136,8 @@ let paths = {
     return path.resolve(settings.projectRoot+item);
   })
 };
+
+global.browserName = program.browser;
 
 // expose settings and paths for global use
 global.settings = settings;
