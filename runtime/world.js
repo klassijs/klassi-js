@@ -293,6 +293,7 @@ AfterAll(function () {
         'Test Completion': endDateTime,
         'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
         'Platform': process.platform,
+        'Browser': browserName,
         'Executed':  remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
       },
       brandTitle: reportName + '-' + date,
@@ -312,12 +313,12 @@ After(function (scenario) {
     if (remoteService && remoteService.type === 'browserstack'){
       return driver.end();
     }else{
-      // return driver.end();
+      return driver.end();
       // Do nothing | leave browser open
     }
   }else{
     if (remoteService && remoteService.type !== 'browserstack'){
-      // return driver.end();
+      return driver.end();
       // Do nothing | leave browser open
     }else{
       return driver.end();

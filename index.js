@@ -137,6 +137,8 @@ let paths = {
   })
 };
 
+global.browserName = program.browser;
+
 // expose settings and paths for global use
 global.settings = settings;
 global.paths = paths;

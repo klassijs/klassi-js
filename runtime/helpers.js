@@ -44,6 +44,10 @@ module.exports = {
       elem: ''
     });
   },
+  
+  imageCompare: function(){
+  
+  },
     
   /**
      * writeTextFile write data to file on hard drive

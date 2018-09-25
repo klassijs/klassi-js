@@ -1,6 +1,6 @@
 [![STAT](https://nodei.co/npm/klassi-cucumber-js.png?download=true)](https://nodei.co/npm/klassi-cucumber-js/)
 
-# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?&klassi-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
+# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?&webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01) [![Downloads](https://img.shields.io/npm/dt/klassi-cucumber-js.svg?&klassi-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
@@ -104,8 +104,8 @@ cssImages: async function(pageName){
 Getting data from a JSON REST API
 ```js
 // ./runtime/helpers.js
- getAPI: function (endpoint) {
-    let endPoint = (endpoint);
+ apiCall: function (endpoint) {
+    let endPoint = ('http://endpoint.com');
     
     let options = {
         method: 'GET',
@@ -116,11 +116,11 @@ Getting data from a JSON REST API
     };
     
     return request(options)
-    .then(function (response, err) {
+    .then(async function (response, err) {
         if (err) {
            // API call failed
         }
-        // API call is successful
+        // response = API call is successful
     });
  },
 ```
