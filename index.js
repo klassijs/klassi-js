@@ -10,6 +10,10 @@ const path = require('path'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
 
+const logger = require('./runtime/logger');
+global.log = logger.klassiLog();
+const log = global.log;
+
 function collectPaths(value, paths){
   paths.push(value);
   return paths;
@@ -19,17 +23,13 @@ function parseRemoteArguments(argumentString) {
   if (!argumentString) {
     throw new Error("Expected an argumentString");
   }
-  
   let argSplit = argumentString.split("/");
-  
   let CONFIG = 0;
   let TAGS = 1;
-  
   let parsed = {
     config: argSplit[CONFIG],
     tags: argSplit[TAGS]
   };
-  
   return parsed;
 }
 
@@ -37,8 +37,8 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-global.reportName = 'KlassiTech Automated Test Report';
-global.projectName = 'Klassi Technologies';
+global.reportName = process.env.REPORT_NAME || 'KlassiTech Automated Test Report';
+global.projectName = process.env.PROJECT_NAME || 'Klassi Technologies';
 
 
 /**
@@ -92,7 +92,7 @@ program
   .parse(process.argv);
 
 program.on('--help', function(){
-    console.log('  For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
+    console.log('For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
 });
 
 let settings = {
@@ -107,7 +107,6 @@ let settings = {
 if (program.remoteService && program.extraSettings){
   
   let additionalSettings = parseRemoteArguments(program.extraSettings);
-  
   settings.remoteConfig = additionalSettings.config;
   
   /* this approach supports a single string defining both the target config and tags
@@ -137,6 +136,8 @@ let paths = {
     return path.resolve(settings.projectRoot+item);
   })
 };
+
+global.browserName = program.browser;
 
 // expose settings and paths for global use
 global.settings = settings;
@@ -197,11 +198,12 @@ let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.
 
 return new Promise(async function (resolve, reject) {
   try{
-    klassiCli.run()
-      .then(success => resolve((success === true) ? 0 : 1));
-     let exitNow = function() {
-        process.exit(code);
-      };
+    klassiCli.run(function (success) {
+      resolve = success ? 0 : 1;
+
+      function exitNow() {
+        process.exit(resolve);
+      }
       if (process.stdout.write('')) {
         exitNow();
       } else {
@@ -210,6 +212,7 @@ return new Promise(async function (resolve, reject) {
          */
         process.stdout.on('drain', exitNow);
       }
+    })
   }catch (err) {
     log.error('cucumber integration has failed ' + err.message);
     await reject(err);

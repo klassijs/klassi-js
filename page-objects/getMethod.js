@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 let apiData = require('../shared-objects/apiData');
 let shared = ({apiData});
@@ -29,7 +29,7 @@ module.exports = {
   staCode: async function () {
     driver.pause(SHORT_DELAY_MILLISECOND);
     expect(res.statusCode).to.equal(200);
-    log.info(res.statusCode)
+    log.info(res.statusCode);
   },
   
   /**

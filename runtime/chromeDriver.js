@@ -12,25 +12,32 @@ const webdriverio = require('webdriverio'),
  * @returns {{}}
  */
 module.exports = function chromeDriver(options){
-  
+ 
   const defaults = {
-    
     desiredCapabilities: {
       browserName: 'chrome',
-      proxy: {
-        httpProxy: 'http://domain.com:8080',
-        proxyType: 'MANUAL',
-        autodetect: false
-      },
       javascriptEnabled: true,
       acceptSslCerts: true,
       chromeOptions: {
-        // args: ['--headless',
-        // ],
+        args: [
+          '--incognito',
+          '--start-maximized'
+        ]
       },
       path: chromedriver.path
     }
   };
+
+  // Add proxy based on env var.
+  const useProxy = process.env.USE_PROXY || false;
+
+  if ( useProxy ) {
+    defaults.desiredCapabilities.proxy = {
+      httpProxy: 'http://domain.com:8080',
+      proxyType: 'MANUAL',
+      autodetect: false
+    };
+  }
   
   const extendedOptions = Object.assign(defaults, options);
   

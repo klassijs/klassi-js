@@ -47,7 +47,6 @@ module.exports = {
       if (cb) {
         return cb(err.message);
       }
-    })
+    });
   }
-  
 };
