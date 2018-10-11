@@ -5,7 +5,6 @@ const searchData = require('../shared-objects/searchData'),
   shared = ({searchData});
 
 let log = global.log;
-let image = 'searchPage';
 
 module.exports = {
   
@@ -15,12 +14,12 @@ module.exports = {
    * @returns {Promise} a promise to enter the search values
    */
   performSearch: async function (searchWord) {
-    
-    await verify.saveScreenshot(`${image}1-0.png`);
+    let image = searchWord;
+    await verify.saveScreenshot(`${image}_1-0.png`);
     
     let selector = shared.searchData.elem.searchInput;
     await driver.click(selector).keys(searchWord);
-    await verify.saveScreenshot(`${image}1-1.png`);
+    await verify.saveScreenshot(`${image}_1-1.png`);
     
     let title = await driver.getTitle(selector);
     log.info('this is checking whats being returned:- ' + title);
@@ -28,8 +27,8 @@ module.exports = {
     await driver.click(shared.searchData.elem.searchBtn);
     await driver.pause(DELAY_3_SECOND);
     log.info('Search function completed');
-    await helpers.compareImage(`${image}1-0.png`);
-    await helpers.compareImage(`${image}1-1.png`);
+    await helpers.compareImage(`${image}_1-0.png`);
+    await helpers.compareImage(`${image}_1-1.png`);
     
     log.info('images have been compared');
   },
