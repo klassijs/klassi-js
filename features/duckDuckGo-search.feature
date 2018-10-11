@@ -13,6 +13,6 @@ Feature: Searching for apps with duckduckgo
 
     Examples:
       |searchword  |
-      |space 1999  |
-      |angry birds |
-      |starch      |
+      |duckduckgo app |
+#      |angry birds |
+#      |starch      |

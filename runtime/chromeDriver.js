@@ -20,7 +20,7 @@ module.exports = function chromeDriver(options){
       acceptSslCerts: true,
       chromeOptions: {
         args: [
-          '--incognito',
+          // '--incognito',
           '--start-maximized'
         ]
       },
