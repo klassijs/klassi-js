@@ -3,7 +3,7 @@
  * Created by Larry Goddard
  */
 'use strict';
-
+const fs = require('fs');
 let log = global.log;
 
 module.exports = {
