@@ -1,6 +1,6 @@
 [![STAT](https://nodei.co/npm/klassi-cucumber-js.png?download=true)](https://nodei.co/npm/klassi-cucumber-js/)
 
-# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01) [![Downloads](https://img.shields.io/npm/dt/klassi-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
+# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
@@ -83,9 +83,29 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `log`        | exposes the log method for output to files and emailing  |
 | `envConfig`  | exposes the global environment configuration file  | ```for use when changing environment types (i.e. dev, test, preprod)``` |
 
-### CSS regression functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
+### Visual Regression functionality with [Resemble JS](https://github.com/HuddleEng/Resemble.js)
 
-Automatic visual regression testing, gives the ability to take and save fullpage screenshots or of specific parts of the application / page under test.
+Visual regression testing, gives the ability to take and compare whole page screenshots or of specific parts of the application / page under test.
+
+```js
+// ./runtime/imageCompare.js
+
+compareImage: async function (fileName) {
+  const verify = require('./imageCompare');
+  await verify.assertion(fileName);
+  await verify.value();
+  await verify.pass();
+}
+
+// usage within page-object file:
+
+  await helpers.compareImage(fileName);
+```
+
+
+### CSS Responsive functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
+
+CSS Responsive testing, gives the ability to take and compare screenshots of different viewPoints ({width,height}) of the application under test.
 
 You will need to have GraphicsMagick preinstalled on your system because WebdriverCSS uses it for image processing. To install GraphicsMagick follow the [instructions here](https://github.com/webdriverio/webdrivercss#install) .
 
@@ -98,6 +118,10 @@ cssImages: async function(pageName){
     elem: ''
   })
 }
+
+// usage within page-object file:
+
+    await helpers.cssImages(pageName);
 ```
 
 ### API Testing functionality with [request-promise](https://github.com/request/request-promise)
