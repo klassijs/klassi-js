@@ -28,7 +28,6 @@ artifacts
 coverage
 testDir
 
-angry birds_1-1.png
 # IntelliJ project files
 .idea
 out
