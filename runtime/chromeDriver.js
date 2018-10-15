@@ -20,7 +20,7 @@ module.exports = function chromeDriver(options){
       acceptSslCerts: true,
       chromeOptions: {
         args: [
-          '--incognito',
+          // '--incognito',
           '--start-maximized'
         ]
       },
@@ -44,9 +44,11 @@ module.exports = function chromeDriver(options){
   let driver = new webdriverio.remote(extendedOptions).init();
   
   driver.then(function () {
-    /** sets the browser window size to maximum
+    /**
+     * sets the browser window size to maximum or a particular size
      */
     driver.windowHandleMaximize();
+    // driver.windowHandleSize({width: 1024, height: 800});
   });
   
   return driver;

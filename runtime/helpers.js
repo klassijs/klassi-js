@@ -3,6 +3,8 @@
  * Created by Larry Goddard
  */
 'use strict';
+const fs = require('fs');
+let log = global.log;
 
 module.exports = {
   
@@ -44,9 +46,16 @@ module.exports = {
       elem: ''
     });
   },
-  
-  imageCompare: function(){
-  
+  /**
+   * Visual comparison function
+   * @param fileName
+   * @returns {Promise<void>}
+   */
+  compareImage: async function(fileName){
+    const verify = require('./imageCompare');
+    await verify.assertion(fileName);
+    await verify.value();
+    await verify.pass();
   },
     
   /**
@@ -67,7 +76,6 @@ module.exports = {
         log.info('Error in writing file ' + err.message);
         throw err;
       }
-        
     }
   },
 

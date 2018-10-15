@@ -24,9 +24,9 @@ node_modules
 files
 cssImages
 reports
+artifacts
 coverage
 testDir
-
 
 # IntelliJ project files
 .idea
