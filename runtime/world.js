@@ -218,9 +218,7 @@ function World() {
      */
     global.paths.sharedObjects.forEach(function (itemPath){
       if (fs.existsSync(itemPath)){
-        
         let dir = requireDir(itemPath, { camelcase: true });
-        
         merge(allDirs, dir);
       }
     });

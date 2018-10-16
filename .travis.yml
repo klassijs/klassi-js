@@ -9,3 +9,4 @@ before_script:
   - selenium-standalone install
   - selenium-standalone start &
   - sleep 5
+  - node index.js -d -t @api
