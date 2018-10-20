@@ -9,11 +9,7 @@
     "noImplicitThis": true,
     "strictNullChecks": true,
     "strictFunctionTypes": false,
-    "baseUrl": "../",
-    "typeRoots": [
-      "../"
-    ],
-    "types": [],
+    "baseUrl": "./",
     "noEmit": true,
     "forceConsistentCasingInFileNames": true
   },
@@ -22,7 +18,8 @@
   "log",
   "features",
   "cssImages",
-  "reports"
+  "reports",
+  "artifact"
   ],
   "files": [
     "globals.d.ts"

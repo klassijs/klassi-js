@@ -32,7 +32,8 @@
     "url": "https://github.com/larryg01/klassi-cucumber-js"
   },
   "engines": {
-    "node": ">= 8.4.0"
+    "node": ">= 8.4.0",
+    "yarn": ">= 1.10.1"
   },
   "main": "index.js",
   "scripts": {
@@ -73,7 +74,6 @@
     "require-dir": "^0.3.2",
     "selenium-standalone": "^6.15.0",
     "tar": "^4.4.2",
-    "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1",
     "webdriverio": "^4.12.0",
     "winston": "^3.0.0"
   },

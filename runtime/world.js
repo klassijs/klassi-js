@@ -28,11 +28,6 @@ const assert = chai.assert,
   getRemote = require('./getRemote.js');
 
 /**
- * Adding visual regression
- */
-// global.visual =
-
-/**
  * Adding logging
  */
 global.log = logger.klassiLog();
