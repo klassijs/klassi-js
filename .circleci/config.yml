@@ -34,18 +34,18 @@ jobs:
         key: v1-dependencies-{{ checksum "package.json" }}
 
     # Make connection to BrowserStack
-    - run:
-        name: Set BrowserStack Local Identifier
-        command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-
-    - run:
-        name: Start BrowserStack Local
-        command: ./.circleci/scripts/browserstack-local.sh start
-        background: true
-
-    - run:
-        name: Check BrowserStack Local running
-        command: sleep 5;./.circleci/scripts/browserstack-local.sh check
+#    - run:
+#        name: Set BrowserStack Local Identifier
+#        command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=develop_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+#
+#    - run:
+#        name: Start BrowserStack Local
+#        command: ./.circleci/scripts/browserstack-local.sh start
+#        background: true
+#
+#    - run:
+#        name: Check BrowserStack Local running
+#        command: sleep 5;./.circleci/scripts/browserstack-local.sh check
 
     # run tests!
     - run: npm test
