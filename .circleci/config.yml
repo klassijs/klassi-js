@@ -40,12 +40,12 @@ jobs:
 
     - run:
         name: Start BrowserStack Local
-        command: ./scripts/ci/browserstack-local.sh start
+        command: ./.circleci/scripts/browserstack-local.sh start
         background: true
 
     - run:
         name: Check BrowserStack Local running
-        command: sleep 5;./scripts/ci/browserstack-local.sh check
+        command: sleep 5;./.circleci/scripts/browserstack-local.sh check
 
     # run tests!
     - run: npm test
