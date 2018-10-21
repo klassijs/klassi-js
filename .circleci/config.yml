@@ -48,8 +48,6 @@ jobs:
 #        command: sleep 5;./.circleci/scripts/browserstack-local.sh check
 
   build_and_test:
-    jobs:
-      build:
         docker:
         # specify the version you desire here
         - image: circleci/node:8.12
