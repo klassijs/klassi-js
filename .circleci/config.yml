@@ -34,8 +34,8 @@ jobs:
         key: v1-dependencies-{{ checksum "package.json" }}
 
     # run tests!
-    - run: npm install selenium-standalone@latest -g
-    - run: selenium-standalone install
+    - run: sudo npm install selenium-standalone@latest -g
+    - run: sudo selenium-standalone install
     - run: selenium-standalone start &
     - run: sleep 5
     - run: npm test
