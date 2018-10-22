@@ -1,101 +1,99 @@
 # Javascript Node CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
-#
 
 version: 2.0
-
 jobs:
   checkout_code:
     docker:
-    - image: circleci/ruby:2.4-node
-    - image: circleci/postgres:9.4.12-alpine
-    working_directory: ~/circleci-demo-workflows
+    - image: circleci/node:8.12
+    working_directory: ~/repo
     steps:
     - checkout
+    - restore_cache:
+      keys:
+      - v1-dependencies-{{ checksum "package.json" }}
+      # fallback to using the latest cache if no exact match is found
+      - v1-dependencies-
+
+    - run: npm install
+
     - save_cache:
-        key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-        paths:
-        - ~/circleci-demo-workflows
+      paths:
+      - node_modules
+      key: v1-dependencies-{{ checksum "package.json" }}
 
   bundle_dependencies:
     docker:
-    - image: circleci/ruby:2.4-node
-    - image: circleci/postgres:9.4.12-alpine
-    working_directory: ~/circleci-demo-workflows
+    - image: circleci/node:8.12
+    working_directory: ~/repo
     steps:
     - restore_cache:
         keys:
-        - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-    - restore_cache:
-        keys:
-        - v1-bundle-{{ checksum "Gemfile.lock" }}
-    - run: bundle install --path vendor/bundle
+        - v1-dependencies-{{ checksum "package.json" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+    - run: npm install
     - save_cache:
-        key: v1-bundle-{{ checksum "Gemfile.lock" }}
-        paths:
-        - ~/circleci-demo-workflows/vendor/bundle
+        key: v1-dependencies-{{ checksum "package.json" }}
 
   rake_test:
     docker:
-    - image: circleci/ruby:2.4-node
-    - image: circleci/postgres:9.4.12-alpine
-    working_directory: ~/circleci-demo-workflows
+    - image: circleci/node:8.12
+    working_directory: ~/repo
     steps:
     - restore_cache:
         keys:
-        - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-    - restore_cache:
-        keys:
-        - v1-bundle-{{ checksum "Gemfile.lock" }}
-    - run: bundle --path vendor/bundle
-    - run: bundle exec rake db:create db:schema:load
+        - v1-dependencies-{{ checksum "package.json" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+    - run: npm install
     - run:
         name: Run tests
-        command: bundle exec rake
+        command: npm dev
 
-  precompile_assets:
-    docker:
-    - image: circleci/ruby:2.4-node
-    - image: circleci/postgres:9.4.12-alpine
-    working_directory: ~/circleci-demo-workflows
-    steps:
-    - restore_cache:
-        keys:
-        - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-    - restore_cache:
-        keys:
-        - v1-bundle-{{ checksum "Gemfile.lock" }}
-    - run: bundle --path vendor/bundle
-    - run:
-        name: Precompile assets
-        command: bundle exec rake assets:precompile
-    - save_cache:
-        key: v1-assets-{{ .Environment.CIRCLE_SHA1 }}
-        paths:
-        - ~/circleci-demo-workflows/public/assets
-
-  deploy:
-    machine:
-      enabled: true
-    working_directory: ~/circleci-demo-workflows
-    environment:
-    - HEROKU_APP: still-shelf-38337
-    steps:
-    - restore_cache:
-        keys:
-        - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-    - restore_cache:
-        keys:
-        - v1-bundle-{{ checksum "Gemfile.lock" }}
-    - restore_cache:
-        keys:
-        - v1-assets-{{ .Environment.CIRCLE_SHA1 }}
-    - checkout
-    - run:
-        name: Deploy Master to Heroku
-        command: |
-          git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP.git master
+#  precompile_assets:
+#    docker:
+#    - image: circleci/ruby:2.4-node
+#    - image: circleci/postgres:9.4.12-alpine
+#    working_directory: ~/circleci-demo-workflows
+#    steps:
+#    - restore_cache:
+#        keys:
+#        - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+#    - restore_cache:
+#        keys:
+#        - v1-bundle-{{ checksum "Gemfile.lock" }}
+#    - run: bundle --path vendor/bundle
+#    - run:
+#        name: Precompile assets
+#        command: bundle exec rake assets:precompile
+#    - save_cache:
+#        key: v1-assets-{{ .Environment.CIRCLE_SHA1 }}
+#        paths:
+#        - ~/circleci-demo-workflows/public/assets
+#
+#  deploy:
+#    machine:
+#      enabled: true
+#    working_directory: ~/circleci-demo-workflows
+#    environment:
+#    - HEROKU_APP: still-shelf-38337
+#    steps:
+#    - restore_cache:
+#        keys:
+#        - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+#    - restore_cache:
+#        keys:
+#        - v1-bundle-{{ checksum "Gemfile.lock" }}
+#    - restore_cache:
+#        keys:
+#        - v1-assets-{{ .Environment.CIRCLE_SHA1 }}
+#    - checkout
+#    - run:
+#        name: Deploy Master to Heroku
+#        command: |
+#          git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP.git master
 workflows:
   version: 2
   build-and-deploy:
@@ -107,13 +105,13 @@ workflows:
     - rake_test:
         requires:
         - bundle_dependencies
-    - precompile_assets:
-        requires:
-        - bundle_dependencies
-    - deploy:
-        requires:
-        - rake_test
-        - precompile_assets
+#    - precompile_assets:
+#        requires:
+#        - bundle_dependencies
+#    - deploy:
+#        requires:
+#        - rake_test
+#        - precompile_assets
 
 
 #version: 2
