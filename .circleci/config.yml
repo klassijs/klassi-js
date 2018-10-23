@@ -26,7 +26,7 @@ jobs:
         - node_modules
         key: v1-dependencies-{{ checksum "package.json" }}
 
-    - run: npm dev
+    - run: npm all
 
 #workflows:
 #  jobs:
