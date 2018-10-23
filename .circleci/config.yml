@@ -4,7 +4,7 @@
 
 version: 2.0
 jobs:
-  checkout_code:
+  build:
     docker:
     - image: circleci/node:8.12
     working_directory: ~/repo
