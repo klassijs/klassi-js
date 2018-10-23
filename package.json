@@ -39,7 +39,7 @@
   "main": "index.js",
   "scripts": {
     "all": "node index.js -e -d -t ~@wip ",
-    "dev": "node index.js -d -t ~@wip",
+    "dev": "node index.js -d -t @api",
     "test": "node index.js -e -d -w browserstack/osxhs-chrome -t @search",
     "stack": "node index.js -e -d -w browserstack -x"
   },
