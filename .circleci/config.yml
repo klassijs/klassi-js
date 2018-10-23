@@ -3,9 +3,8 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 
 version: 2.0
-build_and_deploy:
   jobs:
-    build:
+    build_and_deploy:
       docker:
       - image: circleci/node:8.12
 
@@ -29,32 +28,30 @@ build_and_deploy:
 
       - run: npm run-script dev
 
-  build_and_test:
-    jobs:
-      build:
-    docker:
-    - image: circleci/node:8.12
+    build-and-test:
+      docker:
+      - image: circleci/node:8.12
 
-    working_directory: ~/repo
+      working_directory: ~/repo
 
-    steps:
-    - checkout
+      steps:
+      - checkout
 
-    # Download and cache dependencies
-    - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "package.json" }}
-        # fallback to using the latest cache if no exact match is found
-        - v1-dependencies-
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
 
-    - run: npm install
+      - run: npm install
 
-    - save_cache:
-        paths:
-        - node_modules
-        key: v1-dependencies-{{ checksum "package.json" }}
+      - save_cache:
+          paths:
+          - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
 
-    - run: npm run-script test
+      - run: npm run-script test
 
 #workflows:
 #  jobs:
