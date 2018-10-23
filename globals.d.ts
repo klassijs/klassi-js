@@ -8,6 +8,7 @@
 declare const shared: any;
 declare const page: any;
 declare const helpers: any;
+declare const settings: any;
 
 // OUP NOTE
 // adapted from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cucumber/index.d.ts
