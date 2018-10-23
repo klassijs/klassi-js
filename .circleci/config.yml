@@ -63,9 +63,7 @@ jobs:
 
     - run: npm install
 
-    - run:
-        name: Run tests
-        command: npm dev
+    - run: npm dev
 
 
 
