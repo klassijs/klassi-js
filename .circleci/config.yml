@@ -9,7 +9,7 @@ references:
     docker:
     - image: circleci/node:8.12
 
-    working_directory: ~/repo
+    working_directory: ~/klassi-cucumber-js
 
 jobs:
   checkout_code:
