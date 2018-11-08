@@ -36,8 +36,9 @@ jobs:
 
       - run:
           name: Install Dependencies
-          command: yarn install --frozen-lockfile
-      - run: npm install
+          command: npm install --frozen-jsonfile
+
+#      - run: npm install
 
       - run:
           name: Java Installation
@@ -49,7 +50,7 @@ jobs:
           command: |
             sudo npm install selenium-standalone@latest -g --save-dev
             sudo selenium-standalone install
-    #          sudo selenium-standalone start
+            sudo selenium-standalone start
 
 #    - run:
 #        name: Install Selenium Server
