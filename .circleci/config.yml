@@ -24,7 +24,7 @@ jobs:
 #          - .
     - restore_cache:
         keys:
-        - v1-dependencies-{{ checksum "package-lock.json" }}
+        - v1-dependencies-{{ checksum "package.json" }}
         # fallback to using the latest cache if no exact match is found
         - v1-dependencies-
 
@@ -36,8 +36,8 @@ jobs:
 
       - run:
           name: Install Dependencies
-          command: npm install -package-lock.json
-#          command: npm install
+#          command: npm install -package.json
+          command: npm install
 
 #      - run: npm install
 
