@@ -27,7 +27,7 @@ jobs:
 
     - run:
         name: Java Installation
-        command: apt-get install default-jdk
+        command: sudo apt-get install default-jdk
         background: true
 
     - run:
