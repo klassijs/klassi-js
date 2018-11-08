@@ -146,9 +146,8 @@ workflows:
 #
       - acceptance_test_test:
           requires:
-            - checkout
+            - checkout_code
 
       - acceptance_test:
           requires:
-            - checkout
             - acceptance_test_test
