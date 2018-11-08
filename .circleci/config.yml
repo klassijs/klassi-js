@@ -67,8 +67,8 @@ jobs:
           command: |
             sudo apt update
             sudo apt install software-properties-common
-            sudo add-apt-repository ppa:linuxuprising/java
-            sudo apt update
+#            sudo add-apt-repository ppa:linuxuprising/java
+#            sudo apt update
 #            sudo apt-cache policy oracle-java11-installer
 
       - store_artifacts:
