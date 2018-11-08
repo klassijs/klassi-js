@@ -39,10 +39,10 @@ jobs:
       - *restore_repo
       - checkout
 
-#      - restore_cache:
-#          key: v3-dependency-npm-{{ checksum "package.json" }}
+      - restore_cache:
+          key: v3-dependency-npm-{{ checksum "package.json" }}
 
-      -run:
+      - run:
         name: Install NPM
         command: npm install
 
