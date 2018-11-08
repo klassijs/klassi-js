@@ -23,7 +23,7 @@ jobs:
 
     - run:
         name: Removed old java code
-        command: mkdir /java
+        command: sudo mkdir ./java
 
     - run:
         name: Java Installation
