@@ -44,17 +44,7 @@ jobs:
           paths:
             - .
 
-#      - save_cache:
-#          key:  v1-klassi-cucumber-js-repo-{{ .Environment.CIRCLE_SHA1 }}
-#          paths:
-#          - .
-#      - restore_cache:
-#          keys:
-#          - v1-dependencies-{{ checksum "package-lock.json" }}
-#          # fallback to using the latest cache if no exact match is found
-#          - v1-dependencies-
-
-  acceptance_test_test:
+  acceptance_test_build:
     <<: *container_config
     steps:
 #      - *restore_repo
@@ -62,10 +52,7 @@ jobs:
 
       - run:
           name: Install Dependencies
-#          command: npm install -package.json
           command: npm install
-
-#      - run: npm install
 
       - run:
           name: Java Installation
@@ -138,9 +125,7 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - checkout:
-          requires:
-            - checkout_code
+      - checkout_code
 
 #      - install_dependencies:
 #          requires:
@@ -148,7 +133,7 @@ workflows:
 #
       - acceptance_test_test:
           requires:
-            - checkout
+            - checkout_code
 
       - acceptance_test:
           requires:
