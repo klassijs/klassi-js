@@ -87,7 +87,7 @@ workflows:
       - acceptance_test:
           requires:
             - acceptance_test_build
-            - test
+
 
 #workflows:
 #  jobs:
