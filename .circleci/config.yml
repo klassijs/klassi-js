@@ -22,25 +22,21 @@ jobs:
     - run: npm install
 
 #    - run:
-#        name: create directory for java code
-#        command: sudo mkdir ./java
-
-    - run:
-        name: Java Installation
-        command: |
-          sudo apt-get install default-jdk
-#          sudo npm install selenium-standalone@latest -g --save-dev
-#          selenium-standalone install
+#        name: Java Installation
+#        command: |
+#          sudo apt-get install default-jdk
+##          sudo npm install selenium-standalone@latest -g --save-dev
+##          selenium-standalone install
 #          selenium-standalone start &&
 #        background: true
 
     - run:
         name: Builld Selenium Server
         command: |
+          sudo apt-get install default-jdk
           sudo npm install selenium-standalone@latest -g --save-dev
           sudo selenium-standalone install
           selenium-standalone start
-        background: true
 
 #    - run:
 #        name: Install Selenium Server
