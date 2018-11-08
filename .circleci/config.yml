@@ -27,8 +27,7 @@ jobs:
 
     - run:
         name: Java Installation
-        command: |
-          yum install java-1.8.0-openjdk
+        command: apt-get install default-jdk
         background: true
 
     - run:
