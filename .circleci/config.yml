@@ -38,7 +38,6 @@ jobs:
     steps:
       - *restore_repo
       - checkout
-
       - restore_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
 
