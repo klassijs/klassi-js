@@ -22,7 +22,7 @@ jobs:
     - run: npm install
 
     - run:
-        name: Removed old java code
+        name: create directory for java code
         command: sudo mkdir ./java
 
     - run:
@@ -31,10 +31,6 @@ jobs:
           cd ./java;curl -L -b "oraclelicense=a" http://download.oracle.com/otn-pub/java/jdk/8u191-b12/2787e4a523244c269598db4e85c51e0c/jdk-8u191-linux-x64.tar.gz
           tar zxvf jdk-8u191-linux-x64.tar.gz
         background: true
-
-#    - run:
-#        name: Java Install
-#        command: cd ./java;tar zxvf jdk-8u191-linux-x64.tar.gz
 
     - run:
         name: Builld Selenium Server
