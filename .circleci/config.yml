@@ -21,6 +21,32 @@ jobs:
 
     - run: npm install
 
+    - run:
+        name: Builld Selenium Server
+        command: npm install selenium-standalone@latest -g --save-dev
+        background: true
+
+    - run:
+        name: Install Selenium Server
+        command: selenium-standalone install
+        background: true
+
+    - run:
+        name: Start Selenium Server
+        command: selenium-standalone start &&
+        background: true
+
+#    - run:
+#        name: Start BrowserStack Local
+#        command: cd ./nightwatch;./scripts/ci/browserstack-local.sh start
+#        background: true
+
+    - run:
+        name: Check Selenium Server running
+        command: |
+          sleep 5
+          curl --retry 10 --retry-delay 5 -v http://127.0.0.1:4444/
+
     - save_cache:
         paths:
         - node_modules
@@ -59,7 +85,7 @@ workflows:
     jobs:
       - build
       - test
-      
+
 #workflows:
 #  jobs:
 #    bundle_dependencies:
