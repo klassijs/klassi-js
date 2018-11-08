@@ -3,12 +3,21 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 
 version: 2.0
-jobs:
-  build:
+
+references:
+  container_config: &container_config
     docker:
-    - image: circleci/node:8.12
+    - image: - image: circleci/node:8.12
 
     working_directory: ~/repo
+
+jobs:
+  <<: *container_config
+#  build:
+#    docker:
+#    - image: circleci/node:8.12
+#
+#    working_directory: ~/repo
 
     steps:
     - checkout
@@ -56,11 +65,17 @@ jobs:
 #
 #    - run: npm run-script dev
 
-  test:
-    docker:
-    - image: circleci/node:8.12
+  integration_test_build:
+      <<: *container_config
+      steps:
+      - run: "echo 'FINISHED'"
 
-    working_directory: ~/repo
+  test:
+    <<: *container_config
+#    docker:
+#    - image: circleci/node:8.12
+#
+#    working_directory: ~/repo
 
     steps:
     - checkout
@@ -86,7 +101,6 @@ workflows:
   build_and_test:
     jobs:
       - build
-
       - acceptance_test_build:
           requires:
             - build
