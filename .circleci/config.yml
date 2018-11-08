@@ -58,7 +58,8 @@ jobs:
       - run:
           name: Java Installation
           command: |
-            sudo apt-get update && apt-get upgrade
+#            sudo apt-get update && apt-get upgrade
+            apt-get update && apt-get upgrade
 #            sudo apt-get install software-properties-common
 #            add-apt-repository ppa:linuxuprising/java
 #            apt-get update
