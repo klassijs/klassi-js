@@ -54,11 +54,11 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
-  acceptance_test:
+  acceptance_test_test:
     <<: *container_config
     steps:
-    #      - *restore_repo
-      - checkout
+#      - *restore_repo
+      - checkout_code
 
       - run:
           name: Install Dependencies
@@ -151,4 +151,4 @@ workflows:
       - acceptance_test:
           requires:
             - checkout_code
-            - acceptance_test
+            - acceptance_test_test
