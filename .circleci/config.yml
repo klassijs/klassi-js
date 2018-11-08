@@ -14,23 +14,23 @@ references:
 jobs:
   checkout_code:
     <<: *container_config
-      steps:
+    steps:
 #      - *restore_repo
-      - checkout
+    - checkout
 
 #      - save_cache:
 #          key:  v1-klassi-cucumber-js-repo-{{ .Environment.CIRCLE_SHA1 }}
 #          paths:
 #          - .
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "package.json" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
 
   install_dependencies:
     <<: *container_config
-#      steps:
+    steps:
 #        - *restore_repo
 #        - *restore_yarn_dependencies
 
@@ -49,7 +49,7 @@ jobs:
           command: |
             sudo npm install selenium-standalone@latest -g --save-dev
             sudo selenium-standalone install
-  #          sudo selenium-standalone start
+    #          sudo selenium-standalone start
 
 #    - run:
 #        name: Install Selenium Server
@@ -77,7 +77,7 @@ jobs:
   acceptance_test_build:
       <<: *container_config
       steps:
-      - run: "echo 'FINISHED'"
+        - run: "echo 'FINISHED'"
 
   test:
     <<: *container_config
@@ -87,23 +87,23 @@ jobs:
 #    working_directory: ~/repo
 
     steps:
-    - checkout
+      - checkout
 
-    # Download and cache dependencies
-    - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "package.json" }}
-        # fallback to using the latest cache if no exact match is found
-        - v1-dependencies-
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
 
-    - run: npm install
+      - run: npm install
 
-    - save_cache:
-        paths:
-        - node_modules
-        key: v1-dependencies-{{ checksum "package.json" }}
+      - save_cache:
+          paths:
+          - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
 
-    - run: npm run-script test
+      - run: npm run-script test
 
 workflows:
   version: 2
