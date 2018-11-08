@@ -23,18 +23,21 @@ jobs:
 
     - run:
         name: Builld Selenium Server
-        command: sudo npm install selenium-standalone@latest -g --save-dev
+        command: |
+          sudo npm install selenium-standalone@latest -g --save-dev
+          selenium-standalone install
+          selenium-standalone start &&
         background: true
 
-    - run:
-        name: Install Selenium Server
-        command: selenium-standalone install
-        background: true
-
-    - run:
-        name: Start Selenium Server
-        command: selenium-standalone start &&
-        background: true
+#    - run:
+#        name: Install Selenium Server
+#        command: selenium-standalone install
+#        background: true
+#
+#    - run:
+#        name: Start Selenium Server
+#        command: selenium-standalone start &&
+#        background: true
 
     - run:
         name: Check Selenium Server running
