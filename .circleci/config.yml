@@ -150,4 +150,4 @@ workflows:
 
       - acceptance_test:
           requires:
-            - acceptance_test_test
+            - acceptance_test
