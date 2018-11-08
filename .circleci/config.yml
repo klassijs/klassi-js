@@ -49,7 +49,7 @@ jobs:
     steps:
       - *restore_repo
       - *restore_npm_dependencies
-      - checkout_code
+      - checkout
 
       - run:
           name: Install Dependencies
