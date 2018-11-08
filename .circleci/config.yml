@@ -36,11 +36,6 @@ jobs:
         command: selenium-standalone start &&
         background: true
 
-#    - run:
-#        name: Start BrowserStack Local
-#        command: cd ./nightwatch;./scripts/ci/browserstack-local.sh start
-#        background: true
-
     - run:
         name: Check Selenium Server running
         command: |
@@ -83,6 +78,8 @@ workflows:
   version: 2
   build_and_test:
     jobs:
+      - build
+
       - acceptance_test_build:
           requires:
             - build
