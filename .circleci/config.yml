@@ -54,7 +54,7 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
-  acceptance_test_test:
+  acceptance_test:
     <<: *container_config
     steps:
     #      - *restore_repo
@@ -150,4 +150,5 @@ workflows:
 
       - acceptance_test:
           requires:
+            - checkout_code
             - acceptance_test
