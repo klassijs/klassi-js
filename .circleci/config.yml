@@ -38,7 +38,7 @@ jobs:
         name: Builld Selenium Server
         command: |
           sudo npm install selenium-standalone@latest -g --save-dev
-          selenium-standalone install
+          sudo selenium-standalone install
           selenium-standalone start &&
 #        background: true
 
