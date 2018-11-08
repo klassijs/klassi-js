@@ -111,6 +111,10 @@ workflows:
     jobs:
       - checkout_code
 
+      - install_dependencies:
+          requires:
+            - checkout_code
+
       - acceptance_test_build:
           requires:
             - checkout_code
