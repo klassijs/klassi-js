@@ -58,12 +58,12 @@ jobs:
 #          sleep 5
 #          curl --retry 10 --retry-delay 5 -v http://127.0.0.1:4444/
 
-    - save_cache:
-        paths:
-        - node_modules
-        key: v1-dependencies-{{ checksum "package.json" }}
-
-    - run: npm run-script dev
+#    - save_cache:
+#        paths:
+#        - node_modules
+#        key: v1-dependencies-{{ checksum "package.json" }}
+#
+#    - run: npm run-script dev
 
   test:
     docker:
