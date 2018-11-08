@@ -11,12 +11,39 @@ references:
 
     working_directory: ~/klassi-cucumber-js
 
+  restore_repo: &restore_repo
+    restore_cache:
+      keys:
+        - v1-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-repo-{{ .Branch }}
+        - v1-repo
+
+  npm_cache_key: &npm_cache_key
+    v3-dependency-npm-{{ checksum "package-lock.json" }}
+  npm_backup_cache_key: &npm_backup_cache_key
+    v3-dependency-npm
+
+  restore_yarn_dependencies: &restore_npm_dependencies
+    restore_cache:
+      keys:
+      - *npm_cache_key
+      - *npm_backup_cache_key
+
+  restore_acceptance_builds: &restore_acceptance_builds
+    restore_cache:
+      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
+
 jobs:
   checkout_code:
     <<: *container_config
     steps:
-#      - *restore_repo
-    - checkout
+      - *restore_repo
+      - checkout
+
+      - save_cache:
+          key: v1-repo-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - .
 
 #      - save_cache:
 #          key:  v1-klassi-cucumber-js-repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -24,15 +51,15 @@ jobs:
 #          - .
     - restore_cache:
         keys:
-        - v1-dependencies-{{ checksum "package.json" }}
+        - v1-dependencies-{{ checksum "package-lock.json" }}
         # fallback to using the latest cache if no exact match is found
         - v1-dependencies-
 
   acceptance_test_build:
     <<: *container_config
     steps:
-#        - *restore_repo
-#        - *restore_yarn_dependencies
+    #      - *restore_repo
+      - checkout
 
       - run:
           name: Install Dependencies
