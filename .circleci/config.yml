@@ -27,16 +27,20 @@ jobs:
 
     - run:
         name: Java Installation
-        command: sudo apt-get install default-jdk
-        background: true
-
-    - run:
-        name: Builld Selenium Server
         command: |
+          sudo apt-get install default-jdk
           sudo npm install selenium-standalone@latest -g --save-dev
           selenium-standalone install
           selenium-standalone start &&
         background: true
+
+#    - run:
+#        name: Builld Selenium Server
+#        command: |
+#          sudo npm install selenium-standalone@latest -g --save-dev
+#          selenium-standalone install
+#          selenium-standalone start &&
+#        background: true
 
 #    - run:
 #        name: Install Selenium Server
