@@ -58,6 +58,9 @@ jobs:
       - *restore_npm_dependencies
       - checkout
 
+      - store_artifacts:
+          path: ./artifacts
+
 #      - run:
 #          name: Install Dependencies
 #          command: npm install
@@ -71,15 +74,12 @@ jobs:
 #            sudo apt update
 #            sudo apt-cache policy oracle-java11-installer
 
-      - store_artifacts:
-          path: ./artifacts
-
       - run:
           name: Builld Selenium Server
           command: |
             sudo npm install selenium-standalone@latest -g --save-dev
             sudo selenium-standalone install
-            sudo selenium-standalone start &&
+            sudo selenium-standalone start
 #            npm run-script test
 
 #    - run:
