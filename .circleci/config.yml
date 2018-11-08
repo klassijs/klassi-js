@@ -59,10 +59,10 @@ jobs:
           name: Java Installation
           command: |
             sudo apt-get update
-#            sudo apt-get install software-properties-common
-#            add-apt-repository ppa:linuxuprising/java
-#            apt-get update
-#            sudo apt-get install oracle-java11-installer
+            sudo apt-get install software-properties-common
+            sudo add-apt-repository ppa:linuxuprising/java
+            sudo apt-get update
+            sudo apt-get install oracle-java11-installer
 
       - run:
           name: Builld Selenium Server
