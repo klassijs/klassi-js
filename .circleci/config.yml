@@ -131,10 +131,10 @@ workflows:
 #          requires:
 #            - checkout_code
 #
-      - acceptance_test_test:
+      - acceptance_test_build:
           requires:
             - checkout_code
 
       - acceptance_test:
           requires:
-            - acceptance_test_test
+            - acceptance_test_build
