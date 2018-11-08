@@ -58,15 +58,19 @@ jobs:
       - run:
           name: Java Installation
           command: |
-            sudo apt-get install default-jdk
+            sudo apt-get update && apt-get upgrade
+            sudo apt-get install software-properties-common
+            sudo add-apt-repository ppa:linuxuprising/java
+            sudo apt-get update
+            sudo apt-get install oracle-java11-installer
 
       - run:
           name: Builld Selenium Server
           command: |
             sudo npm install selenium-standalone@latest -g --save-dev
             sudo selenium-standalone install
-            sudo selenium-standalone start
-            npm run-script test
+            sudo selenium-standalone start &&
+#            npm run-script test
 
 #    - run:
 #        name: Install Selenium Server
