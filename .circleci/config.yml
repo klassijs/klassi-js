@@ -8,7 +8,6 @@ references:
   container_config: &container_config
     docker:
     - image: circleci/node:8.12
-
     working_directory: ~/klassi-cucumber-js
 
   restore_repo: &restore_repo
@@ -23,11 +22,11 @@ references:
   npm_backup_cache_key: &npm_backup_cache_key
     v3-dependency-npm
 
-  restore_yarn_dependencies: &restore_npm_dependencies
+  restore_npm_dependencies: &restore_npm_dependencies
     restore_cache:
       keys:
-      - *npm_cache_key
-      - *npm_backup_cache_key
+        - *npm_cache_key
+        - *npm_backup_cache_key
 
   restore_acceptance_builds: &restore_acceptance_builds
     restore_cache:
