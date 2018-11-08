@@ -24,7 +24,7 @@ jobs:
 #          - .
     - restore_cache:
         keys:
-        - v1-dependencies-{{ checksum "package.json" }}
+        - v1-dependencies-{{ checksum "package.lock.json" }}
         # fallback to using the latest cache if no exact match is found
         - v1-dependencies-
 
@@ -36,8 +36,8 @@ jobs:
 
       - run:
           name: Install Dependencies
-#          command: npm install --frozen-jsonfile
-          command: npm install
+          command: npm install --package.lock.json
+#          command: npm install
 
 #      - run: npm install
 
@@ -51,7 +51,7 @@ jobs:
           command: |
             sudo npm install selenium-standalone@latest -g --save-dev
             sudo selenium-standalone install
-            sudo selenium-standalone start
+#            sudo selenium-standalone start
 
 #    - run:
 #        name: Install Selenium Server
