@@ -48,11 +48,11 @@ jobs:
 #          key:  v1-klassi-cucumber-js-repo-{{ .Environment.CIRCLE_SHA1 }}
 #          paths:
 #          - .
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package-lock.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+#      - restore_cache:
+#          keys:
+#          - v1-dependencies-{{ checksum "package-lock.json" }}
+#          # fallback to using the latest cache if no exact match is found
+#          - v1-dependencies-
 
   acceptance_test_test:
     <<: *container_config
@@ -138,7 +138,9 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - checkout_code
+      - checkout:
+          requires:
+            - checkout_code
 
 #      - install_dependencies:
 #          requires:
@@ -146,7 +148,7 @@ workflows:
 #
       - acceptance_test_test:
           requires:
-            - checkout_code
+            - checkout
 
       - acceptance_test:
           requires:
