@@ -60,8 +60,8 @@ jobs:
           command: |
             sudo apt-get update && apt-get upgrade
             sudo apt-get install software-properties-common
-            sudo add-apt-repository ppa:linuxuprising/java
-            sudo apt-get update
+            add-apt-repository ppa:linuxuprising/java
+            apt-get update
             sudo apt-get install oracle-java11-installer
 
       - run:
