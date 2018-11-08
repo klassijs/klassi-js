@@ -36,7 +36,8 @@ jobs:
 
       - run:
           name: Install Dependencies
-          command: npm install --frozen-jsonfile
+#          command: npm install --frozen-jsonfile
+          command: npm install
 
 #      - run: npm install
 
