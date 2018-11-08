@@ -6,9 +6,9 @@ version: 2.0
 
 references:
   container_config: &container_config
-    docker:
-    - image: circleci/node:8.12
     working_directory: ~/klassi-cucumber-js
+    docker:
+      - image: circleci/node:8.12
 
   restore_repo: &restore_repo
     restore_cache:
@@ -18,7 +18,7 @@ references:
         - v1-repo
 
   npm_cache_key: &npm_cache_key
-    v3-dependency-npm-{{ checksum "package-lock.json" }}
+    v3-dependency-npm-{{ checksum "package.json" }}
   npm_backup_cache_key: &npm_backup_cache_key
     v3-dependency-npm
 
@@ -39,10 +39,17 @@ jobs:
       - *restore_repo
       - checkout
 
+      - restore_cache:
+          key: v3-dependency-npm-{{ checksum "package.json" }}
+
+      -run:
+        name: Install NPM
+        command: npm install
+
       - save_cache:
-          key: v1-repo-{{ .Branch }}-{{ .Revision }}
+          key: v3-dependency-npm-{{ checksum "package.json" }}
           paths:
-            - .
+            - node_modules
 
   acceptance_test_build:
     <<: *container_config
@@ -51,10 +58,10 @@ jobs:
       - *restore_npm_dependencies
       - checkout
 
-      - run:
-          name: Install Dependencies
-          command: npm install
-
+#      - run:
+#          name: Install Dependencies
+#          command: npm install
+#
       - run:
           name: Java Installation
           command: |
@@ -62,7 +69,10 @@ jobs:
             sudo apt install software-properties-common
             sudo add-apt-repository ppa:linuxuprising/java
             sudo apt update
-            sudo apt-cache policy oracle-java11-installer
+#            sudo apt-cache policy oracle-java11-installer
+
+      - store_artifacts:
+          path: ./artifacts
 
       - run:
           name: Builld Selenium Server
