@@ -54,7 +54,7 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
-  acceptance_test_build:
+  acceptance_test_test:
     <<: *container_config
     steps:
     #      - *restore_repo
@@ -77,7 +77,8 @@ jobs:
           command: |
             sudo npm install selenium-standalone@latest -g --save-dev
             sudo selenium-standalone install
-#            sudo selenium-standalone start
+            sudo selenium-standalone start
+            npm run-script test
 
 #    - run:
 #        name: Install Selenium Server
@@ -102,36 +103,36 @@ jobs:
 #
 #    - run: npm run-script dev
 
-#  acceptance_test_build:
+#  acceptance_test:
 #      <<: *container_config
 #      steps:
 #        - run: "echo 'FINISHED'"
 
-  acceptance_test:
-    <<: *container_config
+#  acceptance_test:
+#    <<: *container_config
 #    docker:
 #    - image: circleci/node:8.12
 #
 #    working_directory: ~/repo
 
-    steps:
-      - checkout
+#    steps:
+#      - checkout
+#
+#      # Download and cache dependencies
+#      - restore_cache:
+#          keys:
+#          - v1-dependencies-{{ checksum "package.json" }}
+#          # fallback to using the latest cache if no exact match is found
+#          - v1-dependencies-
+#
+#      - run: npm install
+#
+#      - save_cache:
+#          paths:
+#          - node_modules
+#          key: v1-dependencies-{{ checksum "package.json" }}
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
-      - run: npm install
-
-      - save_cache:
-          paths:
-          - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-
-      - run: npm run-script test
+#      - run: npm run-script test
 
 workflows:
   version: 2
@@ -142,11 +143,11 @@ workflows:
 #      - install_dependencies:
 #          requires:
 #            - checkout_code
-
-      - acceptance_test_build:
-          requires:
-            - checkout_code
+#
+#      - acceptance_test_build:
+#          requires:
+#            - checkout_code
 
       - acceptance_test:
           requires:
-            - acceptance_test_build
+            - acceptance_test_test
