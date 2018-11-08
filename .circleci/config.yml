@@ -39,7 +39,7 @@ jobs:
         command: |
           sudo npm install selenium-standalone@latest -g --save-dev
           sudo selenium-standalone install
-          selenium-standalone start &&
+          selenium-standalone start
 #        background: true
 
 #    - run:
