@@ -8,7 +8,6 @@ references:
   container_config: &container_config
     working_directory: ~/klassi-cucumber-js
     docker:
-#      - image: circleci/node:8.12
       - image: circleci/openjdk:8u181-jdk-node-browsers
 
 
@@ -53,7 +52,7 @@ jobs:
           paths:
             - node_modules
 
-  acceptance_test_build: &restore_acceptance_builds
+  acceptance_test_build:
     <<: *container_config
     steps:
       - *restore_repo
@@ -113,6 +112,15 @@ jobs:
           - v1-dependencies-{{ checksum "package.json" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
+
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+
+      - run:
+          name: Start Selenium Server
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
+          background: true
 
       - run: npm install
 
