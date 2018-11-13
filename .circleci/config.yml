@@ -9,6 +9,7 @@ references:
     working_directory: ~/klassi-cucumber-js
     docker:
       - image: circleci/node:8.12
+      - image: circleci/node-jessie-browsers
 
   restore_repo: &restore_repo
     restore_cache:
@@ -61,25 +62,35 @@ jobs:
       - store_artifacts:
           path: ./artifacts
 
+      - run: mkdir test-reports
+
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+          - run:
+              name: Start Selenium
+              command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
+              background: true
+
 #      - run:
 #          name: Install Dependencies
 #          command: npm install
 #
-      - run:
-          name: Java Installation
-          command: |
-            sudo apt update
-            sudo apt install software-properties-common
+#      - run:
+#          name: Java Installation
+#          command: |
+#            sudo apt update
+#            sudo apt install software-properties-common
 #            sudo add-apt-repository ppa:linuxuprising/java
 #            sudo apt update
 #            sudo apt-cache policy oracle-java11-installer
 
-      - run:
-          name: Builld Selenium Server
-          command: |
-            sudo npm install selenium-standalone@latest -g --save-dev
-            sudo selenium-standalone install
-            sudo selenium-standalone start
+#      - run:
+#          name: Builld Selenium Server
+#          command: |
+#            sudo npm install selenium-standalone@latest -g --save-dev
+#            sudo selenium-standalone install
+#            sudo selenium-standalone start
 #            npm run-script test
 
 #    - run:
