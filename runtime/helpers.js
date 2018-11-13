@@ -3,6 +3,8 @@
  * Created by Larry Goddard
  */
 'use strict';
+const fs = require('fs');
+let log = global.log;
 
 module.exports = {
   
@@ -10,26 +12,29 @@ module.exports = {
    * ========== All operational functions ==========
    */
   /**
-     * returns a promise that is called when the url has loaded and the body element is present
-     * @param {string} url to load
-     * @returns {Promise}
-     * @example
-     *      helpers.loadPage('http://www.google.co.uk');
-     */
+   * returns a promise that is called when the url has loaded and the body element is present
+   * @param {string} url to load
+   * @returns {Promise}
+   * @example
+   *      helpers.loadPage('http://www.google.co.uk');
+   */
   loadPage: function (url, seconds) {
-    /** Wait function - measured in seconds for pauses during tests to give time for processes such as
-         * a page loading or the user to see what the test is doing
-         * @param seconds
-         * @type {number}
-         */
+    /**
+     * Wait function - measured in seconds for pauses during tests to give time for processes such as
+     * a page loading or the user to see what the test is doing
+     * @param seconds
+     * @type {number}
+     */
     let timeout = (seconds) ? (seconds * 1000) : DEFAULT_TIMEOUT;
 
-    /** load the url and wait for it to complete
-         */
+    /**
+     * load the url and wait for it to complete
+     */
     return driver.url(url, function () {
 
-      /** now wait for the body element to be present
-             */
+      /**
+       * now wait for the body element to be present
+       */
       return driver.waitUntil(driver.element('body'), timeout);
     });
   },
@@ -45,8 +50,16 @@ module.exports = {
     });
   },
   
-  imageCompare: function(){
-  
+  /**
+   * Visual comparison function
+   * @param fileName
+   * @returns {Promise<void>}
+   */
+  compareImage: async function(fileName){
+    const verify = require('./imageCompare');
+    await verify.assertion(fileName);
+    await verify.value();
+    await verify.pass();
   },
     
   /**
@@ -67,7 +80,6 @@ module.exports = {
         log.info('Error in writing file ' + err.message);
         throw err;
       }
-        
     }
   },
 
@@ -441,7 +453,7 @@ module.exports = {
       
         if (method === 'POST' && fileName != null) {
           let data = res.body.adminDoc;
-          doc_Id = data.replace(/.*documents\/([^\/]+)\/properties.*/, '$1');
+          let doc_Id = data.replace(/.*documents\/([^\/]+)\/properties.*/, '$1');
           await helpers.writeTextFile(fileName, doc_Id, function (err) {
             if (err){
               log.error(err.message);

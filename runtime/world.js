@@ -19,18 +19,13 @@ const fs = require('fs'),
   reporter = require('cucumber-html-reporter'),
   rp = require('request-promise'),
   webdriverio = require('webdriverio'),
-  program = require('commander'),
-  webdrivercss = require('webdrivercss-custom-v4-compatible');
+  program = require('commander');
+  // webdrivercss = require('webdrivercss-custom-v4-compatible');
 
 const assert = chai.assert,
   expect = chai.expect,
   logger = require('./logger.js'),
   getRemote = require('./getRemote.js');
-
-/**
- * Adding visual regression
- */
-// global.visual =
 
 /**
  * Adding logging
@@ -73,21 +68,19 @@ let ChromeDriver = require('./chromeDriver'),
   BrowserStackDriver = require('./browserStackDriver');
 
 let remoteService = getRemote(global.settings.remoteService);
-
+let driver = {};
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
  */
 function getDriverInstance() {
 
-  let driver = {};
-  let screenWidth = []; //[752, 1008, 1280];
+  // let driver = {};
+  // let screenWidth = []; //[752, 1008, 1280];
   let browser = global.settings.browserName;
-
   let options = {};
 
   if (remoteService && remoteService.type === 'browserstack') {
-
     let configType = global.settings.remoteConfig;
     assert.isString(configType, 'BrowserStack requires a config type e.g. win10-chrome');
 
@@ -112,13 +105,13 @@ function getDriverInstance() {
   /**
    *  initialise WebdriverCSS for `driver` instance
    */
-  webdrivercss.init(driver, {
-    screenshotRoot: './cssImages/baseline/',
-    failedComparisonsRoot: './cssImages/imageDiff/',
-    misMatchTolerance: 1.15,
-    screenWidth: screenWidth,
-    updateBaseline: false
-  });
+  // webdrivercss.init(driver, {
+  //   screenshotRoot: './cssImages/baseline/',
+  //   failedComparisonsRoot: './cssImages/imageDiff/',
+  //   misMatchTolerance: 1.15,
+  //   screenWidth: screenWidth,
+  //   updateBaseline: false
+  // });
   return driver;
 }
 
@@ -169,7 +162,6 @@ function World() {
   let runtime = {
     driver: null,                 // the browser object
     webdriverio: webdriverio,     // the raw webdriverio driver module, providing access to static properties/methods
-    webdrivercss: webdrivercss,   // the raw webdrivercss driver function
     expect: global.expect,        // expose chai expect to allow variable testing
     assert: global.assert,        // expose chai assert to allow variable testing
     fs: fs,                       // expose fs (file system) for use globally
@@ -218,9 +210,7 @@ function World() {
      */
     global.paths.sharedObjects.forEach(function (itemPath){
       if (fs.existsSync(itemPath)){
-        
         let dir = requireDir(itemPath, { camelcase: true });
-        
         merge(allDirs, dir);
       }
     });
@@ -257,9 +247,9 @@ global.startDateTime = helpers.getStartDateTime();
  * create the driver before scenario if it's not instantiated
  */
 Before(function () {
-  global.driver = getDriverInstance();
-  let driver = global.driver;
-  global.browser = global.driver; // ensure standard WebDriver global also works
+  let driver = getDriverInstance();
+  global.driver = driver;
+  // global.browser = global.driver; // ensure standard WebDriver global also works
   return driver;
 });
 

@@ -79,6 +79,7 @@ program
   .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
+  .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
   .option('-o, --sharedObjects [paths]', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
   .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(test|dev|uat|prod)$/i, 'dev')
@@ -100,6 +101,7 @@ let settings = {
   reportName:program.reportName,
   browserName:program.browser,
   disableReport:program.disableReport,
+  updateBaselineImage: program.updateBaselineImage,
   defaultTimeout:(300000 * 1000), // 5 mins
   remoteService:program.remoteService
 };

@@ -8,18 +8,19 @@
 declare const shared: any;
 declare const page: any;
 declare const helpers: any;
+declare const settings: any;
 
 // OUP NOTE
 // adapted from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cucumber/index.d.ts
 // for our step-definitions only
 
-type StepDefinitionCode = (this: World, ...stepArgs: any[]) => any;
+export type StepDefinitionCode = (this: World, ...stepArgs: any[]) => any;
 
-interface StepDefinitionOptions {
+export interface StepDefinitionOptions {
     timeout?: number;
 }
 
-interface NodeModule extends NodeModule {
+export interface StepDefinitions {
     Given(pattern: RegExp | string, options: StepDefinitionOptions, code: StepDefinitionCode): void;
     Given(pattern: RegExp | string, code: StepDefinitionCode): void;
     When(pattern: RegExp | string, options: StepDefinitionOptions, code: StepDefinitionCode): void;
@@ -29,14 +30,94 @@ interface NodeModule extends NodeModule {
     setDefaultTimeout(time: number): void;
 }
 
-// OUP NOTE - aside from the browser global being renamed "driver", this is exactly the same as https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/master/types/webdriverio/index.d.ts
+export type HookCode = (this: World, scenario: HookScenarioResult, callback?: CallbackStepDefinition) => void;
+export type GlobalHookCode = (callback?: CallbackStepDefinition) => void;
 
-// Type definitions for WebdriverIO 4.8
+export interface Transform {
+    regexp: RegExp;
+    transformer(this: World, ...arg: string[]): any;
+    useForSnippets?: boolean;
+    preferForRegexpMatch?: boolean;
+    name?: string;
+    typeName?: string; // deprecated
+}
+
+export interface HookOptions {
+    timeout?: number;
+    tags?: any;
+}
+
+export interface Hooks {
+    Before(code: HookCode): void;
+    Before(options: HookOptions | string, code: HookCode): void;
+    BeforeAll(code: GlobalHookCode): void;
+    BeforeAll(options: HookOptions | string, code: GlobalHookCode): void;
+    After(code: HookCode): void;
+    After(options: HookOptions | string, code: HookCode): void;
+    AfterAll(code: GlobalHookCode): void;
+    AfterAll(options: HookOptions | string, code: GlobalHookCode): void;
+    setDefaultTimeout(time: number): void;
+    // tslint:disable-next-line ban-types
+    setWorldConstructor(world: ((this: World, init: {attach: Function, parameters: {[key: string]: any}}) => void) | {}): void;
+    defineParameterType(transform: Transform): void;
+}
+
+export interface StepDefinition {
+    // tslint:disable-next-line ban-types
+    code: Function;
+    line: number;
+    options: {};
+    pattern: any;
+    uri: string;
+}
+
+export interface Tag {
+    name: string;
+    line: number;
+}
+
+export interface Step {
+    arguments: any;
+    line: number;
+    name: string;
+    scenario: Scenario;
+    uri: string;
+    isBackground: boolean;
+    keyword: string;
+    keywordType: string;
+}
+
+export interface Scenario {
+    feature: Feature;
+    exception: Error;
+    keyword: string;
+    lines: number[];
+    name: string;
+    tags: Tag[];
+    uri: string;
+    line: number;
+    description: string;
+    steps: Step[];
+}
+
+export interface Feature {
+    description: string;
+    keyword: string;
+    line: number;
+    name: string;
+    tags: Tag[];
+    uri: string;
+    scenarios: Scenario[];
+}
+
+// OUP NOTE - aside from the browser global being renamed "driver", this is exactly the same as https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/master/types/webdriverio/index.d.ts
+// Type definitions for WebdriverIO 4.10
 // Project: http://www.webdriver.io/
 // Definitions by: Nick Malaguti <https://github.com/nmalaguti>
 //                 Tim Brust <https://github.com/timbru31>
 //                 Fredrik Smedberg <https://github.com/fsmedberg-tc>
 //                 Tanvir ul Islam <https://github.com/tanvirislam06>
+//                 Phil Leger <https://github.com/phil-lgr>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 /// <reference types="node"/>
@@ -210,6 +291,9 @@ declare namespace WebdriverIO {
         setWindowRect?: boolean;
         timeouts?: Timeouts;
         unhandledPromptBehavior?: string;
+
+        // wdio-sauce-service specific
+        build?: string;
     }
 
     interface DesiredCapabilities extends Capabilities {
@@ -340,6 +424,12 @@ declare namespace WebdriverIO {
         // RC
         honorSystemProxy?: boolean;
         ensureCleanSession?: boolean;
+
+        // Exclude
+        exclude?: string[];
+
+        // Define which test specs should run (only on the desired capability)
+        specs?: string[];
     }
 
     interface Cookie {
@@ -366,70 +456,72 @@ declare namespace WebdriverIO {
     }
 
     interface Hooks {
-        onError<T>(error: Error): Promise<T> & undefined;
+        onError?<T>(error: Error): Promise<T> & undefined;
 
-        onPrepare<T>(
+        onPrepare?<T>(
             config: Options,
             capabilities: DesiredCapabilities
         ): Promise<T> & undefined;
 
-        onComplete<T>(exitCode: number): Promise<T> & undefined;
+        onComplete?<T>(exitCode: number): Promise<T> & undefined;
 
-        before<T>(
+        before?<T>(
             capabilities: DesiredCapabilities,
             specs: string[]
         ): Promise<T> & undefined;
 
-        beforeCommand<T>(
+        beforeCommand?<T>(
             commandName: string,
             args: any[]
         ): Promise<T> & undefined;
 
-        beforeFeature<T>(feature: string): Promise<T> & undefined;
-        beforeHook<T>(): Promise<T> & undefined;
-        beforeScenario<T>(scenario: string): Promise<T> & undefined;
+        beforeFeature?<T>(feature: string): Promise<T> & undefined;
+        beforeHook?<T>(): Promise<T> & undefined;
+        beforeScenario?<T>(scenario: string): Promise<T> & undefined;
 
-        beforeSession<T>(
+        beforeSession?<T>(
             config: Options,
             capabilities: DesiredCapabilities,
             specs: string[]
         ): Promise<T> & undefined;
 
-        beforeStep<T>(step: string): Promise<T> & undefined;
-        beforeSuite<T>(suite: Suite): Promise<T> & undefined;
-        beforeTest<T>(test: Test): Promise<T> & undefined;
-        afterHook<T>(): Promise<T> & undefined;
+        beforeStep?<T>(step: string): Promise<T> & undefined;
+        beforeSuite?<T>(suite: Suite): Promise<T> & undefined;
+        beforeTest?<T>(test: Test): Promise<T> & undefined;
+        afterHook?<T>(): Promise<T> & undefined;
 
-        after<T>(
+        after?<T>(
             result: number,
             capabilities: DesiredCapabilities,
             specs: string[]
         ): Promise<T> & undefined;
 
-        afterCommand<T>(
+        afterCommand?<T>(
             commandName: string,
             args: any[],
             result: any,
             error?: Error
         ): Promise<T> & undefined;
 
-        afterScenario<T>(scenario: any): Promise<T> & undefined;
+        afterScenario?<T>(scenario: any): Promise<T> & undefined;
 
-        afterSession<T>(
+        afterSession?<T>(
             config: Options,
             capabilities: DesiredCapabilities,
             specs: string[]
         ): Promise<T> & undefined;
 
-        afterStep<T>(stepResult: any): Promise<T> & undefined;
-        afterSuite<T>(suite: Suite): Promise<T> & undefined;
-        afterTest<T>(test: Test): Promise<T> & undefined;
-        afterFeature<T>(feature: string): Promise<T> & undefined;
+        afterStep?<T>(stepResult: any): Promise<T> & undefined;
+        afterSuite?<T>(suite: Suite): Promise<T> & undefined;
+        afterTest?<T>(test: Test): Promise<T> & undefined;
+        afterFeature?<T>(feature: string): Promise<T> & undefined;
     }
 
     interface Options {
         baseUrl?: string;
         bail?: number;
+        deprecationWarnings?: boolean;
+        browserstackLocal?: boolean;
         coloredLogs?: boolean;
         capabilities?: DesiredCapabilities[];
         connectionRetryTimeout?: number;
@@ -446,7 +538,7 @@ declare namespace WebdriverIO {
         path?: string;
         plugins?: { [name: string]: any; };
         reporters?: string[] | ((...args: any[]) => void);
-        reporterOptions?: { outputDir?: string; };
+        reporterOptions?: { outputDir?: string, [reporterName: string]: any };
         logLevel?: string;
         maxInstances?: number;
         maxInstancesPerCapability?: number;
@@ -464,6 +556,15 @@ declare namespace WebdriverIO {
         waitforInterval?: number;
         user?: string;
         key?: string;
+
+        // wdio-sauce-service specific
+        sauceConnect?: boolean;
+        sauceConnectOpts?: { [name: string]: any; };
+
+        // wdio-docker-service specific
+        dockerOptions?: { [name: string]: any; };
+        onDockerReady?: ((...args: any[]) => void);
+        dockerLogs?: string;
     }
 
     interface UnknownOptions {
@@ -494,8 +595,8 @@ declare namespace WebdriverIO {
         run(): Promise<any>;
     }
 
-    class ErrorHandler {
-        constructor(type: string, msg: string | number);
+    class ErrorHandler extends Error {
+        constructor(type: string, msg: string | number, details?: string);
     }
 
     function multiremote(options: MultiRemoteOptions): Client<void>;
@@ -871,7 +972,7 @@ declare namespace WebdriverIO {
         setOrientation(setTo: 'landscape' | 'portrait'): Client<T>;
         settings(settings?: { [key: string]: string }): Client<T>;
         shake(): Client<T>;
-        startActivity(appPackage: string, activity: string): Client<T>;
+        startActivity(appPackage: string, activity: string, appWaitPackage?: string, appWaitActivity?: string): Client<T>;
         strings(language: string): Client<T>;
 
         swipe(
@@ -1923,7 +2024,7 @@ declare namespace WebdriverIO {
     const VERSION: string;
 }
 
-declare var driver: WebdriverIO.Client<void>;
+declare var browser: WebdriverIO.Client<void>;
 
 declare function $(selector: string): WebdriverIO.Client<WebdriverIO.RawResult<WebdriverIO.Element>> & WebdriverIO.RawResult<WebdriverIO.Element>;
 declare function $<P>(selector: string): WebdriverIO.Client<P>;

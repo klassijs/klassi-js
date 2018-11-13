@@ -5,6 +5,7 @@
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
+    "twitter": "twitter.com/lcgoddard",
     "url": "linkedin.com/in/larryg"
   },
   "license": "MIT",
@@ -32,12 +33,13 @@
     "url": "https://github.com/larryg01/klassi-cucumber-js"
   },
   "engines": {
-    "node": ">= 8.4.0"
+    "node": ">= 8.12.0",
+    "npm": ">= 6.4.1"
   },
   "main": "index.js",
   "scripts": {
     "all": "node index.js -e -d -t ~@wip ",
-    "dev": "node index.js -d -t ~@wip",
+    "dev": "node index.js -d -t @api",
     "test": "node index.js -e -d -w browserstack/osxhs-chrome -t @search",
     "stack": "node index.js -e -d -w browserstack -x"
   },
@@ -65,6 +67,7 @@
     "merge": "^1.2.0",
     "moment": "^2.22.1",
     "node-dir": "^0.1.17",
+    "node-resemble-js": "^0.2.0",
     "nodemailer": "^4.3.1",
     "nodemailer-ses-transport": "^1.5.1",
     "random-words": "^0.0.1",
@@ -73,15 +76,13 @@
     "require-dir": "^0.3.2",
     "selenium-standalone": "^6.15.0",
     "tar": "^4.4.2",
-    "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1",
     "webdriverio": "^4.12.0",
     "winston": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^9.6.15",
-    "eslint": "^5.5.0",
+    "eslint": "^5.7.0",
     "multiple-cucumber-html-reporter": "^1.10.1",
-    "node-resemble-js": "^0.2.0",
     "wdio-visual-regression-service": "^0.9.0"
   }
 }
