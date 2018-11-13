@@ -9,7 +9,6 @@ references:
     working_directory: ~/klassi-cucumber-js
     docker:
       - image: circleci/node:8.12
-      - image: circleci/node-jessie-browsers
 
   restore_repo: &restore_repo
     restore_cache:
