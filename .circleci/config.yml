@@ -53,7 +53,7 @@ jobs:
           paths:
             - node_modules
 
-  acceptance_test_build:
+  acceptance_test_build: &restore_acceptance_builds
     <<: *container_config
     steps:
       - *restore_repo
@@ -64,15 +64,6 @@ jobs:
           path: ./artifacts
 
       - run: mkdir test-reports
-
-#      - run:
-#          name: Java Installation
-#          command: |
-#            sudo apt update
-#            sudo apt install software-properties-common
-#            sudo add-apt-repository ppa:linuxuprising/java
-#            sudo apt update
-#            sudo apt-cache policy oracle-java11-installer
 
       - run:
           name: Download Selenium
@@ -113,6 +104,7 @@ jobs:
       - image: circleci/node:8.12
 
     steps:
+      - *restore_acceptance_builds
       - checkout
 
       # Download and cache dependencies
