@@ -10,7 +10,6 @@ references:
     docker:
       - image: circleci/openjdk:8u181-jdk-node-browsers
 
-
   restore_repo: &restore_repo
     restore_cache:
       keys:
@@ -90,19 +89,15 @@ jobs:
 
       - run: npm run-script dev
 
-#  acceptance_test:
-#    <<: *container_config
-#    steps:
-#      - run: "echo 'FINISHED'"
-#      - run: npm run-script dev
-
   acceptance_test:
     <<: *container_config
-    working_directory: ~/klassi-cucumber-js
-    docker:
-      - image: circleci/node:8.12
+#    working_directory: ~/klassi-cucumber-js
+#    docker:
+#      - image: circleci/node:8.12
 
     steps:
+      - *restore_repo
+      - *restore_npm_dependencies
       - *restore_acceptance_builds
       - checkout
 
