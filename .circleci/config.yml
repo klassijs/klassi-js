@@ -9,7 +9,7 @@ references:
     working_directory: ~/klassi-cucumber-js
     docker:
       - image: circleci/node:8.12
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: circleci/openjdk:8u181-jdk-node-browsers
 
 
   restore_repo: &restore_repo
@@ -65,14 +65,14 @@ jobs:
 
       - run: mkdir test-reports
 
-      - run:
-          name: Java Installation
-          command: |
-            sudo apt update
-            sudo apt install software-properties-common
-            sudo add-apt-repository ppa:linuxuprising/java
-            sudo apt update
-            sudo apt-cache policy oracle-java11-installer
+#      - run:
+#          name: Java Installation
+#          command: |
+#            sudo apt update
+#            sudo apt install software-properties-common
+#            sudo add-apt-repository ppa:linuxuprising/java
+#            sudo apt update
+#            sudo apt-cache policy oracle-java11-installer
 
       - run:
           name: Download Selenium
