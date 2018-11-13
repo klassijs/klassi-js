@@ -102,28 +102,6 @@ compareImage: async function (fileName) {
   await helpers.compareImage(fileName);
 ```
 
-
-### CSS Responsive functionality with [webdriverCSS](https://github.com/webdriverio/webdrivercss)
-
-CSS Responsive testing, gives the ability to take and compare screenshots of different viewPoints ({width,height}) of the application under test.
-
-You will need to have GraphicsMagick preinstalled on your system because WebdriverCSS uses it for image processing. To install GraphicsMagick follow the [instructions here](https://github.com/webdriverio/webdrivercss#install) .
-
-```js
-// ./runtime/helpers.js
-
-cssImages: async function(pageName){
-  await driver.webdrivercss(pageName, {
-    name: '',
-    elem: ''
-  })
-}
-
-// usage within page-object file:
-
-    await helpers.cssImages(pageName);
-```
-
 ### API Testing functionality with [request-promise](https://github.com/request/request-promise)
 Getting data from a JSON REST API
 ```js
