@@ -146,7 +146,7 @@ global.log = log;
  * @constructor
  */
 
-const {Before, After, BeforeAll, AfterAll, Status} = require('cucumber');
+const {Before, After, AfterAll, Status} = require('cucumber');
 const {Given, When, Then} = require('cucumber');
 
 global.Given = Given;
@@ -249,7 +249,7 @@ global.startDateTime = helpers.getStartDateTime();
 Before(function () {
   let driver = getDriverInstance();
   global.driver = driver;
-  // global.browser = global.driver; // ensure standard WebDriver global also works
+  global.browser = global.driver; // ensure standard WebDriver global also works
   return driver;
 });
 
