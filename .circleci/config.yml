@@ -8,14 +8,14 @@ references:
   container_config: &container_config
     working_directory: ~/klassi-cucumber-js
     docker:
-    - image: circleci/openjdk:8u181-jdk-node-browsers
+      - image: circleci/openjdk:8u181-jdk-node-browsers
 
   restore_repo: &restore_repo
     restore_cache:
       keys:
-      - v1-repo-{{ .Branch }}-{{ .Revision }}
-      - v1-repo-{{ .Branch }}
-      - v1-repo
+        - v1-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-repo-{{ .Branch }}
+        - v1-repo
 
 #  npm_cache_key: v3-dependency-npm-{{ checksum "package.json" }}
 #  npm_backup_cache_key: v3-dependency-npm
@@ -37,12 +37,12 @@ jobs:
       - *restore_repo
       - checkout
 
-      - restore_cache:
-          key: v3-dependency-npm-{{ checksum "package.json" }}
-
-      - run:
-          name: Install NPM
-          command: npm install
+#      - restore_cache:
+#          key: v3-dependency-npm-{{ checksum "package.json" }}
+#
+#      - run:
+#          name: Install NPM
+#          command: npm install
 
       - save_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
