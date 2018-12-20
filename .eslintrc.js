@@ -37,6 +37,7 @@ module.exports = {
   },
   "globals": {
     "helpers":false,
+    "driver":false,
     "log": false,
     "date": false,
     "startDateTime": false,

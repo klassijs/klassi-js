@@ -19,8 +19,8 @@ const fs = require('fs'),
   reporter = require('cucumber-html-reporter'),
   rp = require('request-promise'),
   webdriverio = require('webdriverio'),
-  program = require('commander');
-  // webdrivercss = require('webdrivercss-custom-v4-compatible');
+  program = require('commander'),
+  webdrivercss = require('webdrivercss-custom-v4-compatible');
 
 const assert = chai.assert,
   expect = chai.expect,
@@ -76,7 +76,7 @@ let driver = {};
 function getDriverInstance() {
 
   // let driver = {};
-  // let screenWidth = []; //[752, 1008, 1280];
+  let screenWidth = []; //[752, 1008, 1280];
   let browser = global.settings.browserName;
   let options = {};
 
@@ -105,13 +105,13 @@ function getDriverInstance() {
   /**
    *  initialise WebdriverCSS for `driver` instance
    */
-  // webdrivercss.init(driver, {
-  //   screenshotRoot: './cssImages/baseline/',
-  //   failedComparisonsRoot: './cssImages/imageDiff/',
-  //   misMatchTolerance: 1.15,
-  //   screenWidth: screenWidth,
-  //   updateBaseline: false
-  // });
+  webdrivercss.init(driver, {
+    screenshotRoot: './cssImages/baseline/',
+    failedComparisonsRoot: './cssImages/imageDiff/',
+    misMatchTolerance: 1.15,
+    screenWidth: screenWidth,
+    updateBaseline: false
+  });
   return driver;
 }
 
