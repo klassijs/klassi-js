@@ -90,9 +90,7 @@ jobs:
 
       - run:
           name: Start Test
-          command: |
-#          cd ./projects/klassi-cucumber-js/
-            node index.js -d -t @api
+          command: node index.js -d -t @api
 
       - store_artifacts:
           path: ./artifacts
@@ -135,9 +133,7 @@ jobs:
 
       - run:
           name: Start Test
-          command: |
-#            cd ./projects/klassi-cucumber-js/
-            node index.js -d -t @search
+          command: node index.js -d -t @search
 
       - store_artifacts:
           path: ./artifacts
