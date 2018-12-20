@@ -61,15 +61,15 @@ jobs:
 #        name: Install Dependencies
 #        command: npm install --frozen-lockfile
 
-    - run:
-        name: Install dependencies
-        command: npm install
+      - run:
+          name: Install dependencies
+          command: npm install
 
-    - save_cache:
-        key: *npm_cache_key
-        paths:
-        - "~/.cache/npm"
-        - node_modules
+      - save_cache:
+          key: *npm_cache_key
+          paths:
+          - "~/.cache/npm"
+          - node_modules
 
   acceptance_test_build: &acceptance_test_build
     <<: *container_config
