@@ -112,12 +112,12 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-          command: ./.circleci/scripts/browserstack-local.sh start
+          command: ./scripts/browserstack-local.sh start
           background: true
 
       - run:
           name: Check BrowserStack Local running
-          command: sleep 5;./.circleci/scripts/browserstack-local.sh check
+          command: sleep 5;./scripts/browserstack-local.sh check
 
       - store_artifacts:
           path: ./artifacts
@@ -177,12 +177,12 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-          command: ./.circleci/scripts/browserstack-local.sh start
+          command: ./scripts/browserstack-local.sh start
           background: true
 
       - run:
           name: Check BrowserStack Local running
-          command: sleep 5;./.circleci/scripts/browserstack-local.sh check
+          command: sleep 5;./scripts/browserstack-local.sh check
 
       - save_cache:
           paths:
