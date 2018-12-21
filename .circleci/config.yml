@@ -19,7 +19,7 @@ references:
         - v1-klassi-repo
 
   npm_cache_key: &npm_cache_key
-    v3-dependency-npm-{{ checksum "package-lock.json" }}
+    v3-dependency-npm-{{ checksum "package.json" }}
   npm_backup_cache_key: &npm_backup_cache_key
     v3-dependency-npm
 
@@ -40,10 +40,13 @@ jobs:
       - *restore_repo
       - checkout
 
+      - restore_cache:
+          key: v3-dependency-npm-{{ checksum "package.json" }}
+
       - save_cache:
-          key:  v1-repo-{{ .Branch }}-{{ .Revision }}
+          key: v3-dependency-npm-{{ checksum "package.json" }}
           paths:
-            - .
+            - node_modules
 
 #      - restore_cache:
 #          key: v3-dependency-npm-{{ checksum "package.json" }}
@@ -53,6 +56,7 @@ jobs:
     steps:
       - *restore_repo
       - *restore_npm_dependencies
+      - checkout
 
       - run:
           name: Install Dependencies
@@ -64,10 +68,10 @@ jobs:
             - "~/.cache/npm"
             - node_modules
 
-#      - save_cache:
-#          key: v3-dependency-npm-{{ checksum "package.json" }}
-#          paths:
-#            - node_modules
+      - save_cache:
+          key: v3-dependency-npm-{{ checksum "package.json" }}
+          paths:
+            - node_modules
 
   acceptance_test_build:
     <<: *container_config
@@ -166,9 +170,14 @@ workflows:
     jobs:
       - checkout_code
 
+      - install_dependencies:
+          requires:
+            -checkout_code
+
       - acceptance_test_build:
           requires:
             - checkout_code
+            - install_dependencies
 
       - acceptance_test:
           requires:
