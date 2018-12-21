@@ -17,16 +17,16 @@ references:
         - v1-repo-{{ .Branch }}
         - v1-repo
 
-  npm_cache_key: &npm_cache_key
-    v3-dependency-npm-{{ checksum "package.json" }}
-  npm_backup_cache_key: &npm_backup_cache_key
-    v3-dependency-npm
-
-  restore_npm_dependencies: &restore_npm_dependencies
-    restore_cache:
-      keys:
-        - *npm_cache_key
-        - *npm_backup_cache_key
+#  npm_cache_key: &npm_cache_key
+#    v3-dependency-npm-{{ checksum "package.json" }}
+#  npm_backup_cache_key: &npm_backup_cache_key
+#    v3-dependency-npm
+#
+#  restore_npm_dependencies: &restore_npm_dependencies
+#    restore_cache:
+#      keys:
+#        - *npm_cache_key
+#        - *npm_backup_cache_key
 
   restore_acceptance_builds: &restore_acceptance_builds
     restore_cache:
@@ -44,9 +44,9 @@ jobs:
           paths:
             - node_modules
 
-#      - run:
-#          name: Install NPM
-#          command: npm install
+      - run:
+          name: Install NPM
+          command: npm install
 
       - save_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
@@ -57,8 +57,8 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - *restore_npm_dependencies
       - checkout
+      - *restore_npm_dependencies
 
       - store_artifacts:
           path: ./artifacts
