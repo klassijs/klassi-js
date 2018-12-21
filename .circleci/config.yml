@@ -52,7 +52,9 @@ jobs:
     steps:
       - *restore_repo
       - checkout
-      - run: mkdir ./test-results
+      - run:
+          name: Create Test-Result Directory
+          command: mkdir ./test-results
       - run:
           name: Download Selenium
           command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
@@ -80,7 +82,9 @@ jobs:
       steps:
         - *restore_repo
         - checkout
-        - run: mkdir ./test-results
+        - run:
+            name: Create Test-Result Directory
+            command: mkdir ./test-results
         - run:
             name: Download Selenium
             command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
@@ -118,17 +122,28 @@ workflows:
             - checkout_code
             - install_dependencies
 
-      - run_basic_acceptance_tests:
-          type: approval
-          requires:
-          - install_dependencies
-          filters:
-            branches:
-              ignore:
-              - develop
-              - master
+#      - run_basic_integration_tests:
+#          type: approval
+#          requires:
+#            - integration_test_build
+#          filters:
+#            branches:
+#              ignore:
+#                - develop
+#                - master
 
       - acceptance_test_build:
           requires:
             - checkout_code
             - install_dependencies
+
+#      - run_basic_acceptance_tests:
+#                type: approval
+#                requires:
+#                  - acceptance_test_build
+#                filters:
+#                  branches:
+#                    ignore:
+#                      - develop
+#                      - master
+
