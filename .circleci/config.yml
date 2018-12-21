@@ -47,7 +47,7 @@ jobs:
           paths:
           - node_modules
 
-  acceptance_test_build:
+  integration_test_build:
     <<: *container_config
     steps:
       - *restore_repo
@@ -68,12 +68,40 @@ jobs:
           paths:
             - node_modules
       - run:
-          name: Acceptance Test Run
+          name: Integration Test Run
           command: npm run-script dev
       - store_artifacts:
           path: artifacts
       - store_test_results:
           path: ./test-results
+
+  acceptance_test_build:
+      <<: *container_config
+      steps:
+        - *restore_repo
+        - checkout
+        - run: mkdir ./test-results
+        - run:
+            name: Download Selenium
+            command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+        - run:
+            name: Start Selenium Server
+            command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+            background: true
+        - run:
+            name: Install Dependencies
+            command: npm install
+        - save_cache:
+            key: dependency-cache-{{ checksum "package.json" }}
+            paths:
+              - node_modules
+        - run:
+            name: Acceptance Test Run
+            command: npm run-script uat
+        - store_artifacts:
+            path: artifacts
+        - store_test_results:
+            path: ./test-results
 
 workflows:
   version: 2
@@ -84,6 +112,14 @@ workflows:
       - install_dependencies:
           requires:
             - checkout_code
+
+      - integration_test_build:
+          requires:
+            - checkout_code
+            - install_dependencies
+#          filters:
+#            branches:
+#              only: master
 
       - acceptance_test_build:
           requires:
