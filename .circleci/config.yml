@@ -26,15 +26,10 @@ jobs:
       - run:
           name: Update npm
           command: 'sudo npm install -g npm@latest'
-#      - restore_cache:
-#          key: dependency-cache-{{ checksum "package.json" }}
-#      - run:
-#          name: Install Dependencies
-#          command: npm install
-#      - save_cache:
-#          key: dependency-cache-{{ checksum "package.json" }}
-#          paths:
-#            - node_modules
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
 
   install_dependencies:
     <<: *container_config
@@ -44,8 +39,6 @@ jobs:
       - run:
           name: Update npm
           command: 'sudo npm install -g npm@latest'
-      #      - restore_cache:
-      #          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install Dependencies
           command: npm install
@@ -54,12 +47,19 @@ jobs:
           paths:
           - node_modules
 
-  test_build:
+  acceptance_test_build:
     <<: *container_config
     steps:
       - *restore_repo
       - checkout
       - run: mkdir ./test-results
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+      - run:
+          name: Start Selenium Server
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          background: true
       - run:
           name: Install Dependencies
           command: npm install
@@ -68,8 +68,8 @@ jobs:
           paths:
             - node_modules
       - run:
-          name: Test
-          command: npm test
+          name: Acceptance Test Run
+          command: npm run-script dev
       - store_artifacts:
           path: ./artifacts
       - store_test_results:
@@ -85,14 +85,10 @@ workflows:
           requires:
             - checkout_code
 
-      - test_build:
+      - acceptance_test_build:
           requires:
             - checkout_code
             - install_dependencies
-
-      - test_run:
-          requires:
-            - test_build
-#            filters:
-#              branches:
-#                only: master
+#          filters:
+#            branches:
+#              only: master
