@@ -15,8 +15,7 @@ references:
 
 jobs:
   build:
-    checkout_code:
-      <<: *container_config
+    <<: *container_config
     steps:
       - *restore_repo
       - checkout
