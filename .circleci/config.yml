@@ -13,9 +13,9 @@ references:
   restore_repo: &restore_repo
     restore_cache:
       keys:
-        - v1-repo-{{ .Branch }}-{{ .Revision }}
-        - v1-repo-{{ .Branch }}
-        - v1-repo
+        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-klassi-repo-{{ .Branch }}
+        - v1-klassi-repo
 
 #  npm_cache_key: &npm_cache_key
 #    v3-dependency-npm-{{ checksum "package.json" }}
