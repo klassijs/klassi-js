@@ -91,9 +91,6 @@ jobs:
 
   acceptance_test:
     <<: *container_config
-#    working_directory: ~/klassi-cucumber-js
-#    docker:
-#      - image: circleci/node:8.12
 
     steps:
       - *restore_repo
