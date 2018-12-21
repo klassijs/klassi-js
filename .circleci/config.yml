@@ -58,7 +58,7 @@ jobs:
     steps:
       - *restore_repo
       - checkout
-      - *restore_npm_dependencies
+#      - *restore_npm_dependencies
 
       - store_artifacts:
           path: ./artifacts
@@ -99,7 +99,7 @@ jobs:
 
     steps:
       - *restore_repo
-      - *restore_npm_dependencies
+#      - *restore_npm_dependencies
       - checkout
 
       # Download and cache dependencies
