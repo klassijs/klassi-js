@@ -48,15 +48,12 @@ jobs:
           paths:
             - node_modules
 
-#      - restore_cache:
-#          key: v3-dependency-npm-{{ checksum "package.json" }}
-
   install_dependencies:
     <<: *container_config
     steps:
       - *restore_repo
+      - checkout_code
       - *restore_npm_dependencies
-#      - checkout_code
 
       - run:
           name: Install Dependencies
@@ -65,7 +62,6 @@ jobs:
       - save_cache:
           key: *npm_cache_key
           paths:
-            - "~/.cache/npm"
             - node_modules
 
       - save_cache:
