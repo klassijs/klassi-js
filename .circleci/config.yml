@@ -41,6 +41,8 @@ jobs:
 
       - restore_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
+          paths:
+            - node_modules
 
 #      - run:
 #          name: Install NPM
