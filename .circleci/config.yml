@@ -1,13 +1,24 @@
 version: 2
-jobs:
-  build:
+
+references:
+  container_config: &container_config
     working_directory: ~/klassi-cucumber-js
-    # The primary container is an instance of the first image listed. The job's commands run in this container.
     docker:
       - image: circleci/openjdk:8u181-jdk-node-browsers
-      # The secondary container is an instance of the second listed image which is run in a common network where ports exposed on the primary container are available on localhost.
-#      - image: mongo:3.4.4-jessie
+
+  restore_repo: &restore_repo
+    restore_cache:
+      keys:
+        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-klassi-repo-{{ .Branch }}
+        - v1-klassi-repo
+
+jobs:
+  build:
+    checkout_code:
+      <<: *container_config
     steps:
+      - *restore_repo
       - checkout
       - run:
           name: Update npm
@@ -15,16 +26,17 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: Install npm wee
+          name: Install Dependencies
           command: npm install
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
           - node_modules
   test:
-    docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
-    steps:
+    checkout_code:
+      <<: *container_config
+      steps:
+      - *restore_repo
       - checkout
       - run:
           name: Test
