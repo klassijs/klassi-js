@@ -26,19 +26,19 @@ jobs:
 #          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install Dependencies
-          command: npm install
+          command: sudo npm install
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
-          - node_modules
+            - node_modules
   test:
     <<: *container_config
     steps:
-    - *restore_repo
-    - checkout
-    - run:
-        name: Test
-        command: npm test
+      - *restore_repo
+      - checkout
+      - run:
+          name: Test
+          command: npm test
 #      - run:
 #          name: Generate code coverage
 #          command: './node_modules/.bin/nyc report --reporter=text-lcov'
