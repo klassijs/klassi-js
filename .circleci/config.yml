@@ -71,7 +71,7 @@ jobs:
           name: Acceptance Test Run
           command: npm run-script dev
       - store_artifacts:
-          path: ./artifacts
+          path: artifacts
       - store_test_results:
           path: ./test-results
 
