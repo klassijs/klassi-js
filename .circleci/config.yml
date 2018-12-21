@@ -1,144 +1,53 @@
-# Javascript Node CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-javascript/ for more details
-
-version: 2.0
-
-references:
-  container_config: &container_config
-    working_directory: ~/klassi-cucumber-js
-    docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
-
-  restore_repo: &restore_repo
-    restore_cache:
-      keys:
-        - v1-repo-{{ .Branch }}-{{ .Revision }}
-        - v1-repo-{{ .Branch }}
-        - v1-repo
-
-  npm_cache_key: &npm_cache_key
-    v3-dependency-npm-{{ checksum "package.json" }}
-  npm_backup_cache_key: &npm_backup_cache_key
-    v3-dependency-npm
-
-  restore_npm_dependencies: &restore_npm_dependencies
-    restore_cache:
-      keys:
-        - *npm_cache_key
-        - *npm_backup_cache_key
-
-  restore_acceptance_builds: &restore_acceptance_builds
-    restore_cache:
-      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
-
+version: 2
 jobs:
-  checkout_code:
-    <<: *container_config
+  build:
+    working_directory: ~/mern-starter
+    # The primary container is an instance of the first image listed. The job's commands run in this container.
+    docker:
+      - image: circleci/node:4.8.2-jessie
+      # The secondary container is an instance of the second listed image which is run in a common network where ports exposed on the primary container are available on localhost.
+      - image: mongo:3.4.4-jessie
     steps:
-#      - *restore_repo
       - checkout
-
-#      - restore_cache:
-#          key: v3-dependency-npm-{{ checksum "package.json" }}
-#          paths:
-#            - node_modules
-
       - run:
-          name: Install NPM
-          command: npm install
-
-      - save_cache:
-          key: v3-dependency-npm-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-
-  acceptance_test_build:
-    <<: *container_config
-    steps:
-#      - *restore_repo
-      - checkout
-      - *restore_npm_dependencies
-
-      - store_artifacts:
-          path: ./artifacts
-
-      - run: mkdir test-reports
-
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
-          background: true
-
-      - run:
-          name: Install Dependencies
-          command: npm install
-
-#    - run:
-#        name: Check Selenium Server running
-#        command: |
-#          sleep 5
-#          curl --retry 10 --retry-delay 5 -v http://127.0.0.1:4444/
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-
-      - run: npm run-script dev
-
-  acceptance_test:
-    <<: *container_config
-    #    working_directory: ~/klassi-cucumber-js
-    #    docker:
-    #      - image: circleci/node:8.12
-
-    steps:
-      - *restore_repo
-      - *restore_npm_dependencies
-      - checkout
-
-      # Download and cache dependencies
+          name: Update npm
+          command: 'sudo npm install -g npm@latest'
       - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: mkdir test-reports
-
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
-          background: true
-
-      - run: npm install
-
+          name: Install npm wee
+          command: npm install
       - save_cache:
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: dependency-cache-{{ checksum "package.json" }}
           paths:
-            - node_modules
-
-      - run: npm run-script test
+          - node_modules
+  test:
+    docker:
+      - image: circleci/node:4.8.2-jessie
+      - image: mongo:3.4.4-jessie
+    steps:
+      - checkout
+      - run:
+          name: Test
+          command: npm test
+      - run:
+          name: Generate code coverage
+          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+      - store_artifacts:
+          path: test-results.xml
+          prefix: tests
+      - store_artifacts:
+          path: coverage
+          prefix: coverage
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - checkout_code
-
-      - acceptance_test_build:
+      - build
+      - test:
           requires:
-            - checkout_code
-
-      - acceptance_test:
-          requires:
-            - acceptance_test_build
+            - build
+#            filters:
+#              branches:
+#                only: master
