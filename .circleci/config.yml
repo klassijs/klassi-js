@@ -50,8 +50,8 @@ jobs:
 
       - save_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
-#          paths:
-#            - node_modules
+          paths:
+            - node_modules
 
   acceptance_test_build:
     <<: *container_config
@@ -123,9 +123,9 @@ jobs:
       - run: npm install
 
       - save_cache:
+          key: v1-dependencies-{{ checksum "package.json" }}
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
 
       - run: npm run-script test
 
