@@ -13,7 +13,8 @@ references:
   restore_repo: &restore_repo
     restore_cache:
       keys:
-        - v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
+#        - v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
+        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
@@ -30,7 +31,7 @@ references:
 
 #  restore_acceptance_builds: &restore_acceptance_builds
 #    restore_cache:
-#      key: v1-acceptance-build-{{ .Environment.CIRCLE_SHA1 }}
+#      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
 
 jobs:
   checkout_code:
@@ -40,7 +41,7 @@ jobs:
       - checkout
 
       - save_cache:
-          key:  v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          key:  v1-repo-{{ .Branch }}-{{ .Revision }}
           paths:
             - .
 
