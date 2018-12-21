@@ -74,7 +74,6 @@
     "request": "^2.86.0",
     "request-promise": "^4.2.2",
     "require-dir": "^0.3.2",
-    "selenium-standalone": "^6.15.0",
     "tar": "^4.4.2",
     "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1",
     "webdriverio": "^4.12.0",
@@ -87,6 +86,7 @@
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
-    "eslint-plugin-standard": "^3.1.0"
+    "eslint-plugin-standard": "^3.1.0",
+    "selenium-standalone": "^6.15.0"
   }
 }
