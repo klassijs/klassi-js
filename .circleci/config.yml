@@ -35,9 +35,9 @@ jobs:
       - restore_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
 
-      - run:
-          name: Install NPM
-          command: npm install
+#      - run:
+#          name: Install NPM
+#          command: npm install
 
       - save_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
