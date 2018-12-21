@@ -6,9 +6,9 @@ version: 2.0
 
 references:
   container_config: &container_config
-    working_directory: ~/klassi-cucumber-js
     docker:
       - image: circleci/openjdk:8u181-jdk-node-browsers
+    working_directory: ~/klassi-cucumber-js
 
   restore_repo: &restore_repo
     restore_cache:
@@ -112,12 +112,12 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-          command: ./scripts/browserstack-local.sh start
+          command: /scripts/browserstack-local.sh start
           background: true
 
       - run:
           name: Check BrowserStack Local running
-          command: sleep 5;./scripts/browserstack-local.sh check
+          command: sleep 5;/scripts/browserstack-local.sh check
 
       - store_artifacts:
           path: ./artifacts
@@ -177,12 +177,12 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-          command: ./scripts/browserstack-local.sh start
+          command: /scripts/browserstack-local.sh start
           background: true
 
       - run:
           name: Check BrowserStack Local running
-          command: sleep 5;./scripts/browserstack-local.sh check
+          command: sleep 5; /scripts/browserstack-local.sh check
 
       - save_cache:
           paths:
