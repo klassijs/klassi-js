@@ -13,24 +13,24 @@ references:
   restore_repo: &restore_repo
     restore_cache:
       keys:
-        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
-        - v1-klassi-repo-{{ .Branch }}
-        - v1-klassi-repo
+        - v1-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-repo-{{ .Branch }}
+        - v1-repo
 
-#  npm_cache_key: &npm_cache_key
-#    v3-dependency-npm-{{ checksum "package.json" }}
-#  npm_backup_cache_key: &npm_backup_cache_key
-#    v3-dependency-npm
-#
-#  restore_npm_dependencies: &restore_npm_dependencies
-#    restore_cache:
-#      keys:
-#        - *npm_cache_key
-#        - *npm_backup_cache_key
+  npm_cache_key: &npm_cache_key
+    v3-dependency-npm-{{ checksum "package.json" }}
+  npm_backup_cache_key: &npm_backup_cache_key
+    v3-dependency-npm
 
-#  restore_acceptance_builds: &restore_acceptance_builds
-#    restore_cache:
-#      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
+  restore_npm_dependencies: &restore_npm_dependencies
+    restore_cache:
+      keys:
+        - *npm_cache_key
+        - *npm_backup_cache_key
+
+  restore_acceptance_builds: &restore_acceptance_builds
+    restore_cache:
+      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
 
 jobs:
   checkout_code:
@@ -55,10 +55,13 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-#      - *restore_npm_dependencies
+      - *restore_npm_dependencies
       - checkout
 
-      - run: mkdir ./test-results
+      - store_artifacts:
+          path: ./artifacts
+
+      - run: mkdir test-reports
 
       - run:
           name: Download Selenium
@@ -66,7 +69,7 @@ jobs:
 
       - run:
           name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
           background: true
 
       - run:
@@ -79,41 +82,32 @@ jobs:
 #          sleep 5
 #          curl --retry 10 --retry-delay 5 -v http://127.0.0.1:4444/
 
-      - store_artifacts:
-          path: ./projects/example-test-suite/artifacts
-
       - save_cache:
           paths:
-          - node_modules
+            - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run:
-          name: Start Test
-          command: |
-            cd ./projects/example-test-suite/
-            node ../../index.js -d -t @api
-
-      - store_artifacts:
-          path: ./projects/example-test-suite/artifacts
-
-      - store_test_results:
-          path: ./test-results
+      - run: npm run-script dev
 
   acceptance_test:
     <<: *container_config
+    #    working_directory: ~/klassi-cucumber-js
+    #    docker:
+    #      - image: circleci/node:8.12
+
     steps:
       - *restore_repo
-#      - *restore_npm_dependencies
+      - *restore_npm_dependencies
       - checkout
 
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
-      - run: mkdir ./test-results
+      - run: mkdir test-reports
 
       - run:
           name: Download Selenium
@@ -121,27 +115,17 @@ jobs:
 
       - run:
           name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
           background: true
 
       - run: npm install
 
       - save_cache:
           paths:
-          - node_modules
+            - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run:
-          name: Start Test
-          command: |
-            cd ./projects/example-test-suite/
-            node ../../index.js -d -t @search
-
-      - store_artifacts:
-          path: ./projects/example-test-suite/artifacts
-
-      - store_test_results:
-          path: ./test-results
+      - run: npm run-script test
 
 workflows:
   version: 2
