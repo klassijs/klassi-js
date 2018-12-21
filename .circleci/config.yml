@@ -1,141 +1,117 @@
 version: 2.0
 references:
-  container_config:
+  container_config: &container_config
     working_directory: ~/klassi-cucumber-js
     docker:
       - image: circleci/openjdk:8u181-jdk-node-browsers
 
-  restore_repo:
+  restore_repo: &restore_repo
     restore_cache:
       keys:
         - v1-repo-{{ .Branch }}-{{ .Revision }}
         - v1-repo-{{ .Branch }}
         - v1-repo
 
-  npm_cache_key: v3-dependency-npm-{{ checksum "package.json" }}
-  npm_backup_cache_key: v3-dependency-npm
+#  npm_cache_key: v3-dependency-npm-{{ checksum "package.json" }}
+#  npm_backup_cache_key: v3-dependency-npm
 
-  restore_npm_dependencies:
-    restore_cache:
-      keys:
-      - v3-dependency-npm-{{ checksum "package.json" }}
-      - v3-dependency-npm
+#  restore_npm_dependencies:
+#    restore_cache:
+#      keys:
+#      - v3-dependency-npm-{{ checksum "package.json" }}
+#      - v3-dependency-npm
 
-  restore_acceptance_builds:
-    restore_cache:
-      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
+#  restore_acceptance_builds:
+#    restore_cache:
+#      key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
 
 jobs:
   checkout_code:
-    working_directory: ~/klassi-cucumber-js
-    docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
-    steps:
-      - restore_cache:
-          keys:
-            - v1-repo-{{ .Branch }}-{{ .Revision }}
-            - v1-repo-{{ .Branch }}
-            - v1-repo
-      - checkout
+    <<: *container_config
+      steps:
+        - *restore_repo
+        - checkout
 
-      - restore_cache:
-          key: v3-dependency-npm-{{ checksum "package.json" }}
+        - restore_cache:
+            key: v3-dependency-npm-{{ checksum "package.json" }}
 
-      - run:
-          name: Install NPM
-          command: npm install
+        - run:
+            name: Install NPM
+            command: npm install
 
-      - save_cache:
-          key: v3-dependency-npm-{{ checksum "package.json" }}
-          paths:
-            - node_modules
+        - save_cache:
+            key: v3-dependency-npm-{{ checksum "package.json" }}
+            paths:
+              - node_modules
 
   acceptance_test_build:
-    working_directory: ~/klassi-cucumber-js
-    docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
-    steps:
-      - restore_cache:
-          keys:
-          - v1-repo-{{ .Branch }}-{{ .Revision }}
-          - v1-repo-{{ .Branch }}
-          - v1-repo
+    <<: *container_config
+      steps:
+        - *restore_repo
+        - checkout
 
-      - restore_cache:
-          keys:
-            - v3-dependency-npm-{{ checksum "package.json" }}
-            - v3-dependency-npm
-      - checkout
+        - store_artifacts:
+            path: ./artifacts
 
-      - store_artifacts:
-          path: ./artifacts
+        - run: mkdir test-reports
 
-      - run: mkdir test-reports
+        - run:
+            name: Download Selenium
+            command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
 
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+        - run:
+            name: Start Selenium Server
+            command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
+            background: true
 
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
-          background: true
+        - run:
+            name: Install Dependencies
+            command: npm install
 
-      - run:
-          name: Install Dependencies
-          command: npm install
+        - save_cache:
+            key: v1-dependencies-{{ checksum "package.json" }}
+            paths:
+              - node_modules
 
-      - save_cache:
-          paths:
-            - node_modules
-
-          key: v1-dependencies-{{ checksum "package.json" }}
-
-      - run: npm run-script dev
+        - run: npm run-script dev
 
   acceptance_test:
-    working_directory: ~/klassi-cucumber-js
-    docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
-    steps:
-      - restore_cache:
-          keys:
-            - v1-repo-{{ .Branch }}-{{ .Revision }}
-            - v1-repo-{{ .Branch }}
-            - v1-repo
+    <<: *container_config
+      steps:
+        - *restore_repo
+        - checkout
 
-      - restore_cache:
-          keys:
-            - v3-dependency-npm-{{ checksum "package.json" }}
-            - v3-dependency-npm
-      - checkout
+        - restore_cache:
+            keys:
+              - v3-dependency-npm-{{ checksum "package.json" }}
+              - v3-dependency-npm
 
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-
+        - restore_cache:
+            keys:
+              - v1-dependencies-{{ checksum "package.json" }}
+              - v1-dependencies-
 
-      - run: mkdir test-reports
+        - run: mkdir test-reports
 
-      - run:
-          name: Set BrowserStack Local Identifier
-          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+        - run:
+            name: Set BrowserStack Local Identifier
+            command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
 
-      - run:
-          name: Start BrowserStack Local
-          command: ./remotes/browserstack.js
-          background: true
+        - run:
+            name: Start BrowserStack Local
+            command: ./remotes/browserstack.js
+            background: true
 
-      - run:
-          name: Install Dependencies
-          command: npm install
+        - run:
+            name: Install Dependencies
+            command: npm install
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+        - save_cache:
+            key: v1-dependencies-{{ checksum "package.json" }}
+            paths:
+              - node_modules
 
-      - run: npm run-script test
+        - run: npm run-script test
 
 workflows:
   version: 2
