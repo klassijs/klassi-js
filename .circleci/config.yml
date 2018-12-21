@@ -58,10 +58,10 @@ jobs:
           name: Install Dependencies
           command: npm install
 
-      - save_cache:
-          key: *npm_cache_key
-          paths:
-            - node_modules
+#      - save_cache:
+#          key: *npm_cache_key
+#          paths:
+#            - node_modules
 
       - save_cache:
           key: v3-dependency-npm-{{ checksum "package.json" }}
@@ -121,7 +121,7 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - *restore_npm_dependencies
+#      - *restore_npm_dependencies
       - checkout
 
       # Download and cache dependencies
