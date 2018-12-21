@@ -172,7 +172,7 @@ workflows:
 
       - install_dependencies:
           requires:
-            -checkout_code
+            - checkout_code
 
       - acceptance_test_build:
           requires:
