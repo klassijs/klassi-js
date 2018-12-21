@@ -7,10 +7,10 @@ module.exports = {
   },
   "extends": "eslint:recommended",
   "parserOptions": {
+    "ecmaVersion": 2018,
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 2018,
     "sourceType": "module"
   },
   "rules": {
@@ -34,5 +34,25 @@ module.exports = {
       0,
       "error"
     ]
+  },
+  "globals": {
+    "helpers":false,
+    "driver":false,
+    "log": false,
+    "date": false,
+    "startDateTime": false,
+    "endDateTime": false,
+    "browserName": false,
+    "reportName": false,
+    "projectName": false,
+    "DELAY_500_MILLISECOND": false,
+    "SHORT_DELAY_MILLISECOND": false,
+    "MID_DELAY_MILLISECOND": false,
+    "LONG_DELAY_MILLISECOND": false,
+    "EXTRA_LONG_DELAY_MILLISECOND": false,
+    "DELAY_3_SECOND": false,
+    "DELAY_10_SECOND": false,
+    "DELAY_15_SECOND": false,
+    "DELAY_20_SECOND": false
   }
 };

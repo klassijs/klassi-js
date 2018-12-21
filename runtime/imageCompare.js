@@ -6,6 +6,7 @@
 
 const
   resemble = require('node-resemble-js'),
+  // resemble = require('resemblejs'),
   fs = require('fs-extra'),
   browserName = settings.browserName,
   log = global.log;
@@ -19,7 +20,7 @@ const
   diffDirPositive = `${diffDir}positive/`,
   diffDirNegative = `${diffDir}negative/`;
 
-let file_name, res, diffFile;
+let file_name, result, diffFile, value;
 
 module.exports ={
   /**
@@ -63,7 +64,7 @@ module.exports ={
       errorColor: {
         red: 225,
         green: 0,
-        blue: 255
+        blue: 0
       },
       errorType: 'movement',
       transparency: 0.1,
@@ -73,31 +74,29 @@ module.exports ={
       .compareTo(resultPathPositive)
       .ignoreAntialiasing()
       .ignoreColors()
-      .onComplete(async function (result, err) {
-        if (err) {
-          log.error('HELP AM DROWNING!!! ' + err.message);
-        } else {
-          res = await result;
-        }
+      .onComplete(async function (res) {
+        result = await res;
+        console.log('this is the result: ',  result.misMatchPercentage);
       });
-  
+    
     /**
      *
      * @param result
      * @returns {Promise<void>}
      */
-    this.value = async function (result) {
+    this.value = async function () {
       filename = await file_name;
-      res = await result;
+      
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
       await driver.pause(500);
-      const error = parseFloat(res.misMatchPercentage); // value this.pass is called with
+      console.log('this is the result 1: ', result);
+      const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);
     
       if (error > this.expected) {
         diffFile = `${diffDirNegative}${filename}`;
-        res
+        result
           .getDiffImage()
           .pack()
           .pipe(fs.createWriteStream(diffFile));
@@ -109,7 +108,7 @@ module.exports ={
       }
       else {
         diffFile = `${diffDirPositive}${filename}`;
-        res
+        result
           .getDiffImage()
           .pack()
           .pipe(fs.createWriteStream(diffFile));
@@ -121,9 +120,9 @@ module.exports ={
      * @param value
      * @returns {Promise<boolean>}
      */
-    this.pass = async function (value) {
-      res = await res;
-      value = parseFloat(res.misMatchPercentage);
+    this.pass = async function () {
+      // res = await res;
+      value = parseFloat(result.misMatchPercentage);
       this.message = `Screenshot Match Failed for ${filename} with a tolerance difference of ${
         (value - this.expected) + ' - expected: ' + this.expected + ' but got: ' + (value)}`;
       const baselinePath = `${baselineDir}${filename}`;
