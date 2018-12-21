@@ -54,7 +54,7 @@ jobs:
           paths:
           - node_modules
 
-  test:
+  test_build:
     <<: *container_config
     steps:
       - *restore_repo
@@ -90,7 +90,7 @@ workflows:
             - checkout_code
             - install_dependencies
 
-      - test:
+      - test_run:
           requires:
             - test_build
 #            filters:
