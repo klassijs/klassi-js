@@ -1,12 +1,12 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/mern-starter
+    working_directory: ~/klassi-cucumber-js
     # The primary container is an instance of the first image listed. The job's commands run in this container.
     docker:
-      - image: circleci/node:4.8.2-jessie
+      - image: circleci/openjdk:8u181-jdk-node-browsers
       # The secondary container is an instance of the second listed image which is run in a common network where ports exposed on the primary container are available on localhost.
-      - image: mongo:3.4.4-jessie
+#      - image: mongo:3.4.4-jessie
     steps:
       - checkout
       - run:
@@ -23,22 +23,21 @@ jobs:
           - node_modules
   test:
     docker:
-      - image: circleci/node:4.8.2-jessie
-      - image: mongo:3.4.4-jessie
+      - image: circleci/openjdk:8u181-jdk-node-browsers
     steps:
       - checkout
       - run:
           name: Test
           command: npm test
-      - run:
-          name: Generate code coverage
-          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+#      - run:
+#          name: Generate code coverage
+#          command: './node_modules/.bin/nyc report --reporter=text-lcov'
       - store_artifacts:
           path: test-results.xml
           prefix: tests
-      - store_artifacts:
-          path: coverage
-          prefix: coverage
+#      - store_artifacts:
+#          path: coverage
+#          prefix: coverage
 
 workflows:
   version: 2
