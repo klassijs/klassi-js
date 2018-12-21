@@ -121,7 +121,7 @@ workflows:
       - run_basic_acceptance_tests:
           type: approval
           requires:
-          - acceptance_test_build
+          - install_dependencies
           filters:
             branches:
               ignore:
