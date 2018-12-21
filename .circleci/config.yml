@@ -52,7 +52,7 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - checkout_code
+      - checkout
       - *restore_npm_dependencies
 
       - run:
