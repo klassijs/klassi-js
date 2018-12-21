@@ -40,10 +40,10 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-#      - checkout
-#      - run:
-#          name: Update npm
-#          command: 'sudo npm install -g npm@latest'
+      - checkout
+      - run:
+          name: Update npm
+          command: 'sudo npm install -g npm@latest'
       #      - restore_cache:
       #          key: dependency-cache-{{ checksum "package.json" }}
       - run:
