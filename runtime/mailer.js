@@ -9,21 +9,24 @@
  * @type {exports|module.exports}
  */
 const nodemailer = require('nodemailer');
+let shared = require('../shared-objects/emailList');
 
 module.exports = {
   klassiSendMail: function () {
-    let devTeam = (shared.emailList.nameList);
+    // let devTeam = (shared.emailList.nameList);
+    let devTeam = (shared.nameList);
     /**
          * Email relay server connections
          */
 
     let transporter = nodemailer.createTransport({
-      host: shared.emailList.auth.host,
-      port: 465,
-      secure: true,
+      host: shared.auth.host,
+      // port: 465,
+      port: 25,
+      // secure: true,
       auth: {
-        user: shared.emailList.auth.user,
-        pass: shared.emailList.auth.pass
+        user: shared.auth.user,
+        pass: shared.auth.pass
       },
       tls: {
         rejectUnauthorized: false
@@ -51,6 +54,7 @@ module.exports = {
       transporter.sendMail(mailOptions, function (err) {
         if (err) {
           log.error('Result Email CANNOT be sent: ' + err.stack);
+          throw err;
         }
         else {
           log.info('Results Email successfully sent');
@@ -60,6 +64,7 @@ module.exports = {
     }
     catch (err) {
       log.info('This is a system error: ', err.stack);
+      throw err;
     }
-  }
+  },
 };

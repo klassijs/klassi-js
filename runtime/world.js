@@ -268,13 +268,13 @@ AfterAll(function () {
 /**
    * compile and generate a report at the END of the test run and send an Email
    */
-AfterAll(function () {
+AfterAll(function (done) {
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();
     let reportOptions = {
       theme: 'bootstrap',
-      jsonFile: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.json'),
-      output: path.resolve(global.paths.reports, global.settings.reportName+ '-' + date + '.html'),
+      jsonFile: path.resolve(global.paths.reports, global.settings.reportName + '-' + date + '.json'),
+      output: path.resolve(global.paths.reports, global.settings.reportName + '-' + date + '.html'),
       reportSuiteAsScenarios: true,
       launchReport: (!global.settings.disableReport),
       ignoreBadJsonFile: true,
@@ -284,15 +284,16 @@ AfterAll(function () {
         'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
         'Platform': process.platform,
         'Browser': browserName,
-        'Executed':  remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
+        'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
       },
       brandTitle: reportName + '-' + date,
       name: projectName
     };
-    driver.pause(SHORT_DELAY_MILLISECOND).then(function () {
+    driver.pause(MID_DELAY_MILLISECOND).then(function () {
       reporter.generate(reportOptions);
     });
   }
+  done();
 });
   
 /**

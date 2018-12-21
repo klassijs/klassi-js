@@ -316,7 +316,7 @@ module.exports = {
   klassiEmail: function (err) {
     let mailer = require('../runtime/mailer').klassiSendMail();
     if(err) {
-      log.info('This is a Email system error: ' + err.stack);
+      log.error('This is a Email system error: ' + err.stack);
       throw err;
     }
     return mailer;
