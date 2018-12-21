@@ -117,14 +117,18 @@ workflows:
           requires:
             - checkout_code
             - install_dependencies
-#          filters:
-#            branches:
-#              only: master
+
+      - run_basic_acceptance_tests:
+          type: approval
+          requires:
+          - acceptance_test_build
+          filters:
+            branches:
+              ignore:
+              - develop
+              - master
 
       - acceptance_test_build:
           requires:
             - checkout_code
             - install_dependencies
-#          filters:
-#            branches:
-#              only: master
