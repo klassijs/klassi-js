@@ -22,7 +22,7 @@ function getCredentials(){
 
 async function submitResults(scenario){
       
-  let configBuildName = global.settings.remoteConfig.replace(/\-/g,' ');
+  let configBuildName = global.settings.remoteConfig.replace(/-/g,' ');
   let credentials = getCredentials();
   let browserstackUsername = credentials.user;
   let browserstackApiKey = credentials.key;
@@ -80,7 +80,6 @@ async function submitResults(scenario){
   
 }
 module.exports = {
-
   submitResults:submitResults,
   getCredentials:getCredentials
 };

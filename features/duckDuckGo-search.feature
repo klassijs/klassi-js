@@ -15,4 +15,3 @@ Feature: Searching for apps with duckduckgo
       |searchword  |
       |duckduckgo app |
       |angry birds |
-      |starch      |

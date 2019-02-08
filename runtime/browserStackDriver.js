@@ -30,7 +30,6 @@ module.exports = function browserstackDriver(options,configType){
 
     updateJob: false,
     exclude: [],
-  
     maxInstances: 10,
 
     desiredCapabilities: config,
@@ -41,8 +40,8 @@ module.exports = function browserstackDriver(options,configType){
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
-    host: 'hub.browserstack.com'
-    
+    host: 'hub.browserstack.com',
+    port: 80
   };
   
   const extendedOptions = Object.assign(defaults, options);
@@ -52,7 +51,9 @@ module.exports = function browserstackDriver(options,configType){
     extendedOptions.logLevel = config.logLevel;
   }
   
-  let driver = new webdriverio.remote(extendedOptions).init();
+  let driver = new webdriverio.remote(extendedOptions).init().then(function () {
+    // do some thing
+  });
   
   return driver;
 };

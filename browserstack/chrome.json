@@ -3,9 +3,12 @@
 
   "os": "Windows",
   "os_version": "10",
-  "browser": "Chrome",
-  "browser_version": "65.0",
-  "resolution": "1024x768",
+  "browserName": "Chrome",
+  "browser_version": "66.0",
+  "resolution": "1280x800",
+  "chromeOptions": {
+    "args": ["disable-infobars"]
+  },
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,
@@ -13,7 +16,7 @@
   "rotatable":true,
   "logLevel":"silent",
 
-  "browserstack.local": true,
+  "browserstackLocal": true,
   "browserstack.debug": true,
   "acceptSslCerts": true,
   "browserstack.networkLogs": true

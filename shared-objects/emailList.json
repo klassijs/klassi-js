@@ -5,11 +5,11 @@
   },
 
   "auth":{
-    "host": "domain.com",
-    "user": "userEmail",
-    "pass": "password"
+    "host": "smtp.klassitech.co.uk",
+    "user": "larryg@klassitech.co.uk",
+    "pass": "L33@nn01"
   },
 
-  "nameList": "QA Analyst <email1@email.com>, Me <email2@email.com>"
+  "nameList": "Me <lcg1@hotmail.com>"
 }
 

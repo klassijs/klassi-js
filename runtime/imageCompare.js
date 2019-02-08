@@ -6,13 +6,12 @@
 
 const
   resemble = require('node-resemble-js'),
-  // resemble = require('resemblejs'),
-  fs = require('fs-extra'),
-  browserName = settings.browserName,
-  log = global.log;
+  fs = require('fs-extra');
 
-const
-  baselineDir = `./visual-regression-baseline/${browserName}/`,
+let log = global.log;
+let browserName = global.settings.remoteConfig || global.browserName;
+
+let baselineDir = `./visual-regression-baseline/${browserName}/`,
   resultDir = `./artifacts/visual-regression/new-screens/${browserName}/`,
   resultDirPositive = `${resultDir}positive/`,
   resultDirNegative = `${resultDir}negative/`,
@@ -76,7 +75,7 @@ module.exports ={
       .ignoreColors()
       .onComplete(async function (res) {
         result = await res;
-        console.log('this is the result: ',  result.misMatchPercentage);
+        // console.log('this is the result: ',  result.misMatchPercentage);
       });
     
     /**
@@ -90,7 +89,7 @@ module.exports ={
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
       await driver.pause(500);
-      console.log('this is the result 1: ', result);
+      // console.log('this is the result 1: ', result);
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);
     

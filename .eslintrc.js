@@ -33,9 +33,23 @@ module.exports = {
     "no-console": [
       0,
       "error"
-    ]
+    ],
+    "exclude": [
+      "../node_modules",
+      "log",
+      "features",
+      "cssImages",
+      "reports",
+      "artifact"
+    ],
+    "files": [
+      "./globals.d.ts"
+    ],
   },
   "globals": {
+    "Given": false,
+    "When": false,
+    "Then": false,
     "helpers":false,
     "driver":false,
     "log": false,
@@ -45,6 +59,8 @@ module.exports = {
     "browserName": false,
     "reportName": false,
     "projectName": false,
+    "settings": false,
+    "globals": false,
     "DELAY_500_MILLISECOND": false,
     "SHORT_DELAY_MILLISECOND": false,
     "MID_DELAY_MILLISECOND": false,
@@ -53,6 +69,13 @@ module.exports = {
     "DELAY_3_SECOND": false,
     "DELAY_10_SECOND": false,
     "DELAY_15_SECOND": false,
-    "DELAY_20_SECOND": false
+    "DELAY_20_SECOND": false,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": false,
+    "baseUrl": "./",
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true
   }
 };
