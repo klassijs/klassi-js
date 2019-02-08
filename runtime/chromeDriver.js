@@ -21,7 +21,7 @@ module.exports = function chromeDriver(options){
       chromeOptions: {
         args: [
           // '--incognito',
-          '--start-maximized'
+          // '--start-maximized'
         ]
       },
       path: chromedriver.path

@@ -99,9 +99,15 @@ jobs:
             key: dependency-cache-{{ checksum "package.json" }}
             paths:
               - node_modules
+
+        - run:
+            name: Set BrowserStack Local Identifier
+            command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+
         - run:
             name: Acceptance Test Run
-            command: npm run-script uat
+#            command: npm run-script uat
+            command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc npm run-script uat
         - store_artifacts:
             path: artifacts
         - store_test_results:

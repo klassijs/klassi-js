@@ -1,6 +1,6 @@
 [![STAT](https://nodei.co/npm/klassi-cucumber-js.png?download=true)](https://nodei.co/npm/klassi-cucumber-js/)
 
-# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01) 
+# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
@@ -13,8 +13,8 @@
 
 ```bash
 git-clone-ssh: git@github.com:larryg01/klassi-cucumber-js.git
-git-clone-http: https://github.com/larryg01/klassi-cucumber-js.git
-download: https://github.com/larryg01/klassi-cucumber-js/archive/development.zip
+git-clone-https: https://github.com/larryg01/klassi-cucumber-js.git
+download: https://github.com/larryg01/klassi-cucumber-js/archive/develop.zip
 npm i klassi-cucumber-js 
 
 
@@ -33,7 +33,9 @@ selenium-standalone start
 # run 'npm install' in a terminal window from within the project folder
 node ./node_modules/klassi-cucumber-js/index.js -s ./step-definitions
 or
-node index.js -d -t @search
+node index.js -d -t @search // locally
+or
+node run bslocal chrome/@search // via browserstack
 ```
 
 ### Options

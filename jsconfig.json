@@ -14,7 +14,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "exclude": [
-  "node_modules",
+    "./node_modules",
   "log",
   "features",
   "cssImages",
@@ -22,6 +22,6 @@
   "artifact"
   ],
   "files": [
-    "globals.d.ts"
+    "./globals.d.ts"
   ]
 }

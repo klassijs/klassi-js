@@ -74,21 +74,21 @@ fs.ensureFile(fileName, function (err) {
 program
   .version(pjson.version)
   .description(pjson.description)
+  .option('-b, --browser [optional]', 'name of browser to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
-  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features', 'features')
-  .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
-  .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
-  .option('-e, --email [optional]', 'email for sending reports to stakeholders')
-  .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
-  .option('-o, --sharedObjects [paths]', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
-  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(test|dev|uat|prod)$/i, 'dev')
-  .option('-b, --browser [optional]', 'name of browser to use. defaults to chrome', /^(chrome|firefox)$/i, 'chrome')
-  .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
-  .option('-t, --tags <tagName>', 'name of tag to run')
+  .option('-e, --email [optional]', 'email for sending reports to stakeholders')
+  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features', 'features')
   .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
-  .option('-x, --extraSettings [optional]','further piped configs split with pipes','')
+  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(test|dev|uat|prod)$/i, 'dev')
+  .option('-o, --sharedObjects <paths>', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
+  .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
+  .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
+  .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
+  .option('-t, --tags <tagName>', 'name of tag to run')
+  .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
   .option('-w, --remoteService [optional]', 'which remote driver service, if any, should be used e.g. browserstack', '')
+  .option('-x, --extraSettings [optional]','further piped configs split with pipes','')
   
   .parse(process.argv);
 
@@ -132,8 +132,6 @@ let paths = {
   pageObjects:getProjectPath("pageObjects"),
   reports:getProjectPath("reports"),
   featuresPath:getProjectPath("featuresPath"),
-  
-  // used within world.js to import shared objects into the shared namespace
   sharedObjects:program.sharedObjects.map(function(item){
     return path.resolve(settings.projectRoot+item);
   })

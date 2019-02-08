@@ -2,7 +2,6 @@
  * KlassiTech Automated Testing Tool
  * Created by Larry Goddard
  */
-'use strict';
 
 // TestFramework globals
 declare const shared: any;
