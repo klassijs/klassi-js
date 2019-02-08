@@ -38,11 +38,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "all": "node index.js -e -d -t ~@wip",
-    "dev": "node index.js -d -t @api",
-    "uat": "node index.js -d -t @search",
-    "test": "node index.js -e -d -w browserstack/osxhs-chrome -t @search",
-    "stack": "node index.js -e -d -w browserstack -x"
+    "all": "node index.js -e -d",
+    "local": "node index.js -d -t",
+    "bslocal": "node runtime/remotes/browserstackLocal && node index.js -e -d -w browserstack -x"
   },
   "nyc": {
     "include": [
@@ -61,7 +59,7 @@
     "chromedriver": "^2.38.3",
     "commander": "^2.11.0",
     "cucumber": "^4.2.1",
-    "cucumber-html-reporter": "^4.0.2",
+    "cucumber-html-reporter": "^4.0.4",
     "cucumber-pretty": "^1.4.4",
     "fs-extra": "^5.0.0",
     "geckodriver": "^1.10.0",

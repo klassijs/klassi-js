@@ -40,7 +40,7 @@ module.exports = {
   },
 
   /**
-     * Images of each page for regression testing
+     * Images of each page for css responsive testing
      * @returns {*|{screenshotRoot, failedComparisonsRoot, misMatchTolerance, screenWidth}}
      */
   cssImages: function (pageName) {
@@ -246,12 +246,12 @@ module.exports = {
   },
   
   getEndDateTime: function () {
-    let eDate = helpers.getCurrentDateTime();
+    let eDate = this.getCurrentDateTime();
     return eDate;
   },
   
   getStartDateTime: function () {
-    let sDate = helpers.getCurrentDateTime();
+    let sDate = this.getCurrentDateTime();
     return sDate;
   },
   

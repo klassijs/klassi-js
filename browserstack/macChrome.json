@@ -2,10 +2,13 @@
   "project":"KlassiTech Automated Test",
 
   "os": "OS X",
-  "os_version": "High Sierra",
-  "browser": "Chrome",
-  "browser_version": "65.0",
-  "resolution": "1024x768",
+  "os_version": "Sierra",
+  "browserName": "Chrome",
+  "browser_version": "66.0",
+  "resolution": "1280x960",
+  "chromeOptions": {
+    "args": ["disable-infobars"]
+  },
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,
@@ -13,7 +16,7 @@
   "rotatable":true,
   "logLevel":"silent",
 
-  "browserstack.local": false,
+  "browserstackLocal": true,
   "browserstack.debug": true,
   "acceptSslCerts": true,
   "browserstack.networkLogs": true

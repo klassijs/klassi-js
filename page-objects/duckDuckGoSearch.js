@@ -23,15 +23,12 @@ module.exports = {
     await verify.saveScreenshot(`${image}_1-1.png`);
     
     let title = await driver.getTitle(selector);
-    log.info('this is checking whats being returned:- ' + title);
+    log.info('the title being returned:- ' + title);
   
     await driver.click(shared.searchData.elem.searchBtn);
     await driver.pause(DELAY_3_SECOND);
-    log.info('Search function completed');
     await helpers.compareImage(`${image}_1-0.png`);
     await helpers.compareImage(`${image}_1-1.png`);
-    
-    log.info('images have been compared');
   },
   
   searchResult: async function(searchWord) {
@@ -42,6 +39,6 @@ module.exports = {
     log.info(elements); // prints to a log
 
     expect(elements.length).to.not.equal(0);
-    // await helpers.cssImages('search');
+    await helpers.cssImages('search');
   }
 };

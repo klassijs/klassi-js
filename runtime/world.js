@@ -35,7 +35,8 @@ global.log = logger.klassiLog();
 /**
  * This is the Global date functionality
  */
-global.date = helpers.currentDate();
+// global.date = helpers.currentDate();
+global.date = require('./helpers').currentDate();
 
 /**
  * for all API test calls
@@ -66,17 +67,16 @@ global.expect = expect;
 let ChromeDriver = require('./chromeDriver'),
   FirefoxDriver = require('./firefoxDriver'),
   BrowserStackDriver = require('./browserStackDriver');
-
 let remoteService = getRemote(global.settings.remoteService);
+
 let driver = {};
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
  */
 function getDriverInstance() {
-
   // let driver = {};
-  let screenWidth = []; //[752, 1008, 1280];
+  let screenWidth = [752, 1008, 1280]; //[752, 1008, 1280];
   let browser = global.settings.browserName;
   let options = {};
 
@@ -238,19 +238,17 @@ const {setDefaultTimeout} = require('cucumber');
 
 // Add timeout based on env var.
 const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 60000;
-setDefaultTimeout( cucumberTimeout);
+setDefaultTimeout(cucumberTimeout);
 
 // start recording of the Test run time
-global.startDateTime = helpers.getStartDateTime();
+global.startDateTime = require('./helpers').getStartDateTime();
 
 /**
  * create the driver before scenario if it's not instantiated
  */
 Before(function () {
-  let driver = getDriverInstance();
-  global.driver = driver;
+  global.driver = getDriverInstance();
   global.browser = global.driver; // ensure standard WebDriver global also works
-  return driver;
 });
 
 

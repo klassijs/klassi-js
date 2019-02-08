@@ -80,7 +80,6 @@ async function submitResults(scenario){
   
 }
 module.exports = {
-
   submitResults:submitResults,
   getCredentials:getCredentials
 };
