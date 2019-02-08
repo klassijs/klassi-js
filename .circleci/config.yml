@@ -107,7 +107,7 @@ jobs:
         - run:
             name: Acceptance Test Run
 #            command: npm run-script uat
-            command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc npm run bslocal
+            command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc npm run-script uat
         - store_artifacts:
             path: artifacts
         - store_test_results:

@@ -39,6 +39,8 @@
   "main": "index.js",
   "scripts": {
     "all": "node index.js -e -d",
+    "dev": "node index.js -d -t @api",
+    "uat": "node index.js -d -t @search",
     "local": "node index.js -d -t",
     "bslocal": "node runtime/remotes/browserstackLocal && node index.js -e -d -w browserstack -x"
   },
