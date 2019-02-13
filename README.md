@@ -204,4 +204,4 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## License
 
-[MIT License](LICENSE) &copy; 2016 [Larry Goddard](https://uk.linkedin.com/in/larryg)
+[Apache License](LICENSE) &copy; 2019 [Larry Goddard](https://uk.linkedin.com/in/larryg)
