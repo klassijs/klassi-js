@@ -1,6 +1,6 @@
-[![STAT](https://nodei.co/npm/klassi-cucumber-js.png?download=true)](https://nodei.co/npm/klassi-cucumber-js/)
+[![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
 
-# klassi-cucumber-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-cucumber-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-cucumber-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
+# klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js) [![Downloads](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg?longCache=true&style=flat)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
@@ -12,10 +12,10 @@
 ## Installation
 
 ```bash
-git-clone-ssh: git@github.com:larryg01/klassi-cucumber-js.git
-git-clone-https: https://github.com/larryg01/klassi-cucumber-js.git
-download: https://github.com/larryg01/klassi-cucumber-js/archive/develop.zip
-npm i klassi-cucumber-js 
+git-clone-ssh: git@github.com:larryg01/klassi-js.git
+git-clone-https: https://github.com/larryg01/klassi-js.git
+download: https://github.com/larryg01/klassi-js/archive/develop.zip
+npm i klassi-js 
 
 
 # To run your test locally, you'll need a local selenium server running, you can install and
@@ -31,7 +31,7 @@ selenium-standalone start
 
 ```bash
 # run 'npm install' in a terminal window from within the project folder
-node ./node_modules/klassi-cucumber-js/index.js -s ./step-definitions
+node ./node_modules/klassi-js/index.js -s ./step-definitions
 or
 node index.js -d -t @search // locally
 or
@@ -190,12 +190,12 @@ You can use the framework without any command line arguments if your application
 
 ## Bugs
 
-Please raise bugs via the [klassi-cucumber-js issue tracker](https://github.com/larryg01/klassi-cucumber-js/issues) and, if possible, please provide enough information to allow the bug to be 
+Please raise bugs via the [klassi-js issue tracker](https://github.com/larryg01/klassi-js/issues) and, if possible, please provide enough information to allow the bug to be 
 reproduced.
 
 ## Contributing
 
-Anyone can contribute to this project simply by [opening an issue here](https://github.com/larryg01/klassi-cucumber-js/issues) or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
+Anyone can contribute to this project simply by [opening an issue here](https://github.com/larryg01/klassi-js/issues) or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
 
 ## Credits
 
