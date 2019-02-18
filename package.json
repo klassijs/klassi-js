@@ -64,7 +64,7 @@
     "cucumber-html-reporter": "^4.0.4",
     "cucumber-pretty": "^1.4.4",
     "fs-extra": "^5.0.0",
-    "geckodriver": "^1.10.0",
+    "geckodriver": "^1.14.1",
     "merge": "^1.2.1",
     "moment": "^2.22.1",
     "node-dir": "^0.1.17",
@@ -76,7 +76,6 @@
     "request-promise": "^4.2.2",
     "require-dir": "^0.3.2",
     "tar": "^4.4.2",
-    "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1",
     "webdriverio": "^4.12.0",
     "winston": "^3.0.0"
   },
@@ -88,6 +87,7 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.1.0",
-    "selenium-standalone": "^6.15.0"
+    "selenium-standalone": "^6.15.0",
+    "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1"
   }
 }

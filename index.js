@@ -25,9 +25,7 @@ const path = require('path'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
 
-const logger = require('./runtime/logger');
-global.log = logger.klassiLog();
-const log = global.log;
+let log = require('./runtime/logger').klassiLog();
 
 function collectPaths(value, paths){
   paths.push(value);
