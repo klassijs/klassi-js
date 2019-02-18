@@ -35,7 +35,7 @@ node ./node_modules/klassi-js/index.js -s ./step-definitions
 or
 node index.js -d -t @search // locally
 or
-node run bslocal chrome/@search // via browserstack
+npm run bslocal chrome/@search // via browserstack
 ```
 
 ### Options

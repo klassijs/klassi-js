@@ -39,13 +39,14 @@ const fs = require('fs'),
 
 const assert = chai.assert,
   expect = chai.expect,
-  logger = require('./logger.js'),
-  getRemote = require('./getRemote.js');
+  log = require('./logger').klassiLog();
+
+const getRemote = require('./getRemote.js');
 
 /**
  * Adding logging
  */
-global.log = logger.klassiLog();
+global.log = log;
 
 /**
  * This is the Global date functionality
@@ -91,7 +92,7 @@ let driver = {};
  */
 function getDriverInstance() {
   // let driver = {};
-  let screenWidth = [752, 1008, 1280]; //[752, 1008, 1280];
+  let screenWidth = [ ]; //[752, 1008, 1280];
   let browser = global.settings.browserName;
   let options = {};
 
@@ -151,16 +152,9 @@ function consoleInfo() {
 }
 
 /**
- * Adding logging
- */
-let log = logger.klassiLog();
-global.log = log;
-
-/**
  * All Global variables
  * @constructor
  */
-
 const {Before, After, AfterAll, Status} = require('cucumber');
 const {Given, When, Then} = require('cucumber');
 
@@ -317,13 +311,13 @@ After(function (scenario) {
     if (remoteService && remoteService.type === 'browserstack'){
       return driver.end();
     }else{
+      // Comment out to do nothing | leave browser open
       return driver.end();
-      // Do nothing | leave browser open
     }
   }else{
     if (remoteService && remoteService.type !== 'browserstack'){
+      // Comment out to do nothing | leave browser open
       return driver.end();
-      // Do nothing | leave browser open
     }else{
       return driver.end();
     }

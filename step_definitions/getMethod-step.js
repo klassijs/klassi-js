@@ -3,7 +3,7 @@
 let getMethod = require('../page-objects/getMethod');
 let page = ({getMethod});
 
-Given('That I make a GET call to an endPoint', function () {
+Given(/^That I make a GET call to an endPoint$/, function () {
   return page.getMethod.getCall();
 });
 
