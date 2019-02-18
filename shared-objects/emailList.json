@@ -4,12 +4,12 @@
     "Created by": "Larry Goddard"
   },
 
-  "auth":{
-    "host": "smtp.klassitech.co.uk",
-    "user": "larryg@klassitech.co.uk",
-    "pass": "L33@nn01"
+  "auth1":{
+    "host": "{smtp.sitename.co.uk}",
+    "user": "{user@sitename.co.uk}",
+    "pass": "{password}"
   },
 
-  "nameList": "Me <lcg1@hotmail.com>"
+  "nameList1": "Me <{your email address}>"
 }
 
