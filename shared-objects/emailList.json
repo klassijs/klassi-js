@@ -5,11 +5,11 @@
   },
 
   "auth":{
-    "host": "smtp.klassitech.co.uk",
-    "user": "larryg@klassitech.co.uk",
-    "pass": "L33@nn01"
+    "host": "{smtp.sitename.co.uk}",
+    "user": "{user@sitename.co.uk}",
+    "pass": "{password}"
   },
 
-  "nameList": "Me <lcg1@hotmail.com>"
+  "nameList": "Me <{your email address}>"
 }
 
