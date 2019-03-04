@@ -19,27 +19,29 @@
  */
 'use strict';
 
-const webdriverio = require('webdriverio'),
+// const webdriverio = require('webdriverio'),
+const wdio = require('webdriverio'),
   chromedriver = require('chromedriver');
 
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = function chromeDriver(options){
+// module.exports = function chromeDriver(options){
+module.exports = async function chromeDriver(options){
  
   const defaults = {
-    desiredCapabilities: {
+    capabilities: {
       browserName: 'chrome',
-      javascriptEnabled: true,
-      acceptSslCerts: true,
-      chromeOptions: {
-        args: [
-          // '--incognito',
-          // '--start-maximized'
-        ]
-      },
-      path: chromedriver.path
+      // javascriptEnabled: true,
+      // acceptSslCerts: true,
+      // chromeOptions: {
+      //   args: [
+      //     // '--incognito',
+      //     // '--start-maximized'
+      //   ]
+      // },
+      // path: chromedriver.path
     }
   };
 
@@ -47,24 +49,28 @@ module.exports = function chromeDriver(options){
   const useProxy = process.env.USE_PROXY || false;
 
   if ( useProxy ) {
-    defaults.desiredCapabilities.proxy = {
+    defaultCapabilities.proxy = {
       httpProxy: 'http://domain.com:8080',
       proxyType: 'MANUAL',
       autodetect: false
     };
   }
-  
+
   const extendedOptions = Object.assign(defaults, options);
   
-  let driver = new webdriverio.remote(extendedOptions).init();
-  
-  driver.then(function () {
-    /**
-     * sets the browser window size to maximum or a particular size
-     */
-    driver.windowHandleMaximize();
-    // driver.windowHandleSize({width: 1024, height: 800});
-  });
-  
+  // let driver = new webdriverio.remote(extendedOptions).init();
+  let driver = await wdio.remote(extendedOptions);
+
+  // driver.then(function () {
+  //   /**
+  //    * sets the browser window size to maximum or a particular size
+  //    */
+  //   driver.windowHandleMaximize();
+  //   // driver.windowHandleSize({width: 1024, height: 800});
+  // });
+
+  console.log('the result in the drivers ', driver);
   return driver;
 };
+
+

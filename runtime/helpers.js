@@ -21,7 +21,12 @@
 const fs = require('fs');
 let log = global.log;
 
+// const driver = require('webdriverio').remote();
+// console.log('this is the result ', driver);
+let driver = global.driver;
+
 module.exports = {
+  
   
   /**
    * ========== All operational functions ==========
@@ -45,6 +50,7 @@ module.exports = {
     /**
      * load the url and wait for it to complete
      */
+    console.log('this is in helpers ', driver);
     return driver.url(url, function () {
 
       /**
@@ -58,19 +64,19 @@ module.exports = {
      * Images of each page for css responsive testing
      * @returns {*|{screenshotRoot, failedComparisonsRoot, misMatchTolerance, screenWidth}}
      */
-  cssImages: function (pageName) {
-    return driver.webdrivercss(pageName, {
-      name: '',
-      elem: ''
-    });
-  },
+  // cssImages: function (pageName) {
+  //   return driver.webdrivercss(pageName, {
+  //     name: '',
+  //     elem: ''
+  //   });
+  // },
   
   /**
    * Visual comparison function
    * @param fileName
    * @returns {Promise<void>}
    */
-  compareImage: async function(fileName){
+  compareImage: async(fileName) => {
     const verify = require('./imageCompare');
     await verify.assertion(fileName);
     await verify.value();

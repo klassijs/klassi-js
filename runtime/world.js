@@ -33,9 +33,9 @@ const fs = require('fs'),
   chai = require('chai'),
   reporter = require('cucumber-html-reporter'),
   rp = require('request-promise'),
-  webdriverio = require('webdriverio'),
-  program = require('commander'),
-  webdrivercss = require('webdrivercss-custom-v4-compatible');
+  // remote = require('webdriverio'),
+  program = require('commander');
+  // webdrivercss = require('webdrivercss-custom-v4-compatible');
 
 const assert = chai.assert,
   expect = chai.expect,
@@ -85,12 +85,13 @@ let ChromeDriver = require('./chromeDriver'),
   BrowserStackDriver = require('./browserStackDriver');
 let remoteService = getRemote(global.settings.remoteService);
 
-let driver = {};
+// let driver = global.driver;
+  let driver = {};
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
  */
-function getDriverInstance() {
+async function getDriverInstance() {
   // let driver = {};
   let screenWidth = [ ]; //[752, 1008, 1280];
   let browser = global.settings.browserName;
@@ -101,7 +102,7 @@ function getDriverInstance() {
     assert.isString(configType, 'BrowserStack requires a config type e.g. win10-chrome');
 
     driver = new BrowserStackDriver(options, configType);
-    return driver;
+    await driver;
   }
   assert.isNotEmpty(browser, 'Browser must be defined');
   
@@ -113,7 +114,7 @@ function getDriverInstance() {
     break;
 
   case 'chrome': {
-    driver = new ChromeDriver(options);
+    driver = ChromeDriver(options);
   }
     break;
   }
@@ -121,14 +122,15 @@ function getDriverInstance() {
   /**
    *  initialise WebdriverCSS for `driver` instance
    */
-  webdrivercss.init(driver, {
-    screenshotRoot: './cssImages/baseline/',
-    failedComparisonsRoot: './cssImages/imageDiff/',
-    misMatchTolerance: 1.15,
-    screenWidth: screenWidth,
-    updateBaseline: false
-  });
-  return driver;
+  // webdrivercss.init(driver, {
+  //   screenshotRoot: './cssImages/baseline/',
+  //   failedComparisonsRoot: './cssImages/imageDiff/',
+  //   misMatchTolerance: 1.15,
+  //   screenWidth: screenWidth,
+  //   updateBaseline: false
+  // });
+  console.log('this is the result now world:- ', driver);
+  await driver;
 }
 
 /**
@@ -169,8 +171,8 @@ function World() {
    * log: log, page: {}, shared: {}}}
    */
   let runtime = {
-    driver: null,                 // the browser object
-    webdriverio: webdriverio,     // the raw webdriverio driver module, providing access to static properties/methods
+    driver: {},                 // the browser object
+    // webdriverio: webdriverio,     // the raw webdriverio driver module, providing access to static properties/methods
     expect: global.expect,        // expose chai expect to allow variable testing
     assert: global.assert,        // expose chai assert to allow variable testing
     fs: fs,                       // expose fs (file system) for use globally
@@ -255,9 +257,14 @@ global.startDateTime = require('./helpers').getStartDateTime();
 /**
  * create the driver before scenario if it's not instantiated
  */
-Before(function () {
+Before(function (){
+  
+  // global.browser = getDriverInstance();
   global.driver = getDriverInstance();
   global.browser = global.driver; // ensure standard WebDriver global also works
+  // global.driver = global.browser; // ensure standard WebDriver global also works
+  console.log('this is in the before hook ', global.browser);
+  return driver;
 });
 
 

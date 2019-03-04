@@ -13,5 +13,5 @@ Feature: Searching for apps with duckduckgo
 
     Examples:
       |searchword  |
-      |duckduckgo app |
+#      |duckduckgo app |
       |angry birds |
