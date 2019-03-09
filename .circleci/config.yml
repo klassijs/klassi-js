@@ -42,7 +42,7 @@ jobs:
       - checkout
       - run:
           name: Update npm
-          command: 'sudo yarn add -g npm@latest'
+          command: 'sudo npm add -g npm@latest'
       - save_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
@@ -55,7 +55,7 @@ jobs:
       - checkout
       - run:
           name: Update npm
-          command: 'sudo yarn add -g npm@latest'
+          command: 'sudo npm add -g npm@latest'
       - run:
           name: Install Dependencies
           command: yarn install
