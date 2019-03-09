@@ -30,7 +30,8 @@
     "url": "https://github.com/larryg01/klassi-js"
   },
   "engines": {
-    "node": ">= 11.11.0",
+    "node": ">= 10.15.3",
+    "npm": ">= 6.4.1",
     "yarn": ">= 1.13.0"
   },
   "main": "index.js",
