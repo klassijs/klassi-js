@@ -48,7 +48,7 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-let envConfig = require('./.idea/envConfig');
+let envConfig = require('./runtime/envConfig');
 global.reportName = process.env.REPORT_NAME || envConfig.reportName;
 global.projectName = process.env.PROJECT_NAME || envConfig.projectName;
 

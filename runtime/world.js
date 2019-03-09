@@ -60,7 +60,7 @@ global.request = rp;
 /**
  * for the environment variables
  */
-global.envConfig = require('../.idea/envConfig.json');
+global.envConfig = require('./envConfig.json');
 
 /**
  *  for the Download of all file types

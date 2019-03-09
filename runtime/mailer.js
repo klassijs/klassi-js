@@ -24,7 +24,7 @@
  * @type {exports|module.exports}
  */
 const nodemailer = require('nodemailer');
-let shared = require('../.idea/emailData');
+let shared = require('../shared-objects/emailData');
 
 module.exports = {
   klassiSendMail: function () {
