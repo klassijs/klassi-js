@@ -29,22 +29,20 @@ module.exports = {
     let searchBtn = await driver.$(shared.searchData.elem.searchBtn);
     await searchBtn.click();
     await driver.pause(DELAY_1_SECOND);
-    await verify.saveScreenshot(`${image}_1-2.png`);
-    await driver.pause(DELAY_1_SECOND);
     await helpers.compareImage(`${image}_1-0.png`);
     await helpers.compareImage(`${image}_1-1.png`);
-    await helpers.compareImage(`${image}_1-2.png`);
+    await image;
   },
   
-  searchResult: async function(searchWord) {
-    image = searchWord;
+  searchResult: async function() {
+    // image = searchWord;
     /** return the promise of an element to the following then */
-    let elem = driver.$(shared.searchData.elem.resultLink);
+    let elem = await driver.$(shared.searchData.elem.resultLink);
+    await verify.saveScreenshot(`${image}_1-2.png`);
+    await driver.pause(DELAY_1_SECOND);
     /** verify this element has children */
-    console.log('this is it ' + elem);
     log.info(elem); // prints to a log
-
     expect(elem.length).to.not.equal(0);
-    // await helpers.cssImages('search');
+    await helpers.compareImage(`${image}_1-2.png`);
   }
 };

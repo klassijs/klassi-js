@@ -4,7 +4,7 @@ module.exports = {
   
   elem: {
     searchInput: '#search_form_input_homepage',
-    resultLink: 'div#links',
+    resultLink: '#links',
     searchBtn: '#search_button_homepage'
   }
   

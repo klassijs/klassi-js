@@ -28,6 +28,7 @@ const wdio = require('webdriverio');
 module.exports = async function chromeDriver(options){
  
   const defaults = {
+    logLevel: 'error',
     capabilities: {
       browserName: 'chrome',
     }
@@ -38,7 +39,7 @@ module.exports = async function chromeDriver(options){
 
   if ( useProxy ) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domain.com:8080',
+      httpProxy: 'http://domain.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false
     };

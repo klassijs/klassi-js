@@ -55,8 +55,7 @@ module.exports = async function browserstackDriver(options,configType){
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
-    host: 'hub.browserstack.com',
-    port: 80
+    host: 'hub.browserstack.com'
   };
   
   const extendedOptions = Object.assign(defaults, options);
@@ -66,10 +65,7 @@ module.exports = async function browserstackDriver(options,configType){
     extendedOptions.logLevel = config.logLevel;
   }
   
-  // let driver = new webdriverio.remote(extendedOptions).init().then(function () {
   global.driver = await wdio.remote(extendedOptions);
-  // do some thing
-  // });
   
   return driver;
 };

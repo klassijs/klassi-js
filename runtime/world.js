@@ -279,7 +279,7 @@ AfterAll(function (done) {
         'Test Completion': endDateTime,
         'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
         'Platform': process.platform,
-        'Browser': browserName,
+        'Browser': global.settings.remoteConfig || global.browserName,
         'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
       },
       brandTitle: reportName + '-' + date,
@@ -287,6 +287,7 @@ AfterAll(function (done) {
     };
     driver.pause(DELAY_3_SECOND).then(function () {
       reporter.generate(reportOptions);
+      driver.pause(DELAY_3_SECOND);
     });
   }
   done();
@@ -321,8 +322,8 @@ After(function (scenario) {
   let driver = global.driver;
   let world = this;
   if (scenario.result.status === Status.FAILED) {
-    driver.takeScreenshot().then(function (screenShot) {
-      return world.attach(screenShot, 'image/png');
+    return driver.takeScreenshot().then(function (screenShot) {
+      world.attach(screenShot, 'image/png');
     });
   }
 });

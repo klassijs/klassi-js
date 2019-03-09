@@ -51,17 +51,6 @@ module.exports = {
       return driver.waitUntil(driver.$('body'), timeout);
     });
   },
-
-  /**
-     * Images of each page for css responsive testing
-     * @returns {*|{screenshotRoot, failedComparisonsRoot, misMatchTolerance, screenWidth}}
-     */
-  // cssImages: function (pageName) {
-  //   return driver.webdrivercss(pageName, {
-  //     name: '',
-  //     elem: ''
-  //   });
-  // },
   
   /**
    * Visual comparison function
@@ -438,7 +427,6 @@ module.exports = {
       url: url,
       method: method,
       body: body,
-      // proxy:'http://proxyServer.com:8080', // if needed
       json: true,
       time: true,
       resolveWithFullResponse: true,

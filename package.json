@@ -35,12 +35,11 @@
   },
   "main": "index.js",
   "scripts": {
-    "all": "node index.js -e -d",
-    "dev": "node index.js -d -t @api",
-    "uat": "node index.js -d -t @search",
-    "local": "node index.js -d -t",
-    "bslocal1": "node runtime/remotes/browserstackLocal && node index.js -e -d -w browserstack -x",
-    "bslocal": "node index.js -d -w browserstack -x chrome/@search"
+    "all": "node index.js -ed",
+    "dev": "node index.js -dt @api",
+    "uat": "node index.js -dt @search",
+    "local": "node index.js -edt",
+    "bslocal": "node runtime/remotes/browserstackLocal && node index.js -edw browserstack -x"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {

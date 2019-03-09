@@ -19,7 +19,7 @@
  */
 'use strict';
 
-const webdriverio = require('webdriverio');
+const wdio = require('webdriverio');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
 let secrets = loadConfig('./browserstack/secrets/browserstack.json');
@@ -42,7 +42,7 @@ let bs_local_args = {
 };
 
 bs_local = new browserstacklocal.Local();
-webdriverio.bs_local = bs_local;
+wdio.bs_local = bs_local;
 
 // if (bs_local === 'start') {
 bs_local.start(bs_local_args, async function (err) {
