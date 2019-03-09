@@ -34,28 +34,17 @@ references:
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
-  yarn_cache_key: &yarn_cache_key
-    v3-dependency-yarn-{{ checksum "yarn.lock" }}
-  yarn_backup_cache_key: &yarn_backup_cache_key
-    v3-dependency-yarn
-
-  restore_yarn_dependencies: &restore_yarn_dependencies
-    restore_cache:
-      keys:
-        - *yarn_cache_key
-        - *yarn_backup_cache_key
-
 jobs:
   checkout_code:
     <<: *container_config
     steps:
       - *restore_repo
       - checkout
-#      - run:
-#          name: Update npm
-#          command: 'sudo npm install -g npm@latest'
+      - run:
+          name: Update npm
+          command: 'sudo yarn add -g npm@latest'
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
 
@@ -63,103 +52,82 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - *restore_yarn_dependencies
-#      - checkout
-#
-#      - run:
-#          name: Update npm
-#          command: 'sudo npm install -g npm@latest'
-#
+      - checkout
+      - run:
+          name: Update npm
+          command: 'sudo yarn add -g npm@latest'
       - run:
           name: Install Dependencies
-          command: yarn install --frozen-lockfile
-
+          command: yarn install
       - save_cache:
-          key: *yarn_cache_key
+          key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
-            - "~/.cache/yarn"
             - node_modules
 
   integration_test_build:
     <<: *container_config
     steps:
       - *restore_repo
-      - *restore_yarn_dependencies
-#      - checkout
+      - checkout
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
-
       - run:
           name: Download Selenium
           command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
       - run:
           name: Start Selenium Server
           command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
           background: true
-
       - run:
           name: Install Dependencies
           command: yarn install
-
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-
       - run:
           name: Integration Test Run
-          command: yarn run-script dev
-
+          command: yarn run dev
       - store_artifacts:
           path: artifacts
-
       - store_test_results:
           path: ./test-results
 
   acceptance_test_build:
-      <<: *container_config
-      steps:
-        - *restore_repo
-        - *restore_yarn_dependencies
-#        - checkout
-        - run:
-            name: Create Test-Result Directory
-            command: mkdir ./test-results
+    <<: *container_config
+    steps:
+      - *restore_repo
+      - checkout
+      - run:
+          name: Create Test-Result Directory
+          command: mkdir ./test-results
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+      - run:
+          name: Start Selenium Server
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          background: true
+      - run:
+          name: Install Dependencies
+          command: yarn install
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
 
-        - run:
-            name: Download Selenium
-            command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+      - run:
+          name: Set BrowserStack Local Identifier
+          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
 
-        - run:
-            name: Start Selenium Server
-            command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-            background: true
-
-        - run:
-            name: Install Dependencies
-            command: yarn install
-
-        - save_cache:
-            key: dependency-cache-{{ checksum "package.json" }}
-            paths:
-              - node_modules
-
-        - run:
-            name: Set BrowserStack Local Identifier
-            command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-
-        - run:
-            name: Acceptance Test Run
-#            command: npm run-script uat
-            command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run-script uat
-
-        - store_artifacts:
-            path: artifacts
-
-        - store_test_results:
-            path: ./test-results
+      - run:
+          name: Acceptance Test Run
+          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
+      - store_artifacts:
+          path: artifacts
+      - store_test_results:
+          path: ./test-results
 
 workflows:
   version: 2
@@ -176,15 +144,15 @@ workflows:
             - checkout_code
             - install_dependencies
 
-#      - run_basic_integration_tests:
-#          type: approval
-#          requires:
-#            - integration_test_build
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
+      #      - run_basic_integration_tests:
+      #          type: approval
+      #          requires:
+      #            - integration_test_build
+      #          filters:
+      #            branches:
+      #              ignore:
+      #                - develop
+      #                - master
 
       - acceptance_test_build:
           requires:
