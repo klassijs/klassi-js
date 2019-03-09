@@ -6,6 +6,7 @@
 
   "auth":{
     "host": "{smtp.sitename.co.uk}",
+    "port": portNumber,
     "user": "{user@sitename.co.uk}",
     "pass": "{password}"
   },

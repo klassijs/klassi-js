@@ -19,11 +19,11 @@
  */
 'use strict';
 
-const webdriverio = require('webdriverio');
+const wdio = require('webdriverio');
 const loadConfig = require('./configLoader.js');
 const browserstack = require('./remotes/browserstack.js');
 
-module.exports = function browserstackDriver(options,configType){
+module.exports = async function browserstackDriver(options,configType){
 
   let config = loadConfig(`./browserstack/${configType}.json`);
   let credentials = browserstack.getCredentials();
@@ -46,8 +46,8 @@ module.exports = function browserstackDriver(options,configType){
     updateJob: false,
     exclude: [],
     maxInstances: 10,
-
-    desiredCapabilities: config,
+    
+    capabilities: config,
 
     coloredLogs: true,
     screenshotPath: './errorShots/',
@@ -55,8 +55,7 @@ module.exports = function browserstackDriver(options,configType){
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
-    host: 'hub.browserstack.com',
-    port: 80
+    host: 'hub.browserstack.com'
   };
   
   const extendedOptions = Object.assign(defaults, options);
@@ -66,9 +65,7 @@ module.exports = function browserstackDriver(options,configType){
     extendedOptions.logLevel = config.logLevel;
   }
   
-  let driver = new webdriverio.remote(extendedOptions).init().then(function () {
-    // do some thing
-  });
+  global.driver = await wdio.remote(extendedOptions);
   
   return driver;
 };

@@ -24,20 +24,18 @@
  * @type {exports|module.exports}
  */
 const nodemailer = require('nodemailer');
-let shared = require('../shared-objects/emailList');
+let shared = require('../shared-objects/emailData');
 
 module.exports = {
   klassiSendMail: function () {
-    // let devTeam = (shared.emailList.nameList);
+    
     let devTeam = (shared.nameList);
     /**
-         * Email relay server connections
-         */
-
+     * Email relay server connections
+     */
     let transporter = nodemailer.createTransport({
       host: shared.auth.host,
-      // port: 465,
-      port: 25,
+      port: shared.auth.port,
       // secure: true,
       auth: {
         user: shared.auth.user,

@@ -3,7 +3,8 @@
 
   "os": "OS X",
   "os_version": "Sierra",
-  "browserName": "Chrome",
+  "browser": "Chrome",
+  "browserName": "macChrome",
   "browser_version": "66.0",
   "resolution": "1280x960",
   "chromeOptions": {

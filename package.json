@@ -1,7 +1,7 @@
 {
   "name": "klassi-js",
-  "version": "2.3.5",
-  "description": "A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to any other tool or library. It's built with Nodejs, webdriverio and cucumber-js",
+  "version": "2.5.0",
+  "description": "A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to any other tool or library, using Nodejs, webdriverio and cucumber-js",
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
@@ -19,13 +19,10 @@
     "javascript",
     "framework",
     "functional testing",
-    "selenium",
     "tdd",
-    "test-framework",
     "testing",
     "testing-framework",
     "webdriver",
-    "webdrivercss",
     "webdriverio"
   ],
   "repository": {
@@ -33,61 +30,38 @@
     "url": "https://github.com/larryg01/klassi-js"
   },
   "engines": {
-    "node": ">= 11.10.0",
-    "npm": ">= 6.8.0"
+    "node": ">= 10.15.3",
+    "npm": ">= 6.4.1"
   },
   "main": "index.js",
   "scripts": {
-    "all": "node index.js -e -d",
-    "dev": "node index.js -d -t @api",
-    "uat": "node index.js -d -t @search",
-    "local": "node index.js -d -t",
-    "bslocal": "node runtime/remotes/browserstackLocal && node index.js -e -d -w browserstack -x"
-  },
-  "nyc": {
-    "include": [
-      "**/page-objects/**"
-    ],
-    "reporter": [
-      "lcov",
-      "text"
-    ]
+    "all": "node index.js -ed",
+    "dev": "node index.js -dt @api",
+    "uat": "node index.js -dt @search",
+    "local": "node index.js -edt",
+    "bslocal": "node runtime/remotes/browserstackLocal && node index.js -edw browserstack -x"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {
-    "browserstack-local": "^1.3.1",
-    "chai": "^4.1.2",
-    "chalk": "^2.4.1",
-    "chromedriver": "^2.38.3",
-    "commander": "^2.11.0",
-    "cucumber": "^4.2.1",
-    "cucumber-html-reporter": "^4.0.4",
-    "cucumber-pretty": "^1.4.4",
-    "fs-extra": "^5.0.0",
-    "geckodriver": "^1.14.1",
+    "browserstack-local": "^1.3.7",
+    "chai": "^4.2.0",
+    "cucumber": "^5.1.0",
+    "cucumber-html-reporter": "^4.0.5",
+    "cucumber-pretty": "^1.5.0",
+    "fs-extra": "^7.0.1",
     "merge": "^1.2.1",
-    "moment": "^2.22.1",
     "node-dir": "^0.1.17",
     "node-resemble-js": "^0.2.0",
-    "nodemailer": "^4.3.1",
-    "nodemailer-ses-transport": "^1.5.1",
-    "random-words": "^0.0.1",
-    "request": "^2.86.0",
-    "request-promise": "^4.2.2",
-    "require-dir": "^0.3.2",
-    "tar": "^4.4.2",
-    "webdriverio": "^4.12.0",
-    "winston": "^3.0.0"
+    "nodemailer": "^5.1.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "require-dir": "^1.2.0",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@types/node": "^9.6.15",
-    "eslint": "^5.7.0",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-plugin-import": "^2.11.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.7.0",
-    "eslint-plugin-standard": "^3.1.0",
-    "selenium-standalone": "^6.15.0",
-    "webdrivercss-custom-v4-compatible": "^2.0.0-beta-rc1.1"
+    "chromedriver": "^2.46.0",
+    "eslint": "^5.15.1",
+    "geckodriver": "^1.16.0",
+    "webdriverio": "^5.6.6"
   }
 }

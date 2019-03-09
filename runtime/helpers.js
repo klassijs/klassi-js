@@ -41,27 +41,14 @@ module.exports = {
      * @type {number}
      */
     let timeout = (seconds) ? (seconds * 1000) : DEFAULT_TIMEOUT;
-
     /**
      * load the url and wait for it to complete
      */
     return driver.url(url, function () {
-
       /**
        * now wait for the body element to be present
        */
-      return driver.waitUntil(driver.element('body'), timeout);
-    });
-  },
-
-  /**
-     * Images of each page for css responsive testing
-     * @returns {*|{screenshotRoot, failedComparisonsRoot, misMatchTolerance, screenWidth}}
-     */
-  cssImages: function (pageName) {
-    return driver.webdrivercss(pageName, {
-      name: '',
-      elem: ''
+      return driver.waitUntil(driver.$('body'), timeout);
     });
   },
   
@@ -70,7 +57,7 @@ module.exports = {
    * @param fileName
    * @returns {Promise<void>}
    */
-  compareImage: async function(fileName){
+  compareImage: async(fileName) => {
     const verify = require('./imageCompare');
     await verify.assertion(fileName);
     await verify.value();
@@ -167,7 +154,6 @@ module.exports = {
   generateRandomInteger: function (range) {
     return Math.floor(Math.random() * Math.floor(range));
   },
-
   /**
      * This method is useful for dropdown boxes as some of them have default "Please select" option on index 0
      *
@@ -280,7 +266,7 @@ module.exports = {
      * @returns text
      */
   getElementText: function (selector) {
-    return driver.waitForExist(selector, 10000).pause(3000).then(function () {
+    return driver.waitForExist(selector, DELAY_10_SECOND).pause(DELAY_3_SECOND).then(function () {
       return driver.getText(selector).then(function (text) {
         return text;
       });
@@ -298,8 +284,8 @@ module.exports = {
   
   waitAndClick: async function (selector) {
     try {
-      await driver.waitForVisible(selector, MID_DELAY_MILLISECOND);
-      await driver.waitForEnabled(selector, SHORT_DELAY_MILLISECOND);
+      await driver.waitForVisible(selector, DELAY_3_SECOND);
+      await driver.waitForEnabled(selector, DELAY_1_SECOND);
       await driver.click(selector);
       await driver.pause(DELAY_500_MILLISECOND);
     }
@@ -311,7 +297,7 @@ module.exports = {
   
   waitAndSetValue: async function (selector, value) {
     try{
-      await driver.waitForEnabled(selector, MID_DELAY_MILLISECOND);
+      await driver.waitForEnabled(selector, DELAY_3_SECOND);
       await driver.click(selector);
       await driver.pause(DELAY_500_MILLISECOND);
       await driver.keys(value);
@@ -399,7 +385,7 @@ module.exports = {
      * @param expectedText
      */
   assertText: async function (selector, expected) {
-    await driver.waitForEnabled(selector, DELAY_10_SECOND);
+    await driver.waitForEnabled(selector, DELAY_5_SECOND);
     let actual = await driver.getText(selector);
     actual = actual.trim();
     assert.equal(actual, expected);
@@ -441,7 +427,6 @@ module.exports = {
       url: url,
       method: method,
       body: body,
-      // proxy:'http://proxyServer.com:8080', // if needed
       json: true,
       time: true,
       resolveWithFullResponse: true,
@@ -484,8 +469,8 @@ module.exports = {
   
   filterItem: async function (itemToFilter) {
     try{
-      await driver.waitForExist(shared.adminData.filter.filterInput, LONG_DELAY_MILLISECOND);
-      await driver.waitForEnabled(shared.adminData.filter.filterInput, LONG_DELAY_MILLISECOND);
+      await driver.waitForExist(shared.adminData.filter.filterInput, DELAY_5_SECOND);
+      await driver.waitForEnabled(shared.adminData.filter.filterInput, DELAY_5_SECOND);
       await driver.pause(DELAY_500_MILLISECOND);
       await driver.click(shared.adminData.filter.filterInput);
       await driver.keys(itemToFilter);
@@ -499,9 +484,9 @@ module.exports = {
   filterItemAndClick: async function (itemToFilter) {
     try{
       await helpers.filterItem(itemToFilter);
-      await driver.pause(MID_DELAY_MILLISECOND);
+      await driver.pause(DELAY_3_SECOND);
       await driver.click(shared.adminData.filter.filteredItem);
-      await driver.pause(MID_DELAY_MILLISECOND);
+      await driver.pause(DELAY_3_SECOND);
     }
     catch (err) {
       if (err) {

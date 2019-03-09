@@ -25,8 +25,6 @@ const path = require('path'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
 
-let log = require('./runtime/logger').klassiLog();
-
 function collectPaths(value, paths){
   paths.push(value);
   return paths;
@@ -50,8 +48,9 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-global.reportName = process.env.REPORT_NAME || 'KlassiTech Automated Test Report';
-global.projectName = process.env.PROJECT_NAME || 'Klassi Technologies';
+let envConfig = require('./runtime/envConfig');
+global.reportName = process.env.REPORT_NAME || envConfig.reportName;
+global.projectName = process.env.PROJECT_NAME || envConfig.projectName;
 
 
 /**
@@ -65,22 +64,22 @@ let reports = ('./reports/'),
 
 fs.ensureDirSync(reports, function (err) {
   if (err) {
-    log.error('The Reports Folder has NOT been created: ' + err.stack);
+    console.log('The Reports Folder has NOT been created: ' + err.stack);
   }
 });
 fs.ensureDirSync(fileDnldFldr, function (err) {
   if (err) {
-    log.error('The File Download Folder has NOT been created: ' + err.stack);
+    console.log('The File Download Folder has NOT been created: ' + err.stack);
   }
 });
 fs.ensureDir(docsFolder,  function (err) {
   if(err){
-    log.error('The Docs Folder has NOT been created: ' + err.stack);
+    console.log('The Docs Folder has NOT been created: ' + err.stack);
   }
 });
 fs.ensureFile(fileName, function (err) {
   if(err){
-    log.error('The fileName File has NOT been created: ' + err.stack);
+    console.log('The fileName File has NOT been created: ' + err.stack);
   }
 });
 
@@ -106,7 +105,7 @@ program
   .parse(process.argv);
 
 program.on('--help', function(){
-    console.log('For more details please visit https://github.com/larryg01/klassi-cucumber-js#readme\n');
+    console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
 });
 
 let settings = {
@@ -227,7 +226,7 @@ return new Promise(async function (resolve, reject) {
       }
     })
   }catch (err) {
-    log.error('cucumber integration has failed ' + err.message);
+    console.log('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
   }
