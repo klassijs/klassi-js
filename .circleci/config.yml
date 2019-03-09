@@ -34,15 +34,24 @@ references:
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
+  yarn_cache_key: &yarn_cache_key
+    v3-dependency-yarn-{{ checksum "yarn.lock" }}
+  yarn_backup_cache_key: &yarn_backup_cache_key
+    v3-dependency-yarn
+
+  restore_yarn_dependencies: &restore_yarn_dependencies
+    restore_cache:
+      keys:
+        - *yarn_cache_key
+        - *yarn_backup_cache_key
+
 jobs:
   checkout_code:
     <<: *container_config
     steps:
       - *restore_repo
       - checkout
-      - run:
-          name: Update npm
-          command: 'sudo npm add -g npm@latest'
+
       - save_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
@@ -52,23 +61,29 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - checkout
-      - run:
-          name: Update npm
-          command: 'sudo npm add -g npm@latest'
+      - *restore_yarn_dependencies
+
       - run:
           name: Install Dependencies
-          command: yarn install
+          command: yarn install --frozen-lockfile
+
       - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: *yarn_cache_key
           paths:
+            - "~/.cache/yarn"
             - node_modules
+
+#      - save_cache:
+#          key: dependency-cache-{{ checksum "yarn.lock" }}
+#          paths:
+#            - node_modules
 
   integration_test_build:
     <<: *container_config
     steps:
       - *restore_repo
-      - checkout
+      - *restore_yarn_dependencies
+
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
@@ -98,7 +113,8 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - checkout
+      - *restore_yarn_dependencies
+
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
@@ -109,9 +125,11 @@ jobs:
           name: Start Selenium Server
           command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
           background: true
+
       - run:
           name: Install Dependencies
           command: yarn install
+
       - save_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
@@ -124,8 +142,10 @@ jobs:
       - run:
           name: Acceptance Test Run
           command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
+
       - store_artifacts:
           path: artifacts
+
       - store_test_results:
           path: ./test-results
 
