@@ -34,10 +34,10 @@ module.exports = {
     let date;
   
     MyDate.setDate(MyDate.getDate());
-    date = ('-' + '0' + MyDate.getDate()).slice(-2) + '-' + ('0' + (MyDate.getMonth() + 1)).slice(-2) + '-' + MyDate.getFullYear() + ('-' + MyDate.getHours() + ':' + MyDate.getMinutes());
+    date = ('-' + '0' + MyDate.getDate()).slice(-2) + '-' + ('0' + (MyDate.getMonth() + 1)).slice(-2) + '-' + MyDate.getFullYear();
   
-    let infoJsonFile = path.join('./log/infoLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, ''),
-      errorJsonFile = path.join('./log/errorLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, '');
+    let infoJsonFile = path.join('./logs/infoLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, ''),
+      errorJsonFile = path.join('./logs/errorLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, '');
   
     fs.ensureFile(infoJsonFile, function (err) {
       if (err) {

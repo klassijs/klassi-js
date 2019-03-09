@@ -34,15 +34,26 @@ references:
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
+  yarn_cache_key: &yarn_cache_key
+    v3-dependency-yarn-{{ checksum "yarn.lock" }}
+  yarn_backup_cache_key: &yarn_backup_cache_key
+    v3-dependency-yarn
+
+  restore_yarn_dependencies: &restore_yarn_dependencies
+    restore_cache:
+      keys:
+        - *yarn_cache_key
+        - *yarn_backup_cache_key
+
 jobs:
   checkout_code:
     <<: *container_config
     steps:
       - *restore_repo
       - checkout
-      - run:
-          name: Update npm
-          command: 'sudo npm install -g npm@latest'
+#      - run:
+#          name: Update npm
+#          command: 'sudo npm install -g npm@latest'
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
@@ -52,45 +63,58 @@ jobs:
     <<: *container_config
     steps:
       - *restore_repo
-      - checkout
-      - run:
-          name: Update npm
-          command: 'sudo npm install -g npm@latest'
+      - *restore_yarn_dependencies
+#      - checkout
+#
+#      - run:
+#          name: Update npm
+#          command: 'sudo npm install -g npm@latest'
+#
       - run:
           name: Install Dependencies
-          command: npm install
+          command: yarn install --frozen-lockfile
+
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: *yarn_cache_key
           paths:
-          - node_modules
+            - "~/.cache/yarn"
+            - node_modules
 
   integration_test_build:
     <<: *container_config
     steps:
       - *restore_repo
-      - checkout
+      - *restore_yarn_dependencies
+#      - checkout
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
+
       - run:
           name: Download Selenium
           command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+
       - run:
           name: Start Selenium Server
           command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
           background: true
+
       - run:
           name: Install Dependencies
-          command: npm install
+          command: yarn install
+
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - node_modules
+
       - run:
           name: Integration Test Run
-          command: npm run-script dev
+          command: yarn run-script dev
+
       - store_artifacts:
           path: artifacts
+
       - store_test_results:
           path: ./test-results
 
@@ -98,20 +122,25 @@ jobs:
       <<: *container_config
       steps:
         - *restore_repo
-        - checkout
+        - *restore_yarn_dependencies
+#        - checkout
         - run:
             name: Create Test-Result Directory
             command: mkdir ./test-results
+
         - run:
             name: Download Selenium
             command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+
         - run:
             name: Start Selenium Server
             command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
             background: true
+
         - run:
             name: Install Dependencies
-            command: npm install
+            command: yarn install
+
         - save_cache:
             key: dependency-cache-{{ checksum "package.json" }}
             paths:
@@ -124,9 +153,11 @@ jobs:
         - run:
             name: Acceptance Test Run
 #            command: npm run-script uat
-            command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc npm run-script uat
+            command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run-script uat
+
         - store_artifacts:
             path: artifacts
+
         - store_test_results:
             path: ./test-results
 

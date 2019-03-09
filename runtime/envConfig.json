@@ -4,7 +4,7 @@
     "Created by": "Larry Goddard"
   },
 
-  "url" : {
-    "api_base_url": "http://httpbin.org/"
-  }
+  "reportName": "KlassiTech Automated Test Report",
+  "projectName": "Klassi Technologies",
+
 }
