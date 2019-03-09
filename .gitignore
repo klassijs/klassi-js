@@ -34,8 +34,8 @@ out
 gen
 .DS_Store
 
-shared-objects/emailData.json
-envConfig.json
+.idea/emailData.json
+.idea/envConfig.json
 # Logs
 
 yarn-debug.log*
