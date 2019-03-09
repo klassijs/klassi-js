@@ -103,7 +103,9 @@ module.exports ={
       
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
-      await driver.pause(500);
+      while (typeof result == 'undefined') {
+        await driver.pause(100);
+      }
       // console.log('this is the result 1: ', result);
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);
