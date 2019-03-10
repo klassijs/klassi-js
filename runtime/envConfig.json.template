@@ -4,6 +4,7 @@
     "Created by": "Larry Goddard"
   },
 
-  "base_url": "<base url holder>",
-  "api_base_url": "<base api url holder>",
+  "reportName": "{test reportName}",
+  "projectName": "{projectName}",
+
 }

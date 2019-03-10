@@ -3,7 +3,7 @@
  Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -24,20 +24,18 @@
  * @type {exports|module.exports}
  */
 const nodemailer = require('nodemailer');
-let shared = require('../shared-objects/emailList');
+let shared = require('../shared-objects/emailData');
 
 module.exports = {
   klassiSendMail: function () {
-    // let devTeam = (shared.emailList.nameList);
+    
     let devTeam = (shared.nameList);
     /**
-         * Email relay server connections
-         */
-
+     * Email relay server connections
+     */
     let transporter = nodemailer.createTransport({
       host: shared.auth.host,
-      // port: 465,
-      port: 25,
+      port: shared.auth.port,
       // secure: true,
       auth: {
         user: shared.auth.user,

@@ -3,7 +3,7 @@
  Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ module.exports ={
       .ignoreColors()
       .onComplete(async function (res) {
         result = await res;
-        // console.log('this is the result: ',  result.misMatchPercentage);
       });
     
     /**
@@ -104,9 +103,8 @@ module.exports ={
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
       while (typeof result == 'undefined') {
-        await driver.pause(100);
+        await driver.pause(DELAY_100_MILLISECOND);
       }
-      // console.log('this is the result 1: ', result);
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);
     

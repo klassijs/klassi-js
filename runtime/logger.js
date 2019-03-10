@@ -3,7 +3,7 @@
  Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -34,10 +34,10 @@ module.exports = {
     let date;
   
     MyDate.setDate(MyDate.getDate());
-    date = ('-' + '0' + MyDate.getDate()).slice(-2) + '-' + ('0' + (MyDate.getMonth() + 1)).slice(-2) + '-' + MyDate.getFullYear() + ('-' + MyDate.getHours() + ':' + MyDate.getMinutes());
+    date = ('-' + '0' + MyDate.getDate()).slice(-2) + '-' + ('0' + (MyDate.getMonth() + 1)).slice(-2) + '-' + MyDate.getFullYear();
   
-    let infoJsonFile = path.join('./log/infoLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, ''),
-      errorJsonFile = path.join('./log/errorLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, '');
+    let infoJsonFile = path.join('./logs/infoLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, ''),
+      errorJsonFile = path.join('./logs/errorLog/' + global.reportName + '-' + date + '.json').replace(/ /gi, '');
   
     fs.ensureFile(infoJsonFile, function (err) {
       if (err) {

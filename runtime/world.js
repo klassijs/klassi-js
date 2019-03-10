@@ -3,7 +3,7 @@
   Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -33,9 +33,7 @@ const fs = require('fs'),
   chai = require('chai'),
   reporter = require('cucumber-html-reporter'),
   rp = require('request-promise'),
-  webdriverio = require('webdriverio'),
-  program = require('commander'),
-  webdrivercss = require('webdrivercss-custom-v4-compatible');
+  program = require('commander');
 
 const assert = chai.assert,
   expect = chai.expect,
@@ -51,7 +49,6 @@ global.log = log;
 /**
  * This is the Global date functionality
  */
-// global.date = helpers.currentDate();
 global.date = require('./helpers').currentDate();
 
 /**
@@ -86,13 +83,13 @@ let ChromeDriver = require('./chromeDriver'),
 let remoteService = getRemote(global.settings.remoteService);
 
 let driver = {};
+
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
  */
-function getDriverInstance() {
-  // let driver = {};
-  let screenWidth = [ ]; //[752, 1008, 1280];
+async function getDriverInstance() {
+  
   let browser = global.settings.browserName;
   let options = {};
 
@@ -100,7 +97,7 @@ function getDriverInstance() {
     let configType = global.settings.remoteConfig;
     assert.isString(configType, 'BrowserStack requires a config type e.g. win10-chrome');
 
-    driver = new BrowserStackDriver(options, configType);
+    driver = BrowserStackDriver(options, configType);
     return driver;
   }
   assert.isNotEmpty(browser, 'Browser must be defined');
@@ -113,21 +110,11 @@ function getDriverInstance() {
     break;
 
   case 'chrome': {
-    driver = new ChromeDriver(options);
+    driver = ChromeDriver(options);
   }
     break;
   }
-
-  /**
-   *  initialise WebdriverCSS for `driver` instance
-   */
-  webdrivercss.init(driver, {
-    screenshotRoot: './cssImages/baseline/',
-    failedComparisonsRoot: './cssImages/imageDiff/',
-    misMatchTolerance: 1.15,
-    screenWidth: screenWidth,
-    updateBaseline: false
-  });
+  
   return driver;
 }
 
@@ -135,12 +122,13 @@ function getDriverInstance() {
  * Global timeout
  * @type {number}
  */
-global.DELAY_500_MILLISECOND = 1000;     // 1000 millisecond delay
-global.SHORT_DELAY_MILLISECOND = 3000;  // 3 second delay in milliseconds
-global.MID_DELAY_MILLISECOND = 5000;    // 5 second delay in milliseconds
-global.LONG_DELAY_MILLISECOND = 10000;  // 10 second delay in milliseconds
-global.EXTRA_LONG_DELAY_MILLISECOND = 20000;  // 20 second delay in milliseconds
+global.DELAY_100_MILLISECOND = 100;     // 100 millisecond delay
+global.DELAY_200_MILLISECOND = 200;     // 200 millisecond delay
+global.DELAY_300_MILLISECOND = 300;     // 300 millisecond delay
+global.DELAY_500_MILLISECOND = 500;     // 500 millisecond delay
+global.DELAY_1_SECOND = 1;              // 1 second delay
 global.DELAY_3_SECOND = 3;              // 3 second delay
+global.DELAY_5_SECOND = 5;              // 5 second delay
 global.DELAY_10_SECOND = 10;            // 10 second delay
 global.DELAY_15_SECOND = 15;            // 15 second delay
 global.DELAY_20_SECOND = 20;            // 20 second delay
@@ -169,8 +157,7 @@ function World() {
    * log: log, page: {}, shared: {}}}
    */
   let runtime = {
-    driver: null,                 // the browser object
-    webdriverio: webdriverio,     // the raw webdriverio driver module, providing access to static properties/methods
+    driver: {},                 // the browser object
     expect: global.expect,        // expose chai expect to allow variable testing
     assert: global.assert,        // expose chai assert to allow variable testing
     fs: fs,                       // expose fs (file system) for use globally
@@ -255,18 +242,19 @@ global.startDateTime = require('./helpers').getStartDateTime();
 /**
  * create the driver before scenario if it's not instantiated
  */
-Before(function () {
+Before(async function () {
   global.driver = getDriverInstance();
   global.browser = global.driver; // ensure standard WebDriver global also works
+  await driver;
 });
-
 
 /**
  * send email with the report to stakeholders after test run
  */
 AfterAll(function () {
+  let driver = global.driver;
   if (program.email) {
-    driver.pause(MID_DELAY_MILLISECOND).then(function () {
+    driver.pause(DELAY_3_SECOND).then(function () {
       return helpers.klassiEmail();
     });
   }
@@ -276,6 +264,7 @@ AfterAll(function () {
    * compile and generate a report at the END of the test run and send an Email
    */
 AfterAll(function (done) {
+  let driver = global.driver;
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();
     let reportOptions = {
@@ -290,14 +279,15 @@ AfterAll(function (done) {
         'Test Completion': endDateTime,
         'Test Environment': process.env.NODE_ENV || 'DEVELOPMENT',
         'Platform': process.platform,
-        'Browser': browserName,
+        'Browser': global.settings.remoteConfig || global.browserName,
         'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
       },
       brandTitle: reportName + '-' + date,
       name: projectName
     };
-    driver.pause(MID_DELAY_MILLISECOND).then(function () {
+    driver.pause(DELAY_3_SECOND).then(function () {
       reporter.generate(reportOptions);
+      driver.pause(DELAY_3_SECOND);
     });
   }
   done();
@@ -306,20 +296,21 @@ AfterAll(function (done) {
 /**
    *  executed after each scenario (always closes the browser to ensure fresh tests)
    */
-After(function (scenario) {
+After(async function (scenario) {
+  let driver = global.driver;
   if (scenario.result.status === Status.FAILED) {
     if (remoteService && remoteService.type === 'browserstack'){
-      return driver.end();
+      await driver.deleteSession();
     }else{
       // Comment out to do nothing | leave browser open
-      return driver.end();
+      await driver.deleteSession();
     }
   }else{
     if (remoteService && remoteService.type !== 'browserstack'){
       // Comment out to do nothing | leave browser open
-      return driver.end();
+      await driver.deleteSession();
     }else{
-      return driver.end();
+      await driver.deleteSession();
     }
   }
 });
@@ -327,10 +318,11 @@ After(function (scenario) {
 /**
  * get executed only if there is an error within a scenario
  */
-After(async function (scenario) {
+After(function (scenario) {
+  let driver = global.driver;
   let world = this;
   if (scenario.result.status === Status.FAILED) {
-    await driver.saveScreenshot().then(function (screenShot) {
+    return driver.takeScreenshot().then(function (screenShot) {
       world.attach(screenShot, 'image/png');
     });
   }
