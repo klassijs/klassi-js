@@ -7,6 +7,7 @@ yarn:
   - "1.13.0"
 
 before_script:
-  - yarn global add selenium-standalone@latest
-  - selenium-standalone install && selenium-standalone start &
+  - npm global add selenium-standalone@latest
+  - selenium-standalone install
+  - selenium-standalone start &
   - sleep 5
