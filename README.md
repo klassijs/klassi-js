@@ -21,9 +21,8 @@ npm i klassi-js
 # launch a selenium standalone server with chrome, firefox and phantomjs drivers via the 
 # following commands in a separate terminal:
 
-yarn add selenium-standalone@latest -g --dev
-selenium-standalone install
-selenium-standalone start
+yarn global add selenium-standalone@latest
+selenium-standalone install && selenium-standalone start
 ```
 
 ## Usage
