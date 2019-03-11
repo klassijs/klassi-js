@@ -35,6 +35,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "test": "node index.js -dt @search",
     "all": "node index.js -ed",
     "dev": "node index.js -dt @api",
     "uat": "yarn node index.js -dt @search",
