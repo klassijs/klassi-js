@@ -25,19 +25,18 @@ const wdio = require('webdriverio');
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function chromeDriver(options){
- 
+module.exports = async function chromeDriver(options) {
   const defaults = {
     logLevel: 'error',
     capabilities: {
-      browserName: 'chrome',
+      browserName: 'chrome'
     }
   };
 
   // Add proxy based on env var.
   const useProxy = process.env.USE_PROXY || false;
 
-  if ( useProxy ) {
+  if (useProxy) {
     defaults.capabilities.proxy = {
       httpProxy: 'http://domain.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
@@ -47,8 +46,5 @@ module.exports = async function chromeDriver(options){
 
   const extendedOptions = Object.assign(defaults, options);
   global.driver = await wdio.remote(extendedOptions);
-  
   return driver;
 };
-
-

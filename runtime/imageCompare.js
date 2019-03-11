@@ -19,8 +19,7 @@
  */
 'use strict';
 
-const
-  resemble = require('node-resemble-js'),
+const resemble = require('node-resemble-js'),
   fs = require('fs-extra');
 
 let log = global.log;
@@ -36,7 +35,7 @@ let baselineDir = `./visual-regression-baseline/${browserName}/`,
 
 let file_name, result, diffFile, value;
 
-module.exports ={
+module.exports = {
   /**
    * Take a screenshot of the current page and saves it as the given filename.
    * @method saveScreenshot
@@ -48,13 +47,12 @@ module.exports ={
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
     await driver.saveScreenshot(resultPathPositive, err => {
-      if (err){
+      if (err) {
         log.error(err.message);
       }
     });
     log.info(`\tScreenshot saved to: ${resultPathPositive}`);
   },
-  
   /**
    * Runs assertions and comparison checks on the taken screenshots
    * @param filename
@@ -67,9 +65,9 @@ module.exports ={
     const resultPathPositive = `${resultDirPositive}${filename}`;
     fs.ensureDirSync(baselineDir);
     fs.ensureDirSync(diffDirPositive);
-  
     this.expected = expected || 0.1; // misMatchPercentage tolerance default 0.3%
-    if (!fs.existsSync(baselinePath)) {  // create new baseline image if none exists
+    if (!fs.existsSync(baselinePath)) {
+      // create new baseline image if none exists
       log.info('\tWARNING: Baseline image does NOT exist.');
       log.info(`\tCreating Baseline image from Result: ${baselinePath}`);
       fs.writeFileSync(baselinePath, fs.readFileSync(resultPathPositive));
@@ -88,18 +86,16 @@ module.exports ={
       .compareTo(resultPathPositive)
       .ignoreAntialiasing()
       .ignoreColors()
-      .onComplete(async function (res) {
+      .onComplete(async function(res) {
         result = await res;
       });
-    
     /**
      *
      * @param result
      * @returns {Promise<void>}
      */
-    this.value = async function () {
+    this.value = async function() {
       filename = await file_name;
-      
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
       while (typeof result == 'undefined') {
@@ -107,20 +103,17 @@ module.exports ={
       }
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);
-    
       if (error > this.expected) {
         diffFile = `${diffDirNegative}${filename}`;
         result
           .getDiffImage()
           .pack()
           .pipe(fs.createWriteStream(diffFile));
-        
         fs.ensureDirSync(resultDirNegative);
         fs.removeSync(resultPathNegative);
         fs.moveSync(resultPathPositive, resultPathNegative);
         log.info(`\tCreate diff image [negative]: ${diffFile}`);
-      }
-      else {
+      } else {
         diffFile = `${diffDirPositive}${filename}`;
         result
           .getDiffImage()
@@ -128,38 +121,46 @@ module.exports ={
           .pipe(fs.createWriteStream(diffFile));
       }
     };
-  
     /**
      *
      * @param value
      * @returns {Promise<boolean>}
      */
-    this.pass = async function () {
+    this.pass = async function() {
       // res = await res;
       value = parseFloat(result.misMatchPercentage);
-      this.message = `Screenshot Match Failed for ${filename} with a tolerance difference of ${
-        (value - this.expected) + ' - expected: ' + this.expected + ' but got: ' + (value)}`;
+      this.message = `Screenshot Match Failed for ${filename} with a tolerance difference of ${value -
+        this.expected +
+        ' - expected: ' +
+        this.expected +
+        ' but got: ' +
+        (value)}`;
       const baselinePath = `${baselineDir}${filename}`;
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const pass = value <= this.expected;
       const err = value > this.expected;
-    
       if (pass) {
-        log.info(`Screenshots Matched for ${filename} with ${value}% difference.`);
+        log.info(
+          `  Screenshots Matched for ${filename} with ${value}% difference.`
+        );
       }
       if (err === true) {
-        log.error(console.log(
-          this.message +
-          '   Screenshots at:\n' +
-          `    Baseline: ${baselinePath}\n` +
-          `    Result: ${resultPathNegative}\n` +
-          `    Diff: ${diffFile}\n` +
-          `   Open ${diffFile} to see how the screenshot has changed.\n` +
-          '   If the Result Screenshot is correct you can use it to update the Baseline Screenshot and re-run your test:\n' +
-          `    cp ${resultPathNegative} ${baselinePath}` ));
-      
+        log.error(
+          console.log(
+            this.message +
+              '   Screenshots at:\n' +
+              `   Baseline: ${baselinePath}\n` +
+              `   Result: ${resultPathNegative}\n` +
+              `   Diff: ${diffFile}\n` +
+              `   Open ${diffFile} to see how the screenshot has changed.\n` +
+              '   If the Result Screenshot is correct you can use it to update the Baseline Screenshot and re-run your test:\n' +
+              `    cp ${resultPathNegative} ${baselinePath}`
+          )
+        );
         if (settings.updateBaselineImage) {
-          log.info(`All Baseline Screenshots have now been updated from: ${resultPathNegative}`);
+          log.info(
+            ` All Baseline Screenshots have now been updated from: ${resultPathNegative}`
+          );
           fs.copy(resultPathNegative, baselinePath, err => {
             if (err) {
               log.error(err.message);
@@ -173,5 +174,4 @@ module.exports ={
       return pass;
     };
   }
-  
 };
