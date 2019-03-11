@@ -1,13 +1,15 @@
 language: node_js
 
 node_js:
+  - "8.0.0"
+  - "8.4.0"
   - "10.15.3"
   - "11.0.0"
 yarn:
   - "1.13.0"
 
 before_script:
-  - yarn global add selenium-standalone@latest
+  - npm install selenium-standalone@latest -g
   - selenium-standalone install
   - selenium-standalone start &
   - sleep 5
