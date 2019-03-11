@@ -240,7 +240,7 @@ global.startDateTime = require('./helpers').getStartDateTime();
 /**
  * create the driver before scenario if it's not instantiated
  */
-Before(async function() {
+Before(async () => {
   global.driver = getDriverInstance();
   global.browser = global.driver; // ensure standard WebDriver global also works
   await driver;
@@ -249,7 +249,7 @@ Before(async function() {
 /**
  * send email with the report to stakeholders after test run
  */
-AfterAll(function() {
+AfterAll(async () => {
   let driver = global.driver;
   if (program.email) {
     driver.pause(DELAY_3_SECOND).then(function() {
@@ -276,7 +276,7 @@ AfterAll(function(done) {
         global.settings.reportName + '-' + date + '.html'
       ),
       reportSuiteAsScenarios: true,
-      launchReport: '!global.settings.disableReport',
+      launchReport: (!global.settings.disableReport),
       ignoreBadJsonFile: true,
       metadata: {
         'Test Started': startDateTime,

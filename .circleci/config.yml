@@ -401,15 +401,16 @@ workflows:
                 - develop
                 - master
 
-      - integration_test_chrome:
-          requires:
-            - integration_test_build
-            - run_basic_integration_tests
+#      - integration_test_chrome:
+#          requires:
+#            - integration_test_build
+#            - run_basic_integration_tests
+#
+#      - acceptance_test_chrome:
+#          requires:
+#            - acceptance_test_build
+#            - run_basic_acceptance_tests
 
-      - acceptance_test_chrome:
-          requires:
-            - acceptance_test_build
-            - run_basic_acceptance_tests
 
 
 #workflows:

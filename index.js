@@ -96,10 +96,7 @@ program
     'contextual root path for project-specific features, steps, objects etc',
     './'
   )
-  .option(
-    '-d, --disableReport [optional]',
-    'Disables the auto opening the browser with test report'
-  )
+  .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
   .option(
     '-f, --featuresPath <path>',
