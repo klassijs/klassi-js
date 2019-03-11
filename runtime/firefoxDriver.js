@@ -26,27 +26,24 @@ const wdio = require('webdriverio');
  * @returns {{}}
  */
 module.exports = async function firefoxDriver(options) {
-
   const defaults = {
     logLevel: 'error',
     capabilities: {
-      browserName: 'firefox',
+      browserName: 'firefox'
     }
   };
 
   // Add proxy based on env var.
   const useProxy = process.env.USE_PROXY || false;
 
-  if ( useProxy ) {
+  if (useProxy) {
     defaults.capabilities.proxy = {
       httpProxy: 'http://domain.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false
     };
   }
-  
   const extendedOptions = Object.assign(defaults, options);
   global.driver = await wdio.remote(extendedOptions);
-  
   return driver;
 };

@@ -23,30 +23,23 @@ const wdio = require('webdriverio');
 const loadConfig = require('./configLoader.js');
 const browserstack = require('./remotes/browserstack.js');
 
-module.exports = async function browserstackDriver(options,configType){
-
+module.exports = async function browserstackDriver(options, configType) {
   let config = loadConfig(`./browserstack/${configType}.json`);
   let credentials = browserstack.getCredentials();
-  
   let user = credentials.user;
   let key = credentials.key;
-  
-  let buildNameFromConfig = configType.replace(/-/g,' '); // BrowserStack will do this anyway, this is to make it explicit
-  
+  let buildNameFromConfig = configType.replace(/-/g, ''); // BrowserStack will do this anyway, this is to make it explicit
   // configs can define their own build name or it is inferred from the configType
-  if (!config.build){
+  if (!config.build) {
     config.build = buildNameFromConfig;
   }
-  
   const defaults = {
-    
     user: user,
     key: key,
 
     updateJob: false,
     exclude: [],
     maxInstances: 10,
-    
     capabilities: config,
 
     coloredLogs: true,
@@ -57,15 +50,11 @@ module.exports = async function browserstackDriver(options,configType){
     connectionRetryCount: 3,
     host: 'hub.browserstack.com'
   };
-  
   const extendedOptions = Object.assign(defaults, options);
-  
-  if (config.logLevel){
+  if (config.logLevel) {
     // OPTIONS: verbose | silent | command | data | result
     extendedOptions.logLevel = config.logLevel;
   }
-  
   global.driver = await wdio.remote(extendedOptions);
-  
   return driver;
 };

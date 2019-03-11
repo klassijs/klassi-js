@@ -25,16 +25,16 @@ const path = require('path'),
   pjson = require('./package.json'),
   cucumber = require('cucumber');
 
-function collectPaths(value, paths){
+function collectPaths(value, paths) {
   paths.push(value);
   return paths;
 }
 
 function parseRemoteArguments(argumentString) {
   if (!argumentString) {
-    throw new Error("Expected an argumentString");
+    throw new Error('Expected an argumentString');
   }
-  let argSplit = argumentString.split("/");
+  let argSplit = argumentString.split('/');
   let CONFIG = 0;
   let TAGS = 1;
   let parsed = {
@@ -52,33 +52,32 @@ let envConfig = require('./runtime/envConfig');
 global.reportName = process.env.REPORT_NAME || envConfig.reportName;
 global.projectName = process.env.PROJECT_NAME || envConfig.projectName;
 
-
 /**
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-let reports = ('./reports/'),
-  fileDnldFldr = ('./shared-objects/fileDnldFolder/'),
-  docsFolder = ('./shared-objects/docs'),
+let reports = './reports/',
+  fileDnldFldr = './shared-objects/fileDnldFolder/',
+  docsFolder = './shared-objects/docs',
   fileName = path.join('./shared-objects/docs/fileName.txt');
 
-fs.ensureDirSync(reports, function (err) {
+fs.ensureDirSync(reports, function(err) {
   if (err) {
     console.log('The Reports Folder has NOT been created: ' + err.stack);
   }
 });
-fs.ensureDirSync(fileDnldFldr, function (err) {
+fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
     console.log('The File Download Folder has NOT been created: ' + err.stack);
   }
 });
-fs.ensureDir(docsFolder,  function (err) {
-  if(err){
+fs.ensureDir(docsFolder, function(err) {
+  if (err) {
     console.log('The Docs Folder has NOT been created: ' + err.stack);
   }
 });
-fs.ensureFile(fileName, function (err) {
-  if(err){
+fs.ensureFile(fileName, function(err) {
+  if (err) {
     console.log('The fileName File has NOT been created: ' + err.stack);
   }
 });
@@ -86,66 +85,117 @@ fs.ensureFile(fileName, function (err) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option('-b, --browser [optional]', 'name of browser to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
-  .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
-  .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
+  .option(
+    '-b, --browser [optional]',
+    'name of browser to use. defaults to chrome',
+    /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i,
+    'chrome'
+  )
+  .option(
+    '-c, --context <path>',
+    'contextual root path for project-specific features, steps, objects etc',
+    './'
+  )
+  .option(
+    '-d, --disableReport [optional]',
+    'Disables the auto opening the browser with test report'
+  )
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
-  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features', 'features')
-  .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
-  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(test|dev|uat|prod)$/i, 'dev')
-  .option('-o, --sharedObjects <paths>', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
-  .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
-  .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
-  .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
+  .option(
+    '-f, --featuresPath <path>',
+    'path to feature definitions. defaults to ./features',
+    'features'
+  )
+  .option(
+    '-g, --reportName [optional]',
+    'basename for report files e.g. use report for report.json',
+    global.reportName
+  )
+  .option(
+    '-n, --environment [<path>]',
+    'name of environment to run the framework / test in. default to test',
+    /^(test|dev|uat|prod)$/i,
+    'dev'
+  )
+  .option(
+    '-o, --sharedObjects <paths>',
+    'path to shared objects (repeatable). defaults to ./shared-objects',
+    collectPaths,
+    ['shared-objects']
+  )
+  .option(
+    '-p, --pageObjects <path>',
+    'path to page objects. defaults to ./page-objects',
+    'page-objects'
+  )
+  .option(
+    '-r, --reports <path>',
+    'output path to save reports. defaults to ./reports',
+    'reports'
+  )
+  .option(
+    '-s, --steps <path>',
+    'path to step definitions. defaults to ./step_definitions',
+    'step_definitions'
+  )
   .option('-t, --tags <tagName>', 'name of tag to run')
-  .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
-  .option('-w, --remoteService [optional]', 'which remote driver service, if any, should be used e.g. browserstack', '')
-  .option('-x, --extraSettings [optional]','further piped configs split with pipes','')
-  
+  .option(
+    '-u, --updateBaselineImage [optional]',
+    'automatically update the baseline image after a failed comparison'
+  )
+  .option(
+    '-w, --remoteService [optional]',
+    'which remote driver service, if any, should be used e.g. browserstack',
+    ''
+  )
+  .option(
+    '-x, --extraSettings [optional]',
+    'further piped configs split with pipes',
+    ''
+  )
   .parse(process.argv);
 
-program.on('--help', function(){
-    console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
+program.on('--help', function() {
+  console.log(
+    'For more details please visit https://github.com/larryg01/klassi-js#readme\n'
+  );
 });
 
 let settings = {
-  projectRoot:program.context,
-  reportName:program.reportName,
-  browserName:program.browser,
-  disableReport:program.disableReport,
+  projectRoot: program.context,
+  reportName: program.reportName,
+  browserName: program.browser,
+  disableReport: program.disableReport,
   updateBaselineImage: program.updateBaselineImage,
-  defaultTimeout:(300000 * 1000), // 5 mins
-  remoteService:program.remoteService
+  defaultTimeout: '300000 * 1000', // 5 mins
+  remoteService: program.remoteService
 };
 
-if (program.remoteService && program.extraSettings){
-  
+if (program.remoteService && program.extraSettings) {
   let additionalSettings = parseRemoteArguments(program.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-  
   /* this approach supports a single string defining both the target config and tags
     e.g. 'win10-chrome/@tag1,@tag2'
    */
-  if (additionalSettings.tags){
-    
-    if (program.tags){
-      throw new Error("Cannot sent two types of tags - either use -x or -t");
+  if (additionalSettings.tags) {
+    if (program.tags) {
+      throw new Error('Cannot sent two types of tags - either use -x or -t');
     }
     // TODO: test this on multiple tags
     program.tags = additionalSettings.tags;
   }
 }
 
-function getProjectPath(objectName){
-  return path.resolve(settings.projectRoot+program[objectName]);
+function getProjectPath(objectName) {
+  return path.resolve(settings.projectRoot + program[objectName]);
 }
 
 let paths = {
-  pageObjects:getProjectPath("pageObjects"),
-  reports:getProjectPath("reports"),
-  featuresPath:getProjectPath("featuresPath"),
-  sharedObjects:program.sharedObjects.map(function(item){
-    return path.resolve(settings.projectRoot+item);
+  pageObjects: getProjectPath('pageObjects'),
+  reports: getProjectPath('reports'),
+  featuresPath: getProjectPath('featuresPath'),
+  sharedObjects: program.sharedObjects.map(function(item) {
+    return path.resolve(settings.projectRoot + item);
   })
 };
 
@@ -176,11 +226,21 @@ process.argv.splice(2, 100);
 
 /** specify the feature files folder (this must be the first argument for Cucumber)
  */
-process.argv.push( paths.featuresPath );
+process.argv.push(paths.featuresPath);
 
 /** add switch to tell cucumber to produce json report files
  */
-process.argv.push('-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName+'-' + date +'.json'));
+process.argv.push(
+  '-f',
+  'node_modules/cucumber-pretty',
+  '-f',
+  'json:' +
+    path.resolve(
+      __dirname,
+      paths.reports,
+      settings.reportName + '-' + date + '.json'
+    )
+);
 
 /** add cucumber world as first required script (this sets up the globals)
  */
@@ -206,13 +266,16 @@ process.argv.push('-S');
  */
 global.cucumber = cucumber;
 
-let klassiCli = new (require('cucumber').Cli)({argv: process.argv, cwd: process.cwd(), stdout: process.stdout});
+let klassiCli = new (require('cucumber').Cli )({
+  argv: process.argv,
+  cwd: process.cwd(),
+  stdout: process.stdout
+});
 
-return new Promise(async function (resolve, reject) {
-  try{
-    klassiCli.run(function (success) {
+new Promise(async function(resolve, reject) {
+  try {
+    klassiCli.run(function(success) {
       resolve = success ? 0 : 1;
-
       function exitNow() {
         process.exit(resolve);
       }
@@ -224,8 +287,8 @@ return new Promise(async function (resolve, reject) {
          */
         process.stdout.on('drain', exitNow);
       }
-    })
-  }catch (err) {
+    });
+  } catch (err) {
     console.log('cucumber integration has failed ' + err.message);
     await reject(err);
     throw err;
