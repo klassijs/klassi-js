@@ -31,7 +31,6 @@ references:
     restore_cache:
       keys:
         - v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
-#        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
@@ -61,9 +60,6 @@ jobs:
           key:  v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
               - .
-#          key: dependency-cache-{{ checksum "yarn.lock" }}
-#          paths:
-#            - node_modules
 
   install_dependencies:
     <<: *container_config
@@ -85,12 +81,7 @@ jobs:
             - "~/.cache/yarn"
             - node_modules
 
-#      - save_cache:
-#          key: dependency-cache-{{ checksum "yarn.lock" }}
-#          paths:
-#            - node_modules
-
-  integration_test_build:
+  integration_test_build: &integration_test_build
     <<: *container_config
     steps:
       - *restore_repo
@@ -127,6 +118,11 @@ jobs:
 
       - store_test_results:
           path: ./test-results
+
+  integration_test_chrome:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'chrome' }
+
 
 #    # Integration test base configuration
 #    # Integration test base configuration
@@ -166,10 +162,6 @@ jobs:
 #        - store_test_results:
 #            path: /tmp/test-results
 #
-#    integration_test_chrome:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'chrome' }
-#
 #    integration_test_iexplorer:
 #      <<: *integration_test_base
 #      environment: { BROWSER_NAME: 'iexplorer' }
@@ -199,7 +191,7 @@ jobs:
 #      steps:
 #        - run: "echo 'FINISHED'"
 
-  acceptance_test_build:
+  acceptance_test_build: &acceptance_test_build
     <<: *container_config
     steps:
       - *restore_repo
@@ -240,6 +232,11 @@ jobs:
 
       - store_test_results:
           path: ./test-results
+
+  acceptance_test_chrome:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'chrome' }
+
 
 #  # Acceptance test base configuration
 #  # Acceptance test base configuration
@@ -401,15 +398,15 @@ workflows:
                 - develop
                 - master
 
-#      - integration_test_chrome:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - acceptance_test_chrome:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
+      - integration_test_chrome:
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+
+      - acceptance_test_chrome:
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
 
 
 
