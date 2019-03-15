@@ -81,6 +81,8 @@ jobs:
             - "~/.cache/yarn"
             - node_modules
 
+  # Integration test build configuration
+  # Integration test build configuration
   integration_test_build: &integration_test_build
     <<: *container_config
     steps:
@@ -122,6 +124,36 @@ jobs:
   integration_test_chrome:
     <<: *integration_test_build
     environment: { BROWSER_NAME: 'chrome' }
+
+  integration_test_edge:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'edge' }
+
+  integration_test_firefox:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'firefox' }
+
+  integration_test_iexplorer:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'iexplorer' }
+
+  integration_test_macChrome:
+      <<: *integration_test_build
+      environment: { BROWSER_NAME: 'macChrome' }
+
+  integration_test_safari:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'safari' }
+
+  integration_test_tabletGalaxy:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'tabletGalaxy' }
+
+  integration_test_tabletiPad:
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'tabletiPad' }
+
+
 
 
 #    # Integration test base configuration
@@ -191,6 +223,8 @@ jobs:
 #      steps:
 #        - run: "echo 'FINISHED'"
 
+  # Acceptance test build configuration
+  # Acceptance test build configuration
   acceptance_test_build: &acceptance_test_build
     <<: *container_config
     steps:
@@ -236,6 +270,40 @@ jobs:
   acceptance_test_chrome:
     <<: *acceptance_test_build
     environment: { BROWSER_NAME: 'chrome' }
+
+  acceptance_test_edge:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'edge' }
+
+  acceptance_test_firefox:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'firefox' }
+
+  acceptance_test_iexplorer:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'iexplorer' }
+
+  acceptance_test_macChrome:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'macChrome' }
+
+  acceptance_test_safari:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'safari' }
+
+  acceptance_test_tabletGalaxy:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'tabletGalaxy' }
+
+  acceptance_test_tabletiPad:
+    <<: *acceptance_test_build
+    environment: { BROWSER_NAME: 'tabletiPad' }
+
+
+#    acceptance_test_build:
+#      <<: *container_config
+#      steps:
+#        - run: "echo 'FINISHED'"
 
 
 #  # Acceptance test base configuration
@@ -403,10 +471,62 @@ workflows:
             - integration_test_build
             - run_basic_integration_tests
 
+      - integration_test_edge:
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+
       - acceptance_test_chrome:
           requires:
             - acceptance_test_build
             - run_basic_acceptance_tests
+
+      - acceptance_test_edge:
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
+
+      - run_all_integration_tests:
+          type: approval
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+
+      - run_all_acceptance_tests:
+          type: approval
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+
+      - integration_test_firefox:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_iexplorer:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - acceptance_test_firefox:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_iexplorer:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
 
 
