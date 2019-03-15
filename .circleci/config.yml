@@ -82,7 +82,6 @@ jobs:
             - node_modules
 
   # Integration test build configuration
-  # Integration test build configuration
   integration_test_build: &integration_test_build
     <<: *container_config
     steps:
@@ -177,76 +176,6 @@ jobs:
     <<: *integration_test_build
     environment: { BROWSER_NAME: 'tabletiPad' }
 
-
-
-
-#    # Integration test base configuration
-#    # Integration test base configuration
-#    integration_test_base: &integration_test_base
-#      <<: *container_config
-#      steps:
-#        - *restore_repo
-#        - *restore_yarn_dependencies
-#        - *restore_acceptance_builds
-#
-#        - run:
-#            name: Set BrowserStack Local Identifier
-#            command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-#
-#        - run:
-#            name: Start BrowserStack Local
-#            command: ./scripts/ci/browserstack-local.sh start
-#            background: true
-#
-#        - run:
-#            name: Check BrowserStack Local running
-#            command: sleep 5;./scripts/ci/browserstack-local.sh check
-#
-#        - run:
-#            name: Nightwatch Tests
-#            command: |
-#              ./node_modules/.bin/nightwatch \
-#                -c config/nw-browserstack.conf.js \
-#                -t tests/integration/marking.js \
-#                -e $BROWSER_NAME
-#            environment:
-#              TEST_REPORT_PATH: /tmp/test-results
-#
-#        - store_artifacts:
-#            path: artifacts
-#
-#        - store_test_results:
-#            path: /tmp/test-results
-#
-#    integration_test_iexplorer:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'iexplorer' }
-#
-#    integration_test_edge:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'edge' }
-#
-#    integration_test_firefox:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'firefox' }
-#
-#    integration_test_safari:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'safari' }
-#
-#    integration_test_tabletiPad:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'tabletiPad' }
-#
-#    integration_test_tabletGalaxy:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'tabletGalaxy' }
-#
-#    integration_test_build:
-#      <<: *container_config
-#      steps:
-#        - run: "echo 'FINISHED'"
-
   # Acceptance test build configuration
   # Acceptance test build configuration
   acceptance_test_build: &acceptance_test_build
@@ -259,14 +188,14 @@ jobs:
           name: Create Test-Result Directory
           command: mkdir ./test-results
 
-#      - run:
-#          name: Download Selenium
-#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-#
-#      - run:
-#          name: Start Selenium Server
-#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-#          background: true
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+
+      - run:
+          name: Start Selenium Server
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          background: true
 
       - run:
           name: Install Dependencies
@@ -277,18 +206,18 @@ jobs:
           paths:
             - node_modules
 
-      - run:
-          name: Set BrowserStack Local Identifier
-          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-
-      - run:
-          name: Start BrowserStack Local
-          command: ./scripts/ci/browserstack-local.sh start
-          background: true
-
-      - run:
-          name: Check BrowserStack Local running
-          command: sleep 5;./scripts/ci/browserstack-local.sh check
+#      - run:
+#          name: Set BrowserStack Local Identifier
+#          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+#
+#      - run:
+#          name: Start BrowserStack Local
+#          command: ./scripts/ci/browserstack-local.sh start
+#          background: true
+#
+#      - run:
+#          name: Check BrowserStack Local running
+#          command: sleep 5;./scripts/ci/browserstack-local.sh check
 
 #      - run:
 #          name: Acceptance Test Run
@@ -348,127 +277,6 @@ jobs:
 #      <<: *container_config
 #      steps:
 #        - run: "echo 'FINISHED'"
-
-
-#  # Acceptance test base configuration
-#  # Acceptance test base configuration
-#  acceptance_test_base: &acceptance_test_base
-#    <<: *container_config
-#    steps:
-#      - *restore_repo
-#      - *restore_yarn_dependencies
-#
-#      - run:
-#          name: Avoid hosts unknown for github
-#          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-#
-#      - run:
-#          name: Removed old Player code
-#          command: rm -rf ./player
-#
-#      - run:
-#          name: Clone Player code
-#          command: |
-#            echo "Attempt clone of Player branch develop"
-#
-#            if [ `git clone --depth 1 git@github.com:OUP/mymaths-player.git --branch develop ./player` $? -eq 128 ];
-#            then
-#                    echo "Using Player branch develop"
-#                    git clone --depth 1 git@github.com:OUP/mymaths-player.git ./player
-#            fi
-#            exit 0;
-#
-#      - run:
-#          name: Install Player dependencies
-#          command: cd ./player;yarn install
-#
-#      - run:
-#          name: Build Player for Testing
-#          command: cd ./player;yarn build-test
-#
-#      - store_artifacts:
-#          path: ./player/build
-#
-#      - save_cache:
-#          key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
-#          paths:
-#            - ./player/build
-#
-#      - run:
-#          name: Start Player for Testing
-#          command: |
-#            cd ./player/build;yarn serve-build
-#            echo `pwd`
-#          background: true
-#
-#      - run:
-#          name: Check HTTP Server running
-#          command: |
-#            sleep 5
-#            curl --retry 10 --retry-delay 5 -v http://127.0.0.1:8080/
-#
-#      - run:
-#          name: Set BrowserStack Local Identifier
-#          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-#
-#      - run:
-#          name: Start BrowserStack Local
-#          command: ./scripts/ci/browserstack-local.sh start
-#          background: true
-#
-#      - run:
-#          name: Check BrowserStack Local running
-#          command: sleep 5;./scripts/ci/browserstack-local.sh check
-#
-#      - run:
-#          name: Nightwatch Tests
-#          command: |
-#            ./node_modules/.bin/nightwatch \
-#              -c ./config/nw-browserstack.conf.js \
-#              -e $BROWSER_NAME
-#
-#          environment:
-#            TEST_REPORT_PATH: /tmp/test-results
-#
-#      - store_artifacts:
-#          path: artifacts
-#
-#      - store_test_results:
-#          path: /tmp/test-results
-#
-#  acceptance_test_chrome:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'chrome' }
-#
-#  acceptance_test_iexplorer:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'iexplorer' }
-#
-#  acceptance_test_edge:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'edge' }
-#
-#  acceptance_test_firefox:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'firefox' }
-#
-#  acceptance_test_safari:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'safari' }
-#
-#  acceptance_test_tabletiPad:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'tabletiPad' }
-#
-#  acceptance_test_tabletGalaxy:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'tabletGalaxy' }
-#
-#  acceptance_test_build:
-#    <<: *container_config
-#    steps:
-#      - run: "echo 'FINISHED'"
-
 
 workflows:
   version: 2
@@ -611,3 +419,4 @@ workflows:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests
+
