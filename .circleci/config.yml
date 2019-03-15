@@ -94,14 +94,14 @@ jobs:
           name: Create Test-Result Directory
           command: mkdir ./test-results
 
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-          background: true
+#      - run:
+#          name: Download Selenium
+#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+#
+#      - run:
+#          name: Start Selenium Server
+#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+#          background: true
 
       - run:
           name: Install Dependencies
@@ -111,6 +111,20 @@ jobs:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
+
+      - run:
+          name: Set BrowserStack Local Identifier
+          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+
+      - run:
+          name: Start BrowserStack Local
+          command: ./scripts/ci/browserstack-local.sh start
+          background: true
+
+      - run:
+          name: Check BrowserStack Local running
+          command: sleep 5;./scripts/ci/browserstack-local.sh check
+
       - run:
           name: Integration Test Run
           command: yarn run dev
@@ -235,14 +249,14 @@ jobs:
           name: Create Test-Result Directory
           command: mkdir ./test-results
 
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-          background: true
+#      - run:
+#          name: Download Selenium
+#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+#
+#      - run:
+#          name: Start Selenium Server
+#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+#          background: true
 
       - run:
           name: Install Dependencies
@@ -256,6 +270,16 @@ jobs:
       - run:
           name: Set BrowserStack Local Identifier
           command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+
+      - run:
+          name: Start BrowserStack Local
+          command: ./scripts/ci/browserstack-local.sh start
+          background: true
+
+      - run:
+          name: Check BrowserStack Local running
+          command: sleep 5;./scripts/ci/browserstack-local.sh check
+
 
       - run:
           name: Acceptance Test Run
@@ -517,6 +541,26 @@ workflows:
           requires:
             - integration_test_build
             - run_all_integration_tests
+            -
+      - integration_test_macChrome:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_safari:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+            -
+      - integration_test_tabletGalaxy:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_tabletiPad:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
 
       - acceptance_test_firefox:
           requires:
@@ -527,141 +571,23 @@ workflows:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests
+            -
+      - acceptance_test_macChrome:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
+      - acceptance_test_safari:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+            -
+      - acceptance_test_tabletGalaxy:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
-
-#workflows:
-#  version: 2
-#  # the below default_Test runs whenever you commit any code into klassi repo.
-#  # Ideally, when you commit code into klassi of any kind into the repo.
-#  default_test:
-#    jobs:
-#      - checkout_code
-#
-#      - install_dependencies:
-#          requires:
-#            - checkout_code
-#
-#      - integration_test_build:
-#          requires:
-#            - checkout_code
-#            - install_dependencies
-#
-#      - run_basic_integration_tests:
-#          type: approval
-#          requires:
-#            - integration_test_build
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - integration_test_chrome:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - integration_test_iexplorer:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - run_all_integration_tests:
-#          type: approval
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - integration_test_edge:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_firefox:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_safari:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_tabletiPad:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_tabletGalaxy:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - acceptance_test_build:
-#          requires:
-#            - checkout_code
-#            - install_dependencies
-#
-#      - run_basic_acceptance_tests:
-#          type: approval
-#          requires:
-#            - acceptance_test_build
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - acceptance_test_chrome:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
-#
-#      - acceptance_test_iexplorer:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
-#
-#      - run_all_acceptance_tests:
-#          type: approval
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - acceptance_test_edge:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_firefox:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_safari:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_tabletiPad:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_tabletGalaxy:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-
-
+      - acceptance_test_tabletiPad:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
