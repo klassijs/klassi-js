@@ -36,6 +36,7 @@ references:
 
   yarn_cache_key: &yarn_cache_key
     v3-dependency-yarn-{{ checksum "yarn.lock" }}
+
   yarn_backup_cache_key: &yarn_backup_cache_key
     v3-dependency-yarn
 
@@ -93,14 +94,14 @@ jobs:
           name: Create Test-Result Directory
           command: mkdir ./test-results
 
-#      - run:
-#          name: Download Selenium
-#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-#
-#      - run:
-#          name: Start Selenium Server
-#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-#          background: true
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+
+      - run:
+          name: Start Selenium Server
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          background: true
 
       - run:
           name: Install Dependencies
@@ -111,22 +112,22 @@ jobs:
           paths:
             - node_modules
 
-      - run:
-          name: Set BrowserStack Local Identifier
-          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-
-      - run:
-          name: Start BrowserStack Local
-          command: ./scripts/ci/browserstack-local.sh start
-          background: true
-
-      - run:
-          name: Check BrowserStack Local running
-          command: sleep 5;./scripts/ci/browserstack-local.sh check
-
 #      - run:
-#          name: Integration Test Run
-#          command: yarn run dev
+#          name: Set BrowserStack Local Identifier
+#          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+#
+#      - run:
+#          name: Start BrowserStack Local
+#          command: ./scripts/ci/browserstack-local.sh start
+#          background: true
+#
+#      - run:
+#          name: Check BrowserStack Local running
+#          command: sleep 5;./scripts/ci/browserstack-local.sh check
+
+      - run:
+          name: Integration Test Run
+          command: yarn run dev
 
       - run:
           name: Integration Tests Run
@@ -206,10 +207,10 @@ jobs:
           paths:
             - node_modules
 
-#      - run:
-#          name: Set BrowserStack Local Identifier
-#          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-#
+      - run:
+          name: Set BrowserStack Local Identifier
+          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+
 #      - run:
 #          name: Start BrowserStack Local
 #          command: ./scripts/ci/browserstack-local.sh start
@@ -218,11 +219,10 @@ jobs:
 #      - run:
 #          name: Check BrowserStack Local running
 #          command: sleep 5;./scripts/ci/browserstack-local.sh check
-
+#
 #      - run:
 #          name: Acceptance Test Run
 #          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
-
 
       - run:
           name: Acceptance Tests Run
@@ -280,6 +280,8 @@ jobs:
 
 workflows:
   version: 2
+  # the below default_Test runs whenever you commit any code into mymaths-nightwatch repo.
+  # Ideally, when you commit code into mymaths-player, it should call nightwatch and
   build_and_test:
     jobs:
       - checkout_code
