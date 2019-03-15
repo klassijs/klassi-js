@@ -138,8 +138,8 @@ jobs:
     environment: { BROWSER_NAME: 'iexplorer' }
 
   integration_test_macChrome:
-      <<: *integration_test_build
-      environment: { BROWSER_NAME: 'macChrome' }
+    <<: *integration_test_build
+    environment: { BROWSER_NAME: 'macChrome' }
 
   integration_test_safari:
     <<: *integration_test_build
@@ -152,8 +152,6 @@ jobs:
   integration_test_tabletiPad:
     <<: *integration_test_build
     environment: { BROWSER_NAME: 'tabletiPad' }
-
-
 
 
 #    # Integration test base configuration
@@ -527,13 +525,8 @@ workflows:
           requires:
             - integration_test_build
             - run_all_integration_tests
-            -
-      - integration_test_tabletGalaxy:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
 
-      - integration_test_tabletiPad:
+      - integration_test_iexplorer:
           requires:
             - integration_test_build
             - run_all_integration_tests
