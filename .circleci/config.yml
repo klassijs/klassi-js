@@ -125,9 +125,19 @@ jobs:
           name: Check BrowserStack Local running
           command: sleep 5;./scripts/ci/browserstack-local.sh check
 
+#      - run:
+#          name: Integration Test Run
+#          command: yarn run dev
+
       - run:
-          name: Integration Test Run
-          command: yarn run dev
+          name: Integration Tests Run
+          command: |
+            node runtime/remotes/browserstackLocal \
+              node index.js -dw browserstack -x \
+              -t @api \
+              -e $BROWSER_NAME
+          environment:
+            TEST_REPORT_PATH: ./test-results
 
       - store_artifacts:
           path: artifacts
@@ -280,10 +290,20 @@ jobs:
           name: Check BrowserStack Local running
           command: sleep 5;./scripts/ci/browserstack-local.sh check
 
+#      - run:
+#          name: Acceptance Test Run
+#          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
+
 
       - run:
-          name: Acceptance Test Run
-          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
+          name: Acceptance Tests Run
+          command: |
+            node runtime/remotes/browserstackLocal \
+              node index.js -dw browserstack -x \
+              -t @search \
+              -e $BROWSER_NAME
+          environment:
+            TEST_REPORT_PATH: ./test-results
 
       - store_artifacts:
           path: artifacts
