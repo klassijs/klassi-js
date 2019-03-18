@@ -108,6 +108,16 @@ jobs:
           name: Check BrowserStack Local running
           command: sleep 5;./scripts/ci/browserstack-local.sh check
 
+      - run:
+          name: Integration Test Run
+          command: yarn run dev
+#          command: |
+#            ./node_modules/.bin/nightwatch \
+#              -c config/nw-browserstack.conf.js \
+#              -t tests/integration/marking.js \
+#              -e $BROWSER_NAME
+          environment:
+            TEST_REPORT_PATH: ./test-results
 
 #      - run:
 #          name: Download Selenium
@@ -118,17 +128,17 @@ jobs:
 #          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
 #          background: true
 
-      - run:
-          name: Install Dependencies
-          command: yarn install
-
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules
-      - run:
-          name: Integration Test Run
-          command: yarn run dev
+#      - run:
+#          name: Install Dependencies
+#          command: yarn install
+#
+#      - save_cache:
+#          key: dependency-cache-{{ checksum "yarn.lock" }}
+#          paths:
+#            - node_modules
+#      - run:
+#          name: Integration Test Run
+#          command: yarn run dev
 
       - store_artifacts:
           path: artifacts
@@ -139,6 +149,30 @@ jobs:
   integration_test_chrome:
     <<: *integration_test_base
     environment: { BROWSER_NAME: 'chrome' }
+
+  integration_test_iexplorer:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'iexplorer' }
+
+  integration_test_edge:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'edge' }
+
+  integration_test_firefox:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'firefox' }
+
+  integration_test_safari:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'safari' }
+
+  integration_test_tabletiPad:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'tabletiPad' }
+
+  integration_test_tabletGalaxy:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'tabletGalaxy' }
 
   integration_test_build:
     <<: *container_config
@@ -265,6 +299,30 @@ jobs:
     <<: *acceptance_test_base
     environment: { BROWSER_NAME: 'chrome' }
 
+  acceptance_test_iexplorer:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'iexplorer' }
+
+  acceptance_test_edge:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'edge' }
+
+  acceptance_test_firefox:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'firefox' }
+
+  acceptance_test_safari:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'safari' }
+
+  acceptance_test_tabletiPad:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'tabletiPad' }
+
+  acceptance_test_tabletGalaxy:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'tabletGalaxy' }
+
   acceptance_test_build:
     <<: *container_config
     steps:
@@ -373,25 +431,10 @@ workflows:
             - checkout_code
             - install_dependencies
 
-      - acceptance_test_build:
-          requires:
-            - checkout_code
-            - install_dependencies
-
       - run_basic_integration_tests:
           type: approval
           requires:
             - integration_test_build
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
-
-      - run_basic_acceptance_tests:
-          type: approval
-          requires:
-            - acceptance_test_build
           filters:
             branches:
               ignore:
@@ -403,10 +446,67 @@ workflows:
             - integration_test_build
             - run_basic_integration_tests
 
+      - integration_test_iexplorer:
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+
+      - run_all_integration_tests:
+          type: approval
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+
+      - integration_test_edge:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - acceptance_test_build:
+          requires:
+            - checkout_code
+            - install_dependencies
+
+      - run_basic_acceptance_tests:
+          type: approval
+          requires:
+            - acceptance_test_build
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+
       - acceptance_test_chrome:
           requires:
             - acceptance_test_build
             - run_basic_acceptance_tests
+
+      - acceptance_test_iexplorer:
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
+
+      - run_all_acceptance_tests:
+          type: approval
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+
+      - acceptance_test_edge:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
 
 
