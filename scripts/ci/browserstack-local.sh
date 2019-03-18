@@ -26,7 +26,7 @@ case "$1" in
 
     $BROWSERSTACK_LOCAL_PROGRAM \
       --daemon start \
-      --key ${BROWSERSTACK_ACCESS_KEY} \
+      --key JhxyJ1qdNhAx75KuwpQc \
       --local-identifier ${BROWSERSTACK_LOCAL_IDENTIFIER} \
       --force \
       --only-automate \
