@@ -25,13 +25,13 @@ references:
   container_config: &container_config
     working_directory: ~/klassi-js
     docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
+#      - image: circleci/openjdk:8u181-jdk-node-browsers
+      - image: circleci/openjdk:11.0.2-jdk-node-browsers
 
   restore_repo: &restore_repo
     restore_cache:
       keys:
         - v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
-        #        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
@@ -61,9 +61,6 @@ jobs:
           key:  v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - .
-  #          key: dependency-cache-{{ checksum "yarn.lock" }}
-  #          paths:
-  #            - node_modules
 
   install_dependencies:
     <<: *container_config
@@ -84,11 +81,6 @@ jobs:
           paths:
             - "~/.cache/yarn"
             - node_modules
-
-  #      - save_cache:
-  #          key: dependency-cache-{{ checksum "yarn.lock" }}
-  #          paths:
-  #            - node_modules
 
   integration_test_build:
     <<: *container_config
