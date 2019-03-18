@@ -140,6 +140,10 @@ jobs:
     <<: *integration_test_base
     environment: { BROWSER_NAME: 'chrome' }
 
+  integration_test_build:
+    <<: *container_config
+    steps:
+      - run: "echo 'FINISHED'"
 
   #    # Integration test base configuration
   #    # Integration test base configuration
@@ -260,6 +264,11 @@ jobs:
   acceptance_test_chrome:
     <<: *acceptance_test_base
     environment: { BROWSER_NAME: 'chrome' }
+
+  acceptance_test_build:
+    <<: *container_config
+    steps:
+      - run: "echo 'FINISHED'"
 
 #  # Acceptance test base configuration
 #  # Acceptance test base configuration
