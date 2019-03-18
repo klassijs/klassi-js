@@ -260,38 +260,6 @@ jobs:
 #          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 #
 #      - run:
-#          name: Removed old Player code
-#          command: rm -rf ./player
-#
-#      - run:
-#          name: Clone Player code
-#          command: |
-#            echo "Attempt clone of Player branch develop"
-#
-#            if [ `git clone --depth 1 git@github.com:OUP/mymaths-player.git --branch develop ./player` $? -eq 128 ];
-#            then
-#                    echo "Using Player branch develop"
-#                    git clone --depth 1 git@github.com:OUP/mymaths-player.git ./player
-#            fi
-#            exit 0;
-#
-#      - run:
-#          name: Install Player dependencies
-#          command: cd ./player;yarn install
-#
-#      - run:
-#          name: Build Player for Testing
-#          command: cd ./player;yarn build-test
-#
-#      - store_artifacts:
-#          path: ./player/build
-#
-#      - save_cache:
-#          key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
-#          paths:
-#            - ./player/build
-#
-#      - run:
 #          name: Start Player for Testing
 #          command: |
 #            cd ./player/build;yarn serve-build
@@ -407,15 +375,15 @@ workflows:
                 - develop
                 - master
 
-#      - integration_test_chrome:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - acceptance_test_chrome:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
+      - integration_test_chrome:
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+
+      - acceptance_test_chrome:
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
 
 
 
