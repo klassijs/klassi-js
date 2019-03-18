@@ -82,7 +82,9 @@ jobs:
             - "~/.cache/yarn"
             - node_modules
 
-  integration_test_build:
+  # Integration test base configuration
+  # Integration test base configuration
+  integration_test_base: &integration_test_base
     <<: *container_config
     steps:
       - *restore_repo
@@ -133,6 +135,11 @@ jobs:
 
       - store_test_results:
           path: ./test-results
+
+  integration_test_chrome:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'chrome' }
+
 
   #    # Integration test base configuration
   #    # Integration test base configuration
@@ -205,7 +212,10 @@ jobs:
   #      steps:
   #        - run: "echo 'FINISHED'"
 
-  acceptance_test_build:
+
+  # Acceptance test base configuration
+  # Acceptance test base configuration
+  acceptance_test_base: &acceptance_test_base
     <<: *container_config
     steps:
       - *restore_repo
@@ -246,6 +256,10 @@ jobs:
 
       - store_test_results:
           path: ./test-results
+
+  acceptance_test_chrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'chrome' }
 
 #  # Acceptance test base configuration
 #  # Acceptance test base configuration
