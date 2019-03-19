@@ -20,6 +20,7 @@ module.exports = {
     let selector = await driver.$(shared.searchData.elem.searchInput);
     await selector.setValue(searchWord);
     await verify.saveScreenshot(`${image}_1-1.png`);
+    
     let title = await driver.getTitle();
     log.info('the title being returned:- ' + title);
     let searchBtn = await driver.$(shared.searchData.elem.searchBtn);
@@ -30,12 +31,15 @@ module.exports = {
     await image;
   },
   searchResult: async function() {
-    // image = searchWord;
+  
     /** return the promise of an element to the following then */
     let elem = await driver.$(shared.searchData.elem.resultLink);
-    await verify.saveScreenshot(`${image}_1-2.png`);
     await driver.pause(DELAY_1_SECOND);
     /** verify this element has children */
+
+    // Visual regression with dynamic elements disabled as ads and search result and region might change
+    await verify.saveScreenshot(`${image}_1-2.png`, ['.js-sidebar-ads', '.results--ad', '.result--ad', '.results', '.dropdown--region .dropdown__button']);
+
     log.info(elem); // prints to a log
     expect(elem.length).to.not.equal(0);
     await helpers.compareImage(`${image}_1-2.png`);

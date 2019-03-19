@@ -41,9 +41,13 @@ module.exports = {
    * @method saveScreenshot
    * @param {string} filename The complete path to the file name where the screenshot should be saved.
    * @param filename
+   * @param {string|array} elementsToHide Selectors of elements that should be hidden in the screenshot, like a clock
    * @returns {Promise<void>}
    */
-  saveScreenshot: async function(filename) {
+  saveScreenshot: async function(filename, elementsToHide) {
+    if (elementsToHide) {
+      await helpers.hideElements(elementsToHide);
+    }
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
     await driver.saveScreenshot(resultPathPositive, err => {
@@ -51,6 +55,9 @@ module.exports = {
         log.error(err.message);
       }
     });
+    if (elementsToHide) {
+      await helpers.showElements(elementsToHide);
+    }
     log.info(`\tScreenshot saved to: ${resultPathPositive}`);
   },
   /**
