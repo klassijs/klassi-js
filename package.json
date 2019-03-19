@@ -62,9 +62,8 @@
   "devDependencies": {
     "chromedriver": "^2.46.0",
     "eslint": "^5.15.1",
-    "eslint-config-prettier": "^4.1.0",
-    "eslint-plugin-prettier": "^3.0.1",
     "geckodriver": "^1.16.0",
+    "multiple-cucumber-html-reporter": "^1.11.6",
     "webdriverio": "^5.6.6"
   }
 }

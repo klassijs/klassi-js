@@ -63,7 +63,38 @@ module.exports = {
     await verify.value();
     await verify.pass();
   },
-    
+  
+  /**
+   * hideElemements hide elements
+   * @param  string  selectors   css selector or array of css selectors
+   */
+  hideElements: async function(selectors) {
+    // if arg is no array make it one
+    selectors = typeof selectors == 'string' ? [selectors] : selectors;
+    for (let i = 0; i < selectors.length; i++) {
+      const script = `document.querySelectorAll('${
+        selectors[i]
+      }').forEach(element => element.style.opacity = '0')`;
+      
+      await driver.execute(script);
+    }
+  },
+  /**
+   * showElemements show elements
+   * @param  string  selectors   css selector or array of css selectors
+   */
+  showElements: async function(selectors) {
+    // if arg is no array make it one
+    selectors = typeof selectors == 'string' ? [selectors] : selectors;
+    for (let i = 0; i < selectors.length; i++) {
+      const script = `document.querySelectorAll('${
+        selectors[i]
+      }').forEach(element => element.style.opacity = '1')`;
+      
+      await driver.execute(script);
+    }
+  },
+  
   /**
      * writeTextFile write data to file on hard drive
      * @param  string  filepath   Path to file on hard drive
@@ -127,7 +158,7 @@ module.exports = {
     /**
        * grab the matching elements
        */
-    return driver.elements(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
+    return driver.$$(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
   },
   
   /**
@@ -154,6 +185,7 @@ module.exports = {
   generateRandomInteger: function (range) {
     return Math.floor(Math.random() * Math.floor(range));
   },
+  
   /**
      * This method is useful for dropdown boxes as some of them have default "Please select" option on index 0
      *
@@ -233,7 +265,6 @@ module.exports = {
     if (mm < 10) {
       mm = '0' + mm;
     }
-      
     if (hours < 10){
       hours = '0' + hours;
     }
@@ -265,12 +296,16 @@ module.exports = {
      * @param selector
      * @returns text
      */
-  getElementText: function (selector) {
-    return driver.waitForExist(selector, DELAY_10_SECOND).pause(DELAY_3_SECOND).then(function () {
-      return driver.getText(selector).then(function (text) {
-        return text;
-      });
-    });
+  getElementText: async function (selector) {
+    await driver.$(selector).waitForExist(DELAY_10_SECOND);
+    await driver.pause(DELAY_3_SECOND);
+    let text = await driver.$(selector).getText();
+    return text;
+    // return driver.waitForExist(selector, DELAY_10_SECOND).pause(DELAY_3_SECOND).then(function () {
+    //   return driver.getText(selector).then(function (text) {
+    //     return text;
+    //   });
+    // });
   },
 
   /**
@@ -278,16 +313,21 @@ module.exports = {
      * @param selector
      * @returns {String|String[]|*|string}
      */
-  getLink: function (selector) {
-    return driver.getAttribute(selector, 'href');
+  getLink: async function (selector) {
+    await driver.$(selector).getAttribute('href');
+    // return driver.getAttribute(selector, 'href');
   },
   
   waitAndClick: async function (selector) {
     try {
-      await driver.waitForVisible(selector, DELAY_3_SECOND);
-      await driver.waitForEnabled(selector, DELAY_1_SECOND);
-      await driver.click(selector);
+      await driver.$(selector).waitForDisplayed(DELAY_3_SECOND);
+      await driver.$(selector).waitForEnabled(DELAY_1_SECOND);
+      await driver.$(selector).click();
       await driver.pause(DELAY_500_MILLISECOND);
+      // await driver.waitForVisible(selector, DELAY_3_SECOND);
+      // await driver.waitForEnabled(selector, DELAY_1_SECOND);
+      // await driver.click(selector);
+      // await driver.pause(DELAY_500_MILLISECOND);
     }
     catch (err) {
       log.error(err.message);
@@ -297,10 +337,14 @@ module.exports = {
   
   waitAndSetValue: async function (selector, value) {
     try{
-      await driver.waitForEnabled(selector, DELAY_3_SECOND);
-      await driver.click(selector);
+      await driver.$(selector).waitForEnabled(DELAY_3_SECOND);
+      await driver.$(selector).click();
       await driver.pause(DELAY_500_MILLISECOND);
       await driver.keys(value);
+      // await driver.waitForEnabled(selector, DELAY_3_SECOND);
+      // await driver.click(selector);
+      // await driver.pause(DELAY_500_MILLISECOND);
+      // await driver.keys(value);
     }
     catch (err) {
       log.error(err.message);
@@ -372,11 +416,15 @@ module.exports = {
      * @param selector
      * @returns {Promise.<TResult>}
      */
-  getElementFromFrame: function (frame_name, selector) {
-    let frame = driver.element(frame_name);
-    driver.frame(frame.value);
-    driver.getHTML(selector);
+  getElementFromFrame: async function (frame_name, selector) {
+    let frame = await driver.$(frame_name);
+    await driver.switchToFrame(frame.value);
+    await driver.$(selector).getHTML();
     return driver;
+    // let frame = driver.element(frame_name);
+    // driver.frame(frame.value);
+    // driver.getHTML(selector);
+    // return driver;
   },
 
   /**
@@ -385,11 +433,16 @@ module.exports = {
      * @param expectedText
      */
   assertText: async function (selector, expected) {
-    await driver.waitForEnabled(selector, DELAY_5_SECOND);
-    let actual = await driver.getText(selector);
+    await driver.$(selector).waitForEnabled(DELAY_5_SECOND);
+    let actual = await driver.$(selector).getText();
     actual = actual.trim();
     assert.equal(actual, expected);
     return this;
+    // await driver.waitForEnabled(selector, DELAY_5_SECOND);
+    // let actual = await driver.getText(selector);
+    // actual = actual.trim();
+    // assert.equal(actual, expected);
+    // return this;
   },
   
   /**
@@ -398,7 +451,8 @@ module.exports = {
    * @param expectedText
    */
   expectToIncludeText: async function (selector, expectedText) {
-    let actual = await driver.getText(selector);
+    // let actual = await driver.getText(selector);
+    let actual = await driver.$(selector).getText();
     expect(actual).to.include(expectedText);
     return this;
   },
@@ -469,11 +523,16 @@ module.exports = {
   
   filterItem: async function (itemToFilter) {
     try{
-      await driver.waitForExist(shared.adminData.filter.filterInput, DELAY_5_SECOND);
-      await driver.waitForEnabled(shared.adminData.filter.filterInput, DELAY_5_SECOND);
+      await driver.$(shared.adminData.filter.filterInput).waitForExist(DELAY_5_SECOND);
+      await driver.$(shared.adminData.filter.filterInput).waitForEnabled(DELAY_5_SECOND);
       await driver.pause(DELAY_500_MILLISECOND);
-      await driver.click(shared.adminData.filter.filterInput);
+      await driver.$(shared.adminData.filter.filterInput).click();
       await driver.keys(itemToFilter);
+      // await driver.waitForExist(shared.adminData.filter.filterInput, DELAY_5_SECOND);
+      // await driver.waitForEnabled(shared.adminData.filter.filterInput, DELAY_5_SECOND);
+      // await driver.pause(DELAY_500_MILLISECOND);
+      // await driver.click(shared.adminData.filter.filterInput);
+      // await driver.keys(itemToFilter);
     }
     catch (err) {
       log.error(err.message);
@@ -485,7 +544,8 @@ module.exports = {
     try{
       await helpers.filterItem(itemToFilter);
       await driver.pause(DELAY_3_SECOND);
-      await driver.click(shared.adminData.filter.filteredItem);
+      // await driver.click(shared.adminData.filter.filteredItem);
+      await driver.$(shared.adminData.filter.filteredItem).click();
       await driver.pause(DELAY_3_SECOND);
     }
     catch (err) {

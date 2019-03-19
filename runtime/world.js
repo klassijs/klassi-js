@@ -32,6 +32,7 @@ const fs = require('fs'),
   dir = require('node-dir'),
   chai = require('chai'),
   reporter = require('cucumber-html-reporter'),
+  // reporter = require('multiple-cucumber-html-reporter'),
   rp = require('request-promise'),
   program = require('commander');
 
@@ -310,6 +311,32 @@ AfterAll(function(done) {
       brandTitle: reportName + '-' + date,
       name: projectName
     };
+    
+    // let reportOptions = {
+    //   // jsonDir: './reports/',
+    //   // reportPath: './reports/',
+    //   // metadata:{
+    //   //   browser: {
+    //   //     name: 'chrome',
+    //   //     version: '60'
+    //   //   }
+    //   // }
+    //   jsonDir: path.resolve( global.paths.reports, '/'),
+    //   reportPath: path.resolve( global.paths.reports, '/'),
+    //   // reportSuiteAsScenarios: true,
+    //   // launchReport: (!global.settings.disableReport),
+    //   // ignoreBadJsonFile: true,
+    //   // metadata: {
+    //   //   'Test Started': startDateTime,
+    //   //   'Test Completion': endDateTime,
+    //   //   'Platform': process.platform,
+    //   //   'Environment': global.envConfig.envName,
+    //   //   'Browser': global.settings.remoteConfig || global.browserName,
+    //   //   'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'
+    //   // },
+    //   // brandTitle: reportName + '-' + date,
+    //   // name: projectName
+    // };
     driver.pause(DELAY_3_SECOND).then(function() {
       reporter.generate(reportOptions);
       driver.pause(DELAY_3_SECOND);
