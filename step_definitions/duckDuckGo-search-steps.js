@@ -3,20 +3,19 @@
 let duckDuckGoSearch = require('../page-objects/duckDuckGoSearch');
 let searchData = require('../shared-objects/searchData');
 
-let shared = ({searchData});
-let page = ({duckDuckGoSearch});
+let shared = { searchData };
+let page = { duckDuckGoSearch };
 
-
-Given(/^The user arrives on the duckduckgo search page$/, function() {
-  return helpers.loadPage(shared.searchData.url, 10);
+Given(/^The user arrives on the duckduckgo search page$/, async () => {
+  await helpers.loadPage(shared.searchData.url, 10);
 });
 
-When(/^they input (.*)$/, function(searchWord) {
+When(/^they input (.*)$/, async (searchWord) => {
   /** use a method on the page object which also returns a promise */
-  return page.duckDuckGoSearch.performSearch(searchWord);
+  await page.duckDuckGoSearch.performSearch(searchWord);
 });
 
-Then(/^they should see some results$/, function() {
+Then(/^they should see some results$/, async () => {
   /** return the promise of an element to the following then */
-  return page.duckDuckGoSearch.searchResult();
+  await page.duckDuckGoSearch.searchResult();
 });

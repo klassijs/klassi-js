@@ -3,7 +3,7 @@
  Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -19,48 +19,31 @@
  */
 'use strict';
 
-const webdriverio = require('webdriverio'),
-  firefox = require('geckodriver');
+const wdio = require('webdriverio');
 
-/** createUrl the web browser based on globals set in index.js
+/**
+ * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = function firefoxDriver(options) {
-
+module.exports = async function firefoxDriver(options) {
   const defaults = {
-    desiredCapabilities: {
-      browserName: 'firefox',
-      javascriptEnabled: true,
-      acceptSslCerts: true,
-      setFirefoxOptions: {
-        args: ['--headless'],
-        // 'geckodriver.firefox.bin': firefox.path,
-      },
-      'geckodriver.firefox.bin': firefox.path
+    logLevel: 'error',
+    capabilities: {
+      browserName: 'firefox'
     }
   };
 
   // Add proxy based on env var.
   const useProxy = process.env.USE_PROXY || false;
 
-  if ( useProxy ) {
-    defaults.desiredCapabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
-      // sslProxy: '',
+  if (useProxy) {
+    defaults.capabilities.proxy = {
+      httpProxy: 'http://domain.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false
     };
   }
-  
   const extendedOptions = Object.assign(defaults, options);
-  
-  let driver = new webdriverio.remote(extendedOptions).init();
-  
-  driver.then(function () {
-    /** sets the browser window size to maximum
-     */
-    driver.windowHandleMaximize();
-  });
-  
+  global.driver = await wdio.remote(extendedOptions);
   return driver;
 };

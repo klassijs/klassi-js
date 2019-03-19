@@ -1,81 +1,105 @@
+'use strict';
+
+// prettier.config.js or .prettierrc.js
 module.exports = {
-  "env": {
-    "browser": true,
-    "commonjs": true,
-    "es6": true,
-    "node": true
+  
+  env: {
+    browser: true,
+    commonjs: true,
+    es6: true,
+    node: true
   },
-  "extends": "eslint:recommended",
-  "parserOptions": {
-    "ecmaVersion": 2018,
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "sourceType": "module"
+  
+  extends: [
+    // 'eslint:recommended',
+    'prettier',
+    'plugin:prettier/recommended'
+  ],
+  
+  parserOptions: {
+    sourceType: 'module',
+    ecmaVersion: 2018,
+    ecmaFeatures: {
+      'jsx': true
+    }
   },
-  "rules": {
-    "indent": [
-      "error",
+  
+  rules: {
+    indent: [
+      'error',
       2
     ],
-    "linebreak-style": [
-      "error",
-      "unix"
+    'linebreak-style': [
+      'error',
+      'unix'
     ],
-    "quotes": [
-      "error",
-      "single"
+    quotes: [
+      'error',
+      'single'
     ],
-    "semi": [
-      "error",
-      "always"
+    semi: [
+      'error',
+      'always'
     ],
-    "no-console": [
+    'no-console': [
       0,
-      "error"
+      'error'
     ],
-    "exclude": [
-      "../node_modules",
-      "log",
-      "features",
-      "cssImages",
-      "reports",
-      "artifact"
+    exclude: [
+      '../node_modules',
+      'log',
+      'features',
+      'reports',
+      'artifact'
     ],
-    "files": [
-      "./globals.d.ts"
+    files: [
+      './globals.d.ts'
+    ],
+    'prettier/prettier': [
+      2,
+      'error',
+      {
+        singleQuote: true
+      }
     ],
   },
-  "globals": {
-    "Given": false,
-    "When": false,
-    "Then": false,
-    "helpers":false,
-    "driver":false,
-    "log": false,
-    "date": false,
-    "startDateTime": false,
-    "endDateTime": false,
-    "browserName": false,
-    "reportName": false,
-    "projectName": false,
-    "settings": false,
-    "globals": false,
-    "DELAY_500_MILLISECOND": false,
-    "SHORT_DELAY_MILLISECOND": false,
-    "MID_DELAY_MILLISECOND": false,
-    "LONG_DELAY_MILLISECOND": false,
-    "EXTRA_LONG_DELAY_MILLISECOND": false,
-    "DELAY_3_SECOND": false,
-    "DELAY_10_SECOND": false,
-    "DELAY_15_SECOND": false,
-    "DELAY_20_SECOND": false,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": false,
-    "baseUrl": "./",
-    "noEmit": true,
-    "forceConsistentCasingInFileNames": true
+  
+  globals: {
+    Given: true,
+    When: true,
+    Then: true,
+    helpers:false,
+    driver:false,
+    log: false,
+    date: false,
+    startDateTime: false,
+    endDateTime: false,
+    browserName: false,
+    reportName: false,
+    projectName: false,
+    settings: false,
+    envConfig: true,
+    request: true,
+    assert: true,
+    expect: true,
+    shared: true,
+    DELAY_100_MILLISECOND: false,
+    DELAY_200_MILLISECOND: false,
+    DELAY_300_MILLISECOND: false,
+    DELAY_500_MILLISECOND: false,
+    DELAY_1_SECOND: true,
+    DELAY_3_SECOND: true,
+    DELAY_5_SECOND: false,
+    DELAY_10_SECOND: false,
+    DELAY_15_SECOND: false,
+    DELAY_20_SECOND: false,
+    noImplicitAny: true,
+    noImplicitThis: true,
+    strictNullChecks: true,
+    strictFunctionTypes: false,
+    baseUrl: './',
+    noEmit: true,
+    forceConsistentCasingInFileNames: true
   }
+  
 };
