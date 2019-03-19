@@ -1,6 +1,5 @@
 'use strict';
 
-// prettier.config.js or .prettierrc.js
 module.exports = {
   
   env: {
@@ -11,9 +10,7 @@ module.exports = {
   },
   
   extends: [
-    // 'eslint:recommended',
-    'prettier',
-    'plugin:prettier/recommended'
+    'eslint:recommended',
   ],
   
   parserOptions: {
@@ -55,13 +52,6 @@ module.exports = {
     files: [
       './globals.d.ts'
     ],
-    'prettier/prettier': [
-      2,
-      'error',
-      {
-        singleQuote: true
-      }
-    ],
   },
   
   globals: {
@@ -97,7 +87,6 @@ module.exports = {
     noImplicitThis: true,
     strictNullChecks: true,
     strictFunctionTypes: false,
-    baseUrl: './',
     noEmit: true,
     forceConsistentCasingInFileNames: true
   }
