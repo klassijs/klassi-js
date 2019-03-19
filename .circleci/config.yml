@@ -100,7 +100,7 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-          command: ./scripts/ci/browserstack-local.sh start
+          command: cd ./klassi-js; ./scripts/ci/browserstack-local.sh start
           background: true
 
       - run:
