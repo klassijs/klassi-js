@@ -86,7 +86,8 @@ The following variables are available within the ```Given()```, ```When()``` and
 ### Visual Regression functionality with [Resemble JS](https://github.com/rsmbl/Resemble.js)
 
 Visual regression testing, gives the ability to take and compare whole page screenshots or of specific parts of the application / page under test.
-
+If there are Elements in the page that contain dynamic contents (like a clock or something like tipp of the day), you can hide this elements before 
+taking the screenshot by passing the selector (or an array of selectors) to  the saveScreenshot function.
 ```js
 // ./runtime/imageCompare.js
 
