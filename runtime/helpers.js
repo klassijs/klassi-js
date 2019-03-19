@@ -76,7 +76,36 @@ module.exports = {
     await verify.value();
     await verify.pass();
   },
-    
+  /**
+     * hideElements hide elements 
+     * @param  string  selectors   css selector or array of css selectors
+     */     
+  hideElements: async function(selectors) {
+    // if arg is no array make it one
+    selectors = typeof selectors == 'string' ? [selectors] : selectors;
+    for (let i = 0; i < selectors.length; i++) {
+      const script = `document.querySelectorAll('${
+        selectors[i]
+      }').forEach(element => element.style.opacity = '0')`;
+
+      await driver.execute(script);
+    }
+  },
+  /**
+     * showElements show elements 
+     * @param  string  selectors   css selector or array of css selectors
+     */
+  showElements: async function(selectors) {
+    // if arg is no array make it one
+    selectors = typeof selectors == 'string' ? [selectors] : selectors;
+    for (let i = 0; i < selectors.length; i++) {
+      const script = `document.querySelectorAll('${
+        selectors[i]
+      }').forEach(element => element.style.opacity = '1')`;
+
+      await driver.execute(script);
+    }
+  },
   /**
      * writeTextFile write data to file on hard drive
      * @param  string  filepath   Path to file on hard drive

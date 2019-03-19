@@ -40,5 +40,9 @@ module.exports = {
 
     expect(elements.length).to.not.equal(0);
     // await helpers.cssImages('search');
+
+    // Visual regression with dynamic elements disabled as ads and search result and region might change
+    await verify.saveScreenshot(`${image}_1-2.png`, ['.js-sidebar-ads', '.results--ad', '.result--ad', '.results', '.dropdown--region .dropdown__button']);
+    await helpers.compareImage(`${image}_1-2.png`);
   }
 };
