@@ -1,7 +1,8 @@
+'use strict';
+
 module.exports = {
-
   url: {
-    baseUrl: "get",
-  },
-
+    api_base_url: 'http://httpbin.org/',
+    baseUrl: 'get'
+  }
 };

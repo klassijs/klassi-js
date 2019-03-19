@@ -3,7 +3,7 @@
  Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 'use strict';
 
-const webdriverio = require('webdriverio');
+const wdio = require('webdriverio');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
 let secrets = loadConfig('./browserstack/secrets/browserstack.json');
@@ -37,22 +37,25 @@ console.log('Connecting local to browserstack automate...');
 let bs_local_args = {
   'key': key,
   'localIdentifier': localIdentifier,
-  'force': 'true',
+  'force': true,
   'logfile': './browserstackLocal.log'
 };
 
 bs_local = new browserstacklocal.Local();
-webdriverio.bs_local = bs_local;
+wdio.bs_local = bs_local;
 
 // if (bs_local === 'start') {
-bs_local.start(bs_local_args, async function (err) {
-  if (err){
+bs_local.start(bs_local_args, async function(err) {
+  if (err) {
     console.log('its done and not working', err.message);
   }
-  console.log('Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n');
-  
+  console.log(
+    'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
+  );
   // check if BrowserStack local instance is running
-  console.log(bs_local.isRunning() + ' - Browserstack local instance is running' );
+  console.log(
+    bs_local.isRunning() + ' - Browserstack local instance is running'
+  );
 });
 // }
 // else{
@@ -61,4 +64,3 @@ bs_local.start(bs_local_args, async function (err) {
 //   console.log('Stopped BrowserStackLocal');
 // });
 // };
-

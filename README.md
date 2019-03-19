@@ -4,8 +4,7 @@
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
-  any other tool or library. It's built with [nodeJs](https://nodejs.org/en/), [webdriver.io (the Selenium 2.0 
-  bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view 
+  any other tool or library. It's built with [nodeJs](https://nodejs.org/en/), [webdriver.io (Next-gen WebDriver for Node.js)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view 
   cucumber js documentation") complete with integrated API Testing. 
 
 
@@ -22,20 +21,19 @@ npm i klassi-js
 # launch a selenium standalone server with chrome, firefox and phantomjs drivers via the 
 # following commands in a separate terminal:
 
-npm install selenium-standalone@latest -g --save-dev
-selenium-standalone install
-selenium-standalone start
+yarn global add selenium-standalone@latest
+selenium-standalone install && selenium-standalone start
 ```
 
 ## Usage
 
 ```bash
-# run 'npm install' in a terminal window from within the project folder
+# run 'yarn install' in a terminal window from within the project folder
 node ./node_modules/klassi-js/index.js -s ./step-definitions
 or
-node index.js -d -t @search // locally
+node index.js -dt @search // locally
 or
-npm run bslocal chrome/@search // via browserstack
+yarn run bslocal chrome/@search // via browserstack
 ```
 
 ### Options
@@ -70,13 +68,13 @@ The following variables are available within the ```Given()```, ```When()``` and
 
 | Variable | Description |
 | :--- | :---  |
-| `driver`     | an instance of [web driver](http://webdriver.io/guide/services/selenium-standalone.html) (_the browser_) |
-| `webdriverio`| the raw [webdriver](http://webdriver.io/api.html) module, providing access to static properties/methods |
+| `driver`     | an instance of [web driver](https://webdriver.io/docs/setuptypes.html) (_the browser_) |
+| `webdriverio`| the raw [webdriver](https://webdriver.io/docs/api.html) module, providing access to static properties/methods |
 | `page`       | collection of **page** objects loaded from disk and keyed by filename |
 | `shared`     | collection of **shared** objects loaded from disk and keyed by filename |
 | `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
-| `expect`     | instance of [chai expect](http://chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
-| `assert`     | instance of [chai assert](http://chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
+| `expect`     | instance of [chai expect](https://www.chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
+| `assert`     | instance of [chai assert](https://www.chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |
 | `fs`         | exposes fs (file system) for use globally |
 | `dir`        | exposes dir for getting an array of files, subdirectories or both |
@@ -85,7 +83,7 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `log`        | exposes the log method for output to files and emailing  |
 | `envConfig`  | exposes the global environment configuration file  | ```for use when changing environment types (i.e. dev, test, preprod)``` |
 
-### Visual Regression functionality with [Resemble JS](https://github.com/HuddleEng/Resemble.js)
+### Visual Regression functionality with [Resemble JS](https://github.com/rsmbl/Resemble.js)
 
 Visual regression testing, gives the ability to take and compare whole page screenshots or of specific parts of the application / page under test.
 If there are Elements in the page that contain dynamic contents (like a clock or something like tipp of the day), you can hide this elements before 
@@ -93,7 +91,7 @@ taking the screenshot by passing the selector (or an array of selectors) to  the
 ```js
 // ./runtime/imageCompare.js
 
-compareImage: async function (fileName) {
+compareImage: async (fileName) => {
   const verify = require('./imageCompare');
   await verify.assertion(fileName);
   await verify.value();
@@ -101,7 +99,7 @@ compareImage: async function (fileName) {
 }
 
 // usage within page-object file:
-
+  await verify.saveScreenshot(fileName);
   await helpers.compareImage(fileName);
 ```
 
@@ -205,4 +203,4 @@ Anyone can contribute to this project simply by [opening an issue here](https://
 
 ## License
 
-[Apache License](LICENSE) &copy; 2019 [Larry Goddard](https://uk.linkedin.com/in/larryg)
+[Apache License](LICENSE) &copy; 2016 [Larry Goddard](https://uk.linkedin.com/in/larryg)

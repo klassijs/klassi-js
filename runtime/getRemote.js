@@ -3,7 +3,7 @@
  Created by Larry Goddard
  */
 /**
- Copyright © klassitech 2019 - Larry Goddard <larryg@klassitech.co.uk>
+ Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -24,28 +24,26 @@
  */
 const browserstack = require('./remotes/browserstack.js');
 
-module.exports = function getRemote(remoteService){
-
+module.exports = function getRemote(remoteService) {
   let remote = {};
 
-  function noop(){
-    log.info('If you are seeing this, you are running a non-existent remoteService');
+  function noop() {
+    log.info(
+      'If you are seeing this, you are running a non-existent remoteService'
+    );
   }
 
-  if (!remoteService){
+  if (!remoteService) {
     remote.type = 'disabled';
     remote.after = noop;
-  }
-  else if (remoteService === 'browserstack'){
+  } else if (remoteService === 'browserstack') {
     remote.type = 'browserstack';
     remote.after = browserstack.submitResults;
-  }
-  else {
+  } else {
     log.info(`Unknown remote service ${remoteService}`);
     remote.type = 'unknown';
     remote.after = noop;
   }
 
   return remote;
-
 };
