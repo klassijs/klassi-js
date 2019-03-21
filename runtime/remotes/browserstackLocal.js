@@ -19,7 +19,7 @@
  */
 'use strict';
 
-const wdio = require('webdriverio');
+const wdio = require('@wdio/cli');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
 let secrets = loadConfig('./browserstack/secrets/browserstack.json');
@@ -41,8 +41,15 @@ let bs_local_args = {
   'logfile': './browserstackLocal.log'
 };
 
+// initWdio();
+
+// function initWdio(){
 bs_local = new browserstacklocal.Local();
 wdio.bs_local = bs_local;
+
+bs_local.stop(function() {
+  console.log('Stopped BrowserStackLocal');
+});
 
 // if (bs_local === 'start') {
 bs_local.start(bs_local_args, async function(err) {
@@ -58,9 +65,28 @@ bs_local.start(bs_local_args, async function(err) {
   );
 });
 // }
-// else{
-// stop the Local instance
-// bs_local.stop(function() {
-//   console.log('Stopped BrowserStackLocal');
+// if (bs_local !== 'start') {
+// // stop the Local instance
+//   bs_local.stop(function() {
+//     console.log('Stopped BrowserStackLocal');
+//   });
+// }
+// }
+// wdio.cli(argv => {
+//   wdio.CliRunner(argv)
+//     .setup(null, () => {
+//       // Stop browserstack local after parallel test
+//       bs_local.stop(() => {
+//         console.log('\tAnd now my watch has ended..');
+//       });
+//       process.exit();
+//     })
+//     .runTests(() => {
+//       // Stop browserstack local after single test
+//       bs_local.stop(() => {
+//         console.log('\tAnd now my watch has ended..');
+//       });
+//       process.exit();
+//     });
 // });
-// };
+
