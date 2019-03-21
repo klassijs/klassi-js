@@ -100,7 +100,8 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-          command: ./scripts/ci/browserstack-local.sh start
+#          command: ./scripts/ci/browserstack-local.sh start
+          command: ./runtimes/remotes/browserstack-local.sh start
           background: true
 
       - run:
