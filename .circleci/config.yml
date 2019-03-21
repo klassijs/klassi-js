@@ -101,13 +101,13 @@ jobs:
       - run:
           name: Start BrowserStack Local
 #          command: ./scripts/ci/browserstack-local.sh start
-          command: ./runtime/remotes/browserstackLocal.js start
+          command: node runtime/remotes/browserstackLocal.js start
           background: true
 
       - run:
           name: Check BrowserStack Local running
 #          command: sleep 5;./scripts/ci/browserstack-local.sh check
-          command: sleep 5;./runtime/remotes/browserstackLocal.js check
+          command: sleep 5;node runtime/remotes/browserstackLocal.js check
 
       - run:
           name: Integration Test Run
