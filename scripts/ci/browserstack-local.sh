@@ -3,11 +3,13 @@
 
 set -eo pipefail
 
-if [ -z "$BROWSERSTACK_ACCESS_KEY" ]; then
+#if [ -z "$secretsBROWSERSTACK_ACCESS_KEY" ]; then
+if [ -z "$key" ]; then
   echo "Ensure BROWSERSTACK_ACCESS_KEY is set"
   exit 2
 fi
 
+#if [ -z "$BROWSERSTACK_LOCAL_IDENTIFIER" ]; then
 if [ -z "$BROWSERSTACK_LOCAL_IDENTIFIER" ]; then
   echo "Ensure BROWSERSTACK_LOCAL_IDENTIFIER is set"
   exit 1
@@ -26,7 +28,8 @@ case "$1" in
 
     $BROWSERSTACK_LOCAL_PROGRAM \
       --daemon start \
-      --key JhxyJ1qdNhAx75KuwpQc \
+#      --key $BROWSERSTACK_ACCESS_KEY \
+      --key $key \
       --local-identifier ${BROWSERSTACK_LOCAL_IDENTIFIER} \
       --force \
       --only-automate \
