@@ -19,7 +19,7 @@
  */
 'use strict';
 
-const wdio = require('@wdio/cli');
+const wdio = require('webdriverio');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
 let secrets = loadConfig('./browserstack/secrets/browserstack.json');
