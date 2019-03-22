@@ -220,7 +220,7 @@ jobs:
 
       - run:
           name: Acceptance Test Run
-          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
+          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run bslocal chrome/@search
 
       - store_artifacts:
           path: artifacts
