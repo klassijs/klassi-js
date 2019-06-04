@@ -41,36 +41,37 @@ let bs_local_args = {
   'logfile': './browserstackLocal.log'
 };
 
-// initWdio();
-
-// function initWdio(){
 bs_local = new browserstacklocal.Local();
 wdio.bs_local = bs_local;
 
-bs_local.stop(function() {
-  console.log('Stopped BrowserStackLocal');
-});
+// bs_local.stop(function() {
+//   console.log('Stopped BrowserStackLocal');
+// });
 
-// if (bs_local === 'start') {
-bs_local.start(bs_local_args, async function(err) {
-  if (err) {
-    console.log('its done and not working', err.message);
-  }
-  console.log(
-    'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
-  );
-  // check if BrowserStack local instance is running
-  console.log(
-    bs_local.isRunning() + ' - Browserstack local instance is running'
-  );
-});
+start: function() {
+  
+  bs_local.start(bs_local_args, async function(err) {
+    if (err) {
+      console.log('its done and not working', err.message);
+    }
+    console.log(
+      'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
+    );
+    // check if BrowserStack local instance is running
+    console.log(
+      bs_local.isRunning() + ' - Browserstack local instance is running'
+    );
+  });
+}
+// {
 // }
-// if (bs_local !== 'start') {
-// // stop the Local instance
-//   bs_local.stop(function() {
-//     console.log('Stopped BrowserStackLocal');
-//   });
-// }
+
+if (bs_local === 'stop') {
+  bs_local.stop(function() {
+    console.log('Stopped BrowserStackLocal');
+  });
+}
+
 // }
 // wdio.cli(argv => {
 //   wdio.CliRunner(argv)

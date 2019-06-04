@@ -59,16 +59,7 @@ module.exports = {
     }
     log.info(`\tScreenshot saved to: ${resultPathPositive}`);
   },
-  // saveScreenshot: async function(filename) {
-  //   fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
-  //   const resultPathPositive = `${resultDirPositive}${filename}`;
-  //   await driver.saveScreenshot(resultPathPositive, err => {
-  //     if (err) {
-  //       log.error(err.message);
-  //     }
-  //   });
-  //   log.info(`\tScreenshot saved to: ${resultPathPositive}`);
-  // },
+  
   /**
    * Runs assertions and comparison checks on the taken screenshots
    * @param filename
@@ -95,7 +86,7 @@ module.exports = {
         blue: 0
       },
       errorType: 'movement',
-      transparency: 0.1,
+      transparency: 0.11,
       largeImageThreshold: 1200
     });
     resemble(baselinePath)

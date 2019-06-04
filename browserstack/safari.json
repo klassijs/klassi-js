@@ -2,10 +2,10 @@
   "project":"KlassiTech Automated Test",
 
   "os": "OS X",
-  "os_version": "High Sierra",
+  "os_version": "Mojave",
   "browser": "Safari",
   "browserName": "Safari",
-  "browser_version": "11.0",
+  "browser_version": "12.0",
   "resolution": "1280x960",
 
   "javascriptEnabled":true,
@@ -17,5 +17,6 @@
   "acceptSslCerts": true,
   "browserstackLocal": true,
   "browserstack.debug": true,
-  "browserstack.networkLogs": true
+  "browserstack.networkLogs": true,
+  "browserstack.selenium_version": "3.5.2"
 }

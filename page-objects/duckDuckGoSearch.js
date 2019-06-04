@@ -17,11 +17,12 @@ module.exports = {
   performSearch: async function(searchWord) {
     image = searchWord;
     await verify.saveScreenshot(`${image}_1-0.png`);
-    let selector = await driver.$(shared.searchData.elem.searchInput);
-    await selector.setValue(searchWord);
+    let elem = await driver.$(shared.searchData.elem.searchInput);
+    await elem.setValue(searchWord);
     await verify.saveScreenshot(`${image}_1-1.png`, shared.searchData.elem.leftBadge);
     let title = await driver.getTitle();
     log.info('the title being returned:- ' + title);
+    debugger;
     let searchBtn = await driver.$(shared.searchData.elem.searchBtn);
     await searchBtn.click();
     await driver.pause(DELAY_1_SECOND);

@@ -40,7 +40,7 @@ module.exports = {
      * @param seconds
      * @type {number}
      */
-    let timeout = (seconds) ? (seconds * 1000) : DEFAULT_TIMEOUT;
+    let timeout = (seconds) ? (seconds * 1000) : cucumberTimeout;
     /**
      * load the url and wait for it to complete
      */
@@ -75,10 +75,10 @@ module.exports = {
       const script = `document.querySelectorAll('${
         selectors[i]
       }').forEach(element => element.style.opacity = '0')`;
-      
       await driver.execute(script);
     }
   },
+  
   /**
    * showElemements show elements
    * @param  string  selectors   css selector or array of css selectors
@@ -90,7 +90,6 @@ module.exports = {
       const script = `document.querySelectorAll('${
         selectors[i]
       }').forEach(element => element.style.opacity = '1')`;
-      
       await driver.execute(script);
     }
   },
@@ -194,7 +193,7 @@ module.exports = {
      */
   getRandomIntegerExcludeFirst: function (range) {
     let randomNumber = helpers.generateRandomInteger(range);
-
+    
     if (randomNumber <= 1) {
       randomNumber += 2;
     }
@@ -243,7 +242,6 @@ module.exports = {
     if (mm < 10) {
       mm = '0' + mm;
     }
-  
     return yyyy + '-' + mm + '-' + dd ;
   },
 
@@ -297,15 +295,10 @@ module.exports = {
      * @returns text
      */
   getElementText: async function (selector) {
-    await driver.$(selector).waitForExist(DELAY_10_SECOND);
-    await driver.pause(DELAY_3_SECOND);
-    let text = await driver.$(selector).getText();
+    let elem = await driver.$(selector);
+    await elem.waitForExist(DELAY_10_SECOND);
+    let text = await elem.getText();
     return text;
-    // return driver.waitForExist(selector, DELAY_10_SECOND).pause(DELAY_3_SECOND).then(function () {
-    //   return driver.getText(selector).then(function (text) {
-    //     return text;
-    //   });
-    // });
   },
 
   /**
@@ -314,20 +307,17 @@ module.exports = {
      * @returns {String|String[]|*|string}
      */
   getLink: async function (selector) {
-    await driver.$(selector).getAttribute('href');
-    // return driver.getAttribute(selector, 'href');
+    let elem = await driver.$(selector);
+    await elem.getAttribute('href');
   },
   
   waitAndClick: async function (selector) {
     try {
-      await driver.$(selector).waitForDisplayed(DELAY_3_SECOND);
-      await driver.$(selector).waitForEnabled(DELAY_1_SECOND);
-      await driver.$(selector).click();
+      let elem = await driver.$(selector);
+      await elem.waitForDisplayed(DELAY_3_SECOND);
+      await elem.waitForEnabled(DELAY_1_SECOND);
+      await elem.click();
       await driver.pause(DELAY_500_MILLISECOND);
-      // await driver.waitForVisible(selector, DELAY_3_SECOND);
-      // await driver.waitForEnabled(selector, DELAY_1_SECOND);
-      // await driver.click(selector);
-      // await driver.pause(DELAY_500_MILLISECOND);
     }
     catch (err) {
       log.error(err.message);
@@ -337,14 +327,11 @@ module.exports = {
   
   waitAndSetValue: async function (selector, value) {
     try{
-      await driver.$(selector).waitForEnabled(DELAY_3_SECOND);
-      await driver.$(selector).click();
+      let elem = await driver.$(selector);
+      await elem.waitForEnabled(DELAY_3_SECOND);
+      await elem.click();
       await driver.pause(DELAY_500_MILLISECOND);
-      await driver.keys(value);
-      // await driver.waitForEnabled(selector, DELAY_3_SECOND);
-      // await driver.click(selector);
-      // await driver.pause(DELAY_500_MILLISECOND);
-      // await driver.keys(value);
+      await elem.setValue(value);
     }
     catch (err) {
       log.error(err.message);
@@ -421,10 +408,6 @@ module.exports = {
     await driver.switchToFrame(frame.value);
     await driver.$(selector).getHTML();
     return driver;
-    // let frame = driver.element(frame_name);
-    // driver.frame(frame.value);
-    // driver.getHTML(selector);
-    // return driver;
   },
 
   /**
@@ -433,16 +416,13 @@ module.exports = {
      * @param expectedText
      */
   assertText: async function (selector, expected) {
-    await driver.$(selector).waitForEnabled(DELAY_5_SECOND);
-    let actual = await driver.$(selector).getText();
+    let elem = await driver.$(selector);
+    await elem.waitForEnabled(DELAY_5_SECOND);
+    let actual = await driver.$(selector);
+    await actual.getText();
     actual = actual.trim();
     assert.equal(actual, expected);
     return this;
-    // await driver.waitForEnabled(selector, DELAY_5_SECOND);
-    // let actual = await driver.getText(selector);
-    // actual = actual.trim();
-    // assert.equal(actual, expected);
-    // return this;
   },
   
   /**
@@ -451,8 +431,8 @@ module.exports = {
    * @param expectedText
    */
   expectToIncludeText: async function (selector, expectedText) {
-    // let actual = await driver.getText(selector);
-    let actual = await driver.$(selector).getText();
+    let actual = await driver.$(selector);
+    await actual.getText();
     expect(actual).to.include(expectedText);
     return this;
   },
@@ -523,16 +503,12 @@ module.exports = {
   
   filterItem: async function (itemToFilter) {
     try{
-      await driver.$(shared.adminData.filter.filterInput).waitForExist(DELAY_5_SECOND);
-      await driver.$(shared.adminData.filter.filterInput).waitForEnabled(DELAY_5_SECOND);
+      let elem = await driver.$(shared.adminData.filter.filterInput);
+      await elem.waitForExist(DELAY_5_SECOND);
+      await elem.waitForEnabled(DELAY_5_SECOND);
       await driver.pause(DELAY_500_MILLISECOND);
-      await driver.$(shared.adminData.filter.filterInput).click();
-      await driver.keys(itemToFilter);
-      // await driver.waitForExist(shared.adminData.filter.filterInput, DELAY_5_SECOND);
-      // await driver.waitForEnabled(shared.adminData.filter.filterInput, DELAY_5_SECOND);
-      // await driver.pause(DELAY_500_MILLISECOND);
-      // await driver.click(shared.adminData.filter.filterInput);
-      // await driver.keys(itemToFilter);
+      await elem.click();
+      await driver.setValue(itemToFilter);
     }
     catch (err) {
       log.error(err.message);
@@ -544,15 +520,13 @@ module.exports = {
     try{
       await helpers.filterItem(itemToFilter);
       await driver.pause(DELAY_3_SECOND);
-      // await driver.click(shared.adminData.filter.filteredItem);
-      await driver.$(shared.adminData.filter.filteredItem).click();
+      let elem = await driver.$(shared.adminData.filter.filteredItem);
+      await elem.click();
       await driver.pause(DELAY_3_SECOND);
     }
     catch (err) {
-      if (err) {
-        log.error(err.message);
-        throw err;
-      }
+      log.error(err.message);
+      throw err;
     }
   },
   

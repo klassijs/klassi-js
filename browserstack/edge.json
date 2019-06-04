@@ -5,7 +5,7 @@
   "os_version": "10",
   "browser": "Edge",
   "browserName": "Edge",
-  "browser_version": "17.0",
+  "browser_version": "18.0",
   "resolution": "1280x800",
 
   "javascriptEnabled":true,

@@ -4,9 +4,9 @@
   "tabletGalaxy": {
     "desiredCapabilities": {
       "platform": "ANDROID",
-      "device": "Samsung Galaxy Tab 4",
+      "device": "Samsung Galaxy Tab S4",
       "realMobile": "true",
-      "os_version": "4.4",
+      "os_version": "8.1",
       "deviceOrientation": "portrait",
 
       "javascriptEnabled":true,

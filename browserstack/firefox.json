@@ -5,7 +5,7 @@
   "os_version": "10",
   "browser": "Firefox",
   "browserName": "Firefox",
-  "browser_version": "60.0",
+  "browser_version": "66.0",
   "resolution": "1280x800",
 
   "javascriptEnabled":true,

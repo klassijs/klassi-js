@@ -42,8 +42,8 @@ function initWdio() {
           console.log(
             'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
           );
-          Nightwatch.cli(argv => {
-            Nightwatch.CliRunner(argv)
+          wdio.cli(argv => {
+            wdio.CliRunner(argv)
               .setup(null, () => {
                 // Stop browserstack local after parallel test
                 browserstackLocal.stop(() => {

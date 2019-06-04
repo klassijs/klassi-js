@@ -5,7 +5,7 @@
   "os_version": "10",
   "browser": "Chrome",
   "browserName": "Chrome",
-  "browser_version": "66.0",
+  "browser_version": "73.0",
   "resolution": "1280x800",
   "chromeOptions": {
     "args": ["disable-infobars"]

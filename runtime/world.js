@@ -311,31 +311,40 @@ AfterAll(function(done) {
       brandTitle: reportName + '-' + date,
       name: projectName
     };
-    
+    // WIP for new style reporter
     // let reportOptions = {
-    //   // jsonDir: './reports/',
-    //   // reportPath: './reports/',
-    //   // metadata:{
-    //   //   browser: {
-    //   //     name: 'chrome',
-    //   //     version: '60'
-    //   //   }
-    //   // }
-    //   jsonDir: path.resolve( global.paths.reports, '/'),
-    //   reportPath: path.resolve( global.paths.reports, '/'),
-    //   // reportSuiteAsScenarios: true,
-    //   // launchReport: (!global.settings.disableReport),
-    //   // ignoreBadJsonFile: true,
-    //   // metadata: {
-    //   //   'Test Started': startDateTime,
-    //   //   'Test Completion': endDateTime,
-    //   //   'Platform': process.platform,
-    //   //   'Environment': global.envConfig.envName,
-    //   //   'Browser': global.settings.remoteConfig || global.browserName,
-    //   //   'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'
-    //   // },
-    //   // brandTitle: reportName + '-' + date,
-    //   // name: projectName
+    //   jsonDir: path.resolve(global.paths.reports),
+    //   reportPath: path.resolve(global.paths.reports, global.settings.reportName + '-' + date),
+    //   // pageTitle: reportName + '-' + date,
+    //   navBarText: reportName + '-' + date,
+    //   openReportInBrowser: (!global.settings.disableReport),
+    //   metadata:{
+    //     browser: {
+    //       name: global.settings.remoteConfig || global.browserName,
+    //       version: '60'
+    //     },
+    //     device: 'Local test machine',
+    //     platform: {
+    //       name: 'ubuntu',
+    //       version: '16.04'
+    //     }
+    //   },
+    //   customMetadata: {
+    //     metadata: [
+    //       {name: 'Environment', value: global.envConfig.envName},
+    //       {name: 'Executed', value: remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'}
+    //     ]
+    //   },
+    //   customData: {
+    //     title: reportName,
+    //     data: [
+    //       {label: 'Project', value: projectName},
+    //       {label: 'Release', value: '1.2.3'},
+    //       {label: 'Cycle', value: 'B11221.34321'},
+    //       {label: 'Execution Start Time', value: startDateTime},
+    //       {label: 'Execution End Time', value: endDateTime}
+    //     ]
+    //   },
     // };
     driver.pause(DELAY_3_SECOND).then(function() {
       reporter.generate(reportOptions);
