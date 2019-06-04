@@ -109,37 +109,37 @@ jobs:
 #          command: sleep 5;./scripts/ci/browserstack-local.sh check
           command: sleep 5;node runtime/remotes/browserstackLocal.js check
 
-      - run:
-          name: Integration Test Run
-          command: yarn run dev
-#          command: |
-#            ./node_modules/.bin/nightwatch \
-#              -c config/nw-browserstack.conf.js \
-#              -t tests/integration/marking.js \
-#              -e $BROWSER_NAME
-          environment:
-            TEST_REPORT_PATH: ./test-results
-
-#      - run:
-#          name: Download Selenium
-#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-#
-#      - run:
-#          name: Start Selenium Server
-#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-#          background: true
-
-#      - run:
-#          name: Install Dependencies
-#          command: yarn install
-#
-#      - save_cache:
-#          key: dependency-cache-{{ checksum "yarn.lock" }}
-#          paths:
-#            - node_modules
 #      - run:
 #          name: Integration Test Run
 #          command: yarn run dev
+##          command: |
+##            ./node_modules/.bin/nightwatch \
+##              -c config/nw-browserstack.conf.js \
+##              -t tests/integration/marking.js \
+##              -e $BROWSER_NAME
+#          environment:
+#            TEST_REPORT_PATH: ./test-results
+
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+
+      - run:
+          name: Start Selenium Server
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
+          background: true
+
+      - run:
+          name: Install Dependencies
+          command: yarn install
+
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
+      - run:
+          name: Integration Test Run
+          command: yarn run dev
 
       - store_artifacts:
           path: artifacts
