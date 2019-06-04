@@ -22,7 +22,6 @@ module.exports = {
     await verify.saveScreenshot(`${image}_1-1.png`, shared.searchData.elem.leftBadge);
     let title = await driver.getTitle();
     log.info('the title being returned:- ' + title);
-    debugger;
     let searchBtn = await driver.$(shared.searchData.elem.searchBtn);
     await searchBtn.click();
     await driver.pause(DELAY_1_SECOND);

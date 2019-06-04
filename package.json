@@ -37,7 +37,7 @@
     "test": "node index.js -dt @api",
     "all": "node index.js -ed",
     "dev": "node index.js -dt @api",
-    "uat": "node index.js -dt @search",
+    "uat": "yarn node index.js -dt @search",
     "local": "node index.js -edt",
     "bslocal": "node runtime/remotes/browserstackLocal && node index.js -edw browserstack -x"
   },
