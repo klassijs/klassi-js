@@ -48,29 +48,29 @@ wdio.bs_local = bs_local;
 //   console.log('Stopped BrowserStackLocal');
 // });
 
-start: function() {
+// start: function() {
   
-  bs_local.start(bs_local_args, async function(err) {
-    if (err) {
-      console.log('its done and not working', err.message);
-    }
-    console.log(
-      'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
-    );
-    // check if BrowserStack local instance is running
-    console.log(
-      bs_local.isRunning() + ' - Browserstack local instance is running'
-    );
-  });
-}
+bs_local.start(bs_local_args, async function(err) {
+  if (err) {
+    console.log('its done and not working', err.message);
+  }
+  console.log(
+    'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
+  );
+  // check if BrowserStack local instance is running
+  console.log(
+    bs_local.isRunning() + ' - Browserstack local instance is running'
+  );
+});
+// }
 // {
 // }
 
-if (bs_local === 'stop') {
-  bs_local.stop(function() {
-    console.log('Stopped BrowserStackLocal');
-  });
-}
+// if (bs_local === 'stop') {
+//   bs_local.stop(function() {
+//     console.log('Stopped BrowserStackLocal');
+//   });
+// }
 
 // }
 // wdio.cli(argv => {
