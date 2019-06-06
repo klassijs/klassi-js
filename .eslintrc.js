@@ -10,7 +10,7 @@ module.exports = {
   },
   
   extends: [
-    'eslint:recommended'
+    'eslint:recommended',
   ],
   
   parserOptions: {
@@ -51,7 +51,7 @@ module.exports = {
     ],
     files: [
       './globals.d.ts'
-    ],
+    ]
   },
   
   globals: {
@@ -87,6 +87,7 @@ module.exports = {
     noImplicitThis: true,
     strictNullChecks: true,
     strictFunctionTypes: false,
+    baseUrl: './',
     noEmit: true,
     forceConsistentCasingInFileNames: true
   }

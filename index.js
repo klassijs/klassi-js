@@ -60,6 +60,7 @@ let reports = './reports/',
   fileDnldFldr = './shared-objects/fileDnldFolder/',
   docsFolder = './shared-objects/docs',
   fileName = path.join('./shared-objects/docs/fileName.txt');
+  // fileName1 = path.join('./reports/' + global.reportName + '/' + global.reportName + '.json');
 
 fs.ensureDirSync(reports, function(err) {
   if (err) {
@@ -85,77 +86,28 @@ fs.ensureFile(fileName, function(err) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option(
-    '-b, --browser [optional]',
-    'name of browser to use. defaults to chrome',
-    /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i,
-    'chrome'
-  )
-  .option(
-    '-c, --context <path>',
-    'contextual root path for project-specific features, steps, objects etc',
-    './'
-  )
+  .option('-b, --browser [optional]', 'name of browser to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
+  .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
-  .option(
-    '-f, --featuresPath <path>',
-    'path to feature definitions. defaults to ./features',
-    'features'
-  )
-  .option(
-    '-g, --reportName [optional]',
-    'basename for report files e.g. use report for report.json',
-    global.reportName
-  )
-  .option(
-    '-n, --environment [<path>]',
-    'name of environment to run the framework / test in. default to test',
-    /^(test|dev|uat|prod)$/i,
-    'dev'
-  )
-  .option(
-    '-o, --sharedObjects <paths>',
-    'path to shared objects (repeatable). defaults to ./shared-objects',
-    collectPaths,
-    ['shared-objects']
-  )
-  .option(
-    '-p, --pageObjects <path>',
-    'path to page objects. defaults to ./page-objects',
-    'page-objects'
-  )
-  .option(
-    '-r, --reports <path>',
-    'output path to save reports. defaults to ./reports',
-    'reports'
-  )
-  .option(
-    '-s, --steps <path>',
-    'path to step definitions. defaults to ./step_definitions',
-    'step_definitions'
-  )
+  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features', 'features')
+  .option('-F, --featuresFiles <path>', 'comma-separated list of feature files to run')
+  .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
+  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test',
+    /^(test|dev|uat|prod)$/i, 'test')
+  .option('-o, --sharedObjects <paths>', 'path to shared objects (repeatable). defaults to ./shared-objects',
+    collectPaths, ['shared-objects'])
+  .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
+  .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
+  .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option('-t, --tags <tagName>', 'name of tag to run')
-  .option(
-    '-u, --updateBaselineImage [optional]',
-    'automatically update the baseline image after a failed comparison'
-  )
-  .option(
-    '-w, --remoteService [optional]',
-    'which remote driver service, if any, should be used e.g. browserstack',
-    ''
-  )
-  .option(
-    '-x, --extraSettings [optional]',
-    'further piped configs split with pipes',
-    ''
-  )
+  .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
+  .option('-w, --remoteService [optional]', 'which remote driver service, if any, should be used e.g. browserstack', '')
+  .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
   .parse(process.argv);
 
 program.on('--help', function() {
-  console.log(
-    'For more details please visit https://github.com/larryg01/klassi-js#readme\n'
-  );
+  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
 });
 
 let settings = {
@@ -196,9 +148,8 @@ let paths = {
   })
 };
 
-global.browserName = program.browser;
-
 // expose settings and paths for global use
+global.browserName = program.browser;
 global.settings = settings;
 global.paths = paths;
 
@@ -217,41 +168,64 @@ global.date = helpers.currentDate();
  */
 global.envName = program.environment;
 
-/** rewrite command line switches for cucumber
+// let fileName1 = path.resolve(__dirname, paths.reports, settings.reportName + '/' + global.reportName + '.json');
+//
+// fs.ensureFileSync(fileName1, function(err) {
+//   if (err) {
+//     console.log('The Reports Folder has NOT been created: ' + err.stack);
+//   }
+// });
+
+/**
+ * rewrite command line switches for cucumber
  */
 process.argv.splice(2, 100);
 
-/** specify the feature files folder (this must be the first argument for Cucumber)
+/**
+ * specify the feature files folder (this must be the first argument for Cucumber)
  */
 process.argv.push(paths.featuresPath);
 
-/** add switch to tell cucumber to produce json report files
+/**
+ * specify the feature files to be executed
  */
-process.argv.push(
-  '-f',
-  'node_modules/cucumber-pretty',
-  '-f',
-  'json:' +
-    path.resolve(
-      __dirname,
-      paths.reports,
-      settings.reportName + '-' + date + '.json'
-    )
-);
+if (program.featureFile) {
+  let splitFeatureFiles = program.featureFile.split(',');
+  
+  splitFeatureFiles.forEach(function(feature) {
+    process.argv.push(feature);
+  });
+}
 
-/** add cucumber world as first required script (this sets up the globals)
+/**
+ * add switch to tell cucumber to produce json report files
+ */
+process.argv.push('-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName + '-' + date + '.json'));
+// process.argv.push( '-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, global.reportName + '/' + global.reportName + '/' ));
+
+/**
+ * add cucumber world as first required script (this sets up the globals)
  */
 process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
 
-/** add path to import step definitions
+/**
+ * add path to import step definitions
  */
 process.argv.push('-r', path.resolve(program.steps));
 
-/** add tag to the scenarios
+/**
+ * add tag to the scenarios
  */
 if (program.tags) {
   process.argv.push('-t', program.tags);
 }
+// if (program.tags) {
+//   let splitTags = program.tags.split(',');
+//
+//   splitTags.forEach(function(tags) {
+//     process.argv.push('-t', tags);
+//   });
+// }
 
 /**
  * add strict option (fail if there are any undefined or pending steps)

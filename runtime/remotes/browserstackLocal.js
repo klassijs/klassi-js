@@ -44,7 +44,12 @@ let bs_local_args = {
 bs_local = new browserstacklocal.Local();
 wdio.bs_local = bs_local;
 
-// if (bs_local === 'start') {
+// bs_local.stop(function() {
+//   console.log('Stopped BrowserStackLocal');
+// });
+
+// start: function() {
+  
 bs_local.start(bs_local_args, async function(err) {
   if (err) {
     console.log('its done and not working', err.message);
@@ -58,9 +63,31 @@ bs_local.start(bs_local_args, async function(err) {
   );
 });
 // }
-// else{
-// stop the Local instance
-// bs_local.stop(function() {
-//   console.log('Stopped BrowserStackLocal');
+// {
+// }
+
+// if (bs_local === 'stop') {
+//   bs_local.stop(function() {
+//     console.log('Stopped BrowserStackLocal');
+//   });
+// }
+
+// }
+// wdio.cli(argv => {
+//   wdio.CliRunner(argv)
+//     .setup(null, () => {
+//       // Stop browserstack local after parallel test
+//       bs_local.stop(() => {
+//         console.log('\tAnd now my watch has ended..');
+//       });
+//       process.exit();
+//     })
+//     .runTests(() => {
+//       // Stop browserstack local after single test
+//       bs_local.stop(() => {
+//         console.log('\tAnd now my watch has ended..');
+//       });
+//       process.exit();
+//     });
 // });
-// };
+
