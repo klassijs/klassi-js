@@ -3,13 +3,10 @@
 
   "os": "Windows",
   "os_version": "10",
-  "browser": "Chrome",
-  "browserName": "Chrome",
-  "browser_version": "73.0",
+  "browser": "Edge",
+  "browserName": "Edge",
+  "browser_version": "18.0",
   "resolution": "1280x800",
-  "chromeOptions": {
-    "args": ["disable-infobars"]
-  },
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,

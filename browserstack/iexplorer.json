@@ -2,14 +2,11 @@
   "project":"KlassiTech Automated Test",
 
   "os": "Windows",
-  "os_version": "10",
-  "browser": "Chrome",
-  "browserName": "Chrome",
-  "browser_version": "73.0",
+  "os_version": "7",
+  "browser": "IE",
+  "browserName": "Internet Explorer",
+  "browser_version": "11.0",
   "resolution": "1280x800",
-  "chromeOptions": {
-    "args": ["disable-infobars"]
-  },
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,

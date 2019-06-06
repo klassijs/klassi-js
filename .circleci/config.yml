@@ -25,13 +25,12 @@ references:
   container_config: &container_config
     working_directory: ~/klassi-js
     docker:
-      - image: circleci/openjdk:8u181-jdk-node-browsers
+      - image: circleci/openjdk:11.0.2-jdk-node-browsers
 
   restore_repo: &restore_repo
     restore_cache:
       keys:
         - v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
-#        - v1-klassi-repo-{{ .Branch }}-{{ .Revision }}
         - v1-klassi-repo-{{ .Branch }}
         - v1-klassi-repo
 
@@ -60,10 +59,7 @@ jobs:
       - save_cache:
           key:  v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-              - .
-#          key: dependency-cache-{{ checksum "yarn.lock" }}
-#          paths:
-#            - node_modules
+            - .
 
   install_dependencies:
     <<: *container_config
@@ -85,12 +81,9 @@ jobs:
             - "~/.cache/yarn"
             - node_modules
 
-#      - save_cache:
-#          key: dependency-cache-{{ checksum "yarn.lock" }}
-#          paths:
-#            - node_modules
-
-  integration_test_build:
+  # Integration test base configuration
+  # Integration test base configuration
+  integration_test_base: &integration_test_base
     <<: *container_config
     steps:
       - *restore_repo
@@ -100,6 +93,32 @@ jobs:
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
+
+      - run:
+          name: Set BrowserStack Local Identifier
+          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+
+      - run:
+          name: Start BrowserStack Local
+#          command: ./scripts/ci/browserstack-local.sh start
+          command: node runtime/remotes/browserstackLocal.js start
+          background: true
+
+      - run:
+          name: Check BrowserStack Local running
+#          command: sleep 5;./scripts/ci/browserstack-local.sh check
+          command: sleep 5;node runtime/remotes/browserstackLocal.js check
+
+#      - run:
+#          name: Integration Test Run
+#          command: yarn run dev
+##          command: |
+##            ./node_modules/.bin/nightwatch \
+##              -c config/nw-browserstack.conf.js \
+##              -t tests/integration/marking.js \
+##              -e $BROWSER_NAME
+#          environment:
+#            TEST_REPORT_PATH: ./test-results
 
       - run:
           name: Download Selenium
@@ -128,78 +147,46 @@ jobs:
       - store_test_results:
           path: ./test-results
 
-#    # Integration test base configuration
-#    # Integration test base configuration
-#    integration_test_base: &integration_test_base
-#      <<: *container_config
-#      steps:
-#        - *restore_repo
-#        - *restore_yarn_dependencies
-#        - *restore_acceptance_builds
-#
-#        - run:
-#            name: Set BrowserStack Local Identifier
-#            command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-#
-#        - run:
-#            name: Start BrowserStack Local
-#            command: ./scripts/ci/browserstack-local.sh start
-#            background: true
-#
-#        - run:
-#            name: Check BrowserStack Local running
-#            command: sleep 5;./scripts/ci/browserstack-local.sh check
-#
-#        - run:
-#            name: Nightwatch Tests
-#            command: |
-#              ./node_modules/.bin/nightwatch \
-#                -c config/nw-browserstack.conf.js \
-#                -t tests/integration/marking.js \
-#                -e $BROWSER_NAME
-#            environment:
-#              TEST_REPORT_PATH: /tmp/test-results
-#
-#        - store_artifacts:
-#            path: artifacts
-#
-#        - store_test_results:
-#            path: /tmp/test-results
-#
-#    integration_test_chrome:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'chrome' }
-#
-#    integration_test_iexplorer:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'iexplorer' }
-#
-#    integration_test_edge:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'edge' }
-#
-#    integration_test_firefox:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'firefox' }
-#
-#    integration_test_safari:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'safari' }
-#
-#    integration_test_tabletiPad:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'tabletiPad' }
-#
-#    integration_test_tabletGalaxy:
-#      <<: *integration_test_base
-#      environment: { BROWSER_NAME: 'tabletGalaxy' }
-#
-#    integration_test_build:
-#      <<: *container_config
-#      steps:
-#        - run: "echo 'FINISHED'"
+  integration_test_chrome:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'chrome' }
 
-  acceptance_test_build:
+  integration_test_iexplorer:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'iexplorer' }
+
+  integration_test_edge:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'edge' }
+
+  integration_test_firefox:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'firefox' }
+
+  integration_test_safari:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'safari' }
+
+  integration_test_macChrome:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'macChrome' }
+
+  integration_test_tabletiPad:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'tabletiPad' }
+
+  integration_test_tabletGalaxy:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'tabletGalaxy' }
+
+  integration_test_build:
+    <<: *container_config
+    steps:
+      - run: "echo 'FINISHED'"
+
+  # Acceptance test base configuration
+  # Acceptance test base configuration
+  acceptance_test_base: &acceptance_test_base
     <<: *container_config
     steps:
       - *restore_repo
@@ -233,7 +220,7 @@ jobs:
 
       - run:
           name: Acceptance Test Run
-          command: BROWSERSTACK_LOCAL_IDENTIFIER=larryg BROWSERSTACK_USERNAME=larryg2 BROWSERSTACK_ACCESS_KEY=JhxyJ1qdNhAx75KuwpQc yarn run uat
+          command: yarn run uat
 
       - store_artifacts:
           path: artifacts
@@ -241,124 +228,42 @@ jobs:
       - store_test_results:
           path: ./test-results
 
-#  # Acceptance test base configuration
-#  # Acceptance test base configuration
-#  acceptance_test_base: &acceptance_test_base
-#    <<: *container_config
-#    steps:
-#      - *restore_repo
-#      - *restore_yarn_dependencies
-#
-#      - run:
-#          name: Avoid hosts unknown for github
-#          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-#
-#      - run:
-#          name: Removed old Player code
-#          command: rm -rf ./player
-#
-#      - run:
-#          name: Clone Player code
-#          command: |
-#            echo "Attempt clone of Player branch develop"
-#
-#            if [ `git clone --depth 1 git@github.com:OUP/mymaths-player.git --branch develop ./player` $? -eq 128 ];
-#            then
-#                    echo "Using Player branch develop"
-#                    git clone --depth 1 git@github.com:OUP/mymaths-player.git ./player
-#            fi
-#            exit 0;
-#
-#      - run:
-#          name: Install Player dependencies
-#          command: cd ./player;yarn install
-#
-#      - run:
-#          name: Build Player for Testing
-#          command: cd ./player;yarn build-test
-#
-#      - store_artifacts:
-#          path: ./player/build
-#
-#      - save_cache:
-#          key: v1-acceptance-build-{{ .Branch }}-{{ .Revision }}
-#          paths:
-#            - ./player/build
-#
-#      - run:
-#          name: Start Player for Testing
-#          command: |
-#            cd ./player/build;yarn serve-build
-#            echo `pwd`
-#          background: true
-#
-#      - run:
-#          name: Check HTTP Server running
-#          command: |
-#            sleep 5
-#            curl --retry 10 --retry-delay 5 -v http://127.0.0.1:8080/
-#
-#      - run:
-#          name: Set BrowserStack Local Identifier
-#          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-#
-#      - run:
-#          name: Start BrowserStack Local
-#          command: ./scripts/ci/browserstack-local.sh start
-#          background: true
-#
-#      - run:
-#          name: Check BrowserStack Local running
-#          command: sleep 5;./scripts/ci/browserstack-local.sh check
-#
-#      - run:
-#          name: Nightwatch Tests
-#          command: |
-#            ./node_modules/.bin/nightwatch \
-#              -c ./config/nw-browserstack.conf.js \
-#              -e $BROWSER_NAME
-#
-#          environment:
-#            TEST_REPORT_PATH: /tmp/test-results
-#
-#      - store_artifacts:
-#          path: artifacts
-#
-#      - store_test_results:
-#          path: /tmp/test-results
-#
-#  acceptance_test_chrome:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'chrome' }
-#
-#  acceptance_test_iexplorer:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'iexplorer' }
-#
-#  acceptance_test_edge:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'edge' }
-#
-#  acceptance_test_firefox:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'firefox' }
-#
-#  acceptance_test_safari:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'safari' }
-#
-#  acceptance_test_tabletiPad:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'tabletiPad' }
-#
-#  acceptance_test_tabletGalaxy:
-#    <<: *acceptance_test_base
-#    environment: { BROWSER_NAME: 'tabletGalaxy' }
-#
-#  acceptance_test_build:
-#    <<: *container_config
-#    steps:
-#      - run: "echo 'FINISHED'"
+  acceptance_test_chrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'chrome' }
+
+  acceptance_test_iexplorer:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'iexplorer' }
+
+  acceptance_test_edge:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'edge' }
+
+  acceptance_test_firefox:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'firefox' }
+
+  acceptance_test_safari:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'safari' }
+
+  acceptance_test_macChrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'macChrome' }
+
+  acceptance_test_tabletiPad:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'tabletiPad' }
+
+  acceptance_test_tabletGalaxy:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'tabletGalaxy' }
+
+  acceptance_test_build:
+    <<: *container_config
+    steps:
+      - run: "echo 'FINISHED'"
 
 
 workflows:
@@ -376,11 +281,6 @@ workflows:
             - checkout_code
             - install_dependencies
 
-      - acceptance_test_build:
-          requires:
-            - checkout_code
-            - install_dependencies
-
       - run_basic_integration_tests:
           type: approval
           requires:
@@ -390,6 +290,62 @@ workflows:
               ignore:
                 - develop
                 - master
+
+      - integration_test_chrome:
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+
+      - integration_test_iexplorer:
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+
+      - run_all_integration_tests:
+          type: approval
+          requires:
+            - integration_test_build
+            - run_basic_integration_tests
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+
+      - integration_test_edge:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_firefox:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_safari:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_macChrome:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_tabletiPad:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_tabletGalaxy:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - acceptance_test_build:
+          requires:
+            - checkout_code
+            - install_dependencies
 
       - run_basic_acceptance_tests:
           type: approval
@@ -401,150 +357,54 @@ workflows:
                 - develop
                 - master
 
-#      - integration_test_chrome:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - acceptance_test_chrome:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
+      - acceptance_test_chrome:
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
 
+      - acceptance_test_iexplorer:
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
 
+      - run_all_acceptance_tests:
+          type: approval
+          requires:
+            - acceptance_test_build
+            - run_basic_acceptance_tests
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
 
-#workflows:
-#  version: 2
-#  # the below default_Test runs whenever you commit any code into klassi repo.
-#  # Ideally, when you commit code into klassi of any kind into the repo.
-#  default_test:
-#    jobs:
-#      - checkout_code
-#
-#      - install_dependencies:
-#          requires:
-#            - checkout_code
-#
-#      - integration_test_build:
-#          requires:
-#            - checkout_code
-#            - install_dependencies
-#
-#      - run_basic_integration_tests:
-#          type: approval
-#          requires:
-#            - integration_test_build
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - integration_test_chrome:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - integration_test_iexplorer:
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#
-#      - run_all_integration_tests:
-#          type: approval
-#          requires:
-#            - integration_test_build
-#            - run_basic_integration_tests
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - integration_test_edge:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_firefox:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_safari:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_tabletiPad:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_tabletGalaxy:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - acceptance_test_build:
-#          requires:
-#            - checkout_code
-#            - install_dependencies
-#
-#      - run_basic_acceptance_tests:
-#          type: approval
-#          requires:
-#            - acceptance_test_build
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - acceptance_test_chrome:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
-#
-#      - acceptance_test_iexplorer:
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
-#
-#      - run_all_acceptance_tests:
-#          type: approval
-#          requires:
-#            - acceptance_test_build
-#            - run_basic_acceptance_tests
-#          filters:
-#            branches:
-#              ignore:
-#                - develop
-#                - master
-#
-#      - acceptance_test_edge:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_firefox:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_safari:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_tabletiPad:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_tabletGalaxy:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
+      - acceptance_test_edge:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
+      - acceptance_test_firefox:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_safari:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_macChrome:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_tabletiPad:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_tabletGalaxy:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 

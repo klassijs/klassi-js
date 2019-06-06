@@ -5,6 +5,22 @@
   },
 
   "reportName": "KlassiTech Automated Test Report",
-  "projectName": "Klassi Technologies"
+  "projectName": "Klassi Technologies",
 
+  "uat": {
+    "envName": "UAT",
+    "base_url": ""
+  },
+  "test": {
+    "envName": "TEST",
+    "base_url": ""
+  },
+  "prod": {
+    "envName": "PRODUCTION",
+    "base_url": ""
+  },
+  "dev": {
+    "envName": "DEVELOPMENT",
+    "base_url": ""
+  }
 }

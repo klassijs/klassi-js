@@ -3,13 +3,10 @@
 
   "os": "Windows",
   "os_version": "10",
-  "browser": "Chrome",
-  "browserName": "Chrome",
-  "browser_version": "73.0",
+  "browser": "Firefox",
+  "browserName": "Firefox",
+  "browser_version": "66.0",
   "resolution": "1280x800",
-  "chromeOptions": {
-    "args": ["disable-infobars"]
-  },
 
   "javascriptEnabled":true,
   "locationContextEnabled":true,
@@ -20,5 +17,6 @@
   "acceptSslCerts": true,
   "browserstackLocal": true,
   "browserstack.debug": true,
-  "browserstack.networkLogs": true
+  "browserstack.networkLogs": true,
+  "browserstack.selenium_version": "3.6.0"
 }
