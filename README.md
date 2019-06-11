@@ -29,7 +29,7 @@ selenium-standalone install && selenium-standalone start
 
 ```bash
 # run 'yarn install' in a terminal window from within the project folder
-node ./index.js -s ./step-definitions
+node ./index.js -s ./step_definitions
 or
 node index.js -dt @search // locally
 or
