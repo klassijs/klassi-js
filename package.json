@@ -1,7 +1,7 @@
 {
   "name": "klassi-js",
   "version": "2.5.0",
-  "description": "A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to any other tool or library, using Nodejs, webdriverio and cucumber-js",
+  "description": "A debuggable Javascript BDD testing framework. It's simple and easy to use, its built on webdriverio and nodejs",
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
@@ -63,6 +63,6 @@
     "eslint": "^5.15.3",
     "geckodriver": "^1.16.0",
     "multiple-cucumber-html-reporter": "^1.11.6",
-    "webdriverio": "^5.7.5"
+    "webdriverio": "^5.10.1"
   }
 }
