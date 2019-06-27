@@ -44,11 +44,11 @@ module.exports = {
     /**
      * load the url and wait for it to complete
      */
-    return driver.url(url, function () {
+    return browser.url(url, function () {
       /**
        * now wait for the body element to be present
        */
-      return driver.waitUntil(driver.$('body'), timeout);
+      return browser.waitUntil(browser.$('body'), timeout);
     });
   },
   
@@ -75,7 +75,7 @@ module.exports = {
       const script = `document.querySelectorAll('${
         selectors[i]
       }').forEach(element => element.style.opacity = '0')`;
-      await driver.execute(script);
+      await browser.execute(script);
     }
   },
   
@@ -90,7 +90,7 @@ module.exports = {
       const script = `document.querySelectorAll('${
         selectors[i]
       }').forEach(element => element.style.opacity = '1')`;
-      await driver.execute(script);
+      await browser.execute(script);
     }
   },
   
@@ -157,7 +157,7 @@ module.exports = {
     /**
        * grab the matching elements
        */
-    return driver.$$(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
+    return browser.$$(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
   },
   
   /**
@@ -295,7 +295,7 @@ module.exports = {
      * @returns text
      */
   getElementText: async function (selector) {
-    let elem = await driver.$(selector);
+    let elem = await browser.$(selector);
     await elem.waitForExist(DELAY_10_SECOND);
     let text = await elem.getText();
     return text;
@@ -307,17 +307,17 @@ module.exports = {
      * @returns {String|String[]|*|string}
      */
   getLink: async function (selector) {
-    let elem = await driver.$(selector);
+    let elem = await browser.$(selector);
     await elem.getAttribute('href');
   },
   
   waitAndClick: async function (selector) {
     try {
-      let elem = await driver.$(selector);
+      let elem = await browser.$(selector);
       await elem.waitForDisplayed(DELAY_3_SECOND);
       await elem.waitForEnabled(DELAY_1_SECOND);
       await elem.click();
-      await driver.pause(DELAY_500_MILLISECOND);
+      await browser.pause(DELAY_500_MILLISECOND);
     }
     catch (err) {
       log.error(err.message);
@@ -327,10 +327,10 @@ module.exports = {
   
   waitAndSetValue: async function (selector, value) {
     try{
-      let elem = await driver.$(selector);
+      let elem = await browser.$(selector);
       await elem.waitForEnabled(DELAY_3_SECOND);
       await elem.click();
-      await driver.pause(DELAY_500_MILLISECOND);
+      await browser.pause(DELAY_500_MILLISECOND);
       await elem.setValue(value);
     }
     catch (err) {
@@ -404,10 +404,10 @@ module.exports = {
      * @returns {Promise.<TResult>}
      */
   getElementFromFrame: async function (frame_name, selector) {
-    let frame = await driver.$(frame_name);
-    await driver.switchToFrame(frame.value);
-    await driver.$(selector).getHTML();
-    return driver;
+    let frame = await browser.$(frame_name);
+    await browser.switchToFrame(frame.value);
+    await browser.$(selector).getHTML();
+    return browser;
   },
 
   /**
@@ -416,9 +416,9 @@ module.exports = {
      * @param expectedText
      */
   assertText: async function (selector, expected) {
-    let elem = await driver.$(selector);
+    let elem = await browser.$(selector);
     await elem.waitForEnabled(DELAY_5_SECOND);
-    let actual = await driver.$(selector);
+    let actual = await browser.$(selector);
     await actual.getText();
     actual = actual.trim();
     assert.equal(actual, expected);
@@ -431,7 +431,7 @@ module.exports = {
    * @param expectedText
    */
   expectToIncludeText: async function (selector, expectedText) {
-    let actual = await driver.$(selector);
+    let actual = await browser.$(selector);
     await actual.getText();
     expect(actual).to.include(expectedText);
     return this;
@@ -442,7 +442,7 @@ module.exports = {
    * @param expected
    */
   assertUrl: async function (expected) {
-    let actual = await driver.getUrl();
+    let actual = await browser.getUrl();
     assert.equal(actual, expected);
   },
   
@@ -487,7 +487,7 @@ module.exports = {
       
         if (method === 'POST' && fileName != null) {
           let data = res.body.adminDoc;
-          let doc_Id = data.replace(/.*documents\/([^\/]+)\/properties.*/, '$1');
+          let doc_Id = data.replace(/.*documents\/([^/]+)\/properties.*/, '$1');
           await helpers.writeTextFile(fileName, doc_Id, function (err) {
             if (err){
               log.error(err.message);
@@ -503,12 +503,12 @@ module.exports = {
   
   filterItem: async function (itemToFilter) {
     try{
-      let elem = await driver.$(shared.adminData.filter.filterInput);
+      let elem = await browser.$(shared.adminData.filter.filterInput);
       await elem.waitForExist(DELAY_5_SECOND);
       await elem.waitForEnabled(DELAY_5_SECOND);
-      await driver.pause(DELAY_500_MILLISECOND);
+      await browser.pause(DELAY_500_MILLISECOND);
       await elem.click();
-      await driver.setValue(itemToFilter);
+      await browser.setValue(itemToFilter);
     }
     catch (err) {
       log.error(err.message);
@@ -519,10 +519,10 @@ module.exports = {
   filterItemAndClick: async function (itemToFilter) {
     try{
       await helpers.filterItem(itemToFilter);
-      await driver.pause(DELAY_3_SECOND);
-      let elem = await driver.$(shared.adminData.filter.filteredItem);
+      await browser.pause(DELAY_3_SECOND);
+      let elem = await browser.$(shared.adminData.filter.filteredItem);
       await elem.click();
-      await driver.pause(DELAY_3_SECOND);
+      await browser.pause(DELAY_3_SECOND);
     }
     catch (err) {
       log.error(err.message);

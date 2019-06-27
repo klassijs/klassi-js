@@ -50,7 +50,7 @@ module.exports = {
     }
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
-    await driver.saveScreenshot(resultPathPositive, err => {
+    await browser.saveScreenshot(resultPathPositive, err => {
       if (err){
         log.error(err.message);
       }
@@ -107,7 +107,7 @@ module.exports = {
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
       while (typeof result == 'undefined') {
-        await driver.pause(DELAY_100_MILLISECOND);
+        await browser.pause(DELAY_100_MILLISECOND);
       }
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);

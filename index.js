@@ -102,7 +102,7 @@ program
   .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option('-t, --tags <tagName>', 'name of tag to run')
   .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
-  .option('-w, --remoteService [optional]', 'which remote driver service, if any, should be used e.g. browserstack', '')
+  .option('-w, --remoteService [optional]', 'which remote browser service, if any, should be used e.g. browserstack', '')
   .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
   .parse(process.argv);
 
@@ -164,7 +164,7 @@ global.helpers = require('./runtime/helpers.js');
 global.date = helpers.currentDate();
 
 /**
- * store EnvName globally (used within world.js when building driver)
+ * store EnvName globally (used within world.js when building browser)
  */
 global.envName = program.environment;
 

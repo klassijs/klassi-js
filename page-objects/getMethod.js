@@ -26,7 +26,7 @@ module.exports = {
    * Getting the Status Code
    */
   staCode: async function() {
-    driver.pause(DELAY_1_SECOND);
+    browser.pause(DELAY_1_SECOND);
     expect(res.statusCode).to.equal(200);
     log.info(res.statusCode);
   },
@@ -34,7 +34,7 @@ module.exports = {
    * Getting the Content of the API
    */
   contApi: async function() {
-    driver.pause(DELAY_1_SECOND);
+    browser.pause(DELAY_1_SECOND);
     log.info(res.body);
   }
 };
