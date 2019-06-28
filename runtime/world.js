@@ -85,7 +85,7 @@ let browser = {};
  * @returns {{}}
  */
 async function getDriverInstance() {
-  let browserName = global.settings.browserName;
+  let browsers = global.settings.browserName;
   let options = {};
   if (remoteService && remoteService.type === 'browserstack') {
     let configType = global.settings.remoteConfig;
@@ -96,8 +96,8 @@ async function getDriverInstance() {
     browser = BrowserStackDriver(options, configType);
     return browser;
   }
-  assert.isNotEmpty(browserName, 'Browser Name must be defined');
-  switch (browserName || '') {
+  assert.isNotEmpty(browsers, 'Browser Name must be defined');
+  switch (browsers || '') {
   case 'firefox':
     {
       browser = FirefoxDriver(options);

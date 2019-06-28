@@ -86,7 +86,7 @@ fs.ensureFile(fileName, function(err) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option('-b, --browser [optional]', 'name of browser to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
+  .option('-b, --browsers [optional]', 'name of browsers to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
@@ -113,7 +113,7 @@ program.on('--help', function() {
 let settings = {
   projectRoot: program.context,
   reportName: program.reportName,
-  browserName: program.browser,
+  browserName: program.browsers,
   disableReport: program.disableReport,
   updateBaselineImage: program.updateBaselineImage,
   defaultTimeout: '300000 * 1000', // 5 mins
@@ -149,7 +149,7 @@ let paths = {
 };
 
 // expose settings and paths for global use
-global.browserName = program.browser;
+global.browserName = program.browsers;
 global.settings = settings;
 global.paths = paths;
 
