@@ -78,14 +78,14 @@ let ChromeDriver = require('./chromeDriver'),
   BrowserStackDriver = require('./browserStackDriver');
 let remoteService = getRemote(global.settings.remoteService);
 
-let driver = {};
+let browser = {};
 
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
  */
 async function getDriverInstance() {
-  let browser = global.settings.browserName;
+  let browsers = global.settings.browserName;
   let options = {};
   if (remoteService && remoteService.type === 'browserstack') {
     let configType = global.settings.remoteConfig;
@@ -93,23 +93,23 @@ async function getDriverInstance() {
       configType,
       'BrowserStack requires a config type e.g. win10-chrome'
     );
-    driver = BrowserStackDriver(options, configType);
-    return driver;
+    browser = BrowserStackDriver(options, configType);
+    return browser;
   }
-  assert.isNotEmpty(browser, 'Browser must be defined');
-  switch (browser || '') {
+  assert.isNotEmpty(browsers, 'Browser Name must be defined');
+  switch (browsers || '') {
   case 'firefox':
     {
-      driver = FirefoxDriver(options);
+      browser = FirefoxDriver(options);
     }
     break;
   case 'chrome':
     {
-      driver = ChromeDriver(options);
+      browser = ChromeDriver(options);
     }
     break;
   }
-  return driver;
+  return browser;
 }
 
 let envName = global.envName;
@@ -174,11 +174,11 @@ global.Then = Then;
 function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{driver: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
+   * @type {{browser: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
    * log: log, page: {}, shared: {}}}
    */
   let runtime = {
-    driver: {}, // the browser object
+    browser: {}, // the browser object
     expect: global.expect, // expose chai expect to allow variable testing
     assert: global.assert, // expose chai assert to allow variable testing
     fs: fs, // expose fs (file system) for use globally
@@ -261,21 +261,21 @@ setDefaultTimeout(cucumberTimeout);
 global.startDateTime = require('./helpers').getStartDateTime();
 
 /**
- * create the driver before scenario if it's not instantiated
+ * create the browser before scenario if it's not instantiated
  */
 Before(async () => {
-  global.driver = getDriverInstance();
-  global.browser = global.driver; // ensure standard WebDriver global also works
-  await driver;
+  global.browser = getDriverInstance();
+  global.driver = global.browser; // ensure standard WebDriver global also works
+  await browser;
 });
 
 /**
  * send email with the report to stakeholders after test run
  */
 AfterAll(async () => {
-  let driver = global.driver;
+  let browser = global.browser;
   if (program.email) {
-    driver.pause(DELAY_3_SECOND).then(function() {
+    browser.pause(DELAY_3_SECOND).then(function() {
       return helpers.klassiEmail();
     });
   }
@@ -286,7 +286,7 @@ AfterAll(async () => {
  */
 AfterAll(function(done) {
   // console.log('this is the env ', global.envConfig.envName);
-  let driver = global.driver;
+  let browser = global.browser;
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();
     let reportOptions = {
@@ -346,9 +346,9 @@ AfterAll(function(done) {
     //     ]
     //   },
     // };
-    driver.pause(DELAY_3_SECOND).then(function() {
+    browser.pause(DELAY_3_SECOND).then(function() {
       reporter.generate(reportOptions);
-      driver.pause(DELAY_3_SECOND);
+      browser.pause(DELAY_3_SECOND);
     });
   }
   done();
@@ -358,20 +358,20 @@ AfterAll(function(done) {
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
 After(async function(scenario) {
-  let driver = global.driver;
+  let browser = global.browser;
   if (scenario.result.status === Status.FAILED) {
     if (remoteService && remoteService.type === 'browserstack') {
-      await driver.deleteSession();
+      await browser.deleteSession();
     } else {
       // Comment out to do nothing | leave browser open
-      await driver.deleteSession();
+      await browser.deleteSession();
     }
   } else {
     if (remoteService && remoteService.type !== 'browserstack') {
       // Comment out to do nothing | leave browser open
-      await driver.deleteSession();
+      await browser.deleteSession();
     } else {
-      await driver.deleteSession();
+      await browser.deleteSession();
     }
   }
 });
@@ -380,10 +380,10 @@ After(async function(scenario) {
  * get executed only if there is an error within a scenario
  */
 After(function(scenario) {
-  let driver = global.driver;
+  let browser = global.browser;
   let world = this;
   if (scenario.result.status === Status.FAILED) {
-    return driver.takeScreenshot().then(function(screenShot) {
+    return browser.takeScreenshot().then(function(screenShot) {
       world.attach(screenShot, 'image/png');
     });
   }

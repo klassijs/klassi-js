@@ -17,14 +17,14 @@ module.exports = {
   performSearch: async function(searchWord) {
     image = searchWord;
     await verify.saveScreenshot(`${image}_1-0.png`);
-    let elem = await driver.$(shared.searchData.elem.searchInput);
+    let elem = await browser.$(shared.searchData.elem.searchInput);
     await elem.setValue(searchWord);
     await verify.saveScreenshot(`${image}_1-1.png`, shared.searchData.elem.leftBadge);
-    let title = await driver.getTitle();
+    let title = await browser.getTitle();
     log.info('the title being returned:- ' + title);
-    let searchBtn = await driver.$(shared.searchData.elem.searchBtn);
+    let searchBtn = await browser.$(shared.searchData.elem.searchBtn);
     await searchBtn.click();
-    await driver.pause(DELAY_1_SECOND);
+    await browser.pause(DELAY_1_SECOND);
     await helpers.compareImage(`${image}_1-0.png`);
     await helpers.compareImage(`${image}_1-1.png`);
     await image;
@@ -32,9 +32,9 @@ module.exports = {
   searchResult: async function() {
     // image = searchWord;
     /** return the promise of an element to the following then */
-    let elem = await driver.$(shared.searchData.elem.resultLink);
+    let elem = await browser.$(shared.searchData.elem.resultLink);
     await verify.saveScreenshot(`${image}_1-2.png`, shared.searchData.elem.leftBadge);
-    await driver.pause(DELAY_1_SECOND);
+    await browser.pause(DELAY_1_SECOND);
     /** verify this element has children */
     log.info(elem); // prints to a log
     expect(elem.length).to.not.equal(0);

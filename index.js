@@ -86,7 +86,7 @@ fs.ensureFile(fileName, function(err) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option('-b, --browser [optional]', 'name of browser to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
+  .option('-b, --browsers [optional]', 'name of browsers to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
@@ -102,7 +102,7 @@ program
   .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option('-t, --tags <tagName>', 'name of tag to run')
   .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
-  .option('-w, --remoteService [optional]', 'which remote driver service, if any, should be used e.g. browserstack', '')
+  .option('-w, --remoteService [optional]', 'which remote browser service, if any, should be used e.g. browserstack', '')
   .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
   .parse(process.argv);
 
@@ -113,7 +113,7 @@ program.on('--help', function() {
 let settings = {
   projectRoot: program.context,
   reportName: program.reportName,
-  browserName: program.browser,
+  browserName: program.browsers,
   disableReport: program.disableReport,
   updateBaselineImage: program.updateBaselineImage,
   defaultTimeout: '300000 * 1000', // 5 mins
@@ -149,7 +149,7 @@ let paths = {
 };
 
 // expose settings and paths for global use
-global.browserName = program.browser;
+global.browserName = program.browsers;
 global.settings = settings;
 global.paths = paths;
 
@@ -164,7 +164,7 @@ global.helpers = require('./runtime/helpers.js');
 global.date = helpers.currentDate();
 
 /**
- * store EnvName globally (used within world.js when building driver)
+ * store EnvName globally (used within world.js when building browser)
  */
 global.envName = program.environment;
 

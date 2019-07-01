@@ -44,6 +44,6 @@ module.exports = async function firefoxDriver(options) {
     };
   }
   const extendedOptions = Object.assign(defaults, options);
-  global.driver = await wdio.remote(extendedOptions);
-  return driver;
+  global.browser = await wdio.remote(extendedOptions);
+  return browser;
 };

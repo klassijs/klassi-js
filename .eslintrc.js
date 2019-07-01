@@ -60,6 +60,7 @@ module.exports = {
     Then: true,
     helpers:false,
     driver:false,
+    browser: false,
     log: false,
     date: false,
     startDateTime: false,
