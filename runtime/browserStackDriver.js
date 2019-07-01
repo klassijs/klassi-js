@@ -55,6 +55,6 @@ module.exports = async function browserstackDriver(options, configType) {
     // OPTIONS: verbose | silent | command | data | result
     extendedOptions.logLevel = config.logLevel;
   }
-  global.driver = await wdio.remote(extendedOptions);
-  return driver;
+  global.browser = await wdio.remote(extendedOptions);
+  return browser;
 };
