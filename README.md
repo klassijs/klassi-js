@@ -1,6 +1,6 @@
 [![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
 
-# klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js) [![npm](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
+# klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js) [![npm](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg)](https://npm-stat.com/charts.html?package=klassi-cucumber-js&package=klassi-js&package=webdriverio-cucumber-js&from=2016-12-01)
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
