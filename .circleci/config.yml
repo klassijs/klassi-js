@@ -15,9 +15,9 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-# Javascript Node CircleCI 2.0 configuration file
+#    Javascript Node CircleCI 2.0 configuration file
 #
-# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#    Check https://circleci.com/docs/2.0/language-javascript/ for more details
 
 version: 2.0
 
@@ -81,8 +81,9 @@ jobs:
             - "~/.cache/yarn"
             - node_modules
 
-  # Integration test base configuration
-  # Integration test base configuration
+  #                                     #
+  # Integration test base configuration #
+  #                                     #
   integration_test_base: &integration_test_base
     <<: *container_config
     steps:
@@ -100,34 +101,12 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-#          command: ./scripts/ci/browserstack-local.sh start
           command: node runtime/remotes/browserstackLocal.js start
           background: true
 
       - run:
           name: Check BrowserStack Local running
-#          command: sleep 5;./scripts/ci/browserstack-local.sh check
           command: sleep 5;node runtime/remotes/browserstackLocal.js check
-
-#      - run:
-#          name: Integration Test Run
-#          command: yarn run dev
-##          command: |
-##            ./node_modules/.bin/nightwatch \
-##              -c config/nw-browserstack.conf.js \
-##              -t tests/integration/marking.js \
-##              -e $BROWSER_NAME
-#          environment:
-#            TEST_REPORT_PATH: ./test-results
-
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-          background: true
 
       - run:
           name: Install Dependencies
@@ -139,7 +118,7 @@ jobs:
             - node_modules
       - run:
           name: Integration Test Run
-          command: yarn run dev
+          command: yarn run cibsdev $BROWSER_NAME
 
       - store_artifacts:
           path: artifacts
@@ -184,8 +163,9 @@ jobs:
     steps:
       - run: "echo 'FINISHED'"
 
-  # Acceptance test base configuration
-  # Acceptance test base configuration
+  #                                    #
+  # Acceptance test base configuration #
+  #                                    #
   acceptance_test_base: &acceptance_test_base
     <<: *container_config
     steps:
@@ -195,15 +175,6 @@ jobs:
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
-
-      - run:
-          name: Download Selenium
-          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-
-      - run:
-          name: Start Selenium Server
-          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-          background: true
 
       - run:
           name: Install Dependencies
@@ -220,7 +191,7 @@ jobs:
 
       - run:
           name: Acceptance Test Run
-          command: yarn run uat
+          command: yarn run cibsuat $BROWSER_NAME
 
       - store_artifacts:
           path: artifacts
@@ -407,4 +378,3 @@ workflows:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests
-

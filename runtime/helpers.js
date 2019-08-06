@@ -296,7 +296,7 @@ module.exports = {
      */
   getElementText: async function (selector) {
     let elem = await browser.$(selector);
-    await elem.waitForExist(DELAY_10_SECOND);
+    await elem.waitForExist(DELAY_10s);
     let text = await elem.getText();
     return text;
   },
@@ -314,10 +314,10 @@ module.exports = {
   waitAndClick: async function (selector) {
     try {
       let elem = await browser.$(selector);
-      await elem.waitForDisplayed(DELAY_3_SECOND);
-      await elem.waitForEnabled(DELAY_1_SECOND);
+      await elem.waitForDisplayed(DELAY_3s);
+      await elem.waitForEnabled(DELAY_1s);
       await elem.click();
-      await browser.pause(DELAY_500_MILLISECOND);
+      await browser.pause(DELAY_500ms);
     }
     catch (err) {
       log.error(err.message);
@@ -328,9 +328,9 @@ module.exports = {
   waitAndSetValue: async function (selector, value) {
     try{
       let elem = await browser.$(selector);
-      await elem.waitForEnabled(DELAY_3_SECOND);
+      await elem.waitForEnabled(DELAY_3s);
       await elem.click();
-      await browser.pause(DELAY_500_MILLISECOND);
+      await browser.pause(DELAY_500ms);
       await elem.setValue(value);
     }
     catch (err) {
@@ -417,7 +417,7 @@ module.exports = {
      */
   assertText: async function (selector, expected) {
     let elem = await browser.$(selector);
-    await elem.waitForEnabled(DELAY_5_SECOND);
+    await elem.waitForEnabled(DELAY_5s);
     let actual = await browser.$(selector);
     await actual.getText();
     actual = actual.trim();
@@ -504,9 +504,9 @@ module.exports = {
   filterItem: async function (itemToFilter) {
     try{
       let elem = await browser.$(shared.adminData.filter.filterInput);
-      await elem.waitForExist(DELAY_5_SECOND);
-      await elem.waitForEnabled(DELAY_5_SECOND);
-      await browser.pause(DELAY_500_MILLISECOND);
+      await elem.waitForExist(DELAY_5s);
+      await elem.waitForEnabled(DELAY_5s);
+      await browser.pause(DELAY_500ms);
       await elem.click();
       await browser.setValue(itemToFilter);
     }
@@ -519,10 +519,10 @@ module.exports = {
   filterItemAndClick: async function (itemToFilter) {
     try{
       await helpers.filterItem(itemToFilter);
-      await browser.pause(DELAY_3_SECOND);
+      await browser.pause(DELAY_3s);
       let elem = await browser.$(shared.adminData.filter.filteredItem);
       await elem.click();
-      await browser.pause(DELAY_3_SECOND);
+      await browser.pause(DELAY_3s);
     }
     catch (err) {
       log.error(err.message);
