@@ -147,16 +147,17 @@ case 'prod':
  * Global timeout
  * @type {number}
  */
-global.DELAY_100_MILLISECOND = 100; // 100 millisecond delay
-global.DELAY_200_MILLISECOND = 200; // 200 millisecond delay
-global.DELAY_300_MILLISECOND = 300; // 300 millisecond delay
-global.DELAY_500_MILLISECOND = 500; // 500 millisecond delay
-global.DELAY_1_SECOND = 1000; // 1 second delay
-global.DELAY_2_SECOND = 3000; // 2 second delay
-global.DELAY_3_SECOND = 5000; // 3 second delay
-global.DELAY_5_SECOND = 20000; // 5 second delay
-global.DELAY_10_SECOND = 10000; // 10 second delay
-global.DELAY_15_SECOND = 15000; // 15 second delay
+global.DELAY_100ms = 100; // 100 millisecond delay
+global.DELAY_200ms = 200; // 200 millisecond delay
+global.DELAY_300ms = 300; // 300 millisecond delay
+global.DELAY_500ms = 500; // 500 millisecond delay
+global.DELAY_1s = 1000; // 1 second delay
+global.DELAY_2s = 2000; // 2 second delay
+global.DELAY_3s = 3000; // 3 second delay
+global.DELAY_5s = 5000; // 5 second delay
+global.DELAY_10s = 10000; // 10 second delay
+global.DELAY_15s = 15000; // 15 second delay
+global.DELAY_20s = 20000; // 20 second delay
 
 function consoleInfo() {
   let args = [].slice.call(arguments),
@@ -258,8 +259,8 @@ this.World = World;
 const { setDefaultTimeout } = require('cucumber');
 
 // Add timeout based on env var.
-const cucumberTimeout = process.env.CUCUMBER_TIMEOUT || 120000;
-setDefaultTimeout(cucumberTimeout);
+const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
+setDefaultTimeout(timeout);
 
 // start recording of the Test run time
 global.startDateTime = require('./helpers').getStartDateTime();
@@ -279,7 +280,7 @@ Before(async () => {
 AfterAll(async () => {
   let browser = global.browser;
   if (program.email) {
-    browser.pause(DELAY_3_SECOND).then(function() {
+    browser.pause(DELAY_3s).then(function() {
       return helpers.klassiEmail();
     });
   }
@@ -352,9 +353,9 @@ AfterAll(function(done) {
     //   },
     // };
     
-    browser.pause(DELAY_3_SECOND).then(function() {
+    browser.pause(DELAY_3s).then(function() {
       reporter.generate(reportOptions);
-      browser.pause(DELAY_3_SECOND);
+      browser.pause(DELAY_3s);
     });
   }
   done();

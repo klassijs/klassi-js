@@ -37,10 +37,11 @@
     "test": "node index.js -dt @api",
     "all": "node index.js -ed",
     "dev": "node index.js -dt @api",
-    "uat": "yarn node index.js -dt @search",
+    "uat": "node index.js -dt @search",
     "local": "node index.js -edt",
-    "bslocal": "node runtime/remotes/browserstackLocal && node index.js -edw browserstack -x",
-    "package-checks": "npm-check -u"
+    "bslocal": "node index.js -edw browserstack -x",
+    "bslocal1": "node runtime/remotes/browserstackLocal && node index.js -edw browserstack -x",
+    "pkgchecks": "yarn check"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {

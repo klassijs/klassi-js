@@ -220,7 +220,7 @@ jobs:
 
       - run:
           name: Acceptance Test Run
-          command: yarn run uat
+          command: yarn run bslocal
 
       - store_artifacts:
           path: artifacts
@@ -312,35 +312,35 @@ workflows:
                 - develop
                 - master
 
-      - integration_test_edge:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
+#      - integration_test_edge:
+#          requires:
+#            - integration_test_build
+#            - run_all_integration_tests
 
       - integration_test_firefox:
           requires:
             - integration_test_build
             - run_all_integration_tests
 
-      - integration_test_safari:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_macChrome:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_tabletiPad:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_tabletGalaxy:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
+#      - integration_test_safari:
+#          requires:
+#            - integration_test_build
+#            - run_all_integration_tests
+#
+#      - integration_test_macChrome:
+#          requires:
+#            - integration_test_build
+#            - run_all_integration_tests
+#
+#      - integration_test_tabletiPad:
+#          requires:
+#            - integration_test_build
+#            - run_all_integration_tests
+#
+#      - integration_test_tabletGalaxy:
+#          requires:
+#            - integration_test_build
+#            - run_all_integration_tests
 
       - acceptance_test_build:
           requires:
@@ -378,33 +378,33 @@ workflows:
                 - develop
                 - master
 
-      - acceptance_test_edge:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
+#      - acceptance_test_edge:
+#          requires:
+#            - acceptance_test_build
+#            - run_all_acceptance_tests
 
       - acceptance_test_firefox:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests
 
-      - acceptance_test_safari:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_macChrome:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_tabletiPad:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_tabletGalaxy:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
+#      - acceptance_test_safari:
+#          requires:
+#            - acceptance_test_build
+#            - run_all_acceptance_tests
+#
+#      - acceptance_test_macChrome:
+#          requires:
+#            - acceptance_test_build
+#            - run_all_acceptance_tests
+#
+#      - acceptance_test_tabletiPad:
+#          requires:
+#            - acceptance_test_build
+#            - run_all_acceptance_tests
+#
+#      - acceptance_test_tabletGalaxy:
+#          requires:
+#            - acceptance_test_build
+#            - run_all_acceptance_tests
 
