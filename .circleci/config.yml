@@ -139,7 +139,7 @@ jobs:
             - node_modules
       - run:
           name: Integration Test Run
-          command: yarn run dev
+          command: yarn run bslocal $BROWSER_NAME
 
       - store_artifacts:
           path: artifacts
