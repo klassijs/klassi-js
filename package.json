@@ -38,11 +38,9 @@
     "all": "node index.js -ed",
     "dev": "node index.js -dt @api",
     "uat": "node index.js -dt @search",
-    "local": "node index.js -edt",
     "bslocal": "node index.js -edw browserstack -x",
     "cibsdev": "node index.js -edt @api -w browserstack -x",
     "cibsuat": "node index.js -edt @search -w browserstack -x",
-    "bslocal1": "node runtime/remotes/browserstackLocal && node index.js -edw browserstack -x",
     "pkgchecks": "yarn check"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",

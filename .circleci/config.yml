@@ -81,8 +81,9 @@ jobs:
             - "~/.cache/yarn"
             - node_modules
 
-  # Integration test base configuration
-  # Integration test base configuration
+  #                                     #
+  # Integration test base configuration #
+  #                                     #
   integration_test_base: &integration_test_base
     <<: *container_config
     steps:
@@ -100,34 +101,12 @@ jobs:
 
       - run:
           name: Start BrowserStack Local
-#          command: ./scripts/ci/browserstack-local.sh start
           command: node runtime/remotes/browserstackLocal.js start
           background: true
 
       - run:
           name: Check BrowserStack Local running
-#          command: sleep 5;./scripts/ci/browserstack-local.sh check
           command: sleep 5;node runtime/remotes/browserstackLocal.js check
-
-#      - run:
-#          name: Integration Test Run
-#          command: yarn run dev
-##          command: |
-##            ./node_modules/.bin/nightwatch \
-##              -c config/nw-browserstack.conf.js \
-##              -t tests/integration/marking.js \
-##              -e $BROWSER_NAME
-#          environment:
-#            TEST_REPORT_PATH: ./test-results
-
-#      - run:
-#          name: Download Selenium
-#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-#
-#      - run:
-#          name: Start Selenium Server
-#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-#          background: true
 
       - run:
           name: Install Dependencies
@@ -184,8 +163,9 @@ jobs:
     steps:
       - run: "echo 'FINISHED'"
 
-  # Acceptance test base configuration
-  # Acceptance test base configuration
+  #                                    #
+  # Acceptance test base configuration #
+  #                                    #
   acceptance_test_base: &acceptance_test_base
     <<: *container_config
     steps:
@@ -195,15 +175,6 @@ jobs:
       - run:
           name: Create Test-Result Directory
           command: mkdir ./test-results
-
-#      - run:
-#          name: Download Selenium
-#          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-#
-#      - run:
-#          name: Start Selenium Server
-#          command: java -jar selenium-server-standalone-3.5.3.jar -log test-results/selenium.log
-#          background: true
 
       - run:
           name: Install Dependencies
@@ -312,35 +283,35 @@ workflows:
                 - develop
                 - master
 
-#      - integration_test_edge:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
+      - integration_test_edge:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
 
       - integration_test_firefox:
           requires:
             - integration_test_build
             - run_all_integration_tests
 
-#      - integration_test_safari:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_macChrome:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_tabletiPad:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
-#
-#      - integration_test_tabletGalaxy:
-#          requires:
-#            - integration_test_build
-#            - run_all_integration_tests
+      - integration_test_safari:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_macChrome:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_tabletiPad:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
+      - integration_test_tabletGalaxy:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
 
       - acceptance_test_build:
           requires:
@@ -378,33 +349,33 @@ workflows:
                 - develop
                 - master
 
-#      - acceptance_test_edge:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
+      - acceptance_test_edge:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
       - acceptance_test_firefox:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests
 
-#      - acceptance_test_safari:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_macChrome:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_tabletiPad:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
-#
-#      - acceptance_test_tabletGalaxy:
-#          requires:
-#            - acceptance_test_build
-#            - run_all_acceptance_tests
+      - acceptance_test_safari:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_macChrome:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_tabletiPad:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_tabletGalaxy:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
 
