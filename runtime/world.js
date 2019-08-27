@@ -270,7 +270,6 @@ global.startDateTime = require('./helpers').getStartDateTime();
  */
 Before(async () => {
   global.browser = getDriverInstance();
-  global.driver = global.browser; // to accommodate the use of driver instead of browser
   await browser;
 });
 

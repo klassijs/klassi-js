@@ -28,6 +28,7 @@ artifacts
 coverage
 testDir
 
+klassi-browserstack.js
 # IntelliJ project files
 .idea
 out
