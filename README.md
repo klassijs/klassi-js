@@ -31,7 +31,7 @@ selenium-standalone install && selenium-standalone start
 # run 'yarn install' in a terminal window from within the project folder
 node ./index.js -ds ./step_definitions
 or
-node index.js -dt @search // locally
+node ../../index.js -dt @search // locally
 or
 yarn run bslocal chrome/@search // via browserstack
 ```
@@ -165,26 +165,6 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
        done(); // <<- let cucumber know you're done
     });
   });
-```
-
-## Default directory structure
-
-You can use the framework without any command line arguments if your application uses the following folder structure:
-```
-.
-├── features
-│   └── duckDuckGo-search.feature
-├── step_definitions
-│   └── duckDuckGo-search-steps.js
-├── page-objects
-│   └── duckDuckGoSearch.js
-|__ runtime
-|   |__ world.js
-└── shared-objects
-│   ├── test-data.js
-└── reports
-    ├── cucumber-report.json
-    └── cucumber-report.html
 ```
 
 ## Bugs

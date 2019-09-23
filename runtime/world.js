@@ -33,7 +33,7 @@ const fs = require('fs'),
   chai = require('chai'),
   reporter = require('cucumber-html-reporter'),
   // reporter = require('multiple-cucumber-html-reporter'),
-  rp = require('request-promise'),
+  apiGot = require('got'),
   program = require('commander');
 
 const assert = chai.assert,
@@ -56,7 +56,7 @@ global.date = require('../projects/' + projectName + '/settings/helpers').curren
  * for all API test calls
  * @type {Function}
  */
-global.request = rp;
+global.gotApi = apiGot;
 
 /**
  *  for the Download of all file types
@@ -114,31 +114,28 @@ async function getDriverInstance() {
 
 let envName = global.envName;
 
-global.envConfig = require('../configs/envConfig.json');
-let environ = global.envConfig;
-
 /**
  * for the environment variables
  */
 switch (envName || '') {
 case 'dev':
   {
-    environ.dev;
+    global.envConfig = require('../configs/envConfig.json').dev;
   }
   break;
 case 'uat':
   {
-    environ.uat;
+    global.envConfig = require('../configs/envConfig.json').uat;
   }
   break;
 case 'test':
   {
-    environ.test;
+    global.envConfig = require('../configs/envConfig.json').test;
   }
   break;
 case 'prod':
   {
-    environ.prod;
+    global.envConfig = require('../configs/envConfig.json').prod;
   }
   break;
 }
@@ -194,7 +191,7 @@ function World() {
     log: global.log, // expose the log method for output to files for emailing
     // envConfig: global.envConfig, // expose the global environment configuration file for use when changing environment // types (i.e. dev, test, preprod)
     downloader: global.downloader, // exposes the downloader for global usage
-    request: global.request, // exposes the request-promise for API testing
+    gotApi: global.gotApi, // exposes the request-promise for API testing
     date: global.date // expose the date method for logs and reports
   };
   /**
@@ -296,10 +293,10 @@ AfterAll(function(done) {
     let reportOptions = {
       theme: 'bootstrap',
       jsonFile: path.resolve(
-        global.paths.reports, global.settings.reportName + '-' + date + '.json'
+        global.paths.reports, projectName + ' ' + global.settings.reportName + '-' + date + '.json'
       ),
       output: path.resolve(
-        global.paths.reports, global.settings.reportName + '-' + date + '.html'
+        global.paths.reports, projectName + ' ' + global.settings.reportName + '-' + date + '.html'
       ),
       reportSuiteAsScenarios: true,
       launchReport: (!global.settings.disableReport),
@@ -312,7 +309,7 @@ AfterAll(function(done) {
         'Browser': global.settings.remoteConfig || global.browserName,
         'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'
       },
-      brandTitle: reportName + '-' + date,
+      brandTitle: projectName + ' ' + reportName + '-' + date,
       name: projectName
     };
     
@@ -352,9 +349,9 @@ AfterAll(function(done) {
     //   },
     // };
     
-    browser.pause(DELAY_3s).then(function() {
+    browser.pause(DELAY_2s).then(function() {
       reporter.generate(reportOptions);
-      browser.pause(DELAY_3s);
+      browser.pause(DELAY_1s);
     });
   }
   done();

@@ -7,7 +7,7 @@
   "projectName0": "Klassi Technologies",
   "projectName": "example-test-suite",
 
-  "reportName": "KlassiTech Automated Test Report",
+  "reportName": "Automated Test Report",
 
   "uat": {
     "envName": "UAT",

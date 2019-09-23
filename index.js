@@ -205,8 +205,7 @@ if (program.featureFile) {
 /**
  * add switch to tell cucumber to produce json report files
  */
-process.argv.push('-f', '../../node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName + '-' + date + '.json'));
-// process.argv.push( '-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, global.reportName + '/' + global.reportName + '/' ));
+process.argv.push('-f', '../../node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, projectName + ' ' + settings.reportName + '-' + date + '.json'));
 
 /**
  * add cucumber world as first required script (this sets up the globals)

@@ -1,0 +1,32 @@
+{
+  "name": "klassi-js",
+  "version": "2.5.0",
+  "description": "A debuggable JS BDD framework that uses nodeJs, webdriverio, JavaScript and cucumber",
+  "Author": {
+    "name": "Larry Goddard",
+    "email": "larryg@klassitech.co.uk",
+    "twitter": "twitter.com/lcgoddard",
+    "url": "linkedin.com/in/larryg"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/larryg01/klassi-js"
+  },
+  "engines": {
+    "node": ">= 10.15.3",
+    "yarn": ">= 1.3.2"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "node ../../index.js -dt @api",
+    "all": "node ../../index.js -ed",
+    "dev": "node ../../index.js -dt @api",
+    "uat": "node ../../index.js -dt @search",
+    "bslocal": "node ../../index.js -edw browserstack -x",
+    "cibsdev": "node ../../index.js -edt @api -w browserstack -x",
+    "cibsuat": "node ../../index.js -edt @search -w browserstack -x",
+    "pkgchecks": "yarn check"
+  },
+  "homepage": "https://github.com/larryg01/klassi-js#readme"
+}
