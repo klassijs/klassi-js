@@ -263,7 +263,7 @@ const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
 setDefaultTimeout(timeout);
 
 // start recording of the Test run time
-global.startDateTime = require('projects/example-test-suite/settings/helpers').getStartDateTime();
+global.startDateTime = helpers.getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated

@@ -60,11 +60,11 @@ global.reportName = process.env.REPORT_NAME || reportName;
  * @type {string}
  */
 // let reports = './reports/',
-let dirPath = './projects/' + projectName + '/';
-let reports = dirPath + 'reports',
-  fileDnldFldr = dirPath + 'shared-objects/fileDnldFolder/',
-  docsFolder = dirPath + 'shared-objects/docs',
-  fileName = path.join('shared-objects/docs/fileName.txt');
+// let dirPath = './projects/' + projectName + '/';
+let reports = './reports',
+  fileDnldFldr = './shared-objects/fileDnldFolder/',
+  docsFolder = './shared-objects/docs',
+  fileName = path.join('./shared-objects/docs/fileName.txt');
   // fileName1 = path.join('./reports/' + global.reportName + '/' + global.reportName + '.json');
 
 fs.ensureDirSync(reports, function(err) {
@@ -161,7 +161,7 @@ global.paths = paths;
 /**
  * add helpers
  */
-global.helpers = require('projects/example-test-suite/settings/helpers.js');
+global.helpers = require('./projects/' + projectName + '/settings/helpers.js');
 
 /**
  *  adding global date function

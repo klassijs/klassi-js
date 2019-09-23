@@ -1,7 +1,7 @@
 'use strict';
 
-const searchData = require('projects/example-test-suite/shared-objects/searchData'),
-  verify = require('runtime/imageCompare'),
+const searchData = require('../shared-objects/searchData'),
+  verify = require('../../../runtime/imageCompare'),
   shared = { searchData };
 
 let expect = global.expect;

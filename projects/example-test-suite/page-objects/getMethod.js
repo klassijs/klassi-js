@@ -1,6 +1,6 @@
 'use strict';
 
-let apiData = require('projects/example-test-suite/shared-objects/apiData');
+let apiData = require('../shared-objects/apiData');
 let shared = { apiData };
 
 let expect = global.expect;

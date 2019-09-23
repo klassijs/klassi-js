@@ -1,6 +1,6 @@
 'use strict';
 
-let getMethod = require('projects/example-test-suite/page-objects/getMethod');
+let getMethod = require('../page-objects/getMethod');
 let page = { getMethod };
 
 Given(/^That I make a GET call to an endPoint$/, async () => {
