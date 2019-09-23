@@ -34,13 +34,13 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "node index.js -dt @api",
-    "all": "node index.js -ed",
-    "dev": "node index.js -dt @api",
-    "uat": "node index.js -dt @search",
-    "bslocal": "node index.js -edw browserstack -x",
-    "cibsdev": "node index.js -edt @api -w browserstack -x",
-    "cibsuat": "node index.js -edt @search -w browserstack -x",
+    "test": "cd projects/example-test-suite && node ../../index.js -dt @api",
+    "all": "cd projects/example-test-suite && node ../../index.js -ed ",
+    "dev": "cd projects/example-test-suite && node ../../index.js -dt @api",
+    "uat": "cd projects/example-test-suite && node ../../index.js -dt @search",
+    "bslocal": "cd projects/example-test-suite && node ../../index.js -edw browserstack -x",
+    "cibsdev": "cd projects/example-test-suite && node ../../index.js -edt @api -w browserstack -x",
+    "cibsuat": "cd projects/example-test-suite && node ../../index.js -edt @search -w browserstack -x",
     "pkgchecks": "yarn check"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
@@ -66,6 +66,6 @@
     "geckodriver": "^1.16.0",
     "multiple-cucumber-html-reporter": "^1.11.6",
     "npm-check": "^5.9.0",
-    "webdriverio": "^5.10.9"
+    "webdriverio": "^5.13.0"
   }
 }

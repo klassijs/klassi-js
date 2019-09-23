@@ -50,7 +50,7 @@ global.log = log;
 /**
  * This is the Global date functionality
  */
-global.date = require('./helpers').currentDate();
+global.date = require('../projects/' + projectName + '/settings/helpers').currentDate();
 
 /**
  * for all API test calls
@@ -114,7 +114,7 @@ async function getDriverInstance() {
 
 let envName = global.envName;
 
-global.envConfig = require('./envConfig.json');
+global.envConfig = require('../configs/envConfig.json');
 let environ = global.envConfig;
 
 /**
@@ -263,7 +263,7 @@ const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
 setDefaultTimeout(timeout);
 
 // start recording of the Test run time
-global.startDateTime = require('./helpers').getStartDateTime();
+global.startDateTime = require('projects/example-test-suite/settings/helpers').getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated

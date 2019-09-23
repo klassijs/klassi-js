@@ -72,7 +72,7 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `webdriverio`| the raw [webdriver](https://webdriver.io/docs/api.html) module, providing access to static properties/methods |
 | `page`       | collection of **page** objects loaded from disk and keyed by filename |
 | `shared`     | collection of **shared** objects loaded from disk and keyed by filename |
-| `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
+| `helpers`    | a collection of [helper methods](projects/example-test-suite/settings/helpers.js) _things webdriver.io does not provide but really should!_ |
 | `expect`     | instance of [chai expect](https://www.chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
 | `assert`     | instance of [chai assert](https://www.chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |

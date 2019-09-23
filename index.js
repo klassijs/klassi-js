@@ -48,18 +48,23 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-let envConfig = require('./runtime/envConfig');
-global.reportName = process.env.REPORT_NAME || envConfig.reportName;
-global.projectName = process.env.PROJECT_NAME || envConfig.projectName;
+let envConfig = require('./configs/envConfig');
+let projectName = envConfig.projectName;
+let reportName = envConfig.reportName;
+
+global.projectName = process.env.PROJECT_NAME || projectName;
+global.reportName = process.env.REPORT_NAME || reportName;
 
 /**
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-let reports = './reports/',
-  fileDnldFldr = './shared-objects/fileDnldFolder/',
-  docsFolder = './shared-objects/docs',
-  fileName = path.join('./shared-objects/docs/fileName.txt');
+// let reports = './reports/',
+let dirPath = './projects/' + projectName + '/';
+let reports = dirPath + 'reports',
+  fileDnldFldr = dirPath + 'shared-objects/fileDnldFolder/',
+  docsFolder = dirPath + 'shared-objects/docs',
+  fileName = path.join('shared-objects/docs/fileName.txt');
   // fileName1 = path.join('./reports/' + global.reportName + '/' + global.reportName + '.json');
 
 fs.ensureDirSync(reports, function(err) {
@@ -156,7 +161,7 @@ global.paths = paths;
 /**
  * add helpers
  */
-global.helpers = require('./runtime/helpers.js');
+global.helpers = require('projects/example-test-suite/settings/helpers.js');
 
 /**
  *  adding global date function
@@ -200,7 +205,7 @@ if (program.featureFile) {
 /**
  * add switch to tell cucumber to produce json report files
  */
-process.argv.push('-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName + '-' + date + '.json'));
+process.argv.push('-f', '../../node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, settings.reportName + '-' + date + '.json'));
 // process.argv.push( '-f', 'node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, global.reportName + '/' + global.reportName + '/' ));
 
 /**

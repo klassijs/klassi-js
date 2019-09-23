@@ -1,7 +1,7 @@
 'use strict';
 
-let duckDuckGoSearch = require('../page-objects/duckDuckGoSearch');
-let searchData = require('../shared-objects/searchData');
+let duckDuckGoSearch = require('projects/example-test-suite/page-objects/duckDuckGoSearch');
+let searchData = require('projects/example-test-suite/shared-objects/searchData');
 
 let shared = { searchData };
 let page = { duckDuckGoSearch };
