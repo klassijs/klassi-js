@@ -1,32 +1,27 @@
 {
-  "name": "klassi-js",
+  "name": "template-test-suite",
   "version": "2.5.0",
-  "description": "A debuggable JS BDD framework that uses nodeJs, webdriverio, JavaScript and cucumber",
+  "description": "A debuggable JS BDD framework that uses nodeJs, webdriverio, JavaScript and cucumber-js",
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
-    "twitter": "twitter.com/lcgoddard",
     "url": "linkedin.com/in/larryg"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/larryg01/klassi-js"
+    "url": "https://github.com"
   },
   "engines": {
-    "node": ">= 10.15.3",
-    "yarn": ">= 1.3.2"
+    "node": ">= 8.11.3"
   },
   "main": "index.js",
   "scripts": {
-    "test": "node ../../index.js -dt @api",
-    "all": "node ../../index.js -ed",
-    "dev": "node ../../index.js -dt @api",
-    "uat": "node ../../index.js -dt @search",
-    "bslocal": "node ../../index.js -edw browserstack -x",
-    "cibsdev": "node ../../index.js -edt @api -w browserstack -x",
-    "cibsuat": "node ../../index.js -edt @search -w browserstack -x",
-    "pkgchecks": "yarn check"
-  },
-  "homepage": "https://github.com/larryg01/klassi-js#readme"
+    "all": "node ../../index.js -d ",
+    "dev": "node ../../index.js -d -t @search",
+    "test": "node ../../index.js -d -t @search -w browserstack/osxhs-chrome",
+    "stack": "node ../../runtime/remote/browserstack && node ../../index.js -d -w browserstack -x",
+    "start": "set NODE_ENV=dev && node index.js"
+  }
+
 }

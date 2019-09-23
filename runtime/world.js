@@ -113,6 +113,7 @@ async function getDriverInstance() {
 }
 
 let envName = global.envName;
+let environ = require('../configs/envConfig.json');
 
 /**
  * for the environment variables
@@ -120,22 +121,22 @@ let envName = global.envName;
 switch (envName || '') {
 case 'dev':
   {
-    global.envConfig = require('../configs/envConfig.json').dev;
+    global.envConfig = environ.dev;
   }
   break;
 case 'uat':
   {
-    global.envConfig = require('../configs/envConfig.json').uat;
+    global.envConfig = environ.uat;
   }
   break;
 case 'test':
   {
-    global.envConfig = require('../configs/envConfig.json').test;
+    global.envConfig = environ.test;
   }
   break;
 case 'prod':
   {
-    global.envConfig = require('../configs/envConfig.json').prod;
+    global.envConfig = environ.prod;
   }
   break;
 }
@@ -189,7 +190,6 @@ function World() {
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
     log: global.log, // expose the log method for output to files for emailing
-    // envConfig: global.envConfig, // expose the global environment configuration file for use when changing environment // types (i.e. dev, test, preprod)
     downloader: global.downloader, // exposes the downloader for global usage
     gotApi: global.gotApi, // exposes the request-promise for API testing
     date: global.date // expose the date method for logs and reports
@@ -286,7 +286,6 @@ AfterAll(async () => {
  * compile and generate a report at the END of the test run and send an Email
  */
 AfterAll(function(done) {
-  // console.log('this is the env ', global.envConfig.envName);
   let browser = global.browser;
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();

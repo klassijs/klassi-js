@@ -95,10 +95,10 @@ module.exports = {
   },
   
   /**
-     * writeTextFile write data to file on hard drive
-     * @param  string  filepath   Path to file on hard drive
-     * @param  string   output     Data to be written
-     */
+   * writeTextFile write data to file on hard drive
+   * @param  string  filepath   Path to file on hard drive
+   * @param  string   output     Data to be written
+   */
   writeTextFile: function (filepath, output) {
     try {
       fs.writeFile(filepath, output, (err) => {
@@ -114,49 +114,49 @@ module.exports = {
       }
     }
   },
-
+  
   /**
-     * clicks an element (or multiple if present) that is not visible,
-     * useful in situations where a menu needs a hover before a child link appears
-     * @param {string} css selector used to locate the elements
-     * @param {string} text to match inner content (if present)
-     * @example
-     *    helpers.clickHiddenElement('nav[role="navigation"] ul li a','School Shoes');
-     */
+   * clicks an element (or multiple if present) that is not visible,
+   * useful in situations where a menu needs a hover before a child link appears
+   * @param {string} css selector used to locate the elements
+   * @param {string} text to match inner content (if present)
+   * @example
+   *    helpers.clickHiddenElement('nav[role="navigation"] ul li a','School Shoes');
+   */
   clickHiddenElement: function (cssSelector, textToMatch) {
     /**
-         * method to execute within the DOM to find elements containing text
-         */
+     * method to execute within the DOM to find elements containing text
+     */
     function clickElementInDom(query, content) {
       /**
-         * get the list of elements to inspect
-         */
+       * get the list of elements to inspect
+       */
       let elements = document.querySelectorAll(query);
       /**
-         * workout which property to use to get inner text
-         */
+       * workout which property to use to get inner text
+       */
       let txtProp = ('textContent' in document) ? 'textContent' : 'innerText';
-
+      
       for (let i = 0, l = elements.length; i < l; i++) {
         /**
-                 * If we have content, only click items matching the content
-                 */
+         * If we have content, only click items matching the content
+         */
         if (content) {
           if (elements[i][txtProp] === content) {
             elements[i].click();
           }
         }
         /**
-           * otherwise click all
-           */
+         * otherwise click all
+         */
         else {
           elements[i].click();
         }
       }
     }
     /**
-       * grab the matching elements
-       */
+     * grab the matching elements
+     */
     return browser.$$(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
   },
   
@@ -179,18 +179,18 @@ module.exports = {
   },
   
   /**
-     * Generate random integer from a given range
-     */
+   * Generate random integer from a given range
+   */
   generateRandomInteger: function (range) {
     return Math.floor(Math.random() * Math.floor(range));
   },
   
   /**
-     * This method is useful for dropdown boxes as some of them have default "Please select" option on index 0
-     *
-     * @param range
-     * @returns randomNumber excluding index 0
-     */
+   * This method is useful for dropdown boxes as some of them have default "Please select" option on index 0
+   *
+   * @param range
+   * @returns randomNumber excluding index 0
+   */
   getRandomIntegerExcludeFirst: function (range) {
     let randomNumber = helpers.generateRandomInteger(range);
     
@@ -199,21 +199,21 @@ module.exports = {
     }
     return randomNumber;
   },
-
+  
   /**
-     * Converting String date into the Date format
-     *
-     * @param _date : String date that user passes in
-     * @param _format : "dd/MM/yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
-     * @param _delimiter
-     * @returns {Date}
-     *
-     * Example use
-     *
-     * stringToDate("17/9/2014","dd/MM/yyyy","/");
-     * stringToDate("9/17/2014","mm/dd/yyyy","/")
-     * stringToDate("9-17-2014","mm-dd-yyyy","-")
-     */
+   * Converting String date into the Date format
+   *
+   * @param _date : String date that user passes in
+   * @param _format : "dd/MM/yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
+   * @param _delimiter
+   * @returns {Date}
+   *
+   * Example use
+   *
+   * stringToDate("17/9/2014","dd/MM/yyyy","/");
+   * stringToDate("9/17/2014","mm/dd/yyyy","/")
+   * stringToDate("9-17-2014","mm-dd-yyyy","-")
+   */
   stringToDate: function (_date, _format, _delimiter) {
     let formatLowerCase = _format.toLowerCase();
     let formatItems = formatLowerCase.split(_delimiter);
@@ -225,17 +225,17 @@ module.exports = {
     month -= 1;
     return new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
   },
-    
+  
   /**
-     * Get the current date dd-mm-yyyy
-     * @returns {string|*}
-     */
+   * Get the current date dd-mm-yyyy
+   * @returns {string|*}
+   */
   currentDate: function () {
     let today = new Date();
     let dd = today.getDate();
     let mm = today.getMonth() + 1; //January is 0!
     let yyyy = today.getFullYear();
-  
+    
     if (dd < 10) {
       dd = '0' + dd;
     }
@@ -244,10 +244,10 @@ module.exports = {
     }
     return yyyy + '-' + mm + '-' + dd ;
   },
-
+  
   /**
-     * Get current date and time dd/mm/yyy 00:00:00
-     */
+   * Get current date and time dd/mm/yyy 00:00:00
+   */
   getCurrentDateTime: function () {
     let today = new Date();
     let dd = today.getDate();
@@ -256,7 +256,7 @@ module.exports = {
     let hours = today.getHours();
     let minutes = today.getMinutes();
     let seconds= today.getSeconds();
-      
+    
     if (dd < 10) {
       dd = '0' + dd;
     }
@@ -288,24 +288,24 @@ module.exports = {
   getCurrentDateFormatted: function () {
     return helpers.getCurrentDateTime().replace(/\//g, '').replace(/:/g, '').replace(' ', '');
   },
-
+  
   /**
-     * Get the text of an Element
-     * @param selector
-     * @returns text
-     */
+   * Get the text of an Element
+   * @param selector
+   * @returns text
+   */
   getElementText: async function (selector) {
     let elem = await browser.$(selector);
     await elem.waitForExist(DELAY_10s);
     let text = await elem.getText();
     return text;
   },
-
+  
   /**
-     * Get the href link from an element
-     * @param selector
-     * @returns {String|String[]|*|string}
-     */
+   * Get the href link from an element
+   * @param selector
+   * @returns {String|String[]|*|string}
+   */
   getLink: async function (selector) {
     let elem = await browser.$(selector);
     await elem.getAttribute('href');
@@ -340,11 +340,11 @@ module.exports = {
   },
   
   /**
- * ========== EMAIL FUNCTIONALITY ==========
- */
+   * ========== EMAIL FUNCTIONALITY ==========
+   */
   /**
-     *   Sends an Email to the concerned users with the log and the test report
-     */
+   *   Sends an Email to the concerned users with the log and the test report
+   */
   klassiEmail: function (err) {
     let mailer = require('runtime/mailer').klassiSendMail();
     if(err) {
@@ -380,12 +380,12 @@ module.exports = {
     let b = dateString.split('/');
     return b[0] + ' ' + months[b[1]] + ' ' + b[2];
   },
-
+  
   /**
-     *  Sorts results by date
-     * @param array
-     * @returns {*}
-     */
+   *  Sorts results by date
+   * @param array
+   * @returns {*}
+   */
   sortByDate: function (array) {
     array.sort(function (a, b) {
       let sentDateA = a.split('/');
@@ -396,25 +396,25 @@ module.exports = {
     });
     return array;
   },
-
+  
   /**
-     * function to get element from frame or frameset
-     * @param frame_name
-     * @param selector
-     * @returns {Promise.<TResult>}
-     */
+   * function to get element from frame or frameset
+   * @param frame_name
+   * @param selector
+   * @returns {Promise.<TResult>}
+   */
   getElementFromFrame: async function (frame_name, selector) {
     let frame = await browser.$(frame_name);
     await browser.switchToFrame(frame.value);
     await browser.$(selector).getHTML();
     return browser;
   },
-
+  
   /**
-     * This will assert 'equal' text being returned
-     * @param selector
-     * @param expectedText
-     */
+   * This will assert 'equal' text being returned
+   * @param selector
+   * @param expectedText
+   */
   assertText: async function (selector, expected) {
     let elem = await browser.$(selector);
     await elem.waitForEnabled(DELAY_5s);
@@ -465,18 +465,18 @@ module.exports = {
       time: true,
       resolveWithFullResponse: true,
     };
-  
+    
     return gotApi(options)
       .then(async function (res) {
         if (statusCode != null) {
           assert.equal(res.statusCode, statusCode);
           log.info('API Response time : ' + res.timings.response);
         }
-      
+        
         if (method === 'GET') {
           return res;
         }
-      
+        
         if (method === 'DELETE' && fileName != null || method === 'PUT' && fileName != null) {
           return fs.readFileSync(fileName, 'utf8', function (err) {
             if (err){
@@ -484,7 +484,7 @@ module.exports = {
             }
           });
         }
-      
+        
         if (method === 'POST' && fileName != null) {
           let data = res.body.adminDoc;
           let doc_Id = data.replace(/.*documents\/([^/]+)\/properties.*/, '$1');
@@ -494,7 +494,7 @@ module.exports = {
             }
           });
           log.info('====== DocId API ===== ' + doc_Id);
-        
+          
           await doc_Id;
         }
         return res;

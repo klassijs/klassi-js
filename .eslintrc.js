@@ -74,6 +74,7 @@ module.exports = {
     assert: true,
     expect: true,
     shared: true,
+    gotApi: true,
     DELAY_100ms: false,
     DELAY_200ms: false,
     DELAY_300ms: false,
