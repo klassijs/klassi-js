@@ -28,14 +28,16 @@ artifacts
 coverage
 testDir
 
+klassi-browserstack.js
 # IntelliJ project files
 .idea
 out
 gen
 .DS_Store
 
-shared-objects/emailData.json
-runtime/envConfig.json
+configs/emailData.json
+configs/envConfig.json
+browserstack/secrets/browserstack.json
 # Logs
 
 yarn-debug.log*

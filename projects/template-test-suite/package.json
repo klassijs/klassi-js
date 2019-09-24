@@ -1,0 +1,27 @@
+{
+  "name": "template-test-suite",
+  "version": "2.5.0",
+  "description": "A debuggable JS BDD framework that uses nodeJs, webdriverio, JavaScript and cucumber-js",
+  "Author": {
+    "name": "Larry Goddard",
+    "email": "larryg@klassitech.co.uk",
+    "url": "linkedin.com/in/larryg"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com"
+  },
+  "engines": {
+    "node": ">= 8.11.3"
+  },
+  "main": "index.js",
+  "scripts": {
+    "all": "node ../../index.js -d ",
+    "dev": "node ../../index.js -d -t @search",
+    "test": "node ../../index.js -d -t @search -w browserstack/osxhs-chrome",
+    "stack": "node ../../runtime/remote/browserstack && node ../../index.js -d -w browserstack -x",
+    "start": "set NODE_ENV=dev && node index.js"
+  }
+
+}
