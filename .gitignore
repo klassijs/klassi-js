@@ -37,6 +37,7 @@ gen
 
 configs/emailData.json
 configs/envConfig.json
+browserstack/secrets/browserstack.json
 # Logs
 
 yarn-debug.log*

@@ -1,0 +1,23 @@
+{
+  "project":"OUP Automated Test",
+
+  "os": "Windows",
+  "os_version": "10",
+  "browser": "Firefox",
+  "browserName": "Firefox",
+  "browser_version": "66.0",
+  "resolution": "1280x800",
+  "browserstack.geckodriver": "0.19.0",
+
+  "javascriptEnabled":true,
+  "locationContextEnabled":true,
+  "handlesAlerts":true,
+  "rotatable":true,
+  "logLevel":"silent",
+
+  "acceptSslCerts": true,
+  "browserstackLocal": true,
+  "browserstack.debug": true,
+  "browserstack.networkLogs": true,
+  "browserstack.selenium_version": "3.10.0"
+}

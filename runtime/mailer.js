@@ -19,12 +19,14 @@
  */
 'use strict';
 
+const path = require('path');
+let shared = require('../configs/emailData');
+
 /**
  * Functionality for sending test results via email
  * @type {exports|module.exports}
  */
 const nodemailer = require('nodemailer');
-let shared = require('configs/emailData');
 
 module.exports = {
   klassiSendMail: function() {
@@ -47,12 +49,12 @@ module.exports = {
     let mailOptions = {
       to: devTeam,
       from: 'Klassi-QATEST <email@email.com>',
-      subject: global.reportName,
+      subject: projectName + ' ' + global.reportName,
       alternative: true,
       attachments: [
         {
-          filename: global.reportName + '-' + date + '.html',
-          path: './reports/' + global.reportName + '-' + date + '.html'
+          filename: projectName + ' ' + global.reportName + '-' + date + '.html',
+          path: path.resolve(global.paths.reports, projectName + ' ' + global.reportName + '-' + date + '.html')
         }
       ],
       html: '<b>Please find attached the automated test results</b>'

@@ -29,7 +29,7 @@ selenium-standalone install && selenium-standalone start
 
 ```bash
 # run 'yarn install' in a terminal window from within the project folder
-node ./index.js -ds ./step_definitions
+node ../../index.js -ds ./step_definitions
 or
 node ../../index.js -dt @search // locally
 or
@@ -68,7 +68,7 @@ The following variables are available within the ```Given()```, ```When()``` and
 
 | Variable | Description |
 | :--- | :---  |
-| `driver`     | an instance of [web driver](https://webdriver.io/docs/setuptypes.html) (_the browser_) |
+| `browser`     | an instance of [web driver](https://webdriver.io/docs/setuptypes.html) (_the browser_) |
 | `webdriverio`| the raw [webdriver](https://webdriver.io/docs/api.html) module, providing access to static properties/methods |
 | `page`       | collection of **page** objects loaded from disk and keyed by filename |
 | `shared`     | collection of **shared** objects loaded from disk and keyed by filename |
@@ -78,7 +78,7 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `trace`      | handy trace method to log console output with increased visibility |
 | `fs`         | exposes fs (file system) for use globally |
 | `dir`        | exposes dir for getting an array of files, subdirectories or both |
-| `request`    | exposes the request-promise for API testing | ```use for making API calls``` |
+| `got`    | exposes the GOT subroutine for API testing | ```use for making API calls``` |
 | `date`       | exposes the date method for logs and reports  |
 | `log`        | exposes the log method for output to files and emailing  |
 
@@ -86,7 +86,7 @@ The following variables are available within the ```Given()```, ```When()``` and
 ### Visual Regression functionality with [Resemble JS](https://github.com/rsmbl/Resemble.js)
 
 Visual regression testing, gives the ability to take and compare whole page screenshots or of specific parts of the application / page under test.
-If there are Elements in the page that contain dynamic contents (like a clock or something like tip of the day), you can hide this elements before 
+If there are Elements in the page that contain dynamic contents (like a clock or something like 'tip of the day'), you can hide this elements before 
 taking the screenshot by passing the selector (or an array of selectors) to  the saveScreenshot function.
 ```js
 // ./runtime/imageCompare.js
@@ -103,22 +103,22 @@ compareImage: async (fileName) => {
   await helpers.compareImage(fileName);
 ```
 
-### API Testing functionality with [request-promise](https://github.com/request/request-promise)
+### API Testing functionality with [got](https://github.com/sindresorhus/got#readme)
 Getting data from a JSON REST API
 ```js
 // ./runtime/helpers.js
- apiCall: function (endpoint) {
+ apiCall: function (url, method, body) {
     let endPoint = ('http://endpoint.com');
     
     let options = {
-        method: 'GET',
         url: endPoint,
+        method: 'GET',
         json: true,
         simple: false,
         resolveWithFullResponse: true,
     };
     
-    return request(options)
+    return gotApi(options)
     .then(async function (response, err) {
         if (err) {
            // API call failed
