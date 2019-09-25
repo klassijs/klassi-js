@@ -33,7 +33,7 @@ const fs = require('fs'),
   chai = require('chai'),
   reporter = require('cucumber-html-reporter'),
   // reporter = require('multiple-cucumber-html-reporter'),
-  rp = require('request-promise'),
+  apiGot = require('got'),
   program = require('commander');
 
 const assert = chai.assert,
@@ -50,13 +50,13 @@ global.log = log;
 /**
  * This is the Global date functionality
  */
-global.date = require('./helpers').currentDate();
+global.date = require('../projects/' + projectName + '/settings/helpers').currentDate();
 
 /**
  * for all API test calls
  * @type {Function}
  */
-global.request = rp;
+global.gotApi = apiGot;
 
 /**
  *  for the Download of all file types
@@ -113,9 +113,7 @@ async function getDriverInstance() {
 }
 
 let envName = global.envName;
-
-global.envConfig = require('./envConfig.json');
-let environ = global.envConfig;
+let environ = require('../configs/envConfig.json');
 
 /**
  * for the environment variables
@@ -123,22 +121,22 @@ let environ = global.envConfig;
 switch (envName || '') {
 case 'dev':
   {
-    environ.dev;
+    global.envConfig = environ.dev;
   }
   break;
 case 'uat':
   {
-    environ.uat;
+    global.envConfig = environ.uat;
   }
   break;
 case 'test':
   {
-    environ.test;
+    global.envConfig = environ.test;
   }
   break;
 case 'prod':
   {
-    environ.prod;
+    global.envConfig = environ.prod;
   }
   break;
 }
@@ -192,9 +190,8 @@ function World() {
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
     log: global.log, // expose the log method for output to files for emailing
-    // envConfig: global.envConfig, // expose the global environment configuration file for use when changing environment // types (i.e. dev, test, preprod)
     downloader: global.downloader, // exposes the downloader for global usage
-    request: global.request, // exposes the request-promise for API testing
+    gotApi: global.gotApi, // exposes the request-promise for API testing
     date: global.date // expose the date method for logs and reports
   };
   /**
@@ -263,7 +260,7 @@ const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
 setDefaultTimeout(timeout);
 
 // start recording of the Test run time
-global.startDateTime = require('./helpers').getStartDateTime();
+global.startDateTime = helpers.getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated
@@ -289,17 +286,16 @@ AfterAll(async () => {
  * compile and generate a report at the END of the test run and send an Email
  */
 AfterAll(function(done) {
-  // console.log('this is the env ', global.envConfig.envName);
   let browser = global.browser;
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();
     let reportOptions = {
       theme: 'bootstrap',
       jsonFile: path.resolve(
-        global.paths.reports, global.settings.reportName + '-' + date + '.json'
+        global.paths.reports, projectName + ' ' + global.settings.reportName + '-' + date + '.json'
       ),
       output: path.resolve(
-        global.paths.reports, global.settings.reportName + '-' + date + '.html'
+        global.paths.reports, projectName + ' ' + global.settings.reportName + '-' + date + '.html'
       ),
       reportSuiteAsScenarios: true,
       launchReport: (!global.settings.disableReport),
@@ -312,7 +308,7 @@ AfterAll(function(done) {
         'Browser': global.settings.remoteConfig || global.browserName,
         'Executed': remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'
       },
-      brandTitle: reportName + '-' + date,
+      brandTitle: projectName + ' ' + reportName + '-' + date,
       name: projectName
     };
     
@@ -352,9 +348,9 @@ AfterAll(function(done) {
     //   },
     // };
     
-    browser.pause(DELAY_3s).then(function() {
+    browser.pause(DELAY_2s).then(function() {
       reporter.generate(reportOptions);
-      browser.pause(DELAY_3s);
+      browser.pause(DELAY_1s);
     });
   }
   done();

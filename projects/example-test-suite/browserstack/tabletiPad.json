@@ -1,0 +1,27 @@
+{
+  "project": "OUP Automated Test",
+
+  "tabletiPad": {
+    "desiredCapabilities": {
+      "browserName": "iPad",
+      "realMobile": "true",
+      "device": "iPad Pro 11 2018",
+      "os_version": "12",
+      "deviceOrientation": "landscape",
+
+      "javascriptEnabled": true,
+      "locationContextEnabled": true,
+      "handlesAlerts": true,
+      "rotatable": true,
+      "logLevel": "silent",
+
+      "acceptSslCerts": true,
+      "browserstackLocal": true,
+      "browserstack.debug": true,
+      "browserstack.networkLogs": true
+    },
+    "globals": {
+      "visualDiffTolerance": 0.2
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "project":"OUP Automated Test",
+
+  "tabletGalaxy": {
+    "desiredCapabilities": {
+      "platform": "ANDROID",
+      "device": "Samsung Galaxy Tab S4",
+      "realMobile": "true",
+      "os_version": "8.1",
+      "deviceOrientation": "portrait",
+
+      "javascriptEnabled":true,
+      "locationContextEnabled":true,
+      "handlesAlerts":true,
+      "rotatable":true,
+      "logLevel":"silent",
+
+      "acceptSslCerts": true,
+      "browserstackLocal": true,
+      "browserstack.debug": true,
+      "browserstack.networkLogs": true
+    },
+    "globals": {
+      "waitForConditionTimeout": 20000
+    }
+  }
+}

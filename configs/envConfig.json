@@ -4,8 +4,10 @@
     "Created by": "Larry Goddard"
   },
 
-  "reportName": "KlassiTech Automated Test Report",
-  "projectName": "Klassi Technologies",
+  "projectName0": "Klassi Technologies",
+  "projectName": "example-test-suite",
+
+  "reportName": "Automated Test Report",
 
   "uat": {
     "envName": "UAT",

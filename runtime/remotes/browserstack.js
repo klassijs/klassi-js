@@ -20,7 +20,7 @@
 'use strict';
 /*global assert:false */
 
-const rp = require('request-promise');
+const gotApi = require('got');
 const loadConfig = require('../configLoader.js');
 
 function getCredentials() {
@@ -43,7 +43,7 @@ async function submitResults(scenario) {
   let browserstackApiKey = credentials.key;
   let apiCredentials = `${browserstackUsername}:${browserstackApiKey}`;
   let scenarioName = scenario.getName();
-  let buildsBody = await rp({
+  let buildsBody = await gotApi({
     uri: `https://${apiCredentials}@api.browserstack.com/automate/builds.json`
   });
 
@@ -53,7 +53,7 @@ async function submitResults(scenario) {
   let build = matchingBuilds[0].automation_build;
   let buildId = build.hashed_id;
 
-  let sessionsBody = await rp({
+  let sessionsBody = await gotApi({
     uri: `https://${apiCredentials}@api.browserstack.com/automate/builds/${buildId}/sessions.json`
   });
 
@@ -82,7 +82,7 @@ async function submitResults(scenario) {
     explanations.push(scenario.getUri() + ' (' + scenario.getLine() + ')');
   }
 
-  await rp({
+  await gotApi({
     uri: `https://${apiCredentials}@api.browserstack.com/automate/sessions/${sessionId}.json`,
     method: 'PUT',
     form: {
