@@ -20,7 +20,7 @@
 'use strict';
 
 const path = require('path');
-let shared = require('../configs/emailData');
+let shared = require('../projects/' + projectName + '/configs/emailData');
 
 /**
  * Functionality for sending test results via email
@@ -37,7 +37,6 @@ module.exports = {
     let transporter = nodemailer.createTransport({
       host: shared.auth.host,
       port: shared.auth.port,
-      // secure: true,
       auth: {
         user: shared.auth.user,
         pass: shared.auth.pass

@@ -3,9 +3,9 @@
 # klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js) [![npm](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
 
 
-  A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use and not dependant to 
-  any other tool or library. It's built with [nodeJs](https://nodejs.org/en/), [webdriver.io (Next-gen WebDriver for Node.js)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view 
-  cucumber js documentation") complete with integrated API Testing. 
+  A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use . It's built on [nodeJs](https://nodejs.org/en/), [webdriver.io (the Selenium 2.0 
+    bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view 
+    cucumber js documentation") complete with integrated Visual and API Testing. 
 
 
 ## Installation
@@ -13,7 +13,6 @@
 ```bash
 git-clone-ssh: git@github.com:larryg01/klassi-js.git
 git-clone-https: https://github.com/larryg01/klassi-js.git
-download: https://github.com/larryg01/klassi-js/archive/develop.zip
 npm i klassi-js 
 
 

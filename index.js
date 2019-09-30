@@ -48,8 +48,11 @@ function parseRemoteArguments(argumentString) {
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
-let envConfig = require('./configs/envConfig');
-let projectName = envConfig.projectName;
+let proConfig = require('./config/proConfig');
+// console.log(proConfig);
+let projectName = proConfig.projectName;
+let envConfig = require('./projects/' + projectName + '/configs/envConfig');
+// console.log(envConfig);
 let reportName = envConfig.reportName;
 
 global.projectName = process.env.PROJECT_NAME || projectName;
@@ -59,13 +62,10 @@ global.reportName = process.env.REPORT_NAME || reportName;
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-// let reports = './reports/',
-// let dirPath = './projects/' + projectName + '/';
 let reports = './reports',
   fileDnldFldr = './shared-objects/fileDnldFolder/',
   docsFolder = './shared-objects/docs',
   fileName = path.join('./shared-objects/docs/fileName.txt');
-  // fileName1 = path.join('./reports/' + global.reportName + '/' + global.reportName + '.json');
 
 fs.ensureDirSync(reports, function(err) {
   if (err) {
@@ -91,7 +91,7 @@ fs.ensureFile(fileName, function(err) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option('-b, --browsers [optional]', 'name of browsers to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|macFirefox|safari|tabletGalaxy|tabletiPad|tabletiPadPro)$/i, 'chrome')
+  .option('-b, --browsers [optional]', 'name of browsers to use. defaults to chrome', /(chrome|edge|firefox|iexplorer|macChrome|safari|tabletGalaxy|tabletiPad)$/i, 'chrome')
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
@@ -173,14 +173,6 @@ global.date = helpers.currentDate();
  */
 global.envName = program.environment;
 
-// let fileName1 = path.resolve(__dirname, paths.reports, settings.reportName + '/' + global.reportName + '.json');
-//
-// fs.ensureFileSync(fileName1, function(err) {
-//   if (err) {
-//     console.log('The Reports Folder has NOT been created: ' + err.stack);
-//   }
-// });
-
 /**
  * rewrite command line switches for cucumber
  */
@@ -196,7 +188,6 @@ process.argv.push(paths.featuresPath);
  */
 if (program.featureFile) {
   let splitFeatureFiles = program.featureFile.split(',');
-  
   splitFeatureFiles.forEach(function(feature) {
     process.argv.push(feature);
   });
@@ -223,13 +214,6 @@ process.argv.push('-r', path.resolve(program.steps));
 if (program.tags) {
   process.argv.push('-t', program.tags);
 }
-// if (program.tags) {
-//   let splitTags = program.tags.split(',');
-//
-//   splitTags.forEach(function(tags) {
-//     process.argv.push('-t', tags);
-//   });
-// }
 
 /**
  * add strict option (fail if there are any undefined or pending steps)

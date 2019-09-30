@@ -4,10 +4,5 @@
     "Created by": "Larry Goddard"
   },
 
-  "reportName": "{test reportName}",
-
-  "uat": {
-      "envName": "UAT",
-      "base_url": ""
-    },
+  "projectName": "{projectName}",
 }

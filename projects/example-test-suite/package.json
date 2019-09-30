@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "2.5.0",
+  "version": "3.0.0",
   "description": "A debuggable JS BDD framework that uses nodeJs, webdriverio, JavaScript and cucumber",
   "Author": {
     "name": "Larry Goddard",

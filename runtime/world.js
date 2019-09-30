@@ -42,6 +42,18 @@ const assert = chai.assert,
 
 const getRemote = require('./getRemote.js');
 
+// /**
+//  * Setting and Naming the Project Report files Globally
+//  * @type {string}
+//  */
+// let envConfig = require('../configs/envConfig');
+// // console.log(envConfig);
+// let projectName = envConfig.projectName;
+// let reportName = envConfig.reportName;
+//
+// global.projectName = process.env.PROJECT_NAME || projectName;
+// global.reportName = process.env.REPORT_NAME || reportName;
+
 /**
  * Adding logging
  */
@@ -79,6 +91,7 @@ let ChromeDriver = require('./chromeDriver'),
 let remoteService = getRemote(global.settings.remoteService);
 
 let browser = {};
+// let browser = global.browser;
 
 /**
  * create the web browser based on global let set in index.js
@@ -97,6 +110,7 @@ async function getDriverInstance() {
     return browser;
   }
   assert.isNotEmpty(browsers, 'Browser Name must be defined');
+  
   switch (browsers || '') {
   case 'firefox':
     {
@@ -113,7 +127,7 @@ async function getDriverInstance() {
 }
 
 let envName = global.envName;
-let environ = require('../configs/envConfig.json');
+let environ = require('../projects/' + projectName + '/configs/envConfig');
 
 /**
  * for the environment variables
@@ -247,7 +261,6 @@ function World() {
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
-
 this.World = World;
 
 /**
@@ -273,7 +286,7 @@ Before(async () => {
 /**
  * send email with the report to stakeholders after test run
  */
-AfterAll(async () => {
+AfterAll(function () {
   let browser = global.browser;
   if (program.email) {
     browser.pause(DELAY_3s).then(function() {
@@ -285,7 +298,7 @@ AfterAll(async () => {
 /**
  * compile and generate a report at the END of the test run and send an Email
  */
-AfterAll(function(done) {
+AfterAll(function (done) {
   let browser = global.browser;
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();
@@ -311,7 +324,6 @@ AfterAll(function(done) {
       brandTitle: projectName + ' ' + reportName + '-' + date,
       name: projectName
     };
-    
     // WIP for new style reporter
     // let reportOptions = {
     //   jsonDir: path.resolve(global.paths.reports),
@@ -347,10 +359,9 @@ AfterAll(function(done) {
     //     ]
     //   },
     // };
-    
-    browser.pause(DELAY_2s).then(function() {
+    browser.pause().then(async function() {
       reporter.generate(reportOptions);
-      browser.pause(DELAY_1s);
+      await browser.pause(DELAY_1s);
     });
   }
   done();
