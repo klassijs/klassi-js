@@ -1,5 +1,5 @@
 /**
- KlassiTech Automated Testing Tool
+ Klassi Automated Testing Tool
  Created by Larry Goddard
  */
 /**
