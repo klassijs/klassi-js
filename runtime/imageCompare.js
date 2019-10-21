@@ -17,10 +17,12 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
+"use strict";
 
-const resemble = require('node-resemble-js'),
-  fs = require('fs-extra');
+const resemble = require("node-resemble-js"),
+  fs = require("fs-extra");
+
+// const imageTaker = require('wdio-image-comparison-service');
 
 let log = global.log;
 let browserName = global.settings.remoteConfig || global.browserName;
@@ -51,7 +53,7 @@ module.exports = {
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
     await browser.saveScreenshot(resultPathPositive, err => {
-      if (err){
+      if (err) {
         log.error(err.message);
       }
     });
@@ -60,7 +62,6 @@ module.exports = {
     }
     log.info(`\tScreenshot saved to: ${resultPathPositive}`);
   },
-  
   /**
    * Runs assertions and comparison checks on the taken screenshots
    * @param filename
@@ -76,7 +77,7 @@ module.exports = {
     this.expected = expected || 0.1; // misMatchPercentage tolerance default 0.3%
     if (!fs.existsSync(baselinePath)) {
       // create new baseline image if none exists
-      log.info('\tWARNING: Baseline image does NOT exist.');
+      log.info("\tWARNING: Baseline image does NOT exist.");
       log.info(`\tCreating Baseline image from Result: ${baselinePath}`);
       fs.writeFileSync(baselinePath, fs.readFileSync(resultPathPositive));
     }
@@ -86,7 +87,7 @@ module.exports = {
         green: 0,
         blue: 0
       },
-      errorType: 'movement',
+      errorType: "movement",
       transparency: 0.11,
       largeImageThreshold: 1200
     });
@@ -106,7 +107,7 @@ module.exports = {
       filename = await file_name;
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const resultPathPositive = `${resultDirPositive}${filename}`;
-      while (typeof result == 'undefined') {
+      while (typeof result == "undefined") {
         await browser.pause(DELAY_100ms);
       }
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
@@ -139,10 +140,10 @@ module.exports = {
       value = parseFloat(result.misMatchPercentage);
       this.message = `Screenshot Match Failed for ${filename} with a tolerance difference of ${value -
         this.expected +
-        ' - expected: ' +
+        " - expected: " +
         this.expected +
-        ' but got: ' +
-        (value)}`;
+        " but got: " +
+        value}`;
       const baselinePath = `${baselineDir}${filename}`;
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const pass = value <= this.expected;
@@ -156,12 +157,12 @@ module.exports = {
         log.error(
           console.log(
             this.message +
-              '   Screenshots at:\n' +
+              "   Screenshots at:\n" +
               `   Baseline: ${baselinePath}\n` +
               `   Result: ${resultPathNegative}\n` +
               `   Diff: ${diffFile}\n` +
               `   Open ${diffFile} to see how the screenshot has changed.\n` +
-              '   If the Result Screenshot is correct you can use it to update the Baseline Screenshot and re-run your test:\n' +
+              "   If the Result Screenshot is correct you can use it to update the Baseline Screenshot and re-run your test:\n" +
               `    cp ${resultPathNegative} ${baselinePath}`
           )
         );
@@ -177,7 +178,7 @@ module.exports = {
             }
           });
         }
-        throw err + ' - ' + this.message;
+        throw err + " - " + this.message;
       }
       return pass;
     };

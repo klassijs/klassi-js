@@ -1,5 +1,3 @@
 module.exports = {
-    
-    // thing to use multiTimes in tests
-    
+  // thing to use multiTimes in tests
 };

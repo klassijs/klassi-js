@@ -18,9 +18,9 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
+"use strict";
 
-const wdio = require('webdriverio');
+const wdio = require("webdriverio");
 
 /**
  * create the web browser based on globals set in index.js
@@ -28,9 +28,9 @@ const wdio = require('webdriverio');
  */
 module.exports = async function chromeDriver(options) {
   const defaults = {
-    logLevel: 'error',
+    logLevel: "error",
     capabilities: {
-      browserName: 'chrome'
+      browserName: "chrome"
     }
   };
 
@@ -39,8 +39,8 @@ module.exports = async function chromeDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domain.com:8080', // input the correct proxy name
-      proxyType: 'MANUAL',
+      httpProxy: "http://domain.com:8080", // input the correct proxy name
+      proxyType: "MANUAL",
       autodetect: false
     };
   }

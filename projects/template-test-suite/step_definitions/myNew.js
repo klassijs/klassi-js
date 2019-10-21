@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-Given ( { });
+Given({});
 
-When( { });
+When({});
 
-Then( { });
+Then({});

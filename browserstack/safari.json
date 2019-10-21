@@ -18,5 +18,5 @@
   "browserstackLocal": true,
   "browserstack.debug": true,
   "browserstack.networkLogs": true,
-  "browserstack.selenium_version": "3.5.2"
+  "browserstack.selenium_version": "3.141.5"
 }

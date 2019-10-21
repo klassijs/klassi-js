@@ -1,0 +1,64 @@
+{
+    "env": {
+        "browser": false,
+        "commonjs": false,
+        "es6": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaVersion":2017,
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "sourceType": "module"
+    },
+    "plugins": ["prettier"],
+    "rules": {
+        "no-const-assign": "warn",
+        "no-this-before-super": "warn",
+        "no-undef": "warn",
+        "no-unreachable": "warn",
+        "no-unused-vars": "warn",
+        "constructor-super": "warn",
+        "valid-typeof": "warn",
+        "prettier/prettier": "error"
+    },
+    "globals": {
+        "Given": true,
+        "When": true,
+        "Then": true,
+        "helpers":false,
+        "driver":false,
+        "browser": false,
+        "log": false,
+        "date": false,
+        "startDateTime": false,
+        "endDateTime": false,
+        "browserName": false,
+        "reportName": true,
+        "projectName": false,
+        "settings": false,
+        "envConfig": true,
+        "request": true,
+        "assert": true,
+        "expect": true,
+        "shared": true,
+        "DELAY_100ms": false,
+        "DELAY_200ms": false,
+        "DELAY_300ms": false,
+        "DELAY_500ms": false,
+        "DELAY_1s": false,
+        "DELAY_2s": false,
+        "DELAY_3s": false,
+        "DELAY_5s": false,
+        "DELAY_10s": false,
+        "DELAY_15s": false,
+        "DELAY_20s": false,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": false,
+        "noEmit": true,
+        "forceConsistentCasingInFileNames": true
+    }
+}
