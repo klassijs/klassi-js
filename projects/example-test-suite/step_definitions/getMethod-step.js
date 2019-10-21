@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-let getMethod = require('../page-objects/getMethod');
+let getMethod = require("../page-objects/getMethod");
 let page = { getMethod };
 
 Given(/^That I make a GET call to an endPoint$/, async () => {
@@ -11,7 +11,7 @@ When(/^That I capture the response time$/, async () => {
   await page.getMethod.resTime();
 });
 
-Then(/^I expect status code of '(\d+)'$/, async (stcode) => {
+Then(/^I expect status code of '(\d+)'$/, async stcode => {
   await page.getMethod.staCode(stcode);
 });
 

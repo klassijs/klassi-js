@@ -17,12 +17,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-const fs = require('fs');
+"use strict";
+const fs = require("fs");
 let log = global.log;
 
 module.exports = {
-  
   /**
    * ========== All operational functions ==========
    */
@@ -33,167 +32,196 @@ module.exports = {
    * @example
    *      helpers.loadPage('http://www.google.co.uk');
    */
-  loadPage: function (url, seconds) {
+  loadPage: function(url, seconds) {
     /**
      * Wait function - measured in seconds for pauses during tests to give time for processes such as
      * a page loading or the user to see what the test is doing
      * @param seconds
      * @type {number}
      */
-    let timeout = (seconds) ? (seconds * 1000) : cucumberTimeout;
+    let timeout = seconds ? seconds * 1000 : cucumberTimeout;
     /**
      * load the url and wait for it to complete
      */
-    return browser.url(url, function () {
+    return browser.url(url, function() {
       /**
        * now wait for the body element to be present
        */
-      return browser.waitUntil(browser.$('body'), timeout);
+      return browser.waitUntil(browser.$("body"), timeout);
     });
   },
-  
+
   /**
    * Visual comparison function
    * @param fileName
    * @returns {Promise<void>}
    */
-  compareImage: async(fileName) => {
-    const verify = require('../../../runtime/imageCompare');
+  compareImage: async fileName => {
+    const verify = require("../../../runtime/imageCompare");
     await verify.assertion(fileName);
     await verify.value();
     await verify.pass();
   },
-  
+
   /**
    * hideElemements hide elements
    * @param  string  selectors   css selector or array of css selectors
    */
   hideElements: async function(selectors) {
     // if arg is no array make it one
-    selectors = typeof selectors == 'string' ? [selectors] : selectors;
+    selectors = typeof selectors == "string" ? [selectors] : selectors;
     for (let i = 0; i < selectors.length; i++) {
-      const script = `document.querySelectorAll('${
-        selectors[i]
-      }').forEach(element => element.style.opacity = '0')`;
+      const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '0')`;
       await browser.execute(script);
     }
   },
-  
+
   /**
    * showElemements show elements
    * @param  string  selectors   css selector or array of css selectors
    */
   showElements: async function(selectors) {
     // if arg is no array make it one
-    selectors = typeof selectors == 'string' ? [selectors] : selectors;
+    selectors = typeof selectors == "string" ? [selectors] : selectors;
     for (let i = 0; i < selectors.length; i++) {
-      const script = `document.querySelectorAll('${
-        selectors[i]
-      }').forEach(element => element.style.opacity = '1')`;
+      const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '1')`;
       await browser.execute(script);
     }
   },
-  
+
   /**
-     * writeTextFile write data to file on hard drive
-     * @param  string  filepath   Path to file on hard drive
-     * @param  string   output     Data to be written
-     */
-  writeTextFile: function (filepath, output) {
+   * writeTextFile write data to file on hard drive
+   * @param  string  filepath   Path to file on hard drive
+   * @param  string   output     Data to be written
+   */
+  writeTextFile: function(filepath, output) {
     try {
-      fs.writeFile(filepath, output, (err) => {
+      fs.writeFile(filepath, output, err => {
         if (err) {
           log.error(err.message);
         }
       });
-      log.info('File has been written successfully');
+      log.info("File has been written successfully");
     } catch (err) {
-      if (err){
-        log.info('Error in writing file ' + err.message);
+      if (err) {
+        log.info("Error in writing file " + err.message);
         throw err;
       }
     }
   },
 
   /**
-     * clicks an element (or multiple if present) that is not visible,
-     * useful in situations where a menu needs a hover before a child link appears
-     * @param {string} css selector used to locate the elements
-     * @param {string} text to match inner content (if present)
-     * @example
-     *    helpers.clickHiddenElement('nav[role="navigation"] ul li a','School Shoes');
-     */
-  clickHiddenElement: function (cssSelector, textToMatch) {
+   * Drag and Drop and item around a site
+   */
+  // getCoordsForElement: async function(elementId) => {
+  //   const rect = await browser.getElementRect(elementId);
+  //   const X = parseInt(rect.x + (rect.width / 2), 10);
+  //   const Y = parseInt(rect.y + (rect.height / 2), 10);
+  //   return [X, Y];
+  // const [sourceX, sourceY] = getCoordsForElement(element.elementId);
+  // };
+  moveDragger: async (elem, x, y) => {
+    await elem.waitForExist(DELAY_2s);
+    await elem.moveTo();
+    // TODO: have to find a workaround for Firefox as 'buttonDown' dont work, so would assume that 'buttonUp' dont work either.
+    await elem.buttonDown(); // chrome
+    await elem.moveTo(x, y);
+    await browser.pause(DELAY_1s);
+    // await browser.pause(DELAY_200ms);
+    await elem.buttonUp();
+  },
+
+  /**
+   * drag the page into view
+   */
+  pageView: async elemId => {
+    await elem.scrollIntoView(elemId);
+    await browser.pause(DELAY_200ms);
+    return this;
+  },
+
+  /**
+   * clicks an element (or multiple if present) that is not visible,
+   * useful in situations where a menu needs a hover before a child link appears
+   * @param {string} css selector used to locate the elements
+   * @param {string} text to match inner content (if present)
+   * @example
+   *    helpers.clickHiddenElement('nav[role="navigation"] ul li a','School Shoes');
+   */
+  clickHiddenElement: function(cssSelector, textToMatch) {
     /**
-         * method to execute within the DOM to find elements containing text
-         */
+     * method to execute within the DOM to find elements containing text
+     */
     function clickElementInDom(query, content) {
       /**
-         * get the list of elements to inspect
-         */
+       * get the list of elements to inspect
+       */
       let elements = document.querySelectorAll(query);
       /**
-         * workout which property to use to get inner text
-         */
-      let txtProp = ('textContent' in document) ? 'textContent' : 'innerText';
+       * workout which property to use to get inner text
+       */
+      let txtProp = "textContent" in document ? "textContent" : "innerText";
 
       for (let i = 0, l = elements.length; i < l; i++) {
         /**
-                 * If we have content, only click items matching the content
-                 */
+         * If we have content, only click items matching the content
+         */
         if (content) {
           if (elements[i][txtProp] === content) {
             elements[i].click();
           }
-        }
-        /**
+        } else {
+          /**
            * otherwise click all
            */
-        else {
           elements[i].click();
         }
       }
     }
     /**
-       * grab the matching elements
-       */
-    return browser.$$(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
+     * grab the matching elements
+     */
+    return browser.$$(
+      cssSelector,
+      clickElementInDom,
+      textToMatch.toLowerCase().trim
+    );
   },
-  
+
   /**
    * Generates a random 13 digit number
    * @param length
    * @returns {number}
    */
-  randomNumberGenerator: function(length=13) {
-    let baseNumber = Math.pow(10, length -1 );
-    let number = Math.floor(Math.random()*baseNumber);
+  randomNumberGenerator: function(length = 13) {
+    let baseNumber = Math.pow(10, length - 1);
+    let number = Math.floor(Math.random() * baseNumber);
     /**
      * Check if number have 0 as first digit
      */
     if (number < baseNumber) {
       number += baseNumber;
     }
-    log.info('this is the number ' + number);
+    log.info("this is the number " + number);
     return number;
   },
-  
+
   /**
-     * Generate random integer from a given range
-     */
-  generateRandomInteger: function (range) {
+   * Generate random integer from a given range
+   */
+  generateRandomInteger: function(range) {
     return Math.floor(Math.random() * Math.floor(range));
   },
-  
+
   /**
-     * This method is useful for dropdown boxes as some of them have default "Please select" option on index 0
-     *
-     * @param range
-     * @returns randomNumber excluding index 0
-     */
-  getRandomIntegerExcludeFirst: function (range) {
+   * This method is useful for dropdown boxes as some of them have default "Please select" option on index 0
+   *
+   * @param range
+   * @returns randomNumber excluding index 0
+   */
+  getRandomIntegerExcludeFirst: function(range) {
     let randomNumber = helpers.generateRandomInteger(range);
-    
+
     if (randomNumber <= 1) {
       randomNumber += 2;
     }
@@ -201,100 +229,111 @@ module.exports = {
   },
 
   /**
-     * Converting String date into the Date format
-     *
-     * @param _date : String date that user passes in
-     * @param _format : "dd/MM/yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
-     * @param _delimiter
-     * @returns {Date}
-     *
-     * Example use
-     *
-     * stringToDate("17/9/2014","dd/MM/yyyy","/");
-     * stringToDate("9/17/2014","mm/dd/yyyy","/")
-     * stringToDate("9-17-2014","mm-dd-yyyy","-")
-     */
-  stringToDate: function (_date, _format, _delimiter) {
+   * Converting String date into the Date format
+   *
+   * @param _date : String date that user passes in
+   * @param _format : "dd/MM/yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
+   * @param _delimiter
+   * @returns {Date}
+   *
+   * Example use
+   *
+   * stringToDate("17/9/2014","dd/MM/yyyy","/");
+   * stringToDate("9/17/2014","mm/dd/yyyy","/")
+   * stringToDate("9-17-2014","mm-dd-yyyy","-")
+   */
+  stringToDate: function(_date, _format, _delimiter) {
     let formatLowerCase = _format.toLowerCase();
     let formatItems = formatLowerCase.split(_delimiter);
     let dateItems = _date.split(_delimiter);
-    let monthIndex = formatItems.indexOf('mm');
-    let dayIndex = formatItems.indexOf('dd');
-    let yearIndex = formatItems.indexOf('yyyy');
+    let monthIndex = formatItems.indexOf("mm");
+    let dayIndex = formatItems.indexOf("dd");
+    let yearIndex = formatItems.indexOf("yyyy");
     let month = parseInt(dateItems[monthIndex]);
     month -= 1;
     return new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
   },
-    
+
   /**
-     * Get the current date dd-mm-yyyy
-     * @returns {string|*}
-     */
-  currentDate: function () {
+   * Get the current date dd-mm-yyyy
+   * @returns {string|*}
+   */
+  currentDate: function() {
     let today = new Date();
     let dd = today.getDate();
     let mm = today.getMonth() + 1; //January is 0!
     let yyyy = today.getFullYear();
-  
+
     if (dd < 10) {
-      dd = '0' + dd;
+      dd = "0" + dd;
     }
     if (mm < 10) {
-      mm = '0' + mm;
+      mm = "0" + mm;
     }
-    return yyyy + '-' + mm + '-' + dd ;
+    return yyyy + "-" + mm + "-" + dd;
+  },
+
+  reportDate: function() {
+    let date = Date.now();
+    return date;
   },
 
   /**
-     * Get current date and time dd/mm/yyy 00:00:00
-     */
-  getCurrentDateTime: function () {
+   * Get current date and time dd/mm/yyy 00:00:00
+   */
+  getCurrentDateTime: function() {
     let today = new Date();
     let dd = today.getDate();
     let mm = today.getMonth() + 1; //January is 0!
     let yyyy = today.getFullYear();
     let hours = today.getHours();
     let minutes = today.getMinutes();
-    let seconds= today.getSeconds();
-      
+    let seconds = today.getSeconds();
+
     if (dd < 10) {
-      dd = '0' + dd;
+      dd = "0" + dd;
     }
     if (mm < 10) {
-      mm = '0' + mm;
+      mm = "0" + mm;
     }
-    if (hours < 10){
-      hours = '0' + hours;
+    if (hours < 10) {
+      hours = "0" + hours;
     }
     if (minutes < 10) {
-      minutes = '0' + minutes;
+      minutes = "0" + minutes;
     }
     if (seconds < 10) {
-      seconds = '0' + seconds;
+      seconds = "0" + seconds;
     }
-    return dd + '-' + mm + '-' + yyyy + '-' + hours + ':' + minutes + ':' + seconds;
+    return (
+      yyyy + "-" + mm + "-" + dd + "-" + hours + ":" + minutes + ":" + seconds
+    );
   },
-  
-  getEndDateTime: function () {
+
+  getEndDateTime: function() {
     let eDate = this.getCurrentDateTime();
     return eDate;
   },
-  
-  getStartDateTime: function () {
+
+  getStartDateTime: function() {
     let sDate = this.getCurrentDateTime();
     return sDate;
   },
-  
-  getCurrentDateFormatted: function () {
-    return helpers.getCurrentDateTime().replace(/\//g, '').replace(/:/g, '').replace(' ', '');
+
+  getCurrentDateFormatted: function() {
+    return helpers
+      .getCurrentDateTime()
+      .replace(/\//g, "")
+      .replace(/:/g, "")
+      .replace(" ", "");
   },
 
   /**
-     * Get the text of an Element
-     * @param selector
-     * @returns text
-     */
-  getElementText: async function (selector) {
+   * Get the text of an Element
+   * @param selector
+   * @returns text
+   */
+  getElementText: async function(selector) {
     let elem = await browser.$(selector);
     await elem.waitForExist(DELAY_10s);
     let text = await elem.getText();
@@ -302,58 +341,56 @@ module.exports = {
   },
 
   /**
-     * Get the href link from an element
-     * @param selector
-     * @returns {String|String[]|*|string}
-     */
-  getLink: async function (selector) {
+   * Get the href link from an element
+   * @param selector
+   * @returns {String|String[]|*|string}
+   */
+  getLink: async function(selector) {
     let elem = await browser.$(selector);
-    await elem.getAttribute('href');
+    await elem.getAttribute("href");
   },
-  
-  waitAndClick: async function (selector) {
+
+  waitAndClick: async function(selector) {
     try {
       let elem = await browser.$(selector);
       await elem.waitForDisplayed(DELAY_3s);
       await elem.waitForEnabled(DELAY_1s);
       await elem.click();
       await browser.pause(DELAY_500ms);
-    }
-    catch (err) {
+    } catch (err) {
       log.error(err.message);
       throw err;
     }
   },
-  
-  waitAndSetValue: async function (selector, value) {
-    try{
+
+  waitAndSetValue: async function(selector, value) {
+    try {
       let elem = await browser.$(selector);
       await elem.waitForEnabled(DELAY_3s);
       await elem.click();
       await browser.pause(DELAY_500ms);
       await elem.setValue(value);
-    }
-    catch (err) {
+    } catch (err) {
       log.error(err.message);
       throw err;
     }
   },
-  
+
   /**
- * ========== EMAIL FUNCTIONALITY ==========
- */
+   * ========== EMAIL FUNCTIONALITY ==========
+   */
   /**
-     *   Sends an Email to the concerned users with the log and the test report
-     */
-  klassiEmail: function (err) {
-    let mailer = require('../../../runtime/mailer').klassiSendMail();
-    if(err) {
-      log.error('This is a Email system error: ' + err.stack);
+   *   Sends an Email to the concerned users with the log and the test report
+   */
+  klassiEmail: function(err) {
+    let mailer = require("../../../runtime/mailer").klassiSendMail();
+    if (err) {
+      log.error("This is a Email system error: " + err.stack);
       throw err;
     }
     return mailer;
   },
-  
+
   /**
    * ========== For all ASSERTIONS functions ==========
    */
@@ -362,35 +399,35 @@ module.exports = {
    * @param dateString
    * @returns {string}
    */
-  reformatDateString: function (dateString) {
+  reformatDateString: function(dateString) {
     let months = {
-      '01': 'January',
-      '02': 'February',
-      '03': 'March',
-      '04': 'April',
-      '05': 'May',
-      '06': 'June',
-      '07': 'July',
-      '08': 'August',
-      '09': 'September',
-      '10': 'October',
-      '11': 'November',
-      '12': 'December'
+      "01": "January",
+      "02": "February",
+      "03": "March",
+      "04": "April",
+      "05": "May",
+      "06": "June",
+      "07": "July",
+      "08": "August",
+      "09": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
     };
-    let b = dateString.split('/');
-    return b[0] + ' ' + months[b[1]] + ' ' + b[2];
+    let b = dateString.split("/");
+    return b[0] + " " + months[b[1]] + " " + b[2];
   },
 
   /**
-     *  Sorts results by date
-     * @param array
-     * @returns {*}
-     */
-  sortByDate: function (array) {
-    array.sort(function (a, b) {
-      let sentDateA = a.split('/');
+   *  Sorts results by date
+   * @param array
+   * @returns {*}
+   */
+  sortByDate: function(array) {
+    array.sort(function(a, b) {
+      let sentDateA = a.split("/");
       let c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
-      let sentDateB = b.split('/');
+      let sentDateB = b.split("/");
       let d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
       return d - c;
     });
@@ -398,12 +435,12 @@ module.exports = {
   },
 
   /**
-     * function to get element from frame or frameset
-     * @param frame_name
-     * @param selector
-     * @returns {Promise.<TResult>}
-     */
-  getElementFromFrame: async function (frame_name, selector) {
+   * function to get element from frame or frameset
+   * @param frame_name
+   * @param selector
+   * @returns {Promise.<TResult>}
+   */
+  getElementFromFrame: async function(frame_name, selector) {
     let frame = await browser.$(frame_name);
     await browser.switchToFrame(frame.value);
     await browser.$(selector).getHTML();
@@ -411,11 +448,11 @@ module.exports = {
   },
 
   /**
-     * This will assert 'equal' text being returned
-     * @param selector
-     * @param expectedText
-     */
-  assertText: async function (selector, expected) {
+   * This will assert 'equal' text being returned
+   * @param selector
+   * @param expectedText
+   */
+  assertText: async function(selector, expected) {
     let elem = await browser.$(selector);
     await elem.waitForEnabled(DELAY_5s);
     let actual = await browser.$(selector);
@@ -424,28 +461,28 @@ module.exports = {
     assert.equal(actual, expected);
     return this;
   },
-  
+
   /**
    *
    * @param selector
    * @param expectedText
    */
-  expectToIncludeText: async function (selector, expectedText) {
+  expectToIncludeText: async function(selector, expectedText) {
     let actual = await browser.$(selector);
     await actual.getText();
     expect(actual).to.include(expectedText);
     return this;
   },
-  
+
   /**
    *
    * @param expected
    */
-  assertUrl: async function (expected) {
+  assertUrl: async function(expected) {
     let actual = await browser.getUrl();
     assert.equal(actual, expected);
   },
-  
+
   /**
    *  API call for GET, PUT, POST and DELETE functionality
    * @param url
@@ -455,79 +492,77 @@ module.exports = {
    * @param statusCode
    * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
    */
-  apiCall: function (url, method, body, fileName, statusCode) {
-    
+  apiCall: function(url, method, body, fileName, statusCode) {
     let options = {
       url: url,
       method: method,
       body: body,
       json: true,
       time: true,
-      resolveWithFullResponse: true,
+      resolveWithFullResponse: true
     };
-  
-    return gotApi(options)
-      .then(async function (res) {
-        if (statusCode != null) {
-          assert.equal(res.statusCode, statusCode);
-          log.info('API Response time : ' + res.timings.response);
-        }
-      
-        if (method === 'GET') {
-          return res;
-        }
-      
-        if (method === 'DELETE' && fileName != null || method === 'PUT' && fileName != null) {
-          return fs.readFileSync(fileName, 'utf8', function (err) {
-            if (err){
-              log.error(err.message);
-            }
-          });
-        }
-      
-        if (method === 'POST' && fileName != null) {
-          let data = res.body.adminDoc;
-          let doc_Id = data.replace(/.*documents\/([^/]+)\/properties.*/, '$1');
-          await helpers.writeTextFile(fileName, doc_Id, function (err) {
-            if (err){
-              log.error(err.message);
-            }
-          });
-          log.info('====== DocId API ===== ' + doc_Id);
-        
-          await doc_Id;
-        }
+
+    return gotApi(options).then(async function(res) {
+      if (statusCode != null) {
+        assert.equal(res.statusCode, statusCode);
+        log.info("API Response time : " + res.timings.response);
+      }
+
+      if (method === "GET") {
         return res;
-      });
+      }
+
+      if (
+        (method === "DELETE" && fileName != null) ||
+        (method === "PUT" && fileName != null)
+      ) {
+        return fs.readFileSync(fileName, "utf8", function(err) {
+          if (err) {
+            log.error(err.message);
+          }
+        });
+      }
+
+      if (method === "POST" && fileName != null) {
+        let data = res.body.adminDoc;
+        let doc_Id = data.replace(/.*documents\/([^/]+)\/properties.*/, "$1");
+        await helpers.writeTextFile(fileName, doc_Id, function(err) {
+          if (err) {
+            log.error(err.message);
+          }
+        });
+        log.info("====== DocId API ===== " + doc_Id);
+
+        await doc_Id;
+      }
+      return res;
+    });
   },
-  
-  filterItem: async function (itemToFilter) {
-    try{
+
+  filterItem: async function(itemToFilter) {
+    try {
       let elem = await browser.$(shared.adminData.filter.filterInput);
       await elem.waitForExist(DELAY_5s);
       await elem.waitForEnabled(DELAY_5s);
       await browser.pause(DELAY_500ms);
       await elem.click();
       await browser.setValue(itemToFilter);
-    }
-    catch (err) {
+    } catch (err) {
       log.error(err.message);
       throw err;
     }
   },
-  
-  filterItemAndClick: async function (itemToFilter) {
-    try{
+
+  filterItemAndClick: async function(itemToFilter) {
+    try {
       await helpers.filterItem(itemToFilter);
       await browser.pause(DELAY_3s);
       let elem = await browser.$(shared.adminData.filter.filteredItem);
       await elem.click();
       await browser.pause(DELAY_3s);
-    }
-    catch (err) {
+    } catch (err) {
       log.error(err.message);
       throw err;
     }
-  },
-  
+  }
 };

@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-const searchData = require('../shared-objects/searchData'),
-  verify = require('../../../runtime/imageCompare'),
+const searchData = require("../shared-objects/searchData"),
+  verify = require("../../../runtime/imageCompare"),
   shared = { searchData };
 
 let expect = global.expect;
@@ -19,9 +19,12 @@ module.exports = {
     await verify.saveScreenshot(`${image}_1-0.png`);
     let elem = await browser.$(shared.searchData.elem.searchInput);
     await elem.setValue(searchWord);
-    await verify.saveScreenshot(`${image}_1-1.png`, shared.searchData.elem.leftBadge);
+    await verify.saveScreenshot(
+      `${image}_1-1.png`,
+      shared.searchData.elem.leftBadge
+    );
     let title = await browser.getTitle();
-    log.info('the title being returned:- ' + title);
+    log.info("the title being returned:- " + title);
     let searchBtn = await browser.$(shared.searchData.elem.searchBtn);
     await searchBtn.click();
     await browser.pause(DELAY_1s);
@@ -33,7 +36,10 @@ module.exports = {
     // image = searchWord;
     /** return the promise of an element to the following then */
     let elem = await browser.$(shared.searchData.elem.resultLink);
-    await verify.saveScreenshot(`${image}_1-2.png`, shared.searchData.elem.leftBadge);
+    await verify.saveScreenshot(
+      `${image}_1-2.png`,
+      shared.searchData.elem.leftBadge
+    );
     await browser.pause(DELAY_1s);
     /** verify this element has children */
     log.info(elem); // prints to a log

@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-let apiData = require('../shared-objects/apiData');
+let apiData = require("../shared-objects/apiData");
 let shared = { apiData };
 
 let expect = global.expect;
@@ -14,7 +14,7 @@ module.exports = {
    */
   getCall: async function() {
     let endPoint = shared.apiData.url.api_base_url + shared.apiData.url.baseUrl;
-    res = await helpers.apiCall(endPoint, 'GET');
+    res = await helpers.apiCall(endPoint, "GET");
   },
   /**
    * Getting the Response Timing
