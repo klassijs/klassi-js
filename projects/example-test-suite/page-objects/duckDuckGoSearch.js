@@ -30,7 +30,7 @@ module.exports = {
     await browser.pause(DELAY_1s);
     await helpers.compareImage(`${image}_1-0.png`);
     await helpers.compareImage(`${image}_1-1.png`);
-    await image;
+    return image;
   },
   searchResult: async function() {
     // image = searchWord;

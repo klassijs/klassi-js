@@ -13,6 +13,7 @@
         "sourceType": "module"
     },
     "plugins": ["prettier"],
+    "extends": "eslint:recommended",
     "rules": {
         "no-const-assign": "warn",
         "no-this-before-super": "warn",
@@ -21,16 +22,20 @@
         "no-unused-vars": "warn",
         "constructor-super": "warn",
         "valid-typeof": "warn",
-        "prettier/prettier": "error"
+        "prettier/prettier": "error",
+        "indent": [ "error", 2 ],
+        "linebreak-style": [ "error", "unix" ],
+        "semi": [ "error", "always" ],
+        "no-console": [ 0, "error" ]
     },
     "globals": {
         "Given": true,
         "When": true,
         "Then": true,
-        "helpers":false,
+        "helpers":true,
         "driver":false,
         "browser": false,
-        "log": false,
+        "log": true,
         "date": false,
         "startDateTime": false,
         "endDateTime": false,
