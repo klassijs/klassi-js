@@ -1,5 +1,5 @@
 {
-  "project":"OUP Automated Test",
+  "project":"Klassi Automated Test",
 
   "os": "OS X",
   "os_version": "Sierra",
@@ -21,5 +21,5 @@
   "browserstack.debug": true,
   "acceptSslCerts": true,
   "browserstack.networkLogs": true,
-  "browserstack.selenium_version": "3.5.2"
+  "browserstack.selenium_version": "3.141.5"
 }

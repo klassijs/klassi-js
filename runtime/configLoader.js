@@ -1,5 +1,5 @@
 /**
- KlassiTech Automated Testing Tool
+ Klassi Automated Testing Tool
  Created by Larry Goddard
  */
 /**
@@ -17,12 +17,12 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
+"use strict";
 
-const fs = require('fs');
+const fs = require("fs");
 
 module.exports = function(configFilePath) {
-  const json = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+  const json = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
   //TODO: add validation if schema
   return json;
 };
