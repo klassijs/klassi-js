@@ -34,8 +34,6 @@ const fs = require("fs"),
   chai = require("chai"),
   reporter = require("cucumber-html-reporter"),
   // reporter = require('multiple-cucumber-html-reporter'),
-  // {generate} = require('multiple-cucumber-html-reporter'),
-  // cucumberJson = require('wdio-cucumberjs-json-reporter'),
   apiGot = require("got"),
   program = require("commander");
 
@@ -44,18 +42,6 @@ const assert = chai.assert,
   log = require("./logger").klassiLog();
 
 const getRemote = require("./getRemote.js");
-
-// /**
-//  * Setting and Naming the Project Report files Globally
-//  * @type {string}
-//  */
-// let envConfig = require('../configs/envConfig');
-// // console.log(envConfig);
-// let projectName = envConfig.projectName;
-// let reportName = envConfig.reportName;
-//
-// global.projectName = process.env.PROJECT_NAME || projectName;
-// global.reportName = process.env.REPORT_NAME || reportName;
 
 /**
  * Adding logging
@@ -115,17 +101,11 @@ async function getDriverInstance() {
   }
   assert.isNotEmpty(browsers, "Browser Name must be defined");
 
-  switch (browsers || "") {
-    case "firefox":
-      {
-        browser = FirefoxDriver(options);
-      }
-      break;
-    case "chrome":
-      {
-        browser = ChromeDriver(options);
-      }
-      break;
+  switch (browsers || " ") {
+  case
+    "firefox": browser = FirefoxDriver(options); break;
+  case
+    "chrome": browser = ChromeDriver(options); break;
   }
   return browser;
 }
@@ -136,27 +116,14 @@ let environ = require("../projects/" + projectName + "/configs/envConfig");
 /**
  * for the environment variables
  */
-switch (envName || "") {
-  case "dev":
-    {
-      global.envConfig = environ.dev;
-    }
-    break;
-  case "uat":
-    {
-      global.envConfig = environ.uat;
-    }
-    break;
-  case "test":
-    {
-      global.envConfig = environ.test;
-    }
-    break;
-  case "prod":
-    {
-      global.envConfig = environ.prod;
-    }
-    break;
+switch (envName || " ") {
+case "dev": global.envConfig = environ.dev; break;
+
+case "uat": global.envConfig = environ.uat; break;
+
+case "prod": global.envConfig = environ.prod; break;
+
+default: global.envConfig = environ.test; break;
 }
 
 /**
@@ -304,10 +271,6 @@ reportBrowser = require("../projects/" +
   projectName +
   "/browserstack/" +
   global.browserName);
-// console.log(reportBrowser.browserName);
-// console.log(reportBrowser.browserName);
-// console.log(reportBrowser.browser_version);
-// console.log(reportBrowser.os);
 
 /**
  * compile and generate a report at the END of the test run and send an Email
@@ -340,8 +303,8 @@ AfterAll(function(done) {
             ? "Remote"
             : "Local"
       },
-      brandTitle: projectName + " " + reportName + "-" + date,
-      name: projectName
+      brandTitle: projectReportName + " " + reportName + "-" + date,
+      name: projectReportName
     };
 
     // if (scenario) {

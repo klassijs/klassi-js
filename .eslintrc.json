@@ -42,6 +42,7 @@
         "browserName": false,
         "reportName": true,
         "projectName": false,
+        "projectReportName": true,
         "settings": false,
         "envConfig": true,
         "request": true,

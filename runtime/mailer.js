@@ -48,7 +48,7 @@ module.exports = {
     let mailOptions = {
       to: devTeam,
       from: "Klassi-QATEST <email@email.com>",
-      subject: projectName + " " + global.reportName + "-" + date,
+      subject: projectReportName + " " + global.reportName + "-" + date,
       alternative: true,
       attachments: [
         {
