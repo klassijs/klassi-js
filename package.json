@@ -53,10 +53,12 @@
     "fs-extra": "^7.0.1",
     "got": "^9.6.0",
     "merge": "^1.2.1",
+    "multiple-cucumber-html-reporter": "^1.13.1",
     "node-dir": "^0.1.17",
     "node-resemble-js": "^0.2.0",
     "nodemailer": "^5.1.1",
     "require-dir": "^1.2.0",
+    "ua-parser-js": "^0.7.20",
     "winston": "^3.2.1"
   },
   "devDependencies": {
@@ -64,9 +66,9 @@
     "eslint": "^6.5.1",
     "eslint-plugin-prettier": "^3.1.1",
     "geckodriver": "^1.16.0",
-    "multiple-cucumber-html-reporter": "^1.13.1",
     "npm-check": "^5.9.0",
     "prettier": "^1.18.2",
+    "request": "^2.88.0",
     "webdriverio": "^5.13.2"
   }
 }

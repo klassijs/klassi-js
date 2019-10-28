@@ -18,12 +18,11 @@
  limitations under the License.
  */
 "use strict";
-
-const path = require("path"),
-  program = require("commander"),
-  fs = require("fs-extra"),
-  pjson = require("./package.json"),
-  cucumber = require("cucumber");
+const path = require("path");
+const program = require("commander");
+const fs = require("fs-extra");
+const pjson = require("./package.json");
+const cucumber = require("cucumber");
 
 function collectPaths(value, paths) {
   paths.push(value);
@@ -62,16 +61,10 @@ global.reportName = process.env.REPORT_NAME || reportName;
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-let reports = "./reports";
 let fileDnldFldr = "./shared-objects/fileDnldFolder/";
 let docsFolder = "./shared-objects/docs";
-let fileName = path.join("./shared-objects/docs/fileName.txt");
+let fileName = path.join("./shared-objects/docs/userAgent.txt");
 
-fs.ensureDirSync(reports, function(err) {
-  if (err) {
-    console.log("The Reports Folder has NOT been created: " + err.stack);
-  }
-});
 fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
     console.log("The File Download Folder has NOT been created: " + err.stack);
@@ -217,6 +210,14 @@ global.browserName = program.browsers;
 global.settings = settings;
 global.paths = paths;
 
+let reports = "./reports/" + browserName;
+fs.ensureDirSync(reports, function(err) {
+  if (err) {
+    console.log("The Reports Folder has NOT been created: " + err.stack);
+  }
+});
+global.reports = reports;
+
 /**
  * add helpers
  */
@@ -256,21 +257,37 @@ if (program.featureFile) {
 /**
  * add switch to tell cucumber to produce json report files
  */
-// single run report
+// // single run report
+// process.argv.push(
+//   "-f",
+//   "../../node_modules/cucumber-pretty",
+//   "-f",
+//   "json:" +
+//     path.resolve(
+//       __dirname,
+//       paths.reports,
+//       projectName + " " + settings.reportName + "-" + date + ".json"
+//     )
+// );
+
+// multi run report
 process.argv.push(
   "-f",
   "../../node_modules/cucumber-pretty",
   "-f",
   "json:" +
     path.resolve(
-      __dirname,
-      paths.reports,
-      projectName + " " + settings.reportName + "-" + date + ".json"
+      reports,
+      browserName +
+        " " +
+        projectName +
+        " " +
+        settings.reportName +
+        "-" +
+        dateTime +
+        ".json"
     )
 );
-// multi run report
-// process.argv.push('-f', '../../node_modules/cucumber-pretty', '-f', 'json:' + path.resolve(__dirname, paths.reports, projectName + ' ' + browserName + ' ' + settings.reportName + '-' + dateTime + '.json'));
-// console.log(dateTime);
 
 /**
  * add cucumber world as first required script (this sets up the globals)
@@ -309,7 +326,7 @@ let klassiCli = new (require("cucumber")).Cli({
   stdout: process.stdout
 });
 
-new Promise(async function(resolve, reject) {
+new Promise(function(resolve, reject) {
   try {
     klassiCli.run(function(success) {
       resolve = success ? 0 : 1;
@@ -327,7 +344,7 @@ new Promise(async function(resolve, reject) {
     });
   } catch (err) {
     console.log("cucumber integration has failed " + err.message);
-    await reject(err);
+    reject(err);
     throw err;
   }
 });

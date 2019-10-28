@@ -18,24 +18,24 @@
  limitations under the License.
  */
 "use strict";
-// import cucumberJson from 'wdio-cucumberjs-json-reporter';
 
 /**
  * world.js is loaded by the cucumber framework before loading the step definitions and feature files
  * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step
  * definition
  */
-const fs = require("fs"),
-  path = require("path"),
-  requireDir = require("require-dir"),
-  merge = require("merge"),
-  chalk = require("chalk"),
-  dir = require("node-dir"),
-  chai = require("chai"),
-  reporter = require("cucumber-html-reporter"),
-  // reporter = require('multiple-cucumber-html-reporter'),
-  apiGot = require("got"),
-  program = require("commander");
+const fs = require("fs");
+const path = require("path");
+const requireDir = require("require-dir");
+const merge = require("merge");
+const chalk = require("chalk");
+const dir = require("node-dir");
+const chai = require("chai");
+// const reporter = require("cucumber-html-reporter");
+const reporter = require("multiple-cucumber-html-reporter");
+const apiGot = require("got");
+const tuseragent = require("ua-parser-js");
+const program = require("commander");
 
 const assert = chai.assert,
   expect = chai.expect,
@@ -102,10 +102,12 @@ async function getDriverInstance() {
   assert.isNotEmpty(browsers, "Browser Name must be defined");
 
   switch (browsers || " ") {
-  case
-    "firefox": browser = FirefoxDriver(options); break;
-  case
-    "chrome": browser = ChromeDriver(options); break;
+  case "firefox":
+    browser = FirefoxDriver(options);
+    break;
+  case "chrome":
+      browser = ChromeDriver(options);
+    break;
   }
   return browser;
 }
@@ -117,13 +119,21 @@ let environ = require("../projects/" + projectName + "/configs/envConfig");
  * for the environment variables
  */
 switch (envName || " ") {
-case "dev": global.envConfig = environ.dev; break;
+case "dev":
+  global.envConfig = environ.dev;
+  break;
 
-case "uat": global.envConfig = environ.uat; break;
+case "uat":
+  global.envConfig = environ.uat;
+  break;
 
-case "prod": global.envConfig = environ.prod; break;
+case "prod":
+  global.envConfig = environ.prod;
+  break;
 
-default: global.envConfig = environ.test; break;
+default:
+  global.envConfig = environ.test;
+  break;
 }
 
 /**
@@ -249,9 +259,9 @@ global.startDateTime = helpers.getStartDateTime();
 /**
  * create the browser before scenario if it's not instantiated
  */
-Before(async () => {
+Before(function() {
   global.browser = getDriverInstance();
-  await browser;
+  return browser;
 });
 
 /**
@@ -277,70 +287,94 @@ reportBrowser = require("../projects/" +
  */
 AfterAll(function(done) {
   let browser = global.browser;
+  let uastring = fs.readFileSync("./shared-objects/docs/userAgent.txt", "utf8");
+  let parser = new tuseragent(uastring);
+
   if (global.paths.reports && fs.existsSync(global.paths.reports)) {
     global.endDateTime = helpers.getEndDateTime();
-    let reportOptions = {
-      theme: "bootstrap",
-      jsonFile: path.resolve(
-        global.paths.reports,
-        projectName + " " + global.settings.reportName + "-" + date + ".json"
-      ),
-      output: path.resolve(
-        global.paths.reports,
-        projectName + " " + global.settings.reportName + "-" + date + ".html"
-      ),
-      reportSuiteAsScenarios: true,
-      launchReport: !global.settings.disableReport,
-      ignoreBadJsonFile: true,
-      metadata: {
-        "Test Started": startDateTime,
-        "Test Completion": endDateTime,
-        Platform: process.platform,
-        Environment: global.envConfig.envName,
-        Browser: global.settings.remoteConfig || global.browserName,
-        Executed:
-          remoteService && remoteService.type === "browserstack"
-            ? "Remote"
-            : "Local"
-      },
-      brandTitle: projectReportName + " " + reportName + "-" + date,
-      name: projectReportName
-    };
 
-    // if (scenario) {
-    //   // WIP for new style reporter
-    //   let reportOptions = {
-    //     jsonDir: path.resolve(global.paths.reports),
-    //     // reportPath: path.resolve(global.paths.reports, browserName + ' ' + projectName + ' ' + global.settings.reportName + '-' + date),
-    //     reportPath: path.resolve(global.paths.reports, projectName + ' ' + global.settings.reportName + '-' + date),
-    //     pageTitle: 'OAF Automation Report',
-    //     pageFooter: '        OAF Automation Report @ larryG ',
-    //     reportName: projectReportName + ' ' + reportName + '-' + date,
-    //     openReportInBrowser: (!global.settings.disableReport),
-    //     metadata: {
-    //       browser: {
-    //         name: browserName,
-    //         version: reportBrowser.browser_version
-    //       },
-    //       device: remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
-    //       platform: {
-    //         name: reportBrowser.os,
-    //         version: reportBrowser.os_version
-    //       }
-    //     },
-    //     customData: {
-    //       title: 'Test Run Info',
-    //       data: [
-    //         {label: 'Project', value: projectReportName},
-    //         {label: 'Environment', value: global.envConfig.envName},
-    //         {label: 'Platform', value: process.platform},
-    //         {label: 'Browser', value: reportBrowser.browserName},
-    //         {label: 'Executed', value: remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'},
-    //         {label: 'Execution Start Time', value: startDateTime},
-    //         {label: 'Execution End Time', value: endDateTime}
-    //       ]
-    //     },
-    //   };
+    // let reportOptions = {
+    //   theme: "bootstrap",
+    //   jsonFile: path.resolve(
+    //     global.paths.reports,
+    //     projectName + " " + global.settings.reportName + "-" + date + ".json"
+    //   ),
+    //   output: path.resolve(
+    //     global.paths.reports,
+    //     projectName + " " + global.settings.reportName + "-" + date + ".html"
+    //   ),
+    //   reportSuiteAsScenarios: true,
+    //   launchReport: !global.settings.disableReport,
+    //   ignoreBadJsonFile: true,
+    //   metadata: {
+    //     "Test Started": startDateTime,
+    //     "Test Completion": endDateTime,
+    //     Platform: process.platform,
+    //     Environment: global.envConfig.envName,
+    //     Browser: global.settings.remoteConfig || global.browserName,
+    //     Executed:
+    //       remoteService && remoteService.type === "browserstack"
+    //         ? "Remote"
+    //         : "Local"
+    //   },
+    //   brandTitle: projectReportName + " " + reportName + "-" + date,
+    //   name: projectReportName
+    // };
+
+    // WIP for new style reporter
+    let reportOptions = {
+      jsonDir: path.resolve(global.reports),
+      reportPath: path.resolve(
+        global.reports,
+        browserName +
+          " " +
+          projectName +
+          " " +
+          global.settings.reportName +
+          "-" +
+          date
+      ),
+      pageTitle: "OAF Automation Report",
+      pageFooter: "        OAF Automation Report @ larryG ",
+      reportName: projectReportName + " " + reportName + "-" + date,
+      openReportInBrowser: !global.settings.disableReport,
+      customMetadata: true,
+      metadata: [
+        {
+          name: "Browser",
+          value: parser.getBrowser().name
+        },
+        { name: "Version", value: parser.getBrowser().version },
+        {
+          name: "Device",
+          value:
+            remoteService && remoteService.type === "browserstack"
+              ? "Remote"
+              : "Local"
+        },
+        { name: "OS", value: parser.getOS().name },
+        { name: "Version", value: parser.getOS().version }
+      ],
+      displayDuration: true,
+      customData: {
+        title: "Test Run Info",
+        data: [
+          { label: "Project", value: projectReportName },
+          { label: "Environment", value: global.envConfig.envName },
+          { label: "Platform", value: process.platform },
+          { label: "Browser", value: reportBrowser.browserName },
+          {
+            label: "Executed",
+            value:
+              remoteService && remoteService.type === "browserstack"
+                ? "Remote"
+                : "Local"
+          },
+          { label: "Execution Start Time", value: startDateTime },
+          { label: "Execution End Time", value: endDateTime }
+        ]
+      }
+    };
 
     browser.pause(DELAY_2s).then(async function() {
       reporter.generate(reportOptions);
@@ -348,27 +382,27 @@ AfterAll(function(done) {
     });
   }
   done();
-  // }
+  console.log(parser.getResult());
 });
 
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
-After(async function(scenario) {
+After(function(scenario) {
   let browser = global.browser;
   if (scenario.result.status === Status.FAILED) {
     if (remoteService && remoteService.type === "browserstack") {
-      await browser.deleteSession();
+      return browser.deleteSession();
     } else {
       // Comment out to do nothing | leave browser open
-      await browser.deleteSession();
+      return browser.deleteSession();
     }
   } else {
     if (remoteService && remoteService.type !== "browserstack") {
       // Comment out to do nothing | leave browser open
-      await browser.deleteSession();
+      return browser.deleteSession();
     } else {
-      await browser.deleteSession();
+      return browser.deleteSession();
     }
   }
 });

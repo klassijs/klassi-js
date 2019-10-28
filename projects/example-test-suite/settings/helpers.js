@@ -20,6 +20,7 @@
 "use strict";
 const fs = require("fs");
 let log = global.log;
+let script;
 
 module.exports = {
   /**
@@ -43,7 +44,8 @@ module.exports = {
     /**
      * load the url and wait for it to complete
      */
-    return browser.url(url, function() {
+    return browser.url(url, async function() {
+      await helpers.getUserAgent();
       /**
        * now wait for the body element to be present
        */
@@ -90,6 +92,16 @@ module.exports = {
   },
 
   /**
+   *
+   * @returns {Promise<void>}
+   */
+  getUserAgent: async function() {
+    script = await browser.execute(() => window.navigator.userAgent);
+    helpers.writeTextFile("./shared-objects/docs/userAgent.txt", script);
+    return script;
+  },
+
+  /**
    * writeTextFile write data to file on hard drive
    * @param  string  filepath   Path to file on hard drive
    * @param  string   output     Data to be written
@@ -101,10 +113,9 @@ module.exports = {
           log.error(err.message);
         }
       });
-      log.info("File has been written successfully");
     } catch (err) {
       if (err) {
-        log.info("Error in writing file " + err.message);
+        log.error("Error in writing file " + err.message);
         throw err;
       }
     }

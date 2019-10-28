@@ -87,4 +87,3 @@ typings/
 # next.js build output
 .next
 webdriverio-cucumber-js.iml
-/browserstack/secrets/browserstack.json

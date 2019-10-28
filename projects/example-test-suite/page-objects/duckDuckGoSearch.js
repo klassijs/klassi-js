@@ -1,5 +1,4 @@
 "use strict";
-
 const searchData = require("../shared-objects/searchData"),
   verify = require("../../../runtime/imageCompare"),
   shared = { searchData };
@@ -16,6 +15,7 @@ module.exports = {
    */
   performSearch: async function(searchWord) {
     image = searchWord;
+
     await verify.saveScreenshot(`${image}_1-0.png`);
     let elem = await browser.$(shared.searchData.elem.searchInput);
     await elem.setValue(searchWord);
@@ -23,6 +23,7 @@ module.exports = {
       `${image}_1-1.png`,
       shared.searchData.elem.leftBadge
     );
+
     let title = await browser.getTitle();
     log.info("the title being returned:- " + title);
     let searchBtn = await browser.$(shared.searchData.elem.searchBtn);
@@ -32,6 +33,7 @@ module.exports = {
     await helpers.compareImage(`${image}_1-1.png`);
     return image;
   },
+
   searchResult: async function() {
     // image = searchWord;
     /** return the promise of an element to the following then */
