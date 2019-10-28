@@ -26,6 +26,7 @@ module.exports = {
   /**
    * ========== All operational functions ==========
    */
+
   /**
    * returns a promise that is called when the url has loaded and the body element is present
    * @param {string} url to load
@@ -33,7 +34,7 @@ module.exports = {
    * @example
    *      helpers.loadPage('http://www.google.co.uk');
    */
-  loadPage: function(url, seconds) {
+  loadPage: async function(url, seconds) {
     /**
      * Wait function - measured in seconds for pauses during tests to give time for processes such as
      * a page loading or the user to see what the test is doing
@@ -44,13 +45,25 @@ module.exports = {
     /**
      * load the url and wait for it to complete
      */
-    return browser.url(url, async function() {
-      await helpers.getUserAgent();
+    await helpers.getUserAgent();
+    await browser.url(url, async function() {
       /**
        * now wait for the body element to be present
        */
-      return browser.waitUntil(browser.$("body"), timeout);
+      await browser.waitUntil(browser.$("body"), timeout);
     });
+  },
+
+
+  /**
+   *
+   * @returns {Promise<void>}
+   */
+  getUserAgent: async function() {
+    script = await browser.execute(() => window.navigator.userAgent);
+    await helpers.writeTextFile("./shared-objects/docs/userAgent.txt", script);
+    console.log("this is the result 1: " + script);
+    // return script;
   },
 
   /**
@@ -89,16 +102,6 @@ module.exports = {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '1')`;
       await browser.execute(script);
     }
-  },
-
-  /**
-   *
-   * @returns {Promise<void>}
-   */
-  getUserAgent: async function() {
-    script = await browser.execute(() => window.navigator.userAgent);
-    helpers.writeTextFile("./shared-objects/docs/userAgent.txt", script);
-    return script;
   },
 
   /**

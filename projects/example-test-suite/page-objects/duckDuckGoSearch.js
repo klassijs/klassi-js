@@ -15,7 +15,7 @@ module.exports = {
    */
   performSearch: async function(searchWord) {
     image = searchWord;
-
+    // await helpers.getUserAgent();
     await verify.saveScreenshot(`${image}_1-0.png`);
     let elem = await browser.$(shared.searchData.elem.searchInput);
     await elem.setValue(searchWord);
@@ -29,8 +29,8 @@ module.exports = {
     let searchBtn = await browser.$(shared.searchData.elem.searchBtn);
     await searchBtn.click();
     await browser.pause(DELAY_1s);
-    await helpers.compareImage(`${image}_1-0.png`);
-    await helpers.compareImage(`${image}_1-1.png`);
+    // await helpers.compareImage(`${image}_1-0.png`);
+    // await helpers.compareImage(`${image}_1-1.png`);
     return image;
   },
 
@@ -46,6 +46,6 @@ module.exports = {
     /** verify this element has children */
     log.info(elem); // prints to a log
     expect(elem.length).to.not.equal(0);
-    await helpers.compareImage(`${image}_1-2.png`);
+    // await helpers.compareImage(`${image}_1-2.png`);
   }
 };

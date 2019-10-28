@@ -9,6 +9,6 @@ Feature: The API feature/functionality
 
   Scenario: Getting the status code
     Then I expect status code of '200'
-
-  Scenario: Display the API content
-    Then I return the content of the API
+#
+#  Scenario: Display the API content
+#    Then I return the content of the API

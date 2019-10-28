@@ -39,8 +39,8 @@
     "dev": "cd projects/example-test-suite && node ../../index.js -dt @api",
     "uat": "cd projects/example-test-suite && node ../../index.js -dt @search",
     "bslocal": "cd projects/example-test-suite && node ../../index.js -edw browserstack -x",
-    "cibsdev": "cd projects/example-test-suite && node ../../index.js -edt @api -w browserstack -x",
-    "cibsuat": "cd projects/example-test-suite && node ../../index.js -edt @search -w browserstack -x",
+    "cibsdev": "cd projects/example-test-suite && node ../../index.js -dt @api -w browserstack -x",
+    "cibsuat": "cd projects/example-test-suite && node ../../index.js -dt @search -w browserstack -x",
     "pkgchecks": "yarn check"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
