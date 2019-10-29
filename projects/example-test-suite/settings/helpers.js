@@ -54,7 +54,6 @@ module.exports = {
     });
   },
 
-
   /**
    *
    * @returns {Promise<void>}
@@ -62,8 +61,7 @@ module.exports = {
   getUserAgent: async function() {
     script = await browser.execute(() => window.navigator.userAgent);
     await helpers.writeTextFile("./shared-objects/docs/userAgent.txt", script);
-    console.log("this is the result 1: " + script);
-    // return script;
+    return script;
   },
 
   /**

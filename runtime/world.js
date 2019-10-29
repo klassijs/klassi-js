@@ -37,10 +37,9 @@ const apiGot = require("got");
 const tuseragent = require("ua-parser-js");
 const program = require("commander");
 
-const assert = chai.assert,
-  expect = chai.expect,
-  log = require("./logger").klassiLog();
-
+const assert = chai.assert;
+const expect = chai.expect;
+const log = require("./logger").klassiLog();
 const getRemote = require("./getRemote.js");
 
 /**
@@ -102,12 +101,8 @@ async function getDriverInstance() {
   assert.isNotEmpty(browsers, "Browser Name must be defined");
 
   switch (browsers || " ") {
-  case "firefox":
-    browser = FirefoxDriver(options);
-    break;
-  case "chrome":
-      browser = ChromeDriver(options);
-    break;
+  case "firefox": browser = FirefoxDriver(options); break;
+  case "chrome": browser = ChromeDriver(options); break;
   }
   return browser;
 }
@@ -119,21 +114,13 @@ let environ = require("../projects/" + projectName + "/configs/envConfig");
  * for the environment variables
  */
 switch (envName || " ") {
-case "dev":
-  global.envConfig = environ.dev;
-  break;
+case "dev": global.envConfig = environ.dev; break;
 
-case "uat":
-  global.envConfig = environ.uat;
-  break;
+case "uat": global.envConfig = environ.uat; break;
 
-case "prod":
-  global.envConfig = environ.prod;
-  break;
+case "prod": global.envConfig = environ.prod; break;
 
-default:
-  global.envConfig = environ.test;
-  break;
+default: global.envConfig = environ.test; break;
 }
 
 /**
@@ -242,7 +229,7 @@ function World() {
 /**
  * export the "World" required by cucumber to allow it to expose methods within step def's
  */
-this.World = World;
+this.world = World;
 
 /**
  * set the default timeout for all tests
