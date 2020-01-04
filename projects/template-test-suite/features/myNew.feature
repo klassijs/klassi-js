@@ -1,4 +1,4 @@
-@search
+@myNew
 Feature: soemthing new
   As an internet user
 

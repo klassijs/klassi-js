@@ -26,6 +26,7 @@ declare const settings: any;
 
 // KLASSI NOTE
 // adapted from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cucumber/index.d.ts
+
 // for our step-definitions only
 export type StepDefinitionCode = (this: World, ...stepArgs: any[]) => any;
 

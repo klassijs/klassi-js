@@ -5,6 +5,7 @@
   },
 
   "reportName": "Automated Test Report",
+  "reportProjectName": "Example Test Suite",
 
   "uat": {
     "envName": "UAT",

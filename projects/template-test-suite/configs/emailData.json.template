@@ -4,6 +4,6 @@
     "Created by": "Larry Goddard"
   },
 
-  "projectName": "{projectName}",
-  "projectReportName": "{PROJECT REPORT NAME}",
+  "nameList": "Me <{my email address}>, You <{your email address}>"
 }
+

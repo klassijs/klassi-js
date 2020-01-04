@@ -17,27 +17,27 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-"use strict";
+'use strict';
 /*global assert:false */
 
-const gotApi = require("got");
-const loadConfig = require("../configLoader.js");
+const gotApi = require('got');
+const loadConfig = require('../configLoader.js');
 
 function getCredentials() {
-  let secrets = loadConfig("browserstack/secrets/browserstack.json");
+  let secrets = loadConfig('browserstack/secrets/browserstack.json');
 
   let user = process.env.BROWSERSTACK_USERNAME || secrets.BROWSERSTACK_USERNAME;
   let key =
     process.env.BROWSERSTACK_ACCESS_KEY || secrets.BROWSERSTACK_ACCESS_KEY;
 
-  assert.isNotEmpty(user, "BrowserStack requires a username");
-  assert.isNotEmpty(key, "BrowserStack requires an access key");
+  assert.isNotEmpty(user, 'BrowserStack requires a username');
+  assert.isNotEmpty(key, 'BrowserStack requires an access key');
 
   return { user: user, key: key };
 }
 
 async function submitResults(scenario) {
-  let configBuildName = global.settings.remoteConfig.replace(/-/g, " ");
+  let configBuildName = global.settings.remoteConfig.replace(/-/g, ' ');
   let credentials = getCredentials();
   let browserstackUsername = credentials.user;
   let browserstackApiKey = credentials.key;
@@ -61,7 +61,7 @@ async function submitResults(scenario) {
   let sessionId = latestSession.automation_session.hashed_id;
 
   let explanations = [];
-  let statusString = scenario.isSuccessful() ? "passed" : "failed";
+  let statusString = scenario.isSuccessful() ? 'passed' : 'failed';
   if (scenario.isSuccessful()) {
     explanations.push(`${scenarioName} succeeded`);
   }
@@ -79,15 +79,15 @@ async function submitResults(scenario) {
 
   if (scenario.isFailed()) {
     explanations.push(`${scenarioName} failed:` + scenario.getException());
-    explanations.push(scenario.getUri() + " (" + scenario.getLine() + ")");
+    explanations.push(scenario.getUri() + ' (' + scenario.getLine() + ')');
   }
 
   await gotApi({
     uri: `https://${apiCredentials}@api.browserstack.com/automate/sessions/${sessionId}.json`,
-    method: "PUT",
+    method: 'PUT',
     form: {
       status: statusString,
-      reason: explanations.join("; ")
+      reason: explanations.join('; ')
     }
   });
 }

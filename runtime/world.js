@@ -17,43 +17,46 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-"use strict";
-// import cucumberJson from 'wdio-cucumberjs-json-reporter';
+'use strict';
 
 /**
  * world.js is loaded by the cucumber framework before loading the step definitions and feature files
- * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step
+ * it sets all the globals
+ * it is responsible for setting up and exposing the browser/expect/assert etc required within each step
  * definition
  */
-const fs = require("fs"),
-  path = require("path"),
-  requireDir = require("require-dir"),
-  merge = require("merge"),
-  chalk = require("chalk"),
-  dir = require("node-dir"),
-  chai = require("chai"),
-  reporter = require("cucumber-html-reporter"),
-  // reporter = require('multiple-cucumber-html-reporter'),
-  apiGot = require("got"),
-  program = require("commander");
+const fs = require('fs-extra');
+const requireDir = require('require-dir');
+const merge = require('merge');
+const chalk = require('chalk');
+const dir = require('node-dir');
+const chai = require('chai');
+const apiGot = require('got');
+const program = require('commander');
 
-const assert = chai.assert,
-  expect = chai.expect,
-  log = require("./logger").klassiLog();
+const assert = chai.assert;
+const expect = chai.expect;
+const log = require('./logger').klassiLog();
+const getRemote = require('./getRemote.js');
 
-const getRemote = require("./getRemote.js");
+let cp_path;
+if (program.aces) {
+  cp_path = '../projects/' + projectName + '/test/settings/helpers.js';
+} else {
+  cp_path = '../projects/' + projectName + '/settings/helpers.js';
+}
+const helpers = require(cp_path);
 
 /**
  * Adding logging
  */
 global.log = log;
+global.helpers = helpers;
 
 /**
  * This is the Global date functionality
  */
-global.date = require("../projects/" +
-  projectName +
-  "/settings/helpers").currentDate();
+global.date = require('./helpers').currentDate();
 
 /**
  * for all API test calls
@@ -64,7 +67,7 @@ global.gotApi = apiGot;
 /**
  *  for the Download of all file types
  */
-global.downloader = require("./downloader.js");
+global.downloader = require('./downloader.js');
 
 /**
  * for all assertions for variable testing
@@ -76,9 +79,9 @@ global.expect = expect;
  * Environment variables
  * @type {*|(function(): driver)}
  */
-let ChromeDriver = require("./chromeDriver"),
-  FirefoxDriver = require("./firefoxDriver"),
-  BrowserStackDriver = require("./browserStackDriver");
+let ChromeDriver = require('./chromeDriver'),
+  FirefoxDriver = require('./firefoxDriver'),
+  BrowserStackDriver = require('./browserStackDriver');
 let remoteService = getRemote(global.settings.remoteService);
 
 let browser = {};
@@ -90,40 +93,55 @@ let browser = {};
 async function getDriverInstance() {
   let browsers = global.settings.browserName;
   let options = {};
-  if (remoteService && remoteService.type === "browserstack") {
+  if (remoteService && remoteService.type === 'browserstack') {
     let configType = global.settings.remoteConfig;
     assert.isString(
       configType,
-      "BrowserStack requires a config type e.g. win10-chrome"
+      'BrowserStack requires a config type e.g. win10-chrome'
     );
     browser = BrowserStackDriver(options, configType);
     return browser;
   }
-  assert.isNotEmpty(browsers, "Browser Name must be defined");
-
-  switch (browsers || " ") {
-  case
-    "firefox": browser = FirefoxDriver(options); break;
-  case
-    "chrome": browser = ChromeDriver(options); break;
+  assert.isNotEmpty(browsers, 'Browser Name must be defined');
+  switch (browsers || '') {
+  case 'firefox':
+    browser = FirefoxDriver(options);
+    break;
+  case 'chrome':
+    browser = ChromeDriver(options);
+    break;
   }
   return browser;
 }
 
 let envName = global.envName;
-let environ = require("../projects/" + projectName + "/configs/envConfig");
+let environ;
+
+if (program.aces) {
+  environ = require('../projects/' + projectName + '/test/configs/envConfig');
+} else {
+  environ = require('../projects/' + projectName + '/configs/envConfig');
+}
 
 /**
  * for the environment variables
  */
-switch (envName || " ") {
-case "dev": global.envConfig = environ.dev; break;
-
-case "uat": global.envConfig = environ.uat; break;
-
-case "prod": global.envConfig = environ.prod; break;
-
-default: global.envConfig = environ.test; break;
+switch (envName || '') {
+case 'dev':
+  global.envConfig = environ.dev;
+  break;
+case 'uat':
+  global.envConfig = environ.uat;
+  break;
+case 'prod':
+  global.envConfig = environ.prod;
+  break;
+case 'test':
+  global.envConfig = environ.test;
+  break;
+// default:
+//   global.envConfig = environ.test;
+//   break;
 }
 
 /**
@@ -144,7 +162,7 @@ global.DELAY_20s = 20000; // 20 second delay
 
 function consoleInfo() {
   let args = [].slice.call(arguments),
-    output = chalk.bgBlue.white("\n>>>>> \n" + args + "\n<<<<<\n");
+    output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
   console.log(output);
 }
 
@@ -152,8 +170,8 @@ function consoleInfo() {
  * All Global variables
  * @constructor
  */
-const { Before, After, AfterAll, Status } = require("cucumber");
-const { Given, When, Then } = require("cucumber");
+const { Before, After, AfterAll, Status } = require('cucumber');
+const { Given, When, Then } = require('cucumber');
 
 global.Given = Given;
 global.When = When;
@@ -162,7 +180,7 @@ global.Then = Then;
 function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{browser: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
+   * @type {{browser: null, webdriverio, expect: *, assert: (*), trace: consoleInfo,
    * log: log, page: {}, shared: {}}}
    */
   let runtime = {
@@ -237,21 +255,23 @@ this.World = World;
 /**
  * set the default timeout for all tests
  */
-const { setDefaultTimeout } = require("cucumber");
+const { setDefaultTimeout } = require('cucumber');
 
 // Add timeout based on env var.
 const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
 setDefaultTimeout(timeout);
 
-// start recording of the Test run time
-global.startDateTime = helpers.getStartDateTime();
+/**
+ * start recording of the Test run time
+ */
+global.startDateTime = require('./helpers').getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated
  */
-Before(async () => {
+Before(function() {
   global.browser = getDriverInstance();
-  await browser;
+  return browser;
 });
 
 /**
@@ -259,6 +279,7 @@ Before(async () => {
  */
 AfterAll(function() {
   let browser = global.browser;
+  let helpers = require('./helpers');
   if (program.email) {
     browser.pause(DELAY_3s).then(function() {
       return helpers.klassiEmail();
@@ -266,109 +287,47 @@ AfterAll(function() {
   }
 });
 
-let reportBrowser;
-reportBrowser = require("../projects/" +
-  projectName +
-  "/browserstack/" +
-  global.browserName);
-
 /**
- * compile and generate a report at the END of the test run and send an Email
+ * compile and generate a report at the END of the test run to be send by Email
  */
-AfterAll(function(done) {
+AfterAll(function() {
   let browser = global.browser;
-  if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-    global.endDateTime = helpers.getEndDateTime();
-    let reportOptions = {
-      theme: "bootstrap",
-      jsonFile: path.resolve(
-        global.paths.reports,
-        projectName + " " + global.settings.reportName + "-" + date + ".json"
-      ),
-      output: path.resolve(
-        global.paths.reports,
-        projectName + " " + global.settings.reportName + "-" + date + ".html"
-      ),
-      reportSuiteAsScenarios: true,
-      launchReport: !global.settings.disableReport,
-      ignoreBadJsonFile: true,
-      metadata: {
-        "Test Started": startDateTime,
-        "Test Completion": endDateTime,
-        Platform: process.platform,
-        Environment: global.envConfig.envName,
-        Browser: global.settings.remoteConfig || global.browserName,
-        Executed:
-          remoteService && remoteService.type === "browserstack"
-            ? "Remote"
-            : "Local"
-      },
-      brandTitle: projectReportName + " " + reportName + "-" + date,
-      name: projectReportName
-    };
-
-    // if (scenario) {
-    //   // WIP for new style reporter
-    //   let reportOptions = {
-    //     jsonDir: path.resolve(global.paths.reports),
-    //     // reportPath: path.resolve(global.paths.reports, browserName + ' ' + projectName + ' ' + global.settings.reportName + '-' + date),
-    //     reportPath: path.resolve(global.paths.reports, projectName + ' ' + global.settings.reportName + '-' + date),
-    //     pageTitle: 'OAF Automation Report',
-    //     pageFooter: '        OAF Automation Report @ larryG ',
-    //     reportName: projectReportName + ' ' + reportName + '-' + date,
-    //     openReportInBrowser: (!global.settings.disableReport),
-    //     metadata: {
-    //       browser: {
-    //         name: browserName,
-    //         version: reportBrowser.browser_version
-    //       },
-    //       device: remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
-    //       platform: {
-    //         name: reportBrowser.os,
-    //         version: reportBrowser.os_version
-    //       }
-    //     },
-    //     customData: {
-    //       title: 'Test Run Info',
-    //       data: [
-    //         {label: 'Project', value: projectReportName},
-    //         {label: 'Environment', value: global.envConfig.envName},
-    //         {label: 'Platform', value: process.platform},
-    //         {label: 'Browser', value: reportBrowser.browserName},
-    //         {label: 'Executed', value: remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local'},
-    //         {label: 'Execution Start Time', value: startDateTime},
-    //         {label: 'Execution End Time', value: endDateTime}
-    //       ]
-    //     },
-    //   };
-
-    browser.pause(DELAY_2s).then(async function() {
-      reporter.generate(reportOptions);
-      await browser.pause(DELAY_1s);
-    });
-  }
-  done();
-  // }
+  let helpers = require('./helpers');
+  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
+  //  ingests it
+  // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
+  //   let metaDataFile = require('../runtime/scripts/reporter/metaData');
+  //   let json = JSON.parse(data);
+  //   json.push(data + metaDataFile);
+  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
+  //     if (err) throw err;
+  //     console.log('The "data to append" was appended to the file!!');
+  //   })
+  //   );
+  // })
+  // );
+  browser.pause(DELAY_300ms);
+  helpers.klassiReporter();
 });
 
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
-After(async function(scenario) {
+After(function(scenario) {
   let browser = global.browser;
   if (scenario.result.status === Status.FAILED) {
-    if (remoteService && remoteService.type === "browserstack") {
-      await browser.deleteSession();
+    if (remoteService && remoteService.type === 'browserstack') {
+      return browser.deleteSession();
     } else {
       // Comment out to do nothing | leave browser open
-      await browser.deleteSession();
+      return browser.deleteSession();
     }
   } else {
-    if (remoteService && remoteService.type !== "browserstack") {
+    if (remoteService && remoteService.type !== 'browserstack') {
       // Comment out to do nothing | leave browser open
-      await browser.deleteSession();
+      return browser.deleteSession();
     } else {
-      await browser.deleteSession();
+      return browser.deleteSession();
     }
   }
 });
@@ -381,7 +340,7 @@ After(function(scenario) {
   let world = this;
   if (scenario.result.status === Status.FAILED) {
     return browser.takeScreenshot().then(function(screenShot) {
-      world.attach(screenShot, "image/png");
+      world.attach(screenShot, 'image/png');
     });
   }
 });

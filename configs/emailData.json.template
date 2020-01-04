@@ -4,13 +4,6 @@
     "Created by": "Larry Goddard"
   },
 
-  "auth":{
-    "host": "{smtp.sitename.co.uk}",
-    "port": portNumber,
-    "user": "{user@sitename.co.uk}",
-    "pass": "{password}"
-  },
-
-  "nameList": "Me <{your email address}>"
+  "nameList": "Me <{my email address}>, You <{your email address}>"
 }
 
