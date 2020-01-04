@@ -14,6 +14,9 @@ build/Release
 node_modules
 
 # Files and Directory
+## project folders
+projects/*
+!projects/testExample/*
 .npm
 .iml
 .node_repl_history

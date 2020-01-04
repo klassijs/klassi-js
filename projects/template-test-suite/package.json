@@ -17,10 +17,10 @@
   },
   "main": "index.js",
   "scripts": {
-    "all": "node ../../index.js -d ",
-    "dev": "node ../../index.js -d -t @search",
-    "test": "node ../../index.js -d -t @search -w browserstack/osxhs-chrome",
-    "stack": "node ../../runtime/remote/browserstack && node ../../index.js -d -w browserstack -x",
+    "all": "export PROJECT_NAME=template-test-suite; node ../../index.js -d ",
+    "dev": "export PROJECT_NAME=template-test-suite; node ../../index.js -d -t @myNew",
+    "test": "export PROJECT_NAME=template-test-suite; node ../../index.js -d -t @myNew -w browserstack/chrome",
+    "stack": "export PROJECT_NAME=template-test-suite; node ../../runtime/remote/browserstack && node ../../index.js -d -w browserstack -x",
     "start": "set NODE_ENV=dev && node index.js"
   }
 
