@@ -17,20 +17,21 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-"use strict";
+'use strict';
 
-const path = require("path");
-let shared = require("../projects/" + projectName + "/configs/emailData");
+const path = require('path');
+let shared = require('./scripts/emailConfig');
+let mailList = require('../projects/' + projectName + '/configs/emailData');
 
 /**
  * Functionality for sending test results via email
  * @type {exports|module.exports}
  */
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
 module.exports = {
   klassiSendMail: function() {
-    let devTeam = shared.nameList;
+    let devTeam = mailList.nameList;
     /**
      * Email relay server connections
      */
@@ -47,20 +48,20 @@ module.exports = {
     });
     let mailOptions = {
       to: devTeam,
-      from: "Klassi-QATEST <email@email.com>",
-      subject: projectReportName + " " + global.reportName + "-" + date,
+      from: 'Klassi-QATEST <email@email.com>',
+      subject: projectReportName + ' ' + global.reportName + '-' + date,
       alternative: true,
       attachments: [
         {
           filename:
-            projectName + " " + global.reportName + "-" + date + ".html",
+            projectName + ' ' + global.reportName + '-' + date + '.html',
           path: path.resolve(
             global.paths.reports,
-            projectName + " " + global.reportName + "-" + date + ".html"
+            projectName + ' ' + global.reportName + '-' + date + '.html'
           )
         }
       ],
-      html: "<b>Please find attached the automated test results</b>"
+      html: '<b>Please find attached the automated test results</b>'
     };
     /**
      *  sends the message and get a callback with an error or details of the message that was sent
@@ -68,15 +69,15 @@ module.exports = {
     try {
       transporter.sendMail(mailOptions, function(err) {
         if (err) {
-          log.error("Result Email CANNOT be sent: " + err.stack);
+          log.error('Result Email CANNOT be sent: ' + err.stack);
           throw err;
         } else {
-          log.info("Results Email successfully sent");
+          log.info('Results Email successfully sent');
           process.exit();
         }
       });
     } catch (err) {
-      log.info("This is a system error: ", err.stack);
+      log.info('This is a system error: ', err.stack);
       throw err;
     }
   }

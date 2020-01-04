@@ -1,6 +1,6 @@
 [![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
 
-# klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js) [![npm](https://img.shields.io/npm/dt/webdriverio-cucumber-js.svg)](https://npm-stat.com/charts.html?author=larryg01&from=2016-12-01)
+# klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js)
 
 
   A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use . It's built on [nodeJs](https://nodejs.org/en/), [webdriver.io (the Selenium 2.0 
@@ -46,7 +46,8 @@ yarn run bslocal chrome/@search // via browserstack
 -b, --browser <path>         name of browser to use. defaults to chrome
 -r, --reports <path>         output path to save reports. defaults to ./reports
 -d, --disableTestReport [optional]  disables the test report from opening after test completion
--t, --tags <tagName>         name of tag to run
+-t, --tag <tagName>          name of tag to run - Single TAG usage
+--t, --tags <tagName>,<tagName>  name of tags to run - Multiple TAGS usage
 -c, --context <path>        contextual root path for project-specific features, steps, objects etc
 -f, --featuresPath <path>   path to feature definitions. defaults to ./features
 -e, --email [optional]      sends email reports to stakeholders

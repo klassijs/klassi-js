@@ -2,17 +2,3 @@
 # yarn lockfile v1
 
 
-detect-browser@^4.7.0:
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/detect-browser/-/detect-browser-4.7.0.tgz#982429971b68cffcdfa03267e91e3de7e194a9f0"
-  integrity sha512-x+7zkRxwEiQ8qLKKfln9pTa4n87fbPHVpHyImmpEQn5lAmKurWBVbg0tb99ruAHqSA0ejrXMp0MahKEulE7LqA==
-
-ua-parser-js@^0.7.20:
-  version "0.7.20"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.20.tgz#7527178b82f6a62a0f243d1f94fd30e3e3c21098"
-  integrity sha512-8OaIKfzL5cpx8eCMAhhvTlft8GYF8b2eQr6JkCyVdrgjcytyOmPCXrqXFcUnhonRpLlh5yxEZVohm6mzaowUOw==
-
-ua_parser@^1.2.6:
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/ua_parser/-/ua_parser-1.2.6.tgz#71ef668148d184868bafea678f2bc8ad10ef5d63"
-  integrity sha512-dSV6nsdaEKUQLGfCWNGi9C9ZCa9XMcdhLnebgC5BSc//K73mNQ5DF7v0plY5FoTO8JPl9xWM/wnCsyR1oQAa7g==

@@ -13,10 +13,6 @@
     "type": "git",
     "url": "https://github.com/larryg01/klassi-js"
   },
-  "engines": {
-    "node": ">= 10.15.3",
-    "yarn": ">= 1.3.2"
-  },
   "main": "index.js",
   "scripts": {
     "test": "node ../../index.js -dt @api",
@@ -28,10 +24,5 @@
     "cibsuat": "node ../../index.js -edt @search -w browserstack -x",
     "pkgchecks": "yarn check"
   },
-  "homepage": "https://github.com/larryg01/klassi-js#readme",
-  "devDependencies": {
-    "detect-browser": "^4.7.0",
-    "ua-parser-js": "^0.7.20",
-    "ua_parser": "^1.2.6"
-  }
+  "homepage": "https://github.com/larryg01/klassi-js#readme"
 }

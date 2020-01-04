@@ -4,13 +4,6 @@
     "Created by": "Larry Goddard"
   },
 
-  "auth":{
-    "host": "klassitech.co.uk",
-    "port": 25,
-    "user": "admin@klassitech.co.uk",
-    "pass": "L33@nn01"
-  },
-
   "nameList": "Me <lcg1@hotmail.com>"
 }
 
