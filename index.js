@@ -54,7 +54,6 @@ let reports = './reports';
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
 let file = ('../shared-objects/docs/userAgent.txt');
-// let fileName = require('../shared-objects/docs/userAgent.txt');
 
 fs.ensureDirSync(reports, function(err) {
   if (err) {
@@ -187,8 +186,8 @@ global.helpers = require(cp_path);
 /**
  *  adding global date function
  */
-global.date = require('./runtime/helpers').currentDate();
-global.dateTime = require('./runtime/helpers').reportDate();
+global.date = require('./runtime/confSettings').currentDate();
+global.dateTime = require('./runtime/confSettings').reportDate();
 
 /**
  * store EnvName globally (used within world.js when building browser)

@@ -22,21 +22,15 @@
 const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('multiple-cucumber-html-reporter');
-const useragent = require('ua-parser-js');
 const getRemote = require('../getRemote');
 
 let remoteService = getRemote(global.settings.remoteService);
-let uastring = fs.readFileSync('../../projects/shared-objects/docs/userAgent.txt', 'utf8');
-// let uastring = require('../../projects/shared-objects/docs/userAgent.txt'); // TODO: change location to be global
-let parser = new useragent(uastring);
 let reportOptions;
-// let { metadata } = require('./metaData');
-
-console.log(parser.getResult());
+let { metadata } = require('./metaData');
 
 module.exports = {
   reporter: function() {
-    let helpers = require('../helpers');
+    let helpers = require('../confSettings');
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
@@ -76,45 +70,23 @@ module.exports = {
 
         reportPath: path.resolve(
           global.paths.reports, browserName + '-' + date
-          // projectName + ' ' + global.settings.reportName + '-' + date
         ),
         // saveCollectedJSON: true,
 
         disableLog: false,
         pageTitle: 'Automation Report',
-        reportName: 'Test Automation Report' + '-' + date,
+        reportName: 'Test Automation Report' + '-' + date, // TODO: make reportName global
         openReportInBrowser: !global.settings.disableReport,
 
         customMetadata: true,
-        // metadata: metadata, // TODO: WIP for the new reporter
-        metadata: [
-          {
-            name: 'Browser',
-            value: parser.getBrowser().name + ' ' + parser.getBrowser().version
-          },
-          {
-            name: 'OS',
-            value: parser.getOS().name + ' ' + parser.getOS().version
-          },
-          {
-            name: 'Device',
-            value:
-              remoteService && remoteService.type === 'browserstack'
-                ? 'Remote'
-                : 'Local'
-          },
-          {
-            name: 'Date',
-            value: helpers.getCurrentDateTime()
-          }
-        ],
+        metadata: metadata, // TODO: WIP for the new reporter
         displayDuration: true,
         customData: {
           title: 'Test Run Info',
           data: [
             {
               label: 'Project',
-              value: 'Klassi Automation'
+              value: projectName
             },
             {
               label: 'Environment',
