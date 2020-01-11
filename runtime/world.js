@@ -25,6 +25,7 @@
  * it is responsible for setting up and exposing the browser/expect/assert etc required within each step
  * definition
  */
+// const path = require('path');
 const fs = require('fs-extra');
 const requireDir = require('require-dir');
 const merge = require('merge');
@@ -295,8 +296,9 @@ AfterAll(function() {
   let helpers = require('./confSettings');
   // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
   //  ingests it
+
   // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-  //   let metaDataFile = require('../runtime/scripts/reporter/metaData');
+  //   let metaDataFile = require('./reporter/metaData');
   //   let json = JSON.parse(data);
   //   json.push(data + metaDataFile);
   //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
@@ -306,8 +308,30 @@ AfterAll(function() {
   //   );
   // })
   // );
+
   browser.pause(DELAY_300ms);
   helpers.klassiReporter();
+});
+
+/**
+ * adding Metadata to the report
+ */
+const path = require('path');
+AfterAll(function(){
+  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
+  //  ingests it
+  // fs.readFile(global.paths.reports, browserName + '-' + dateTime + '.json', function (data) {
+  // // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
+  //   let metaDataFile = require('./reporter/metaData');
+  //   let json = JSON.parse(data);
+  //   json.push(data + metaDataFile);
+  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
+  //     if (err) throw err;
+  //     console.log('The "data to append" was appended to the file!!');
+  //   })
+  //   );
+  // }
+  // );
 });
 
 /**
