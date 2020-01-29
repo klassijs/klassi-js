@@ -4,23 +4,27 @@
     "Created by": "Larry Goddard"
   },
 
-  "reportName": "Automated Test Report",
+  "reportName": "Automated Report",
   "reportProjectName": "Example Test Suite",
 
-  "uat": {
-    "envName": "UAT",
+  "dev": {
+    "envName": "DEVELOPMENT",
     "base_url": ""
   },
   "test": {
     "envName": "TEST",
+    "base_url": "https://"
+  },
+  "uat": {
+    "envName": "UAT",
+    "base_url": ""
+  },
+  "preprod": {
+    "envName": "PrePRODUCTION",
     "base_url": ""
   },
   "prod": {
     "envName": "PRODUCTION",
-    "base_url": ""
-  },
-  "dev": {
-    "envName": "DEVELOPMENT",
     "base_url": ""
   }
 }

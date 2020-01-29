@@ -92,7 +92,7 @@ program
     'features')
   .option('-F, --featuresFiles <path>', 'comma-separated list of feature files to run')
   .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
-  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(test|dev|uat|prod)$/i, 'test')
+  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(dev|test|uat|preprod|prod)$/i, 'test')
   .option('-o, --sharedObjects <paths>', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
   .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
@@ -121,11 +121,16 @@ let settings = {
 };
 
 /**
- * Setting and Naming the Project Report files Globally
+ * Setting and Naming the Project Globally
  * @type {string}
  */
 global.projectName = process.env.PROJECT_NAME || projectName;
 
+
+/**
+ * Setting and Naming the Project Report files Globally
+ * @type {string}
+ */
 if (program.aces) {
   envConfig = require('./projects/' + projectName + '/test/configs/envConfig');
 } else {

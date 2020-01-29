@@ -13,6 +13,6 @@ Feature: Searching for apps with duckduckgo
 
     Examples:
       |searchword  |
-      |roblox |
-#      |angry birds |
-#      |wordscapes  |
+      |testguild |
+      |@techgirl1908 |
+      |joe colantonio  |

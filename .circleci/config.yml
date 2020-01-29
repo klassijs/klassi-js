@@ -146,10 +146,6 @@ jobs:
     <<: *integration_test_base
     environment: { BROWSER_NAME: 'safari' }
 
-  integration_test_macChrome:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'macChrome' }
-
   integration_test_tabletiPad:
     <<: *integration_test_base
     environment: { BROWSER_NAME: 'tabletiPad' }
@@ -218,10 +214,6 @@ jobs:
   acceptance_test_safari:
     <<: *acceptance_test_base
     environment: { BROWSER_NAME: 'safari' }
-
-  acceptance_test_macChrome:
-    <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'macChrome' }
 
   acceptance_test_tabletiPad:
     <<: *acceptance_test_base
@@ -298,11 +290,6 @@ workflows:
             - integration_test_build
             - run_all_integration_tests
 
-      - integration_test_macChrome:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
       - integration_test_tabletiPad:
           requires:
             - integration_test_build
@@ -360,11 +347,6 @@ workflows:
             - run_all_acceptance_tests
 
       - acceptance_test_safari:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_macChrome:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests

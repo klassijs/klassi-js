@@ -25,7 +25,6 @@
  * it is responsible for setting up and exposing the browser/expect/assert etc required within each step
  * definition
  */
-// const path = require('path');
 const fs = require('fs-extra');
 const requireDir = require('require-dir');
 const merge = require('merge');
@@ -129,20 +128,30 @@ if (program.aces) {
  */
 switch (envName || '') {
 case 'dev':
-  global.envConfig = environ.dev;
-  break;
-case 'uat':
-  global.envConfig = environ.uat;
-  break;
-case 'prod':
-  global.envConfig = environ.prod;
+{
+    global.envConfig = environ.dev;
+}
   break;
 case 'test':
-  global.envConfig = environ.test;
+{
+    global.envConfig = environ.test;
+}
   break;
-// default:
-//   global.envConfig = environ.test;
-//   break;
+case 'uat':
+{
+    global.envConfig = environ.uat;
+}
+  break;
+case 'preProd':
+{
+    global.envConfig = environ.preprod;
+}
+  break;
+case 'prod':
+{
+    global.envConfig = environ.prod;
+}
+  break;
 }
 
 /**
@@ -159,7 +168,6 @@ global.DELAY_3s = 3000; // 3 second delay
 global.DELAY_5s = 5000; // 5 second delay
 global.DELAY_10s = 10000; // 10 second delay
 global.DELAY_15s = 15000; // 15 second delay
-global.DELAY_20s = 20000; // 20 second delay
 
 function consoleInfo() {
   let args = [].slice.call(arguments),
@@ -313,26 +321,26 @@ AfterAll(function() {
   helpers.klassiReporter();
 });
 
-/**
- * adding Metadata to the report
- */
-const path = require('path');
-AfterAll(function(){
-  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
-  //  ingests it
-  // fs.readFile(global.paths.reports, browserName + '-' + dateTime + '.json', function (data) {
-  // // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-  //   let metaDataFile = require('./reporter/metaData');
-  //   let json = JSON.parse(data);
-  //   json.push(data + metaDataFile);
-  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
-  //     if (err) throw err;
-  //     console.log('The "data to append" was appended to the file!!');
-  //   })
-  //   );
-  // }
-  // );
-});
+// /**
+//  * adding Metadata to the report
+//  */
+// const path = require('path');
+// AfterAll(function(){
+//   // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
+//   //  ingests it
+//   // fs.readFile(global.paths.reports, browserName + '-' + dateTime + '.json', function (data) {
+//   // // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
+//   //   let metaDataFile = require('./reporter/metaData');
+//   //   let json = JSON.parse(data);
+//   //   json.push(data + metaDataFile);
+//   //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
+//   //     if (err) throw err;
+//   //     console.log('The "data to append" was appended to the file!!');
+//   //   })
+//   //   );
+//   // }
+//   // );
+// });
 
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
