@@ -34,9 +34,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api",
+    "test": "cross-env PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api",
     "all": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -ed ",
-    "dev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api",
+    "dev": "cross-env PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api",
     "uat": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @search",
     "bslocal": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -edw browserstack -x",
     "cibsdev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api -w browserstack -x",
