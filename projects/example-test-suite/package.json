@@ -15,7 +15,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "set PROJECT_NAME=example-test-suite&& node ../../index.js -dt @api",
+    "test": "export PROJECT_NAME=example-test-suite&& node ../../index.js -dt @api",
     "all": "set PROJECT_NAME=example-test-suit&& node ../../index.js -ed",
     "dev": "set PROJECT_NAME=example-test-suite&& node ../../index.js -dt @api",
     "uat": "set PROJECT_NAME=example-test-suite&& node ../../index.js -edt @search",
