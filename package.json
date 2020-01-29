@@ -35,12 +35,12 @@
   "main": "index.js",
   "scripts": {
     "test": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api",
-    "all": "set PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -ed ",
-    "dev": "set PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api",
-    "uat": "set PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @search",
-    "bslocal": "set PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -edw browserstack -x",
-    "cibsdev": "set PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api -w browserstack -x",
-    "cibsuat": "set PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @search -w browserstack -x",
+    "all": "cross-env PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -ed ",
+    "dev": "cross-env PROJECT_NAME=example-test-suite&& cd projects&& cd example-test-suite&& node ../../index.js -dt @api",
+    "uat": "cross-env PROJECT_NAME=example-test-suite&& cd projects&& cd example-test-suite&& node ../../index.js -dt @search",
+    "bslocal": "cross-env PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -edw browserstack -x",
+    "cibsdev": "cross-env PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @api -w browserstack -x",
+    "cibsuat": "cross-env PROJECT_NAME=example-test-suite&& cd projects/example-test-suite && node ../../index.js -dt @search -w browserstack -x",
     "pkgchecks": "yarn check"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
