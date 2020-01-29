@@ -124,7 +124,7 @@ let settings = {
  * Setting and Naming the Project Globally
  * @type {string}
  */
-global.projectName = process.env.PROJECT_NAME;
+global.projectName = process.env.PROJECT_NAME || projectName;
 
 
 /**
