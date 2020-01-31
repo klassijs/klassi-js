@@ -24,6 +24,7 @@ module.exports = {
     );
 
     let title = await browser.getTitle();
+    let steps = await browser.getTitle()
     log.info('the title being returned:- ' + title);
     let searchBtn = await browser.$(shared.elem.searchBtn);
     await searchBtn.click();

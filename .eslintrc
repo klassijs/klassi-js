@@ -29,7 +29,7 @@
         "quotes":["error", "single"]
     },
     "globals": {
-        "Given": true,
+        "Given": false,
         "When": true,
         "Then": true,
         "helpers":true,

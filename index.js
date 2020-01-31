@@ -47,6 +47,14 @@ let cp_path;
 let envConfig;
 
 /**
+ * Setting and Naming the Project Globally
+ * @type {string}
+ */
+// global.projectName = process.env.PROJECT_NAME || projectName;
+global.projectName = process.env.PROJECT_NAME || projectName;
+// let projectName = global.projectName;
+
+/**
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
@@ -120,11 +128,13 @@ let settings = {
   remoteService: program.remoteService
 };
 
-/**
- * Setting and Naming the Project Globally
- * @type {string}
- */
-global.projectName = process.env.PROJECT_NAME || projectName;
+// /**
+//  * Setting and Naming the Project Globally
+//  * @type {string}
+//  */
+// // global.projectName = process.env.PROJECT_NAME || projectName;
+// global.projectName = process.env.PROJECT_NAME || projectName;
+// let projectName = global.projectName;
 
 
 /**

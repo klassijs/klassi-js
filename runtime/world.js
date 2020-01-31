@@ -128,29 +128,29 @@ if (program.aces) {
  */
 switch (envName || '') {
 case 'dev':
-{
+  {
     global.envConfig = environ.dev;
-}
+  }
   break;
 case 'test':
-{
+  {
     global.envConfig = environ.test;
-}
+  }
   break;
 case 'uat':
-{
+  {
     global.envConfig = environ.uat;
-}
+  }
   break;
 case 'preProd':
-{
+  {
     global.envConfig = environ.preprod;
-}
+  }
   break;
 case 'prod':
-{
+  {
     global.envConfig = environ.prod;
-}
+  }
   break;
 }
 
