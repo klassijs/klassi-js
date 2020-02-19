@@ -23,14 +23,27 @@ const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('multiple-cucumber-html-reporter');
 const getRemote = require('../getRemote');
+const confSettings = require('../confSettings');
 
 let remoteService = getRemote(global.settings.remoteService);
 let reportOptions;
 let { metadata } = require('./metaData');
+let res;
 
 module.exports = {
-  reporter: function() {
+  ipAddr: async() => {
+    // let endPoint = 'http://ip-api.com/json';
+    // let endPoint = 'https://ipinfo.io/json';
+    let endPoint = 'http://www.geoplugin.net/json.gp';
+    res = await confSettings.apiCall(endPoint, 'GET');
+    await res;
+    console.log('this is it: ', res.body);
+  },
+  reporter: async function() {
     let helpers = require('../confSettings');
+    await this.ipAddr();
+    let iPData = await res.body;
+
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
@@ -103,6 +116,14 @@ module.exports = {
                   ? 'Remote'
                   : 'Local'
             },
+            // {
+            //   label: 'IpAddress',
+            //   value: iPData.query,
+            // },
+            // {
+            //   label: 'Location',
+            //   value: iPData.city + ' ' + iPData.regionName,
+            // },
             {
               label: 'Execution Start Time',
               value: startDateTime

@@ -5,7 +5,7 @@
   },
 
   "reportName": "Automated Report",
-  "reportProjectName": "Example Test Suite",
+  "projectReportName": "Example Test Suite",
 
   "dev": {
     "envName": "DEVELOPMENT",
