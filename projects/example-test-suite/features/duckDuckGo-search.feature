@@ -14,5 +14,4 @@ Feature: Searching for apps with duckduckgo
     Examples:
       |searchword  |
       |roblox |
-#      |angry birds |
-#      |wordscapes  |
+      |angry birds |

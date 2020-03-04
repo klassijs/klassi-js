@@ -138,10 +138,7 @@ case 'prod':
   break;
 case 'test':
   global.envConfig = environ.test;
-  break;
-// default:
-//   global.envConfig = environ.test;
-//   break;
+  break
 }
 
 /**
@@ -293,19 +290,6 @@ AfterAll(function() {
 AfterAll(function() {
   let browser = global.browser;
   let helpers = require('./helpers');
-  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
-  //  ingests it
-  // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-  //   let metaDataFile = require('../runtime/scripts/reporter/metaData');
-  //   let json = JSON.parse(data);
-  //   json.push(data + metaDataFile);
-  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
-  //     if (err) throw err;
-  //     console.log('The "data to append" was appended to the file!!');
-  //   })
-  //   );
-  // })
-  // );
   browser.pause(DELAY_300ms);
   helpers.klassiReporter();
 });

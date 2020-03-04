@@ -28,8 +28,6 @@ let uastring = fs.readFileSync('../../shared-objects/docs/userAgent.txt', 'utf8'
 let parser = new useragent(uastring);
 let helpers = require('../helpers');
 
-console.log('This is it 1234 : ' + parser.getBrowser().browser);
-
 module.exports = {
   metadata: [
     {
