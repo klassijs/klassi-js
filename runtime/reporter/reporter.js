@@ -32,9 +32,9 @@ let res;
 
 module.exports = {
   ipAddr: async() => {
-    // let endPoint = 'http://ip-api.com/json';
+    let endPoint = 'http://ip-api.com/json';
     // let endPoint = 'https://ipinfo.io/json';
-    let endPoint = 'http://www.geoplugin.net/json.gp';
+    // let endPoint = 'http://www.geoplugin.net/json.gp';
     res = await confSettings.apiCall(endPoint, 'GET');
     await res;
     console.log('this is it: ', res.body);
@@ -116,14 +116,14 @@ module.exports = {
                   ? 'Remote'
                   : 'Local'
             },
-            // {
-            //   label: 'IpAddress',
-            //   value: iPData.query,
-            // },
-            // {
-            //   label: 'Location',
-            //   value: iPData.city + ' ' + iPData.regionName,
-            // },
+            {
+              label: 'IpAddress',
+              value: iPData.query,
+            },
+            {
+              label: 'Location',
+              value: iPData.city + ' ' + iPData.regionName,
+            },
             {
               label: 'Execution Start Time',
               value: startDateTime
