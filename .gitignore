@@ -41,6 +41,7 @@ gen
 configs/emailData.json
 configs/envConfig.json
 browserstack/secrets/browserstack.json
+projects/shared-objects/docs/userAgent.txt
 # Logs
 
 yarn-debug.log*

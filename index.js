@@ -54,6 +54,7 @@ let reports = './reports';
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
 let file = ('../shared-objects/docs/userAgent.txt');
+// let fileName = require('../shared-objects/docs/userAgent.txt');
 
 fs.ensureDirSync(reports, function(err) {
   if (err) {
@@ -82,7 +83,7 @@ program
   .option(
     '-b, --browsers [optional]',
     'name of browsers to use. defaults to chrome',
-    /(chrome|edge|FIREFOX|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
+    /(chrome|edge|firefox|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
     'chrome'
   )
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
@@ -139,6 +140,9 @@ global.projectReportName = process.env.PROJECT_REPORT_NAME || projectReportName;
 if (program.remoteService && program.extraSettings) {
   let additionalSettings = parseRemoteArguments(program.extraSettings);
   settings.remoteConfig = additionalSettings.config;
+  /* this approach supports a single string defining both the target config and tags
+    e.g. 'win10-chrome/@tag1,@tag2'
+   */
   if (additionalSettings.tags) {
     if (program.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
@@ -183,8 +187,8 @@ global.helpers = require(cp_path);
 /**
  *  adding global date function
  */
-global.date = require('./runtime/helpers').currentDate();
-global.dateTime = require('./runtime/helpers').reportDate();
+global.date = require('./runtime/confSettings').currentDate();
+global.dateTime = require('./runtime/confSettings').reportDate();
 
 /**
  * store EnvName globally (used within world.js when building browser)
@@ -214,6 +218,19 @@ if (program.featureFile) {
 /**
  * add switch to tell cucumber to produce json report files
  */
+// // single run report
+// process.argv.push(
+//   '-f',
+//   '../../node_modules/cucumber-pretty',
+//   '-f',
+//   'json:' +
+//     path.resolve(
+//       __dirname,
+//       paths.reports,
+//       projectName + ' ' + settings.reportName + '-' + date + '.json'
+//     )
+// );
+
 if (program.aces) {
   cp_path = '../../../node_modules/cucumber-pretty';
 } else {
@@ -230,6 +247,15 @@ process.argv.push(
     projectName + ' ' + global.reportName + '-' + date + '.json'
   )
 );
+
+// multi run report
+// process.argv.push(
+//   '-f',
+//   cp_path,
+//   '-f',
+//   'json:' +
+//     path.resolve(global.paths.reports, browserName + '-' + dateTime + '.json')
+// ); // getting the full JSON file report name
 
 /**
  * add cucumber world as first required script (this sets up the globals)

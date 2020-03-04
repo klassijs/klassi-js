@@ -56,7 +56,7 @@ global.helpers = helpers;
 /**
  * This is the Global date functionality
  */
-global.date = require('./helpers').currentDate();
+global.date = require('./confSettings').currentDate();
 
 /**
  * for all API test calls
@@ -138,7 +138,10 @@ case 'prod':
   break;
 case 'test':
   global.envConfig = environ.test;
-  break
+  break;
+// default:
+//   global.envConfig = environ.test;
+//   break;
 }
 
 /**
@@ -261,7 +264,7 @@ setDefaultTimeout(timeout);
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require('./helpers').getStartDateTime();
+global.startDateTime = require('./confSettings').getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated
@@ -276,7 +279,7 @@ Before(function() {
  */
 AfterAll(function() {
   let browser = global.browser;
-  let helpers = require('./helpers');
+  let helpers = require('./confSettings');
   if (program.email) {
     browser.pause(DELAY_3s).then(function() {
       return helpers.klassiEmail();
@@ -289,7 +292,20 @@ AfterAll(function() {
  */
 AfterAll(function() {
   let browser = global.browser;
-  let helpers = require('./helpers');
+  let helpers = require('./confSettings');
+  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
+  //  ingests it
+  // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
+  //   let metaDataFile = require('../runtime/scripts/reporter/metaData');
+  //   let json = JSON.parse(data);
+  //   json.push(data + metaDataFile);
+  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
+  //     if (err) throw err;
+  //     console.log('The "data to append" was appended to the file!!');
+  //   })
+  //   );
+  // })
+  // );
   browser.pause(DELAY_300ms);
   helpers.klassiReporter();
 });
