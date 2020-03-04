@@ -2,7 +2,7 @@
 
 const shared = require('../shared-objects/searchData');
 const verify = require('../../../runtime/imageCompare');
-const helpers = require('../../../runtime/confSettings');
+const helpers = require('../../../runtime/helpers');
 
 let log = global.log;
 let image;
@@ -24,7 +24,6 @@ module.exports = {
     );
 
     let title = await browser.getTitle();
-    let steps = await browser.getTitle()
     log.info('the title being returned:- ' + title);
     let searchBtn = await browser.$(shared.elem.searchBtn);
     await searchBtn.click();

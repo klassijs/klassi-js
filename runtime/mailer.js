@@ -21,7 +21,7 @@
 
 const path = require('path');
 let shared = require('./scripts/emailConfig');
-let mailingList = require('../projects/' + projectName + '/configs/emailData');
+let mailList = require('../projects/' + projectName + '/configs/emailData');
 
 /**
  * Functionality for sending test results via email
@@ -31,7 +31,7 @@ const nodemailer = require('nodemailer');
 
 module.exports = {
   klassiSendMail: function() {
-    let devTeam = mailingList.emailList;
+    let devTeam = mailList.nameList;
     /**
      * Email relay server connections
      */
@@ -51,17 +51,16 @@ module.exports = {
       from: 'Klassi-QATEST <email@email.com>',
       subject: projectReportName + ' ' + global.reportName + '-' + date,
       alternative: true,
-      // TODO: add code for zipping report files for emailing.
-      // attachments: [
-      //   {
-      //     filename:
-      //       projectName + ' ' + global.reportName + '-' + date + '.html',
-      //     path: path.resolve(
-      //       global.paths.reports,
-      //       projectName + ' ' + global.reportName + '-' + date + '.html'
-      //     )
-      //   }
-      // ],
+      attachments: [
+        {
+          filename:
+            projectName + ' ' + global.reportName + '-' + date + '.html',
+          path: path.resolve(
+            global.paths.reports,
+            projectName + ' ' + global.reportName + '-' + date + '.html'
+          )
+        }
+      ],
       html: '<b>Please find attached the automated test results</b>'
     };
     /**
@@ -70,10 +69,10 @@ module.exports = {
     try {
       transporter.sendMail(mailOptions, function(err) {
         if (err) {
-          log.error('Test Automation Report Result CANNOT be sent: ' + err.stack);
+          log.error('Result Email CANNOT be sent: ' + err.stack);
           throw err;
         } else {
-          log.info('Test Automation Report Results successfully sent');
+          log.info('Results Email successfully sent');
           process.exit();
         }
       });

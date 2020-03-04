@@ -24,9 +24,9 @@ const useragent = require('ua-parser-js');
 const getRemote = require('../getRemote.js');
 
 let remoteService = getRemote(global.settings.remoteService);
-let uastring = fs.readFileSync('../../projects/shared-objects/docs/userAgent.txt', 'utf8');
+let uastring = fs.readFileSync('../../shared-objects/docs/userAgent.txt', 'utf8');
 let parser = new useragent(uastring);
-let helpers = require('../confSettings');
+let helpers = require('../helpers');
 
 module.exports = {
   metadata: [

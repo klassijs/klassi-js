@@ -22,7 +22,7 @@
 const resemble = require('node-resemble-js');
 const fs = require('fs-extra');
 
-let helpers = require('./confSettings.js');
+let helpers = require('./helpers.js');
 let log = require('./logger').klassiLog();
 
 let browserName = global.settings.remoteConfig || global.browserName;

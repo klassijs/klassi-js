@@ -7,24 +7,13 @@
   "reportName": "{test reportName}",
   "projectReportName": "{Project Name}"
 
- "dev": {
-     "envName": "DEVELOPMENT",
-     "base_url": ""
-   },
-   "test": {
-     "envName": "TEST",
-     "base_url": ""
-   },
-   "uat": {
-     "envName": "UAT",
-     "base_url": ""
-   },
-   "preprod": {
-     "envName": "PrePRODUCTION",
-     "base_url": ""
-   },
-   "prod": {
-     "envName": "PRODUCTION",
-     "base_url": ""
-   }
+  "uat": {
+      "envName": "UAT",
+      "base_url": ""
+  },
+
+  "dev": {
+    "envName": "DEV",
+    "base_url": ""
+  },
 }

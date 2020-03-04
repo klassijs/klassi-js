@@ -56,7 +56,7 @@ global.helpers = helpers;
 /**
  * This is the Global date functionality
  */
-global.date = require('./confSettings').currentDate();
+global.date = require('./helpers').currentDate();
 
 /**
  * for all API test calls
@@ -128,30 +128,17 @@ if (program.aces) {
  */
 switch (envName || '') {
 case 'dev':
-  {
-    global.envConfig = environ.dev;
-  }
-  break;
-case 'test':
-  {
-    global.envConfig = environ.test;
-  }
+  global.envConfig = environ.dev;
   break;
 case 'uat':
-  {
-    global.envConfig = environ.uat;
-  }
-  break;
-case 'preProd':
-  {
-    global.envConfig = environ.preprod;
-  }
+  global.envConfig = environ.uat;
   break;
 case 'prod':
-  {
-    global.envConfig = environ.prod;
-  }
+  global.envConfig = environ.prod;
   break;
+case 'test':
+  global.envConfig = environ.test;
+  break
 }
 
 /**
@@ -274,7 +261,7 @@ setDefaultTimeout(timeout);
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require('./confSettings').getStartDateTime();
+global.startDateTime = require('./helpers').getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated
@@ -289,7 +276,7 @@ Before(function() {
  */
 AfterAll(function() {
   let browser = global.browser;
-  let helpers = require('./confSettings');
+  let helpers = require('./helpers');
   if (program.email) {
     browser.pause(DELAY_3s).then(function() {
       return helpers.klassiEmail();
@@ -302,7 +289,7 @@ AfterAll(function() {
  */
 AfterAll(function() {
   let browser = global.browser;
-  let helpers = require('./confSettings');
+  let helpers = require('./helpers');
   browser.pause(DELAY_300ms);
   helpers.klassiReporter();
 });

@@ -7,24 +7,20 @@
   "reportName": "Automated Test Report",
   "projectReportName": "Example Test Suite",
 
-  "dev": {
-    "envName": "DEVELOPMENT",
-    "base_url": ""
-  },
-  "test": {
-    "envName": "TEST",
-    "base_url": "https://"
-  },
   "uat": {
     "envName": "UAT",
     "base_url": ""
   },
-  "preprod": {
-    "envName": "PrePRODUCTION",
+  "test": {
+    "envName": "TEST",
     "base_url": ""
   },
   "prod": {
     "envName": "PRODUCTION",
+    "base_url": ""
+  },
+  "dev": {
+    "envName": "DEVELOPMENT",
     "base_url": ""
   }
 }
