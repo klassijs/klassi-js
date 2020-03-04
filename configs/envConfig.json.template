@@ -5,7 +5,7 @@
   },
 
   "reportName": "{test reportName}",
-  "reportProjectName": "{Project Name}"
+  "projectReportName": "{Project Name}"
 
   "uat": {
       "envName": "UAT",
