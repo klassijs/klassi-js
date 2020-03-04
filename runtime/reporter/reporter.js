@@ -21,7 +21,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const reporter = require('multiple-cucumber-html-reporter');
+const reporter = require('cucumber-html-reporter');
 const getRemote = require('../getRemote');
 const confSettings = require('../confSettings');
 
@@ -47,93 +47,32 @@ module.exports = {
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
-      // Single reporter
-
-      // let reportOptions = {
-      //   theme: "bootstrap",
-      //   jsonFile: path.resolve(
-      //     global.paths.reports,
-      //     projectName + " " + global.settings.reportName + "-" + date + ".json"
-      //   ),
-      //   output: path.resolve(
-      //     global.paths.reports,
-      //     projectName + " " + global.settings.reportName + "-" + date + ".html"
-      //   ),
-      //   reportSuiteAsScenarios: true,
-      //   launchReport: !global.settings.disableReport,
-      //   ignoreBadJsonFile: true,
-      //   metadata: {
-      //     "Test Started": startDateTime,
-      //     "Test Completion": endDateTime,
-      //     Platform: process.platform,
-      //     Environment: global.envConfig.envName,
-      //     Browser: global.settings.remoteConfig || global.browserName,
-      //     Executed:
-      //       remoteService && remoteService.type === "browserstack"
-      //         ? "Remote"
-      //         : "Local"
-      //   },
-      //   brandTitle: projectReportName + " " + reportName + "-" + date,
-      //   name: projectReportName
-      // };
-
-      // TODO: WIP for new style reporter
-      reportOptions = {
-        jsonDir: path.resolve(global.paths.reports),
-
-        reportPath: path.resolve(
-          global.paths.reports, browserName + '-' + date
+      let reportOptions = {
+        theme: 'bootstrap',
+        jsonFile: path.resolve(
+          global.paths.reports,
+          projectName + ' ' + global.reportName + '-' + date + '.json'
         ),
-        // saveCollectedJSON: true,
-
-        disableLog: false,
-        pageTitle: 'Automation Report',
-        reportName: 'Test Automation Report' + '-' + date, // TODO: make reportName global
-        openReportInBrowser: !global.settings.disableReport,
-
-        customMetadata: true,
-        metadata: metadata, // TODO: WIP for the new reporter
-        displayDuration: true,
-        customData: {
-          title: 'Test Run Info',
-          data: [
-            {
-              label: 'Project',
-              value: projectName
-            },
-            {
-              label: 'Environment',
-              value: global.envConfig.envName
-            },
-            {
-              label: 'Platform',
-              value: process.platform
-            },
-            {
-              label: 'Executed',
-              value:
-                remoteService && remoteService.type === 'browserstack'
-                  ? 'Remote'
-                  : 'Local'
-            },
-            {
-              label: 'IpAddress',
-              value: iPData.query,
-            },
-            {
-              label: 'Location',
-              value: iPData.city + ' ' + iPData.regionName,
-            },
-            {
-              label: 'Execution Start Time',
-              value: startDateTime
-            },
-            {
-              label: 'Execution End Time',
-              value: endDateTime
-            }
-          ]
-        }
+        output: path.resolve(
+          global.paths.reports,
+          projectName + ' ' + global.reportName + '-' + date + '.html'
+        ),
+        reportSuiteAsScenarios: true,
+        launchReport: !global.settings.disableReport,
+        ignoreBadJsonFile: true,
+        metadata: {
+          'Test Started': startDateTime,
+          'Test Completion': endDateTime,
+          Platform: process.platform,
+          Environment: global.envConfig.envName,
+          Browser: global.settings.remoteConfig || global.browserName,
+          Executed:
+            remoteService && remoteService.type === 'browserstack'
+              ? 'Remote'
+              : 'Local'
+        },
+        brandTitle: projectReportName + ' ' + reportName + '-' + date,
+        name: projectReportName
       };
       browser.pause(DELAY_2s).then(async() => {
         await reporter.generate(reportOptions);

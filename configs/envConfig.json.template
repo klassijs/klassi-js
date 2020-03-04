@@ -5,7 +5,7 @@
   },
 
   "reportName": "{test reportName}",
-  "reportProjectName": "{Project Name}"
+  "projectReportName": "{Project Name}"
 
  "dev": {
      "envName": "DEVELOPMENT",

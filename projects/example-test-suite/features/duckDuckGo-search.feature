@@ -13,6 +13,5 @@ Feature: Searching for apps with duckduckgo
 
     Examples:
       |searchword  |
-      |testguild |
-      |@techgirl1908 |
-      |joe colantonio  |
+      |roblox |
+      |angry birds |

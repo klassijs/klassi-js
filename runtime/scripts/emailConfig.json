@@ -1,4 +1,8 @@
 {
+  "Details" : {
+    "Name": "Klassi Automated Testing Tool",
+    "Created by": "Larry Goddard"
+  },
   "auth": {
     "host": "81.169.193.7" ,
     "port": 25,

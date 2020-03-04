@@ -154,9 +154,6 @@ global.projectReportName = process.env.PROJECT_REPORT_NAME || projectReportName;
 if (program.remoteService && program.extraSettings) {
   let additionalSettings = parseRemoteArguments(program.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-  /* this approach supports a single string defining both the target config and tags
-    e.g. 'win10-chrome/@tag1,@tag2'
-   */
   if (additionalSettings.tags) {
     if (program.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
@@ -232,44 +229,22 @@ if (program.featureFile) {
 /**
  * add switch to tell cucumber to produce json report files
  */
-// // single run report
-// process.argv.push(
-//   '-f',
-//   '../../node_modules/cucumber-pretty',
-//   '-f',
-//   'json:' +
-//     path.resolve(
-//       __dirname,
-//       paths.reports,
-//       projectName + ' ' + settings.reportName + '-' + date + '.json'
-//     )
-// );
-
 if (program.aces) {
   cp_path = '../../../node_modules/cucumber-pretty';
 } else {
   cp_path = '../../node_modules/cucumber-pretty';
 }
-// process.argv.push(
-//   '-f',
-//   cp_path,
-//   '-f',
-//   'json:' +
-//   path.resolve(
-//     __dirname,
-//     paths.reports,
-//     projectName + ' ' + global.reportName + '-' + date + '.json'
-//   )
-// );
-
-// multi run report
 process.argv.push(
   '-f',
   cp_path,
   '-f',
   'json:' +
-    path.resolve(global.paths.reports, browserName + '-' + dateTime + '.json')
-); // getting the full JSON file report name
+  path.resolve(
+    __dirname,
+    paths.reports,
+    projectName + ' ' + global.reportName + '-' + date + '.json'
+  )
+);
 
 /**
  * add cucumber world as first required script (this sets up the globals)

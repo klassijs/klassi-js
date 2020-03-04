@@ -168,6 +168,7 @@ global.DELAY_3s = 3000; // 3 second delay
 global.DELAY_5s = 5000; // 5 second delay
 global.DELAY_10s = 10000; // 10 second delay
 global.DELAY_15s = 15000; // 15 second delay
+global.DELAY_20s = 20000; // 20 second delay
 
 function consoleInfo() {
   let args = [].slice.call(arguments),
@@ -302,45 +303,9 @@ AfterAll(function() {
 AfterAll(function() {
   let browser = global.browser;
   let helpers = require('./confSettings');
-  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
-  //  ingests it
-
-  // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-  //   let metaDataFile = require('./reporter/metaData');
-  //   let json = JSON.parse(data);
-  //   json.push(data + metaDataFile);
-  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
-  //     if (err) throw err;
-  //     console.log('The "data to append" was appended to the file!!');
-  //   })
-  //   );
-  // })
-  // );
-
   browser.pause(DELAY_300ms);
   helpers.klassiReporter();
 });
-
-// /**
-//  * adding Metadata to the report
-//  */
-// const path = require('path');
-// AfterAll(function(){
-//   // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
-//   //  ingests it
-//   // fs.readFile(global.paths.reports, browserName + '-' + dateTime + '.json', function (data) {
-//   // // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-//   //   let metaDataFile = require('./reporter/metaData');
-//   //   let json = JSON.parse(data);
-//   //   json.push(data + metaDataFile);
-//   //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
-//   //     if (err) throw err;
-//   //     console.log('The "data to append" was appended to the file!!');
-//   //   })
-//   //   );
-//   // }
-//   // );
-// });
 
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
