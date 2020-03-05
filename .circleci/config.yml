@@ -158,10 +158,10 @@ jobs:
     <<: *integration_test_base
     environment: { BROWSER_NAME: 'tabletGalaxy' }
 
-#  integration_test_build:
-#    <<: *container_config
-#    steps:
-#      - run: "echo 'FINISHED'"
+  integration_test_build:
+    <<: *container_config
+    steps:
+      - run: "echo 'FINISHED'"
 
   #                                    #
   # Acceptance test base configuration #
@@ -231,10 +231,10 @@ jobs:
     <<: *acceptance_test_base
     environment: { BROWSER_NAME: 'tabletGalaxy' }
 
-#  acceptance_test_build:
-#    <<: *container_config
-#    steps:
-#      - run: "echo 'FINISHED'"
+  acceptance_test_build:
+    <<: *container_config
+    steps:
+      - run: "echo 'FINISHED'"
 
 
 workflows:
