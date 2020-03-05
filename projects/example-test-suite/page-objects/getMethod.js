@@ -1,7 +1,7 @@
 'use strict';
 
 const shared = require('../shared-objects/apiData');
-const helpers = require('../../../runtime/helpers');
+const helpers = require('../../../runtime/confSettings');
 
 let log = global.log;
 let res;

@@ -1,5 +1,5 @@
 'use strict';
-let helpers = require('../../../runtime/helpers');
+let helpers = require('../../../runtime/confSettings');
 let duckDuckGoSearch = require('../page-objects/duckDuckGoSearch');
 let searchData = require('../shared-objects/searchData');
 

@@ -2,7 +2,7 @@
 
 const shared = require('../shared-objects/searchData');
 const verify = require('../../../runtime/imageCompare');
-const helpers = require('../../../runtime/helpers');
+const helpers = require('../../../runtime/confSettings');
 
 let log = global.log;
 let image;

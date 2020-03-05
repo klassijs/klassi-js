@@ -22,17 +22,38 @@
 const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
+const useragent = require('ua-parser-js');
 const getRemote = require('../getRemote');
+const confSettings = require('../confSettings');
 
 let remoteService = getRemote(global.settings.remoteService);
+let uastring = fs.readFileSync('../../projects/shared-objects/docs/userAgent.txt', 'utf8');
+let parser = new useragent(uastring);
+let reportOptions, res;
+// let { metadata } = require('./metaData');
+
+// console.log(parser.getResult());
 
 module.exports = {
-  reporter: function() {
-    let helpers = require('../helpers');
+  ipAddr: async() => {
+    let endPoint = 'http://ip-api.com/json';
+    // let endPoint = 'https://ipinfo.io/json';
+    // let endPoint = 'http://www.geoplugin.net/json.gp';
+    res = await confSettings.apiCall(endPoint, 'GET');
+    await res;
+    // console.log('this is it: ', res.body);
+  },
+
+  reporter: async function() {
+    let helpers = require('../confSettings');
+    await this.ipAddr();
+    let iPData = await res.body;
+
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
-      let reportOptions = {
+      // Single reporter
+      reportOptions = {
         theme: 'bootstrap',
         jsonFile: path.resolve(
           global.paths.reports,
@@ -47,10 +68,12 @@ module.exports = {
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
-          'Test Completion': endDateTime,
+          Environment: envConfig.envName,
+          IpAddress: iPData.query,
+          Browser: global.settings.remoteConfig || browserName,
+          Location: iPData.city + ' ' + iPData.regionName,
           Platform: process.platform,
-          Environment: global.envConfig.envName,
-          Browser: global.settings.remoteConfig || global.browserName,
+          'Test Completion': endDateTime,
           Executed:
             remoteService && remoteService.type === 'browserstack'
               ? 'Remote'
