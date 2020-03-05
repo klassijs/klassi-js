@@ -23,5 +23,8 @@
     "cibsuat": "cross-env PROJECT_NAME=example-test-suite&& node ../../index.js -edt @search -w browserstack -x",
     "pkgchecks": "yarn check"
   },
-  "homepage": "https://github.com/larryg01/klassi-js#readme"
+  "homepage": "https://github.com/larryg01/klassi-js#readme",
+  "dependencies": {
+    "cross-env": "^7.0.2"
+  }
 }
