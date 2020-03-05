@@ -33,7 +33,7 @@ let parser = new useragent(uastring);
 let reportOptions, res;
 // let { metadata } = require('./metaData');
 
-console.log(parser.getResult());
+// console.log(parser.getResult());
 
 module.exports = {
   ipAddr: async() => {
@@ -42,7 +42,7 @@ module.exports = {
     // let endPoint = 'http://www.geoplugin.net/json.gp';
     res = await confSettings.apiCall(endPoint, 'GET');
     await res;
-    console.log('this is it: ', res.body);
+    // console.log('this is it: ', res.body);
   },
 
   reporter: async function() {
