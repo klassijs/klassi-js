@@ -127,12 +127,48 @@ Getting data from a JSON REST API
     });
  },
 ```
+## Accessibility Testing with [Axe](https://www.deque.com/axe/)
+Automated accessibility testing feature has been introduced using the Axe-Core OpenSource library.
+
+### Browser Support 
+```
+Microsoft Edge v40 and above
+Google Chrome v42 and above
+Mozilla Firefox v38 and above
+Apple Safari v7 and above
+Internet Explorer v9, 10, 11
+```
+### Sample code 
+All the accessibility fuctions can be accessed through the global variable ``` accessibilityLib ```.
+| function          | Description                                                     |
+|----------------------------|-----------------------------------------------------------------|
+| ``` accessibilityLib.getAccessibilityReport('PageName')```| generates the accessibility report with the given page name |
+| ``` accessibilityLib.getAccessibilityError()``` | returns the total number of error count for a particular page. |
+| ``` accessibilityLib.getAccessibilityTotalError() ``` | returns the total number of error count for all the pages in a particilar execution |
+
+```js
+When('I run the accesibility analysis for {string}', async function (PageName) {
+  // After navigating to a particular page, just call the function to generate the accessibility report 
+  await accessibilityLib.getAccessibilityReport(PageName);
+});
+
+Then('there should not be any violation in the accessibility report', function () {
+// This will return the total accessibility error count for a particular page.
+let violationcount=accessibilityLib.getAccessibilityError();
+assert.equal(violationcount, 0);
+});
+```
 
 ### Reports
 
 HTML and JSON reports are automatically generated and stored in the default `./reports` folder. This location can be changed by providing a new path using the `-r` command line switch:
 
 ![Cucumber HTML report](runtime/img/cucumber-html-report.png)
+
+### Accessibility Report
+
+HTML and JSON reports will be automatically generated and stored in the default ```.projects/{ProjectName}/reports/accessibility```  folder.
+![Aceessibility HTML report](./runtime/img/accessibility-html-report.png)
 
 ### Event handlers
 

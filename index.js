@@ -76,8 +76,7 @@ program
   .option(
     '-b, --browsers [optional]',
     'name of browsers to use. defaults to chrome',
-    /(chrome|edge|firefox|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
-    'chrome'
+    /(chrome|edge|firefox|iexplorer|safari|tabletGalaxy|tabletiPad)$/i, 'chrome'
   )
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')

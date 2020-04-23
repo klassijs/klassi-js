@@ -38,7 +38,7 @@
     "all": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -ed ",
     "dev": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -dt @api",
     "uat": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -dt @search",
-    "bslocal": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -edw browserstack -x",
+    "bslocal": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -edt  @search -w browserstack -x",
     "cibsdev": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -dt @api -w browserstack -x",
     "cibsuat": "export PROJECT_NAME=example-test-suite; cd projects/example-test-suite && node ../../index.js -dt @search -w browserstack -x",
     "pkgchecks": "yarn check"

@@ -110,6 +110,9 @@ async function getDriverInstance() {
   case 'chrome':
     browser = ChromeDriver(options);
     break;
+  default:
+    browser = ChromeDriver(options);
+    break;
   }
   return browser;
 }
@@ -139,9 +142,9 @@ case 'prod':
 case 'test':
   global.envConfig = environ.test;
   break;
-// default:
-//   global.envConfig = environ.test;
-//   break;
+default:
+  global.envConfig = environ.test;
+  break;
 }
 
 /**

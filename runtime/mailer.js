@@ -62,36 +62,11 @@ module.exports = {
     let mailOptions = {
       to: devTeam,
       from: 'Klassi-QaAutoTest <email@email.com>',
-      subject: projectReportName + ' ' + global.reportName + ' ' + global.BROWSER_NAME + '-' + dateTime,
+      subject: projectReportName + ' ' + global.reportName + '-' + dateTime,
       alternative: true,
       attachments: fileList,
       html: '<b>Please find attached the automated test results for test run on - </b>' + dateTime
     };
-    // /**
-    //  *  sends the message and get a callback with an error or details of the message that was sent
-    //  */
-    // transporter.verify(function (err, success) {
-    //   if (err) {
-    //     console.log('Server failed to Start' + err.stack);
-    //   } else {
-    //     console.log('Server is ready to take our messages');
-    //   }
-    //   if (success) {
-    //     try {
-    //       transporter.sendMail(mailOptions, function(err) {
-    //         if (err) {
-    //           log.error('Result Email CANNOT be sent: ' + err.stack);
-    //           throw err;
-    //         } else {
-    //           log.info('Results Email successfully sent');
-    //           process.exit();
-    //         }
-    //       });
-    //     } catch (err) {
-    //       log.info('This is a system error: ', err.stack);
-    //       throw err;
-    //     }
-
     /**
      *  verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
