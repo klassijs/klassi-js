@@ -159,15 +159,17 @@ assert.equal(violationcount, 0);
 });
 ```
 
-### Reports
+### Test Execution Reports
 
-HTML and JSON reports are automatically generated and stored in the default `./reports` folder. This location can be changed by providing a new path using the `-r` command line switch:
+HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be
+ changed by providing a new path using the `-r` command line switch:
 
 ![Cucumber HTML report](runtime/img/cucumber-html-report.png)
 
 ### Accessibility Report
 
-HTML and JSON reports will be automatically generated and stored in the default ```.projects/{ProjectName}/reports/accessibility```  folder.
+HTML and JSON reports will be automatically generated and stored in the default `./reports/accessibility`  folder.This location can be changed by providing a new path using the `-r` command line switch:
+
 ![Aceessibility HTML report](./runtime/img/accessibility-html-report.png)
 
 ### Event handlers
