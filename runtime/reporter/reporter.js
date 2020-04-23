@@ -56,12 +56,12 @@ module.exports = {
       reportOptions = {
         theme: 'bootstrap',
         jsonFile: path.resolve(
-          global.paths.reports,
-          projectName + ' ' + global.reportName + '-' + date + '.json'
+          global.paths.reports, BROWSER_NAME,
+          projectName + ' ' + global.reportName + '-' + dateTime + '.json'
         ),
         output: path.resolve(
-          global.paths.reports,
-          projectName + ' ' + global.reportName + '-' + date + '.html'
+          global.paths.reports, BROWSER_NAME,
+          projectName + ' ' + global.reportName + '-' + dateTime + '.html'
         ),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,
@@ -70,7 +70,7 @@ module.exports = {
           'Test Started': startDateTime,
           Environment: envConfig.envName,
           IpAddress: iPData.query,
-          Browser: global.settings.remoteConfig || browserName,
+          Browser: global.settings.remoteConfig || BROWSER_NAME,
           Location: iPData.city + ' ' + iPData.regionName,
           Platform: process.platform,
           'Test Completion': endDateTime,

@@ -5,7 +5,7 @@ const verify = require('../../../runtime/imageCompare');
 const helpers = require('../../../runtime/confSettings');
 
 let log = global.log;
-let image;
+let image, elem;
 
 module.exports = {
   /**
@@ -16,8 +16,10 @@ module.exports = {
   performSearch: async function(searchWord) {
     image = searchWord;
     await verify.saveScreenshot(`${image}_1-0.png`, shared.elem.leftBadge);
-    let elem = await browser.$(shared.elem.searchInput);
+    elem = await browser.$(shared.elem.searchInput);
     await elem.setValue(searchWord);
+    /** Accessibility verification */
+    await accessibilityLib.getAccessibilityReport('SearchPage-'+searchWord);
     await verify.saveScreenshot(
       `${image}_1-1.png`,
       shared.elem.leftBadge
@@ -25,18 +27,21 @@ module.exports = {
 
     let title = await browser.getTitle();
     log.info('the title being returned:- ' + title);
-    let searchBtn = await browser.$(shared.elem.searchBtn);
-    await searchBtn.click();
+    elem = await browser.$(shared.elem.searchBtn);
+    await elem.click();
     await browser.pause(DELAY_1s);
+    /** Accessibility verification */
+    await accessibilityLib.getAccessibilityReport('SearchPage-'+searchWord);
+    /** Accessibility Total error count/violations */
+    cucumberThis.attach('Accessibility Error Count : '+ accessibilityLib.getAccessibilityTotalError());
     await helpers.compareImage(`${image}_1-0.png`);
     await helpers.compareImage(`${image}_1-1.png`);
     return image;
   },
 
   searchResult: async function() {
-    // image = searchWord;
     /** return the promise of an element to the following then */
-    let elem = await browser.$(shared.elem.resultLink);
+    elem = await browser.$(shared.elem.resultLink);
     await verify.saveScreenshot(
       `${image}_1-2.png`,
       shared.elem.leftBadge

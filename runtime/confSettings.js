@@ -56,7 +56,7 @@ module.exports = {
    */
   getUserAgent: async function() {
     let script = await browser.execute(() => window.navigator.userAgent);
-    this.writeTextFile('../shared-objects/docs/userAgent.txt', script);
+    await this.writeTextFile('../shared-objects/docs/userAgent.txt', script);
     await browser.pause(DELAY_100ms);
   },
 
@@ -65,15 +65,10 @@ module.exports = {
    * @param filepath
    * @param output
    */
-  writeTextFile: function(filepath, output) {
+  writeTextFile: async function(filepath, output) {
     try {
-      fs.truncate(filepath, 0, function() {
-        fs.writeFile(filepath, output, err => {
-          if (err) {
-            log.error('Error writing file: ' + err.message);
-          }
-        });
-      });
+      await fs.truncate(filepath, 0);
+      await fs.writeFile(filepath, output);
     } catch (err) {
       if (err) {
         log.error('Error in writing file ' + err.message);
@@ -140,8 +135,28 @@ module.exports = {
   },
 
   reportDate: function() {
-    let date = Date.now();
-    return date;
+    let today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; //January is 0!
+    let yyyy = today.getFullYear();
+    let hours = today.getHours();
+    let minutes = today.getMinutes();
+
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    if (hours < 10) {
+      hours = '0' + hours;
+    }
+    if (minutes < 10) {
+      minutes = '0' + minutes;
+    }
+    return (
+      dd + '-' + mm + '-' + yyyy + '-' + hours + minutes
+    );
   },
 
   /**

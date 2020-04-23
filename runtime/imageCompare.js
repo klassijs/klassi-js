@@ -25,7 +25,7 @@ const fs = require('fs-extra');
 let helpers = require('./confSettings.js');
 let log = require('./logger').klassiLog();
 
-let browserName = global.settings.remoteConfig || global.browserName;
+let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
 
 let baselineDir = `./visual-regression-baseline/${browserName}/`,
   resultDir = `./artifacts/visual-regression/new-screens/${browserName}/`,

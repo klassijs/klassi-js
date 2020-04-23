@@ -91,7 +91,7 @@ let browser = {};
  * @returns {{}}
  */
 async function getDriverInstance() {
-  let browsers = global.settings.browserName;
+  let browsers = global.settings.BROWSER_NAME;
   let options = {};
   if (remoteService && remoteService.type === 'browserstack') {
     let configType = global.settings.remoteConfig;
@@ -257,9 +257,9 @@ this.World = World;
  */
 const { setDefaultTimeout } = require('cucumber');
 
-// Add timeout based on env var.
-const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
-setDefaultTimeout(timeout);
+/** Add timeout based on env var. */
+const globalTimeout = process.env.CUCUMBER_TIMEOUT || 120000;
+setDefaultTimeout(globalTimeout);
 
 /**
  * start recording of the Test run time
@@ -269,7 +269,9 @@ global.startDateTime = require('./confSettings').getStartDateTime();
 /**
  * create the browser before scenario if it's not instantiated
  */
-Before(function() {
+Before(async function() {
+  let world=this;
+  global.cucumberThis=world;
   global.browser = getDriverInstance();
   return browser;
 });

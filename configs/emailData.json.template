@@ -4,6 +4,7 @@
     "Created by": "Larry Goddard"
   },
 
-  "nameList": "Me <{my email address}>, You <{your email address}>"
+  "nameList": "Me <{my email address}>, You <{your email address}>",
+  "AccessibilityReport": "Yes"
 }
 

@@ -31,6 +31,19 @@ const nodemailer = require('nodemailer');
 
 module.exports = {
   klassiSendMail: function() {
+    /** To get all the files that need to be attached */
+    let fileList = [{
+      filename:
+        projectName + ' ' + global.reportName + '-' + dateTime + '.html',
+      path: path.resolve(
+        global.paths.reports, BROWSER_NAME,
+        projectName + ' ' + global.reportName + '-' + dateTime + '.html'
+      )
+    }];
+    if(mailList.AccessibilityReport === 'Yes'){
+      fileList = fileList.concat(accessibilityReportList);
+    }
+
     let devTeam = mailList.nameList;
     /**
      * Email relay server connections
@@ -48,37 +61,62 @@ module.exports = {
     });
     let mailOptions = {
       to: devTeam,
-      from: 'Klassi-QATEST <email@email.com>',
-      subject: projectReportName + ' ' + global.reportName + '-' + date,
+      from: 'Klassi-QaAutoTest <email@email.com>',
+      subject: projectReportName + ' ' + global.reportName + ' ' + global.BROWSER_NAME + '-' + dateTime,
       alternative: true,
-      attachments: [
-        {
-          filename:
-            projectName + ' ' + global.reportName + '-' + date + '.html',
-          path: path.resolve(
-            global.paths.reports,
-            projectName + ' ' + global.reportName + '-' + date + '.html'
-          )
-        }
-      ],
-      html: '<b>Please find attached the automated test results</b>'
+      attachments: fileList,
+      html: '<b>Please find attached the automated test results for test run on - </b>' + dateTime
     };
+    // /**
+    //  *  sends the message and get a callback with an error or details of the message that was sent
+    //  */
+    // transporter.verify(function (err, success) {
+    //   if (err) {
+    //     console.log('Server failed to Start' + err.stack);
+    //   } else {
+    //     console.log('Server is ready to take our messages');
+    //   }
+    //   if (success) {
+    //     try {
+    //       transporter.sendMail(mailOptions, function(err) {
+    //         if (err) {
+    //           log.error('Result Email CANNOT be sent: ' + err.stack);
+    //           throw err;
+    //         } else {
+    //           log.info('Results Email successfully sent');
+    //           process.exit();
+    //         }
+    //       });
+    //     } catch (err) {
+    //       log.info('This is a system error: ', err.stack);
+    //       throw err;
+    //     }
+
     /**
-     *  sends the message and get a callback with an error or details of the message that was sent
+     *  verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
-    try {
-      transporter.sendMail(mailOptions, function(err) {
-        if (err) {
-          log.error('Result Email CANNOT be sent: ' + err.stack);
+    transporter.verify(function (err, success) {
+      if (err) {
+        console.log('Server failed to Start' + err.stack);
+      } else {
+        console.log('Server is ready to take our messages');
+      }
+      if (success) {
+        try {
+          transporter.sendMail(mailOptions, function (err) {
+            if (err) {
+              log.error('Result Email CANNOT be sent: ' + err.stack);
+              throw err;
+            } else {
+              log.info('Results Email successfully sent');
+              process.exit();
+            }
+          });
+        } catch (err) {
+          log.info('This is a system error: ', err.stack);
           throw err;
-        } else {
-          log.info('Results Email successfully sent');
-          process.exit();
         }
-      });
-    } catch (err) {
-      log.info('This is a system error: ', err.stack);
-      throw err;
-    }
+      }
+    });
   }
 };

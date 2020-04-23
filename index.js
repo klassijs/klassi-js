@@ -50,17 +50,10 @@ let envConfig;
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-let reports = './reports';
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
 let file = ('../shared-objects/docs/userAgent.txt');
-// let fileName = require('../shared-objects/docs/userAgent.txt');
 
-fs.ensureDirSync(reports, function(err) {
-  if (err) {
-    console.log('The Reports Folder has NOT been created: ' + err.stack);
-  }
-});
 fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
     console.log('The File Download Folder has NOT been created: ' + err.stack);
@@ -114,7 +107,7 @@ let settings = {
   aces: program.aces,
   projectRoot: program.context,
   reportName: program.reportName,
-  browserName: program.browsers,
+  BROWSER_NAME: program.browsers,
   disableReport: program.disableReport,
   updateBaselineImage: program.updateBaselineImage,
   defaultTimeout: '300000 * 1000', // 5 mins
@@ -168,10 +161,28 @@ let paths = {
 /**
  * expose settings and paths for global use
  * */
-global.browserName = program.browsers;
+global.BROWSER_NAME = program.browsers;
 global.settings = settings;
 global.paths = paths;
 
+/**
+ * Create the required files and folders needed for the framework to function correctly
+ * @type {string}
+ */
+let reports = './reports/' + BROWSER_NAME;
+let axereports = './reports/' + 'accessibility';
+
+fs.ensureDirSync(reports, function(err) {
+  if (err) {
+    console.log('The Reports Folder has NOT been created: ' + err.stack);
+  }
+});
+/** Adding Accessibility folder at project level */
+fs.ensureDirSync(axereports , function(err) {
+  if (err) {
+    console.log('The Accessibility Reports Folder has NOT been created: ' + err.stack);
+  }
+});
 
 /**
  * add helpers and making it global
@@ -183,6 +194,20 @@ if (program.aces) {
   cp_path = './projects/' + projectName + '/settings/helpers.js';
 }
 global.helpers = require(cp_path);
+
+/** adding global accessibility library */
+let accessibility_lib= path.resolve(__dirname,'./runtime/accessibility/accessibilityLib.js');
+
+if(fs.existsSync(accessibility_lib)){
+  let rList=[];
+  global.accessibilityLib = require(accessibility_lib);
+  global.accessibilityReportList = rList;
+
+  console.log('Accessibility library is available for this project');
+}else
+  // {
+  console.log('No Accessibility Lib');
+// }
 
 /**
  *  adding global date function
@@ -230,8 +255,8 @@ process.argv.push(
   'json:' +
   path.resolve(
     __dirname,
-    paths.reports,
-    projectName + ' ' + global.reportName + '-' + date + '.json'
+    paths.reports, BROWSER_NAME,
+    projectName + ' ' + global.reportName + '-' + dateTime + '.json'
   )
 );
 

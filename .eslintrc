@@ -39,7 +39,7 @@
         "dateTime": true,
         "startDateTime": false,
         "endDateTime": false,
-        "browserName": false,
+        "BROWSER_NAME": false,
         "reportName": true,
         "projectName": true,
         "projectReportName": true,
