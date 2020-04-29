@@ -194,7 +194,9 @@ if (program.aces) {
 }
 global.helpers = require(cp_path);
 
-/** adding global accessibility library */
+/**
+ * adding global accessibility library
+ * */
 let accessibility_lib= path.resolve(__dirname,'./runtime/accessibility/accessibilityLib.js');
 
 if(fs.existsSync(accessibility_lib)){
@@ -203,10 +205,10 @@ if(fs.existsSync(accessibility_lib)){
   global.accessibilityReportList = rList;
 
   console.log('Accessibility library is available for this project');
-}else
-  // {
+}
+else {
   console.log('No Accessibility Lib');
-// }
+}
 
 /**
  *  adding global date function
