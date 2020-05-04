@@ -22,17 +22,11 @@
 const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
-const useragent = require('ua-parser-js');
 const getRemote = require('../getRemote');
 const confSettings = require('../confSettings');
 
 let remoteService = getRemote(global.settings.remoteService);
-let uastring = fs.readFileSync('../../projects/shared-objects/docs/userAgent.txt', 'utf8');
-let parser = new useragent(uastring);
 let reportOptions, res;
-// let { metadata } = require('./metaData');
-
-// console.log(parser.getResult());
 
 module.exports = {
   ipAddr: async() => {
@@ -41,7 +35,6 @@ module.exports = {
     // let endPoint = 'http://www.geoplugin.net/json.gp';
     res = await confSettings.apiCall(endPoint, 'GET');
     await res;
-    // console.log('this is it: ', res.body);
   },
 
   reporter: async function() {
@@ -52,7 +45,6 @@ module.exports = {
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
-      // Single reporter
       reportOptions = {
         theme: 'bootstrap',
         jsonFile: path.resolve(

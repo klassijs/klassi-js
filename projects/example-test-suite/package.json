@@ -17,7 +17,7 @@
   "scripts": {
     "all": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -ed",
     "dev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -dt @api",
-    "uat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -dt @search",
+    "uat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @uatTest",
     "uat1": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @access",
     "bslocal": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @search -w browserstack -x",
     "cibsdev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @api -w browserstack -x",
@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {
-    "cross-env": "^7.0.1"
+    "cross-env": "^7.0.2"
   }
 }

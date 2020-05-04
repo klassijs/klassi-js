@@ -52,7 +52,6 @@ let envConfig;
  */
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
-let file = ('../shared-objects/docs/userAgent.txt');
 
 fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
@@ -62,11 +61,6 @@ fs.ensureDirSync(fileDnldFldr, function(err) {
 fs.ensureDir(docsFolder, function(err) {
   if (err) {
     console.log('The Docs Folder has NOT been created: ' + err.stack);
-  }
-});
-fs.ensureFileSync(file, function(err) {
-  if (err) {
-    console.log('The fileName has NOT been created: ' + err.stack);
   }
 });
 
@@ -170,7 +164,13 @@ global.paths = paths;
  */
 let reports = './reports/' + BROWSER_NAME;
 let axereports = './reports/' + 'accessibility';
+let file = ('../'+ projectName + '/shared-objects/docs/userAgent.txt');
 
+fs.ensureFileSync(file, function(err) {
+  if (err) {
+    console.log('The fileName has NOT been created: ' + err.stack);
+  }
+});
 fs.ensureDirSync(reports, function(err) {
   if (err) {
     console.log('The Reports Folder has NOT been created: ' + err.stack);

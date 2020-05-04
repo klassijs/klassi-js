@@ -56,7 +56,7 @@ module.exports = {
    */
   getUserAgent: async function() {
     let script = await browser.execute(() => window.navigator.userAgent);
-    await this.writeTextFile('../shared-objects/docs/userAgent.txt', script);
+    await this.writeTextFile('../'+ projectName + '/shared-objects/docs/userAgent.txt', script);
     await browser.pause(DELAY_100ms);
   },
 
