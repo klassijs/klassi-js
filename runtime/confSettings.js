@@ -56,7 +56,7 @@ module.exports = {
    */
   getUserAgent: async function() {
     let script = await browser.execute(() => window.navigator.userAgent);
-    await this.writeTextFile('../shared-objects/docs/userAgent.txt', script);
+    await this.writeTextFile('../'+ projectName + '/shared-objects/docs/userAgent.txt', script);
     await browser.pause(DELAY_100ms);
   },
 
@@ -228,16 +228,21 @@ module.exports = {
   /**
    *  API call for GET, PUT, POST and DELETE functionality
    * @param url
+   * @param auth
    * @param method
    * @param body
    * @param fileName
    * @param statusCode
    * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
    */
-  apiCall: function(url, method, body, fileName, statusCode) {
+  apiCall: function(url, auth, method, body, fileName, statusCode) {
     let options = {
       url: url,
       method: method,
+      headers: {
+        'Authorization': auth,
+        'Content-Type': 'application/json' },
+      // body: JSON.stringify(body),
       body: body,
       json: true,
       time: true,

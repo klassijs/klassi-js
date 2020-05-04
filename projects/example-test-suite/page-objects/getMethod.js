@@ -12,6 +12,7 @@ module.exports = {
    */
   getCall: async() => {
     let endPoint = shared.url.api_base_url + shared.url.method;
+    console.log('this is the endpoint ', endPoint);
     res = await helpers.apiCall(endPoint, 'GET');
   },
   /**
@@ -34,5 +35,6 @@ module.exports = {
   contApi: async function() {
     browser.pause(DELAY_1s);
     log.info(res.body);
+    console.log(res.body.headers);
   }
 };

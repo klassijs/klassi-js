@@ -48,7 +48,7 @@
     "axe-core": "^3.5.3",
     "browserstack-local": "^1.4.0",
     "chai": "^4.2.0",
-    "cross-env": "^7.0.1",
+    "cross-env": "^7.0.2",
     "cucumber": "5.1.0",
     "cucumber-html-reporter": "^5.0.0",
     "cucumber-pretty": "^1.5.0",
