@@ -50,16 +50,10 @@ let envConfig;
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-let reports = './reports';
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
 let file = ('../shared-objects/docs/userAgent.txt');
 
-fs.ensureDirSync(reports, function(err) {
-  if (err) {
-    console.log('The Reports Folder has NOT been created: ' + err.stack);
-  }
-});
 fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
     console.log('The File Download Folder has NOT been created: ' + err.stack);
@@ -220,46 +214,44 @@ if (program.featureFile) {
 }
 
 /**
+ * creating report directory
+ * @type {string}
+ */
+let reports = './reports/' + browserName;
+
+fs.ensureDirSync(reports, function(err) {
+  if (err) {
+    console.log('The Reports Folder has NOT been created: ' + err.stack);
+  }
+});
+/**
  * add switch to tell cucumber to produce json report files
  */
-// // single run report
-// process.argv.push(
-//   '-f',
-//   '../../node_modules/cucumber-pretty',
-//   '-f',
-//   'json:' +
-//     path.resolve(
-//       __dirname,
-//       paths.reports,
-//       projectName + ' ' + settings.reportName + '-' + date + '.json'
-//     )
-// );
-
 if (program.aces) {
   cp_path = '../../../node_modules/cucumber-pretty';
 } else {
   cp_path = '../../node_modules/cucumber-pretty';
 }
-// process.argv.push(
-//   '-f',
-//   cp_path,
-//   '-f',
-//   'json:' +
-//   path.resolve(
-//     __dirname,
-//     paths.reports,
-//     projectName + ' ' + global.reportName + '-' + date + '.json'
-//   )
-// );
-
-// multi run report
+// single run report
 process.argv.push(
   '-f',
   cp_path,
   '-f',
   'json:' +
-    path.resolve(global.paths.reports, browserName + '-' + dateTime + '.json')
-); // getting the full JSON file report name
+  path.resolve(
+    __dirname,
+    paths.reports, browserName, projectName + ' ' + reportName + '-' + date + '.json'
+  ),
+);
+
+// multi run report
+// process.argv.push(
+//   '-f',
+//   cp_path,
+//   '-f',
+//   'json:' +
+//     path.resolve(global.paths.reports, browserName + '-' + dateTime + '.json')
+// ); // getting the full JSON file report name
 
 /**
  * add cucumber world as first required script (this sets up the globals)
