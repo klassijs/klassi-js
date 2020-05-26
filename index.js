@@ -52,6 +52,7 @@ let envConfig;
  */
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
+let file = ('../shared-objects/docs/userAgent.txt');
 
 fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
@@ -63,6 +64,11 @@ fs.ensureDir(docsFolder, function(err) {
     console.log('The Docs Folder has NOT been created: ' + err.stack);
   }
 });
+fs.ensureFileSync(file, function(err) {
+  if (err) {
+    console.log('The fileName has NOT been created: ' + err.stack);
+  }
+});
 
 program
   .version(pjson.version)
@@ -70,7 +76,8 @@ program
   .option(
     '-b, --browsers [optional]',
     'name of browsers to use. defaults to chrome',
-    /(chrome|edge|firefox|iexplorer|safari|tabletGalaxy|tabletiPad)$/i, 'chrome'
+    /(chrome|edge|FIREFOX|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
+    'chrome'
   )
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
@@ -79,7 +86,7 @@ program
     'features')
   .option('-F, --featuresFiles <path>', 'comma-separated list of feature files to run')
   .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
-  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(test|dev|uat|prod)$/i, 'test')
+  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(dev|test|uat|preprod|prod)$/i, 'test')
   .option('-o, --sharedObjects <paths>', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
   .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
@@ -108,11 +115,16 @@ let settings = {
 };
 
 /**
- * Setting and Naming the Project Report files Globally
+ * Setting and Naming the Project Globally
  * @type {string}
  */
 global.projectName = process.env.PROJECT_NAME || projectName;
 
+
+/**
+ * Setting and Naming the Project Report files Globally
+ * @type {string}
+ */
 if (program.aces) {
   envConfig = require('./projects/' + projectName + '/test/configs/envConfig');
 } else {
@@ -257,7 +269,7 @@ process.argv.push(
   path.resolve(
     __dirname,
     paths.reports, BROWSER_NAME,
-    projectName + ' ' + global.reportName + '-' + dateTime + '.json'
+    projectName + ' ' + global.reportName + '-' + date + '.json'
   )
 );
 

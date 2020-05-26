@@ -23,54 +23,43 @@ const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
 const getRemote = require('../getRemote');
-const confSettings = require('../confSettings');
 
 let remoteService = getRemote(global.settings.remoteService);
-let reportOptions, res;
+let reportOptions;
+let { metadata } = require('./metaData');
 
 module.exports = {
-  ipAddr: async() => {
-    let endPoint = 'http://ip-api.com/json';
-    // let endPoint = 'https://ipinfo.io/json';
-    // let endPoint = 'http://www.geoplugin.net/json.gp';
-    res = await confSettings.apiCall(endPoint, 'GET');
-    await res;
-  },
-
-  reporter: async function() {
+  reporter: function() {
     let helpers = require('../confSettings');
-    await this.ipAddr();
-    let iPData = await res.body;
-
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
+      // Single reporter
       reportOptions = {
         theme: 'bootstrap',
         jsonFile: path.resolve(
-          global.paths.reports, BROWSER_NAME,
-          projectName + ' ' + global.reportName + '-' + dateTime + '.json'
+          global.paths.reports,
+          browserName, projectName + ' ' + global.reportName + '-' + date + '.json'
         ),
         output: path.resolve(
-          global.paths.reports, BROWSER_NAME,
-          projectName + ' ' + global.reportName + '-' + dateTime + '.html'
+          global.paths.reports,
+          browserName, projectName + ' ' + global.reportName + '-' + date + '.html'
         ),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
-          Environment: envConfig.envName,
-          IpAddress: iPData.query,
-          Browser: global.settings.remoteConfig || BROWSER_NAME,
-          Location: iPData.city + ' ' + iPData.regionName,
-          Platform: process.platform,
           'Test Completion': endDateTime,
+          Platform: process.platform,
+          Environment: global.envConfig.envName,
+          Browser: global.settings.remoteConfig || global.browserName,
           Executed:
             remoteService && remoteService.type === 'browserstack'
               ? 'Remote'
               : 'Local'
         },
+        
         brandTitle: projectReportName + ' ' + reportName + '-' + date,
         name: projectReportName
       };
