@@ -176,13 +176,7 @@ global.paths = paths;
  */
 let reports = './reports/' + BROWSER_NAME;
 let axereports = './reports/' + 'accessibility';
-let file = ('../'+ projectName + '/shared-objects/docs/userAgent.txt');
 
-fs.ensureFileSync(file, function(err) {
-  if (err) {
-    console.log('The fileName has NOT been created: ' + err.stack);
-  }
-});
 fs.ensureDirSync(reports, function(err) {
   if (err) {
     console.log('The Reports Folder has NOT been created: ' + err.stack);

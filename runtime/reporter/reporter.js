@@ -30,9 +30,10 @@ let { metadata } = require('./metaData');
 
 module.exports = {
   reporter: function() {
-    let helpers = require('../confSettings');
+    // let helpers = require('../confSettings');
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-      global.endDateTime = helpers.getEndDateTime();
+      // global.startDateTime = require('./confSettings').getStartDateTime();
+      // global.endDateTime = require('./confSettings').getEndDateTime();
 
       // Single reporter
       reportOptions = {
@@ -49,8 +50,8 @@ module.exports = {
         launchReport: !global.settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
-          'Test Started': startDateTime,
-          'Test Completion': endDateTime,
+          // 'Test Started': startDateTime,
+          // 'Test Completion': endDateTime,
           Platform: process.platform,
           Environment: global.envConfig.envName,
           Browser: global.settings.remoteConfig || global.browserName,
@@ -64,7 +65,7 @@ module.exports = {
         name: projectReportName
       };
       browser.pause(DELAY_2s).then(async() => {
-        await reporter.generate(reportOptions);
+        // await reporter.generate(reportOptions);
         await browser.pause(DELAY_1s);
       });
     }

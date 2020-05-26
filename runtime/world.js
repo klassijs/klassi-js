@@ -297,10 +297,10 @@ AfterAll(function() {
  */
 AfterAll(function() {
   let browser = global.browser;
-  let helpers = require('./confSettings');
+  let confSettings = require('./confSettings');
 
   browser.pause(DELAY_300ms);
-  helpers.klassiReporter();
+  confSettings.klassiReporter();
 });
 
 /**
