@@ -20,21 +20,22 @@
 'use strict';
 
 const wdio = require('webdriverio');
-const program = require('commander');
+// const program = require('commander');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
-
-/**
- * adding the ability to deep dive
- */
-let cp_path;
-
-if (program.aces) {
-  cp_path = '../../../runtime/scripts/secrets/browserstack.json';
-} else {
-  cp_path = '../../runtime/scripts/secrets/browserstack.json';
-}
-let secrets = loadConfig(cp_path);
+// let secrets = loadConfig('./browserstack/secrets/browserstack.json');
+let secrets = loadConfig('runtime/scripts/secrets/browserstack.json');
+// /**
+//  * adding the ability to deep dive
+//  */
+// let cp_path;
+//
+// if (program.aces) {
+//   cp_path = '../../../runtime/scripts/secrets/browserstack.json';
+// } else {
+//   cp_path = '../../runtime/scripts/secrets/browserstack.json';
+// }
+// let secrets = loadConfig(cp_path);
 
 let bs_local;
 let key = secrets.BROWSERSTACK_ACCESS_KEY;
