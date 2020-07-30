@@ -24,18 +24,6 @@ const loadConfig = require('../configLoader.js');
 
 function getCredentials() {
   let secrets = loadConfig('runtime/scripts/secrets/browserstack.json');
-  // /**
-  //  * adding the ability to deep dive
-  //  */
-  // let cp_path;
-  //
-  // if (program.aces) {
-  //   cp_path = '../../../runtime/scripts/secrets/browserstack.json';
-  // } else {
-  //   // cp_path = ('../../runtime/scripts/secrets/browserstack.json');
-  //   cp_path = ('../../runtime/scripts/secrets/browserstack.json');
-  // }
-  // let secrets = loadConfig(cp_path);
   
   let user = process.env.BROWSERSTACK_USERNAME || secrets.BROWSERSTACK_USERNAME;
   let key =
