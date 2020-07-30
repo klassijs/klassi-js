@@ -162,6 +162,10 @@ global.DELAY_5s = 5000; // 5 second delay
 global.DELAY_10s = 10000; // 10 second delay
 global.DELAY_15s = 15000; // 15 second delay
 global.DELAY_20s = 20000; // 20 second delay
+global.DELAY_1m = 60000; // 1 minute delay
+global.DELAY_2m = 120000; // 2 minutes delay
+global.DELAY_3m = 180000; // 3 minutes delay
+global.DELAY_5m = 300000; // 5 minutes delay
 
 function consoleInfo() {
   let args = [].slice.call(arguments),

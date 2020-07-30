@@ -18,7 +18,6 @@
  limitations under the License.
  */
 'use strict';
-/*global assert:false */
 const program = require('commander');
 const gotApi = require('got');
 const loadConfig = require('../configLoader.js');
@@ -33,7 +32,8 @@ function getCredentials() {
   if (program.aces) {
     cp_path = '../../../runtime/scripts/secrets/browserstack.json';
   } else {
-    cp_path = '../../runtime/scripts/secrets/browserstack.json';
+    // cp_path = ('../../runtime/scripts/secrets/browserstack.json');
+    cp_path = ('../../runtime/scripts/secrets/browserstack.json');
   }
   let secrets = loadConfig(cp_path);
   
