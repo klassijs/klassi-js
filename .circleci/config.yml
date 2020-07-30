@@ -99,14 +99,14 @@ jobs:
           name: Set BrowserStack Local Identifier
           command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
 
-      - run:
-          name: Start BrowserStack Local
-          command: node runtime/remotes/browserstackLocal.js start
-          background: true
-
-      - run:
-          name: Check BrowserStack Local running
-          command: sleep 5;node runtime/remotes/browserstackLocal.js check
+#      - run:
+#          name: Start BrowserStack Local
+#          command: node runtime/remotes/browserstackLocal.js start
+#          background: true
+#
+#      - run:
+#          name: Check BrowserStack Local running
+#          command: sleep 5;node runtime/remotes/browserstackLocal.js check
 
       - run:
           name: Install Dependencies

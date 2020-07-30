@@ -23,9 +23,6 @@ const gotApi = require('got');
 const loadConfig = require('../configLoader.js');
 
 function getCredentials() {
-  // let secrets = loadConfig('../scripts/secrets/browserstack.json');
-  // let secrets = require('../scripts/secrets/browserstack.json');
-  
   /**
    * adding the ability to deep dive
    */
