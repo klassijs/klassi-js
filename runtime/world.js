@@ -326,16 +326,6 @@ AfterAll(async function() {
   }
 });
 
-// /**
-//  * compile and generate a report at the END of the test run to be send by Email
-//  */
-// AfterAll(function() {
-//   let browser = global.browser;
-//   let confSettings = require('./confSettings');
-//   browser.pause(DELAY_300ms);
-//   confSettings.klassiReporter();
-// });
-
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
