@@ -77,7 +77,7 @@ module.exports = {
    * @param filepath
    * @param output
    */
-  writeTextFile: async function(filepath, output) {
+  createTxtFile: async function(filepath, output) {
     try {
       await fs.truncate(filepath, 0);
       await fs.writeFile(filepath, output);

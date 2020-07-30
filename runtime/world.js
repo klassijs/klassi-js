@@ -316,7 +316,7 @@ AfterAll(async function() {
   await confSettings.klassiReporter();
   browser.pause(DELAY_5s).then(function(){
     if (remoteService && remoteService.type === 'browserstack') {
-      return confSettings.s3Upload();
+      // return confSettings.s3Upload();
     }
   });
   if (program.email) {

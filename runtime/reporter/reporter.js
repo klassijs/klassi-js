@@ -23,50 +23,57 @@ const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
 const getRemote = require('../getRemote');
+const confSettings = require('../confSettings');
 
 let remoteService = getRemote(global.settings.remoteService);
-let reportOptions;
-let { metadata } = require('./metaData');
+let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+let resp;
 
 module.exports = {
-  reporter: function() {
-    // let helpers = require('../confSettings');
+  ipAddr: async() => {
+    let endPoint = 'http://ip-api.com/json';
+    resp = await confSettings.apiCall(endPoint, 'GET');
+    await resp;
+  },
+  
+  reporter: async function() {
+    await this.ipAddr();
+    let iPData = await resp.body;
+    
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-      // global.startDateTime = require('./confSettings').getStartDateTime();
-      // global.endDateTime = require('./confSettings').getEndDateTime();
-
-      // Single reporter
-      reportOptions = {
+      global.endDateTime = confSettings.getEndDateTime();
+      
+      let reportOptions = {
         theme: 'bootstrap',
         jsonFile: path.resolve(
-          global.paths.reports,
-          browserName, projectName + ' ' + global.reportName + '-' + date + '.json'
+          global.paths.reports, browserName,
+          projectName + ' ' + reportName + '-' + dateTime + '.json'
         ),
         output: path.resolve(
-          global.paths.reports,
-          browserName, projectName + ' ' + global.reportName + '-' + date + '.html'
+          global.paths.reports, browserName,
+          projectName + ' ' + reportName + '-' + dateTime + '.html'
         ),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
-          // 'Test Started': startDateTime,
-          // 'Test Completion': endDateTime,
+          'Test Started': startDateTime,
+          Environment: envConfig.envName,
+          IpAddress: iPData.query,
+          Browser: browserName,
+          Location: iPData.city + ' ' + iPData.regionName,
           Platform: process.platform,
-          Environment: global.envConfig.envName,
-          Browser: global.settings.remoteConfig || global.browserName,
+          'Test Completion': endDateTime,
           Executed:
             remoteService && remoteService.type === 'browserstack'
               ? 'Remote'
               : 'Local'
         },
-        
-        brandTitle: projectReportName + ' ' + reportName + '-' + date,
-        name: projectReportName
+        brandTitle: projectName + ' ' + reportName + '-' + date,
+        name: projectReportName + ' ' + browserName
       };
-      browser.pause(DELAY_2s).then(async() => {
-        // await reporter.generate(reportOptions);
-        await browser.pause(DELAY_1s);
+      browser.pause(DELAY_3s).then(function() {
+        reporter.generate(reportOptions);
       });
     }
   }

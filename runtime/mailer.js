@@ -51,8 +51,8 @@ module.exports = {
      * Email relay server connections
      */
     let transporter = nodemailer.createTransport({
-      host: shared.host,
-      port: shared.port,
+      host: shared.auth.host,
+      port: shared.auth.port,
       secure: false,
       auth: {
         user: shared.auth.user,
