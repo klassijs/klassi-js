@@ -23,8 +23,7 @@ const wdio = require('webdriverio');
 const program = require('commander');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
-// let secrets = loadConfig('../scripts/secrets/browserstack.json');
-// let secrets = loadConfig('../scripts/secrets/browserstack.json');
+
 /**
  * adding the ability to deep dive
  */

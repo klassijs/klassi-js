@@ -33,8 +33,8 @@ function getCredentials() {
   } else {
     cp_path = '../../runtime/scripts/secrets/browserstack.json';
   }
-  console.log('this is bs....', cp_path);
   let secrets = loadConfig(cp_path);
+  
   let user = process.env.BROWSERSTACK_USERNAME || secrets.BROWSERSTACK_USERNAME;
   let key =
     process.env.BROWSERSTACK_ACCESS_KEY || secrets.BROWSERSTACK_ACCESS_KEY;
