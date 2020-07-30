@@ -1,11 +1,11 @@
 {
-  "project":"Klassi Automated Test",
+  "project":"OUP Automated Test",
 
   "os": "OS X",
   "os_version": "Mojave",
   "browser": "Safari",
   "browserName": "Safari",
-  "browser_version": "12.0",
+  "browser_version": "12.1",
   "resolution": "1280x960",
 
   "javascriptEnabled":true,
@@ -18,5 +18,5 @@
   "browserstackLocal": true,
   "browserstack.debug": true,
   "browserstack.networkLogs": true,
-  "browserstack.selenium_version": "3.5.2"
+  "browserstack.selenium_version": "3.141.5"
 }

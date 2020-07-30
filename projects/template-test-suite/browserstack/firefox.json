@@ -1,11 +1,11 @@
 {
-  "project":"Klassi Automated Test",
+  "project":"OUP Automated Test",
 
   "os": "Windows",
   "os_version": "10",
   "browser": "Firefox",
   "browserName": "Firefox",
-  "browser_version": "66.0",
+  "browser_version": "76.0",
   "resolution": "1280x800",
   "browserstack.geckodriver": "0.19.0",
 

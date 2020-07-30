@@ -1,21 +1,6 @@
 /**
- Klassi Automated Testing Tool
- Created by Larry Goddard
- */
-/**
- Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
-
- Licensed under the Apache License, Version 2.0 (the 'License');
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
- http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an 'AS IS' BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
+ * OUP Automated Testing Tool
+ * Created by Larry Goddard
  */
 'use strict';
 let elem;
@@ -43,7 +28,7 @@ module.exports = {
     await browser.pause(DELAY_300ms);
     await elem.buttonUp();
   },
-
+  
   /**
    * drag the page into view
    */
@@ -52,7 +37,7 @@ module.exports = {
     await browser.pause(DELAY_200ms);
     return this;
   },
-
+  
   /**
    * clicks an element (or multiple if present) that is not visible,
    * useful in situations where a menu needs a hover before a child link appears
@@ -74,7 +59,7 @@ module.exports = {
        * workout which property to use to get inner text
        */
       let txtProp = 'textContent' in document ? 'textContent' : 'innerText';
-
+      
       for (let i = 0, l = elements.length; i < l; i++) {
         /**
          * If we have content, only click items matching the content
@@ -100,7 +85,7 @@ module.exports = {
       textToMatch.toLowerCase().trim
     );
   },
-
+  
   /**
    * Generates a random 13 digit number
    * @param length
@@ -118,14 +103,14 @@ module.exports = {
     log.info('this is the number ' + number);
     return number;
   },
-
+  
   /**
    * Generate random integer from a given range
    */
   generateRandomInteger: function(range) {
     return Math.floor(Math.random() * Math.floor(range));
   },
-
+  
   /**
    * This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
    *
@@ -134,13 +119,13 @@ module.exports = {
    */
   getRandomIntegerExcludeFirst: function(range) {
     let randomNumber = helpers.generateRandomInteger(range);
-
+    
     if (randomNumber <= 1) {
       randomNumber += 2;
     }
     return randomNumber;
   },
-
+  
   /**
    * Converting String date into the Date format
    *
@@ -166,7 +151,7 @@ module.exports = {
     month -= 1;
     return new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
   },
-
+  
   getCurrentDateFormatted: function() {
     return helpers
       .getCurrentDateTime()
@@ -174,7 +159,7 @@ module.exports = {
       .replace(/:/g, '')
       .replace(' ', '');
   },
-
+  
   /**
    * Get the text of an Element
    * @param selector
@@ -186,7 +171,7 @@ module.exports = {
     let text = await elem.getText();
     await text;
   },
-
+  
   /**
    * Get the href link from an element
    * @param selector
@@ -196,7 +181,7 @@ module.exports = {
     let elem = await browser.$(selector);
     await elem.getAttribute('href');
   },
-
+  
   waitAndClick: async function(selector) {
     try {
       let elem = await browser.$(selector);
@@ -209,7 +194,7 @@ module.exports = {
       throw err;
     }
   },
-
+  
   waitAndSetValue: async function(selector, value) {
     try {
       let elem = await browser.$(selector);
@@ -222,7 +207,7 @@ module.exports = {
       throw err;
     }
   },
-
+  
   /**
    * ========== For all ASSERTIONS functions ==========
    */
@@ -249,7 +234,7 @@ module.exports = {
     let b = dateString.split('/');
     return b[0] + ' ' + months[b[1]] + ' ' + b[2];
   },
-
+  
   /**
    *  Sorts results by date
    * @param array
@@ -265,7 +250,7 @@ module.exports = {
     });
     return array;
   },
-
+  
   /**
    * function to get element from frame or frameset
    * @param frame_name
@@ -278,7 +263,7 @@ module.exports = {
     await browser.$(selector).getHTML();
     return browser;
   },
-
+  
   /**
    * This will assert 'equal' text being returned
    * @param selector
@@ -293,7 +278,7 @@ module.exports = {
     assert.equal(actual, expected);
     return this;
   },
-
+  
   /**
    *
    * @param selector
@@ -305,7 +290,7 @@ module.exports = {
     expect(actual).to.include(expectedText);
     return this;
   },
-
+  
   /**
    *
    * @param expected
@@ -314,7 +299,7 @@ module.exports = {
     let actual = await browser.getUrl();
     assert.equal(actual, expected);
   },
-
+  
   filterItem: async function(itemToFilter) {
     try {
       let elem = await browser.$(shared.adminData.filter.filterInput);
@@ -328,7 +313,7 @@ module.exports = {
       throw err;
     }
   },
-
+  
   filterItemAndClick: async function(itemToFilter) {
     try {
       await helpers.filterItem(itemToFilter);

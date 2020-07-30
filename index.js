@@ -52,7 +52,7 @@ let envConfig;
  */
 let fileDnldFldr = './shared-objects/fileDnldFolder/';
 let docsFolder = './shared-objects/docs';
-let file = ('../shared-objects/docs/userAgent.txt');
+// let file = ('../shared-objects/docs/userAgent.txt');
 
 fs.ensureDirSync(fileDnldFldr, function(err) {
   if (err) {
@@ -64,11 +64,11 @@ fs.ensureDir(docsFolder, function(err) {
     console.log('The Docs Folder has NOT been created: ' + err.stack);
   }
 });
-fs.ensureFileSync(file, function(err) {
-  if (err) {
-    console.log('The fileName has NOT been created: ' + err.stack);
-  }
-});
+// fs.ensureFileSync(file, function(err) {
+//   if (err) {
+//     console.log('The fileName has NOT been created: ' + err.stack);
+//   }
+// });
 
 program
   .version(pjson.version)
@@ -120,7 +120,6 @@ let settings = {
  */
 global.projectName = process.env.PROJECT_NAME || projectName;
 
-
 /**
  * Setting and Naming the Project Report files Globally
  * @type {string}
@@ -132,6 +131,16 @@ if (program.aces) {
 }
 let reportName = envConfig.reportName;
 let projectReportName = envConfig.projectReportName;
+
+/** Setting emailList to be global so it works for all projects */
+let emailData;
+
+if (program.aces) {
+  emailData = require('./projects/' + projectName + '/test/configs/emailData');
+} else {
+  emailData = require('./projects/' + projectName + '/configs/emailData');
+}
+global.mailList = emailData;
 global.reportName = process.env.REPORT_NAME || reportName;
 global.projectReportName = process.env.PROJECT_REPORT_NAME || projectReportName;
 
@@ -139,7 +148,7 @@ if (program.remoteService && program.extraSettings) {
   let additionalSettings = parseRemoteArguments(program.extraSettings);
   settings.remoteConfig = additionalSettings.config;
   /* this approach supports a single string defining both the target config and tags
-    e.g. 'win10-chrome/@tag1,@tag2'
+    e.g. 'chrome/@tag1,@tag2'
    */
   if (additionalSettings.tags) {
     if (program.tags) {
@@ -172,17 +181,33 @@ global.paths = paths;
 
 /**
  * Create the required files and folders needed for the framework to function correctly
+ * /** Adding Accessibility folder at project level
  * @type {string}
  */
-let reports = './reports/' + BROWSER_NAME;
-let axereports = './reports/' + 'accessibility';
+let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+let reports = './reports/' + browserName;
+let axereports = './reports/' + browserName + '/accessibility';
+let file;
 
-fs.ensureDirSync(reports, function(err) {
+/**
+ * file creation for userAgent globally
+ */
+if (program.aces) {
+  file = ('./shared-objects/docs/userAgent.txt');
+} else {
+  file = ('../'+ projectName + '/shared-objects/docs/userAgent.txt');
+}
+
+fs.ensureFileSync(file, function(err) {
+  if (err) {
+    console.log('The fileName has NOT been created: ' + err.stack);
+  }
+});
+fs.ensureDirSync(reports , function(err) {
   if (err) {
     console.log('The Reports Folder has NOT been created: ' + err.stack);
   }
 });
-/** Adding Accessibility folder at project level */
 fs.ensureDirSync(axereports , function(err) {
   if (err) {
     console.log('The Accessibility Reports Folder has NOT been created: ' + err.stack);
@@ -194,7 +219,6 @@ fs.ensureDirSync(axereports , function(err) {
  */
 if (program.aces) {
   cp_path = './projects/' + projectName + '/test/settings/helpers.js';
-  console.log(cp_path);
 } else {
   cp_path = './projects/' + projectName + '/settings/helpers.js';
 }
@@ -226,6 +250,11 @@ global.dateTime = require('./runtime/confSettings').reportDate();
  * store EnvName globally (used within world.js when building browser)
  */
 global.envName = program.environment;
+
+/**
+* store BaseUrl globally (uesd within the world.js when building browser)
+*/
+global.base_url = program.environment;
 
 /**
  * rewrite command line switches for cucumber
@@ -262,8 +291,8 @@ process.argv.push(
   'json:' +
   path.resolve(
     __dirname,
-    paths.reports, BROWSER_NAME,
-    projectName + ' ' + global.reportName + '-' + date + '.json'
+    paths.reports, browserName,
+    projectName + ' ' + global.reportName + '-' + dateTime + '.json'
   )
 );
 

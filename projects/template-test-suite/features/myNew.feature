@@ -1,5 +1,5 @@
-@myNew
-Feature: soemthing new
+@tag
+Feature: something new
   As an internet user
 
   Background:

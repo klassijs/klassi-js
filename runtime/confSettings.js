@@ -17,6 +17,11 @@
  */
 'use strict';
 const fs = require('fs-extra');
+const path = require('path');
+const program = require('commander');
+const AWS = require('aws-sdk');
+const async = require('async');
+const readdir = require('recursive-readdir');
 
 module.exports = {
   /**
@@ -56,7 +61,14 @@ module.exports = {
    */
   getUserAgent: async function() {
     let script = await browser.execute(() => window.navigator.userAgent);
-    await this.writeTextFile('../'+ projectName + '/shared-objects/docs/userAgent.txt', script);
+    let file;
+  
+    if (program.aces) {
+      file = ('../'+ projectName + '/test/shared-objects/docs/userAgent.txt');
+    } else {
+      file = ('../'+ projectName + '/shared-objects/docs/userAgent.txt');
+    }
+    await this.createTxtFile(file, script);
     await browser.pause(DELAY_100ms);
   },
 
@@ -269,20 +281,106 @@ module.exports = {
           }
         });
       }
-
+  
       if (method === 'POST' && fileName != null) {
-        let data = res.body.adminDoc;
-        let doc_Id = data.replace(/.*documents\/([^/]+)\/properties.*/, '$1');
-        await helpers.writeTextFile(fileName, doc_Id, function(err) {
-          if (err) {
-            log.error(err.message);
-          }
+        return res.json().then(async function(res){
+          console.log('parsed json', res);
+          let data = await res.id;
+          await fs.writeFileSync(fileName, data, function (err) {
+            if (err) {
+              log.error(err.message);
+            }
+          });
         });
-        log.info('====== DocId API ===== ' + doc_Id);
-
-        await doc_Id;
       }
       return res;
     });
   },
+  
+  /**
+   * function to upload the test report run folder to an s3 - AWS
+   */
+  s3Upload: function() {
+    let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+    let s3Data = require('./scripts/secrets/awsConfig');
+    let folderName = '/' + date + '/' + projectName + '/reports';
+    let BUCKET = s3Data.BUCKET_NAME + folderName;
+    let KEY = s3Data.ID;
+    let SECRET = s3Data.SECRET;
+    let cp_path;
+    if (program.aces) {
+      cp_path = path.resolve(__dirname, '../projects/', projectName, 'test/reports');
+    } else {
+      cp_path = path.resolve(__dirname, '../projects/', projectName, 'reports');
+    }
+    let rootFolder = cp_path;
+    let uploadFolder = ('./' + browserName);
+    let data1;
+    
+    const s3 = new AWS.S3({
+      signatureVersion: 'v4',
+      accessKeyId: KEY,
+      secretAccessKey: SECRET,
+    });
+    
+    function getFiles(dirPath) {
+      return fs.existsSync(dirPath) ? readdir(dirPath) : [];
+    }
+    
+    async function deploy(upload) {
+      const filesToUpload = await getFiles(path.resolve(rootFolder, upload));
+      return new Promise((resolve, reject) => {
+        async.eachOfLimit(filesToUpload, 10, async.asyncify(async (file) => {
+          const Key = file.replace(`${rootFolder}/`, '');
+          console.log(`uploading: [${Key}]`);
+          return new Promise((res, rej) => {
+            s3.upload({
+              Key,
+              Bucket: BUCKET,
+              Body: fs.readFileSync(file),
+              'ContentType': 'text/html',
+            }, async(err, data) => {
+              if (err) {
+                return rej(new Error(err));
+              }
+              res({ result: true });
+              if (data) {
+                data1 = await data;
+              }
+            });
+          });
+        }), (err) => {
+          if (err) {
+            return reject(new Error(err));
+          }
+          resolve({ result: true });
+        });
+      });
+    }
+    deploy (uploadFolder)
+      .then(() => {
+        // console.log(`Files uploaded successfully, report folder pushed to s3.  ${data1.Location}` );
+        console.log('Files uploaded successfully, report folder pushed to s3' );
+      })
+      .catch((err) => {
+        console.error(err.message);
+        process.exit(0);
+      });
+  },
+  
+  /**
+   * function for recording total errors from the Accessibility test run
+   */
+  accessibilityError: function(){
+    let totalError = accessibilityLib.getAccessibilityTotalError();
+    if (totalError > 0) {
+      cucumberThis.attach('The accessibility rule violation has been observed');
+      cucumberThis.attach('Total accessibility error count :' + totalError);
+    }
+    else if(totalError <= 0) {
+      let violationcount=accessibilityLib.getAccessibilityError();
+      assert.equal(violationcount, 0);
+    }
+  }
+  
 };

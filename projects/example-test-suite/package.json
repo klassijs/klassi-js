@@ -16,11 +16,8 @@
   "main": "index.js",
   "scripts": {
     "all": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -ed",
-    "dev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -dt @api",
-    "uat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @uatTest",
-    "uat1": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @access",
+    "dev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @uatTest",
     "bslocal": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @search -w browserstack -x",
-    "cibsdev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @api -w browserstack -x",
     "cibsuat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -edt @search -w browserstack -x",
     "pkgchecks": "yarn check"
   },

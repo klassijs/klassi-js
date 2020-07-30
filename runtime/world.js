@@ -279,29 +279,62 @@ Before(async function() {
   return browser;
 });
 
+// /**
+//  * send email with the report to stakeholders after test run
+//  */
+// AfterAll(function() {
+//   let browser = global.browser;
+//   let helpers = require('./confSettings');
+//   if (program.email) {
+//     browser.pause(DELAY_3s).then(function() {
+//       return helpers.klassiEmail();
+//     });
+//   }
+// });
+
 /**
+ * compile and generate a report at the END of the test run to be send by Email
  * send email with the report to stakeholders after test run
  */
-AfterAll(function() {
+AfterAll(async function() {
   let browser = global.browser;
-  let helpers = require('./confSettings');
+  let confSettings = require('./confSettings');
+  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
+  //  ingests it
+  // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
+  //   let metaDataFile = require('../runtime/scripts/reporter/metaData');
+  //   let json = JSON.parse(data);
+  //   json.push(data + metaDataFile);
+  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
+  //     if (err) throw err;
+  //     console.log('The "data to append" was appended to the file!!');
+  //   })
+  //   );
+  // })
+  // );
+  await browser.pause(DELAY_300ms);
+  await confSettings.klassiReporter();
+  browser.pause(DELAY_5s).then(function(){
+    if (remoteService && remoteService.type === 'browserstack') {
+      return confSettings.s3Upload();
+    }
+  });
   if (program.email) {
-    browser.pause(DELAY_3s).then(function() {
-      return helpers.klassiEmail();
+    browser.pause(DELAY_5s).then(function() {
+      return confSettings.klassiEmail();
     });
   }
 });
 
-/**
- * compile and generate a report at the END of the test run to be send by Email
- */
-AfterAll(function() {
-  let browser = global.browser;
-  let confSettings = require('./confSettings');
-
-  browser.pause(DELAY_300ms);
-  confSettings.klassiReporter();
-});
+// /**
+//  * compile and generate a report at the END of the test run to be send by Email
+//  */
+// AfterAll(function() {
+//   let browser = global.browser;
+//   let confSettings = require('./confSettings');
+//   browser.pause(DELAY_300ms);
+//   confSettings.klassiReporter();
+// });
 
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)

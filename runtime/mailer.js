@@ -20,8 +20,10 @@
 'use strict';
 
 const path = require('path');
-let shared = require('./scripts/emailConfig');
-let mailList = require('../projects/' + projectName + '/configs/emailData');
+let shared = require('./scripts/secrets/emailConfig');
+
+let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+let mailList = global.mailList;
 
 /**
  * Functionality for sending test results via email
@@ -36,21 +38,22 @@ module.exports = {
       filename:
         projectName + ' ' + global.reportName + '-' + dateTime + '.html',
       path: path.resolve(
-        global.paths.reports, BROWSER_NAME,
+        global.paths.reports, browserName,
         projectName + ' ' + global.reportName + '-' + dateTime + '.html'
       )
     }];
     if(mailList.AccessibilityReport === 'Yes'){
       fileList = fileList.concat(accessibilityReportList);
     }
-
+    
     let devTeam = mailList.nameList;
     /**
      * Email relay server connections
      */
     let transporter = nodemailer.createTransport({
-      host: shared.auth.host,
-      port: shared.auth.port,
+      host: shared.host,
+      port: shared.port,
+      secure: false,
       auth: {
         user: shared.auth.user,
         pass: shared.auth.pass
@@ -62,11 +65,14 @@ module.exports = {
     let mailOptions = {
       to: devTeam,
       from: 'Klassi-QaAutoTest <email@email.com>',
-      subject: projectReportName + ' ' + global.reportName + '-' + dateTime,
+      subject: projectName + ' ' + global.reportName + '-' + browserName + '-' + dateTime,
       alternative: true,
-      attachments: fileList,
-      html: '<b>Please find attached the automated test results for test run on - </b>' + dateTime
+      attachments:fileList,
+      html:
+        '<b>Please find attached the automated test results for test run on - </b> ' +
+        dateTime
     };
+  
     /**
      *  verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
@@ -84,7 +90,6 @@ module.exports = {
               throw err;
             } else {
               log.info('Results Email successfully sent');
-              process.exit();
             }
           });
         } catch (err) {

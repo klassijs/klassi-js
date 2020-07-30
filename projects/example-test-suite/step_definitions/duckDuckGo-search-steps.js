@@ -1,5 +1,6 @@
 'use strict';
-let helpers = require('../../../runtime/confSettings');
+
+let confSettings = require('../../../runtime/confSettings');
 let duckDuckGoSearch = require('../page-objects/duckDuckGoSearch');
 let searchData = require('../shared-objects/searchData');
 
@@ -7,10 +8,10 @@ let shared = { searchData };
 let page = { duckDuckGoSearch };
 
 Given(/^The user arrives on the duckduckgo search page$/, async () => {
-  await helpers.loadPage(shared.searchData.url, 10);
+  await confSettings.loadPage(shared.searchData.url, 10);
 });
 
-When(/^they input (.*)$/, async searchWord => {
+When(/^they input (.*)$/, async (searchWord) =>{
   /** use a method on the page object which also returns a promise */
   await page.duckDuckGoSearch.performSearch(searchWord);
 });

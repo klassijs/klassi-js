@@ -30,7 +30,7 @@ reports
 artifacts
 coverage
 testDir
-projects/shared-objects/docs/userAgent.txt
+/projects/shared-objects/docs/userAgent.txt
 
 
 klassi-browserstack.js

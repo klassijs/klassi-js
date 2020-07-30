@@ -4,7 +4,8 @@
     "Created by": "Larry Goddard"
   },
 
-  "nameList": "Me <lcg1@hotmail.com>, ME <larryg@klassitech.co.uk>",
-  "AccessibilityReport":  "Yes"
+  "nameList": "ME <larryg@klassitech.co.uk>",
+  "AccessibilityReport":  "Yes",
+  "AccessibilityLiteReport":"No"
 }
 
