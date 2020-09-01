@@ -14,7 +14,6 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
 let elem;
 
 module.exports = {
@@ -40,16 +39,16 @@ module.exports = {
     await browser.pause(DELAY_300ms);
     await elem.buttonUp();
   },
-  
+
   /**
    * drag the page into view
    */
-  pageView: async elemId => {
+  pageView: async (elemId) => {
     await elem.scrollIntoView(elemId);
     await browser.pause(DELAY_200ms);
     return this;
   },
-  
+
   /**
    * clicks an element (or multiple if present) that is not visible,
    * useful in situations where a menu needs a hover before a child link appears
@@ -58,7 +57,7 @@ module.exports = {
    * @example
    *    helpers.clickHiddenElement('nav[role='navigation'] ul li a','School Shoes');
    */
-  clickHiddenElement: function(cssSelector, textToMatch) {
+  clickHiddenElement(cssSelector, textToMatch) {
     /**
      * method to execute within the DOM to find elements containing text
      */
@@ -66,12 +65,12 @@ module.exports = {
       /**
        * get the list of elements to inspect
        */
-      let elements = document.querySelectorAll(query);
+      const elements = document.querySelectorAll(query);
       /**
        * workout which property to use to get inner text
        */
-      let txtProp = 'textContent' in document ? 'textContent' : 'innerText';
-      
+      const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
+
       for (let i = 0, l = elements.length; i < l; i++) {
         /**
          * If we have content, only click items matching the content
@@ -91,20 +90,16 @@ module.exports = {
     /**
      * grab the matching elements
      */
-    return browser.$$(
-      cssSelector,
-      clickElementInDom,
-      textToMatch.toLowerCase().trim
-    );
+    return browser.$$(cssSelector, clickElementInDom, textToMatch.toLowerCase().trim);
   },
-  
+
   /**
    * Generates a random 13 digit number
    * @param length
    * @returns {number}
    */
-  randomNumberGenerator: function(length = 13) {
-    let baseNumber = Math.pow(10, length - 1);
+  randomNumberGenerator(length = 13) {
+    const baseNumber = Math.pow(10, length - 1);
     let number = Math.floor(Math.random() * baseNumber);
     /**
      * Check if number have 0 as first digit
@@ -112,32 +107,32 @@ module.exports = {
     if (number < baseNumber) {
       number += baseNumber;
     }
-    log.info('this is the number ' + number);
+    log.info(`this is the number ${number}`);
     return number;
   },
-  
+
   /**
    * Generate random integer from a given range
    */
-  generateRandomInteger: function(range) {
+  generateRandomInteger(range) {
     return Math.floor(Math.random() * Math.floor(range));
   },
-  
+
   /**
    * This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
    *
    * @param range
    * @returns randomNumber excluding index 0
    */
-  getRandomIntegerExcludeFirst: function(range) {
+  getRandomIntegerExcludeFirst(range) {
     let randomNumber = helpers.generateRandomInteger(range);
-    
+
     if (randomNumber <= 1) {
       randomNumber += 2;
     }
     return randomNumber;
   },
-  
+
   /**
    * Converting String date into the Date format
    *
@@ -152,51 +147,47 @@ module.exports = {
    * stringToDate('9/17/2014','mm/dd/yyyy','/')
    * stringToDate('9-17-2014','mm-dd-yyyy','-')
    */
-  stringToDate: function(_date, _format, _delimiter) {
-    let formatLowerCase = _format.toLowerCase();
-    let formatItems = formatLowerCase.split(_delimiter);
-    let dateItems = _date.split(_delimiter);
-    let monthIndex = formatItems.indexOf('mm');
-    let dayIndex = formatItems.indexOf('dd');
-    let yearIndex = formatItems.indexOf('yyyy');
+  stringToDate(_date, _format, _delimiter) {
+    const formatLowerCase = _format.toLowerCase();
+    const formatItems = formatLowerCase.split(_delimiter);
+    const dateItems = _date.split(_delimiter);
+    const monthIndex = formatItems.indexOf('mm');
+    const dayIndex = formatItems.indexOf('dd');
+    const yearIndex = formatItems.indexOf('yyyy');
     let month = parseInt(dateItems[monthIndex]);
     month -= 1;
     return new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
   },
-  
-  getCurrentDateFormatted: function() {
-    return helpers
-      .getCurrentDateTime()
-      .replace(/\//g, '')
-      .replace(/:/g, '')
-      .replace(' ', '');
+
+  getCurrentDateFormatted() {
+    return helpers.getCurrentDateTime().replace(/\//g, '').replace(/:/g, '').replace(' ', '');
   },
-  
+
   /**
    * Get the text of an Element
    * @param selector
    * @returns text
    */
-  getElementText: async function(selector) {
-    let elem = await browser.$(selector);
+  async getElementText(selector) {
+    const elem = await browser.$(selector);
     await elem.waitForExist(DELAY_10s);
-    let text = await elem.getText();
+    const text = await elem.getText();
     await text;
   },
-  
+
   /**
    * Get the href link from an element
    * @param selector
    * @returns {String|String[]|*|string}
    */
-  getLink: async function(selector) {
-    let elem = await browser.$(selector);
+  async getLink(selector) {
+    const elem = await browser.$(selector);
     await elem.getAttribute('href');
   },
-  
-  waitAndClick: async function(selector) {
+
+  async waitAndClick(selector) {
     try {
-      let elem = await browser.$(selector);
+      const elem = await browser.$(selector);
       await elem.waitForDisplayed(DELAY_3s);
       await elem.waitForEnabled(DELAY_1s);
       await elem.click();
@@ -206,10 +197,10 @@ module.exports = {
       throw err;
     }
   },
-  
-  waitAndSetValue: async function(selector, value) {
+
+  async waitAndSetValue(selector, value) {
     try {
-      let elem = await browser.$(selector);
+      const elem = await browser.$(selector);
       await elem.waitForEnabled(DELAY_3s);
       await elem.click();
       await browser.pause(DELAY_500ms);
@@ -219,7 +210,7 @@ module.exports = {
       throw err;
     }
   },
-  
+
   /**
    * ========== For all ASSERTIONS functions ==========
    */
@@ -228,8 +219,8 @@ module.exports = {
    * @param dateString
    * @returns {string}
    */
-  reformatDateString: function(dateString) {
-    let months = {
+  reformatDateString(dateString) {
+    const months = {
       '01': 'January',
       '02': 'February',
       '03': 'March',
@@ -239,50 +230,50 @@ module.exports = {
       '07': 'July',
       '08': 'August',
       '09': 'September',
-      '10': 'October',
-      '11': 'November',
-      '12': 'December'
+      10: 'October',
+      11: 'November',
+      12: 'December',
     };
-    let b = dateString.split('/');
-    return b[0] + ' ' + months[b[1]] + ' ' + b[2];
+    const b = dateString.split('/');
+    return `${b[0]} ${months[b[1]]} ${b[2]}`;
   },
-  
+
   /**
    *  Sorts results by date
    * @param array
    * @returns {*}
    */
-  sortByDate: function(array) {
-    array.sort(function(a, b) {
-      let sentDateA = a.split('/');
-      let c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
-      let sentDateB = b.split('/');
-      let d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
+  sortByDate(array) {
+    array.sort(function (a, b) {
+      const sentDateA = a.split('/');
+      const c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
+      const sentDateB = b.split('/');
+      const d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
       return d - c;
     });
     return array;
   },
-  
+
   /**
    * function to get element from frame or frameset
    * @param frame_name
    * @param selector
    * @returns {Promise.<TResult>}
    */
-  getElementFromFrame: async function(frame_name, selector) {
-    let frame = await browser.$(frame_name);
+  async getElementFromFrame(frame_name, selector) {
+    const frame = await browser.$(frame_name);
     await browser.switchToFrame(frame.value);
     await browser.$(selector).getHTML();
     return browser;
   },
-  
+
   /**
    * This will assert 'equal' text being returned
    * @param selector
    * @param expectedText
    */
-  assertText: async function(selector, expected) {
-    let elem = await browser.$(selector);
+  async assertText(selector, expected) {
+    const elem = await browser.$(selector);
     await elem.waitForEnabled(DELAY_5s);
     let actual = await browser.$(selector);
     await actual.getText();
@@ -290,31 +281,31 @@ module.exports = {
     assert.equal(actual, expected);
     return this;
   },
-  
+
   /**
    *
    * @param selector
    * @param expectedText
    */
-  expectToIncludeText: async function(selector, expectedText) {
-    let actual = await browser.$(selector);
+  async expectToIncludeText(selector, expectedText) {
+    const actual = await browser.$(selector);
     await actual.getText();
     expect(actual).to.include(expectedText);
     return this;
   },
-  
+
   /**
    *
    * @param expected
    */
-  assertUrl: async function(expected) {
-    let actual = await browser.getUrl();
+  async assertUrl(expected) {
+    const actual = await browser.getUrl();
     assert.equal(actual, expected);
   },
-  
-  filterItem: async function(itemToFilter) {
+
+  async filterItem(itemToFilter) {
     try {
-      let elem = await browser.$(shared.adminData.filter.filterInput);
+      const elem = await browser.$(shared.adminData.filter.filterInput);
       await elem.waitForExist(DELAY_5s);
       await elem.waitForEnabled(DELAY_5s);
       await browser.pause(DELAY_500ms);
@@ -325,17 +316,17 @@ module.exports = {
       throw err;
     }
   },
-  
-  filterItemAndClick: async function(itemToFilter) {
+
+  async filterItemAndClick(itemToFilter) {
     try {
       await helpers.filterItem(itemToFilter);
       await browser.pause(DELAY_3s);
-      let elem = await browser.$(shared.adminData.filter.filteredItem);
+      const elem = await browser.$(shared.adminData.filter.filteredItem);
       await elem.click();
       await browser.pause(DELAY_3s);
     } catch (err) {
       log.error(err.message);
       throw err;
     }
-  }
+  },
 };

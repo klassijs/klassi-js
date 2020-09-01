@@ -17,10 +17,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
+
 const path = require('path');
 const program = require('commander');
 const fs = require('fs-extra');
+// eslint-disable-next-line import/order
 const pjson = require('./package.json');
 const cucumber = require('cucumber');
 
@@ -33,34 +34,34 @@ function parseRemoteArguments(argumentString) {
   if (!argumentString) {
     throw new Error('Expected an argumentString');
   }
-  let argSplit = argumentString.split('/');
-  let CONFIG = 0;
-  let TAGS = 1;
-  let parsed = {
+  const argSplit = argumentString.split('/');
+  const CONFIG = 0;
+  const TAGS = 1;
+  const parsed = {
     config: argSplit[CONFIG],
-    tags: argSplit[TAGS]
+    tags: argSplit[TAGS],
   };
   return parsed;
 }
 
-let cp_path;
+let cpPath;
 let envConfig;
 
 /**
  * Create all the required files and folders needed for the framework to function correctly
  * @type {string}
  */
-let fileDnldFldr = './shared-objects/fileDnldFolder/';
-let docsFolder = './shared-objects/docs';
+const fileDnldFldr = './shared-objects/fileDnldFolder';
+const docsFolder = './shared-objects/docs';
 
-fs.ensureDirSync(fileDnldFldr, function(err) {
+fs.ensureDirSync(fileDnldFldr, (err) => {
   if (err) {
-    console.log('The File Download Folder has NOT been created: ' + err.stack);
+    console.log(`The File Download Folder has NOT been created: ${err.stack}`);
   }
 });
-fs.ensureDir(docsFolder, function(err) {
+fs.ensureDir(docsFolder, (err) => {
   if (err) {
-    console.log('The Docs Folder has NOT been created: ' + err.stack);
+    console.log(`The Docs Folder has NOT been created: ${err.stack}`);
   }
 });
 
@@ -69,35 +70,47 @@ program
   .description(pjson.description)
   .option(
     '-b, --browsers [optional]',
-    'name of browsers to use. defaults to chrome',
-    /(chrome|edge|FIREFOX|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
+    'name of browser to use. defaults to chrome',
+    /(chrome|edge|firefox|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
     'chrome'
   )
   .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
-  .option('-d, --disableReport [optional]', 'Disables the auto opening the browser with test report')
+  .option('-d, --disableReport [optional]', 'Disables the auto opening of the test report in the browser')
   .option('-e, --email [optional]', 'email for sending reports to stakeholders')
-  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features',
-    'features')
+  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features', 'features')
   .option('-F, --featuresFiles <path>', 'comma-separated list of feature files to run')
   .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
-  .option('-n, --environment [<path>]', 'name of environment to run the framework / test in. default to test', /^(dev|test|uat|preprod|prod)$/i, 'test')
-  .option('-o, --sharedObjects <paths>', 'path to shared objects (repeatable). defaults to ./shared-objects', collectPaths, ['shared-objects'])
+  .option(
+    '-n, --environment <path>',
+    'name of environment to run the framework / test in. default to test',
+    /^(dev|test|uat|preprod|prod)$/i,
+    'test'
+  )
+  .option(
+    '-o, --sharedObjects <paths>',
+    'path to shared objects (repeatable). defaults to ./shared-objects',
+    collectPaths,
+    ['shared-objects']
+  )
   .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
   .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
-  .option('-t, --tags <tagname>', 'name of tag to run', collectPaths, [])
+  .option('-t, --tags <tagName>', 'name of tag to run')
   .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
-  .option('-w, --remoteService [optional]', 'which remote browser service, if any, should be used e.g. browserstack', '' )
-  .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
-  .option('-a, --aces [optional]', 'the switch to change the relative path for nested tests folders'
+  .option(
+    '-w, --remoteService [optional]',
+    'which remote browser service, if any, should be used e.g. browserstack',
+    ''
   )
+  .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
+  .option('-a, --aces [optional]', 'the switch to change the relative path for aces tests')
   .parse(process.argv);
 
-program.on('--help', function() {
+program.on('--help', function () {
   console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
 });
 
-let settings = {
+const settings = {
   aces: program.aces,
   projectRoot: program.context,
   reportName: program.reportName,
@@ -105,41 +118,39 @@ let settings = {
   disableReport: program.disableReport,
   updateBaselineImage: program.updateBaselineImage,
   defaultTimeout: '300000 * 1000', // 5 mins
-  remoteService: program.remoteService
+  remoteService: program.remoteService,
 };
-
-/**
- * Setting and Naming the Project Globally
- * @type {string}
- */
-global.projectName = process.env.PROJECT_NAME || projectName;
 
 /**
  * Setting and Naming the Project Report files Globally
  * @type {string}
  */
+global.projectName = process.env.PROJECT_NAME || projectName;
+
 if (program.aces) {
-  envConfig = require('./projects/' + projectName + '/test/configs/envConfig');
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  envConfig = require(`./projects/${projectName}/test/configs/envConfig`);
 } else {
-  envConfig = require('./projects/' + projectName + '/configs/envConfig');
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  envConfig = require(`./projects/${projectName}/configs/envConfig`);
 }
-let reportName = envConfig.reportName;
-let projectReportName = envConfig.projectReportName;
+const { reportName } = envConfig;
+const { projectReportName } = envConfig;
 
 /** Setting emailList to be global so it works for all projects */
 let emailData;
 
 if (program.aces) {
-  emailData = require('./projects/' + projectName + '/test/configs/emailData');
+  emailData = `./projects/${projectName}/test/configs/emailData`;
 } else {
-  emailData = require('./projects/' + projectName + '/configs/emailData');
+  emailData = `./projects/${projectName}/configs/emailData`;
 }
 global.mailList = emailData;
 global.reportName = process.env.REPORT_NAME || reportName;
 global.projectReportName = process.env.PROJECT_REPORT_NAME || projectReportName;
 
 if (program.remoteService && program.extraSettings) {
-  let additionalSettings = parseRemoteArguments(program.extraSettings);
+  const additionalSettings = parseRemoteArguments(program.extraSettings);
   settings.remoteConfig = additionalSettings.config;
   /* this approach supports a single string defining both the target config and tags
     e.g. 'chrome/@tag1,@tag2'
@@ -157,82 +168,80 @@ function getProjectPath(objectName) {
   return path.resolve(settings.projectRoot + program[objectName]);
 }
 
-let paths = {
+const paths = {
   pageObjects: getProjectPath('pageObjects'),
   reports: getProjectPath('reports'),
   featuresPath: getProjectPath('featuresPath'),
-  sharedObjects: program.sharedObjects.map(function(item) {
+  sharedObjects: program.sharedObjects.map(function (item) {
     return path.resolve(settings.projectRoot + item);
-  })
+  }),
 };
 
 /**
- * expose settings and paths for global use
- * */
+ *  expose settings and paths for global use
+ */
 global.BROWSER_NAME = program.browsers;
 global.settings = settings;
 global.paths = paths;
 
 /**
- * Create the required files and folders needed for the framework to function correctly
- * /** Adding Accessibility folder at project level
- * @type {string}
+ * Adding Global browser folder
+ * Adding Accessibility folder at project level
  */
-let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
-let reports = './reports/' + browserName;
-let axereports = './reports/' + browserName + '/accessibility';
+const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const reports = `./reports/${browserName}`;
+const axereports = `./reports/${browserName}/accessibility`;
 let file;
 
 /**
  * file creation for userAgent globally
  */
 if (program.aces) {
-  file = ('./shared-objects/docs/userAgent.txt');
+  file = './shared-objects/docs/userAgent.txt';
 } else {
-  file = ('../'+ projectName + '/shared-objects/docs/userAgent.txt');
+  file = `../${projectName}/shared-objects/docs/userAgent.txt`;
 }
 
-fs.ensureFileSync(file, function(err) {
+fs.ensureFileSync(file, function (err) {
   if (err) {
-    console.log('The fileName has NOT been created: ' + err.stack);
+    console.log(`The fileName has NOT been created: ${err.stack}`);
   }
 });
-fs.ensureDirSync(reports , function(err) {
+fs.ensureDirSync(reports, function (err) {
   if (err) {
-    console.log('The Reports Folder has NOT been created: ' + err.stack);
+    console.log(`The Reports Folder has NOT been created: ${err.stack}`);
   }
 });
-fs.ensureDirSync(axereports , function(err) {
+fs.ensureDirSync(axereports, function (err) {
   if (err) {
-    console.log('The Accessibility Reports Folder has NOT been created: ' + err.stack);
+    console.log(`The Accessibility Reports Folder has NOT been created: ${err.stack}`);
   }
 });
 
 /**
- * add helpers and making it global
+ * adding global helpers and making it global
  */
 if (program.aces) {
-  cp_path = './projects/' + projectName + '/test/settings/helpers.js';
+  cpPath = `./projects/${projectName}/test/settings/helpers.js`;
 } else {
-  cp_path = './projects/' + projectName + '/settings/helpers.js';
+  cpPath = `./projects/${projectName}/settings/helpers.js`;
 }
-global.helpers = require(cp_path);
+// eslint-disable-next-line import/no-dynamic-require
+global.helpers = require(cpPath);
 
 /**
  * adding global accessibility library
- * */
-let accessibility_lib= path.resolve(__dirname,'./runtime/accessibility/accessibilityLib.js');
-
-if(fs.existsSync(accessibility_lib)){
-  let rList=[];
+ */
+// eslint-disable-next-line camelcase
+const accessibility_lib = path.resolve(__dirname, './runtime/accessibility/accessibilityLib.js');
+if (fs.existsSync(accessibility_lib)) {
+  const rList = [];
+  // eslint-disable-next-line global-require,import/no-dynamic-require
   global.accessibilityLib = require(accessibility_lib);
   global.accessibilityReportList = rList;
 
   console.log('Accessibility library is available for this project');
-}
-else {
-  console.log('No Accessibility Lib');
-}
+} else console.log('No Accessibility Lib');
 
 /**
  *  adding global date function
@@ -246,8 +255,8 @@ global.dateTime = require('./runtime/confSettings').reportDate();
 global.envName = program.environment;
 
 /**
-* store BaseUrl globally (uesd within the world.js when building browser)
-*/
+ * store BaseUrl globally (uesd within the world.js when building browser)
+ */
 global.base_url = program.environment;
 
 /**
@@ -264,8 +273,9 @@ process.argv.push(paths.featuresPath);
  * specify the feature files to be executed
  */
 if (program.featureFile) {
-  let splitFeatureFiles = program.featureFile.split(',');
-  splitFeatureFiles.forEach(function(feature) {
+  const splitFeatureFiles = program.featureFile.split(',');
+
+  splitFeatureFiles.forEach(function (feature) {
     process.argv.push(feature);
   });
 }
@@ -274,22 +284,17 @@ if (program.featureFile) {
  * add switch to tell cucumber to produce json report files
  */
 if (program.aces) {
-  cp_path = '../../../node_modules/cucumber-pretty';
+  cpPath = '../../../node_modules/cucumber-pretty';
 } else {
-  cp_path = '../../node_modules/cucumber-pretty';
+  cpPath = '../../node_modules/cucumber-pretty';
 }
+
 process.argv.push(
   '-f',
-  cp_path,
+  cpPath,
   '-f',
-  'json:' +
-  path.resolve(
-    __dirname,
-    paths.reports, browserName,
-    projectName + ' ' + global.reportName + '-' + dateTime + '.json'
-  )
+  `json:${path.resolve(__dirname, paths.reports, browserName, `${projectName} ${global.reportName}-${dateTime}.json`)}`
 );
-
 
 /**
  * add cucumber world as first required script (this sets up the globals)
@@ -305,6 +310,10 @@ process.argv.push('-r', path.resolve(program.steps));
  * add tag to the scenarios
  */
 if (program.tags) {
+  // const splitTags = program.tags.split(',');
+  // splitTags.forEach(function (tag) {
+  //   process.argv.push('-t', tag);
+  // });
   process.argv.push('-t', program.tags);
 }
 
@@ -312,8 +321,8 @@ if (program.tags) {
  * Add split to run multiple browsers from the command line
  */
 if (program.browsers) {
-  let splitBrowsers = program.browsers.split(',');
-  splitBrowsers.forEach(function(browser) {
+  const splitBrowsers = program.browsers.split(',');
+  splitBrowsers.forEach(function (browser) {
     process.argv.push('-b', browser);
   });
 }
@@ -328,15 +337,18 @@ process.argv.push('-S');
  */
 global.cucumber = cucumber;
 
-let klassiCli = new (require('cucumber')).Cli({
+// eslint-disable-next-line global-require
+const klassiCli = new (require('cucumber').Cli)({
   argv: process.argv,
   cwd: process.cwd(),
-  stdout: process.stdout
+  stdout: process.stdout,
 });
 
-new Promise(function(resolve, reject) {
+// eslint-disable-next-line no-new
+new Promise(function (resolve, reject) {
   try {
-    klassiCli.run(function(success) {
+    klassiCli.run(function (success) {
+      // eslint-disable-next-line no-param-reassign
       resolve = success ? 0 : 1;
       function exitNow() {
         process.exit(resolve);
@@ -351,7 +363,7 @@ new Promise(function(resolve, reject) {
       }
     });
   } catch (err) {
-    console.log('cucumber integration has failed ' + err.message);
+    console.log(`cucumber integration has failed ${err.message}`);
     reject(err);
     throw err;
   }

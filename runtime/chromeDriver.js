@@ -1,5 +1,4 @@
 /**
- /**
  Klassi Automated Testing Tool
  Created by Larry Goddard
  */
@@ -18,10 +17,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
 const wdio = require('webdriverio');
-
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
@@ -29,9 +25,10 @@ const wdio = require('webdriverio');
 module.exports = async function chromeDriver(options) {
   const defaults = {
     logLevel: 'error',
+    // automationProtocol: 'devtools',
     capabilities: {
-      browserName: 'chrome'
-    }
+      browserName: 'chrome',
+    },
   };
 
   // Add proxy based on env var.
@@ -41,12 +38,13 @@ module.exports = async function chromeDriver(options) {
     defaults.capabilities.proxy = {
       httpProxy: 'http://domain.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
-      autodetect: false
+      autodetect: false,
     };
   }
 
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
-  // await driver.setWindowSize(1280, 960);
+  // await browser.setWindowSize(1280, 800);
+  await browser.setWindowSize(2560, 1600);
   return browser;
 };

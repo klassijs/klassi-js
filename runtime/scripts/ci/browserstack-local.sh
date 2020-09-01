@@ -1,15 +1,12 @@
-
 #!/bin/bash
 
 set -eo pipefail
 
-#if [ -z "$secretsBROWSERSTACK_ACCESS_KEY" ]; then
-if [ -z "$key" ]; then
+if [ -z "$BROWSERSTACK_ACCESS_KEY" ]; then
   echo "Ensure BROWSERSTACK_ACCESS_KEY is set"
   exit 2
 fi
 
-#if [ -z "$BROWSERSTACK_LOCAL_IDENTIFIER" ]; then
 if [ -z "$BROWSERSTACK_LOCAL_IDENTIFIER" ]; then
   echo "Ensure BROWSERSTACK_LOCAL_IDENTIFIER is set"
   exit 1
@@ -28,13 +25,12 @@ case "$1" in
 
     $BROWSERSTACK_LOCAL_PROGRAM \
       --daemon start \
-#      --key $BROWSERSTACK_ACCESS_KEY \
-      --key $key \
-      --local-identifier ${BROWSERSTACK_LOCAL_IDENTIFIER} \
+      --key $BROWSERSTACK_ACCESS_KEY \
+      --local-identifier $BROWSERSTACK_LOCAL_IDENTIFIER \
       --force \
       --only-automate \
       --enable-logging-for-api \
-      --log-file ${BROWSERSTACK_LOCAL_LOG_FILE} \
+      --log-file $BROWSERSTACK_LOCAL_LOG_FILE \
       --verbose 2 | \
         tee /dev/tty | \
         jq -er 'if .state == "connected" then .pid else empty end' > ${BROWSERSTACK_LOCAL_PID_NAME}.pid
@@ -51,9 +47,9 @@ case "$1" in
     ;;
   stop)
     echo "Stopping BrowserStackLocal";
-    ${BROWSERSTACK_LOCAL_PROGRAM} \
+    $BROWSERSTACK_LOCAL_PROGRAM \
       --daemon stop \
-      --key ${BROWSERSTACK_ACCESS_KEY}
+      --key $BROWSERSTACK_ACCESS_KEY
 
     rm -f ${BROWSERSTACK_LOCAL_PID_NAME}.pid
     ;;

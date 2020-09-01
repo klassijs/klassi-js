@@ -17,86 +17,114 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
 const path = require('path');
-let shared = require('./scripts/secrets/emailConfig');
+const program = require('commander');
+const nodeMailer = require('nodemailer');
+const getRemote = require('./getRemote.js');
+const shared = require('./scripts/secrets/emailConfig');
 
-let browserName = global.settings.remoteConfig || global.BROWSER_NAME;
-let mailList = global.mailList;
+const remoteService = getRemote(global.settings.remoteService);
+const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+// eslint-disable-next-line import/no-dynamic-require
+let dataList;
+if (program.aces) {
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  dataList = require(`../projects/${projectName}/test/configs/emailData.json`);
+} else {
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  dataList = require(`../projects/${projectName}/configs/emailData.json`);
+}
+const mailList = dataList;
 
 /**
  * Functionality for sending test results via email
  * @type {exports|module.exports}
  */
-const nodemailer = require('nodemailer');
-
 module.exports = {
-  klassiSendMail: function() {
+  oupSendMail() {
     /** To get all the files that need to be attached */
-    let fileList = [{
-      filename:
-        projectName + ' ' + global.reportName + '-' + dateTime + '.html',
-      path: path.resolve(
-        global.paths.reports, browserName,
-        projectName + ' ' + global.reportName + '-' + dateTime + '.html'
-      )
-    }];
-    if(mailList.AccessibilityReport === 'Yes'){
-      fileList = fileList.concat(accessibilityReportList);
+    let fileList;
+    const date = this.formatDate();
+    if (remoteService && remoteService.type === 'browserstack') {
+      fileList = [
+        {
+          filename: `testReport-${date}.html`,
+          path: path.resolve(`${global.paths.reports}/testReport-${date}.html`),
+        },
+      ];
+    } else {
+      fileList = [
+        {
+          filename: `${projectName} ${global.reportName}-${dateTime}.html`,
+          path: path.resolve(global.paths.reports, browserName, `${projectName} ${global.reportName}-${dateTime}.html`),
+        },
+      ];
+      if (mailList.AccessibilityReport === 'Yes') {
+        fileList = fileList.concat(global.accessibilityReportList);
+      }
     }
-    
-    let devTeam = mailList.nameList;
+    const devTeam = mailList.nameList;
     /**
      * Email relay server connections
      */
-    let transporter = nodemailer.createTransport({
-      host: shared.auth.host,
-      port: shared.auth.port,
+    const transporter = nodeMailer.createTransport({
+      host: shared.host,
+      port: shared.port,
       secure: false,
       auth: {
         user: shared.auth.user,
-        pass: shared.auth.pass
+        pass: shared.auth.pass,
       },
       tls: {
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
-    let mailOptions = {
+    const mailOptions = {
       to: devTeam,
-      from: 'Klassi-QaAutoTest <email@email.com>',
-      subject: projectName + ' ' + global.reportName + '-' + browserName + '-' + dateTime,
+      from: 'OUP-QaAutoTest <QaAutoTest@oup.com>',
+      subject: `${projectName} ${global.reportName}-${browserName}-${dateTime}`,
       alternative: true,
-      attachments:fileList,
-      html:
-        '<b>Please find attached the automated test results for test run on - </b> ' +
-        dateTime
+      attachments: fileList,
+      html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,
     };
-  
     /**
      *  verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
-    transporter.verify(function (err, success) {
+    transporter.verify((err, success) => {
       if (err) {
-        console.log('Server failed to Start' + err.stack);
+        log.error('Server failed to Start', err.stack);
       } else {
-        console.log('Server is ready to take our messages');
+        log.info('Server is ready to take our messages');
       }
       if (success) {
         try {
-          transporter.sendMail(mailOptions, function (err) {
+          transporter.sendMail(mailOptions, () => {
             if (err) {
-              log.error('Result Email CANNOT be sent: ' + err.stack);
+              log.error(`Results Email CANNOT be sent: ${err.stack}`);
               throw err;
             } else {
               log.info('Results Email successfully sent');
             }
           });
+          // eslint-disable-next-line no-shadow
         } catch (err) {
-          log.info('This is a system error: ', err.stack);
+          log.error('This is a system error: ', err.stack);
           throw err;
         }
       }
     });
-  }
+  },
+  formatDate() {
+    const today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; // January is 0!
+    const yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = `0${dd}`;
+    }
+    if (mm < 10) {
+      mm = `0${mm}`;
+    }
+    return `${dd}-${mm}-${yyyy}`;
+  },
 };
