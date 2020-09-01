@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "A debuggable Javascript BDD testing framework. It's simple and easy to use, its built on webdriverio and nodejs",
   "Creator": {
     "name": "Larry Goddard",
