@@ -1,6 +1,6 @@
 {
   "Details" : {
-    "Name": "OUP Automated Testing Tool",
+    "Name": "Klassi Automated Testing Tool",
     "Created by": "Larry Goddard"
   },
 
@@ -17,14 +17,6 @@
   },
   "uat": {
     "envName": "UAT",
-    "base_url": ""
-  },
-  "preprod": {
-    "envName": "PrePRODUCTION",
-    "base_url": ""
-  },
-  "prod": {
-    "envName": "PRODUCTION",
     "base_url": ""
   }
 
