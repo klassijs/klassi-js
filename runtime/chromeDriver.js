@@ -44,7 +44,7 @@ module.exports = async function chromeDriver(options) {
 
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
-  await browser.setWindowSize(1280, 800);
-  // await browser.setWindowSize(2560, 1600);
+  // await browser.setWindowSize(1280, 800);
+  await browser.setWindowSize(2560, 1600);
   return browser;
 };

@@ -14,5 +14,4 @@ Feature: Searching for apps with duckduckgo
     Examples:
       |searchword  |
       |space 1999  |
-#      |oup         |
-#      |angry birds |
+      |angry birds |
