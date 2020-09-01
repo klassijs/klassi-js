@@ -1,20 +1,18 @@
-'use strict';
-
 const shared = require('../shared-objects/apiData');
 const confSettings = require('../../../runtime/confSettings');
 
-let log = global.log;
+const { log } = global;
 let res;
 
 module.exports = {
   /**
    * making a call to the Api
    */
-  getCall: async() => {
-    let baseUrl = shared.url.api_base_url;
-    let url = (baseUrl);
-    let method = 'get';
-    
+  getCall: async () => {
+    const baseUrl = shared.url.api_base_url;
+    const url = baseUrl;
+    const method = 'get';
+
     res = await confSettings.apiCall(url + method);
   },
   /**
@@ -40,5 +38,5 @@ module.exports = {
     browser.pause(DELAY_200ms);
     log.info(res.body);
     console.log(res.body);
-  }
+  },
 };

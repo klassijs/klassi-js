@@ -1,11 +1,5 @@
 {
-  "Details" : {
-    "Name": "Klassi Automated Testing Tool",
-    "Created by": "Larry Goddard"
-  },
-
-  "nameList": "ME <larryg@klassitech.co.uk>",
-  "AccessibilityReport":  "Yes",
+  "nameList": "QA Auto Test <qaautotest@oup.com>",
+  "AccessibilityReport": "Yes",
   "AccessibilityLiteReport":"No"
 }
-

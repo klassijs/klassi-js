@@ -1,10 +1,10 @@
 {
   "Details" : {
-    "Name": "Klassi Automated Testing Tool",
+    "Name": "OUP Automated Testing Tool",
     "Created by": "Larry Goddard"
   },
 
-  "reportName": "Automated Test Report",
+  "reportName": "Automated Report",
   "projectReportName": "Example Test Suite",
 
   "dev": {
@@ -12,19 +12,20 @@
     "base_url": ""
   },
   "test": {
-  "envName": "TEST",
-  "base_url": ""
+    "envName": "TEST",
+    "base_url": "https://"
   },
   "uat": {
     "envName": "UAT",
     "base_url": ""
   },
-  "pre-prod": {
-    "envName": "PRE-PRODUCTION",
+  "preprod": {
+    "envName": "PrePRODUCTION",
     "base_url": ""
   },
   "prod": {
     "envName": "PRODUCTION",
     "base_url": ""
   }
+
 }

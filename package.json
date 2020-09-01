@@ -1,8 +1,8 @@
 {
   "name": "klassi-js",
-  "version": "3.1.0",
+  "version": "3.0.0",
   "description": "A debuggable Javascript BDD testing framework. It's simple and easy to use, its built on webdriverio and nodejs",
-  "Author": {
+  "Creator": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
     "twitter": "twitter.com/lcgoddard",
@@ -28,49 +28,48 @@
     "type": "git",
     "url": "https://github.com/larryg01/klassi-js"
   },
-  "engines": {
-    "node": ">= 10.15.3",
-    "yarn": ">= 1.3.2"
-  },
   "main": "index.js",
   "scripts": {
-    "test": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -dt @api",
-    "dev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -dt @api",
-    "uat": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -dt @search",
-    "bslocal": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -edt @search -w browserstack -x",
-    "cibsuat": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -edt @search -w browserstack -x",
-    "cibsdev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -edt @api -w browserstack -x",
-    "pkgchecks": "yarn check"
+    "all": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d",
+    "dev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t",
+    "bslocal": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e-d-w browserstack -x",
+    "cibsuat": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d -t @search -w browserstack -x",
+    "cibsdev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t @s3 -w browserstack -x",
+    "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {
-    "axe-core": "^3.5.3",
+    "aws-sdk": "^2.740.0",
+    "axe-core": "^4.0.1",
     "browserstack-local": "^1.4.5",
     "chai": "^4.2.0",
+    "chalk": "^4.1.0",
+    "commander": "^6.0.0",
     "cross-env": "^7.0.2",
-    "cucumber": "5.1.0",
+    "cucumber": "^6.0.5",
     "cucumber-html-reporter": "^5.0.0",
-    "cucumber-pretty": "^1.5.0",
-    "fs-extra": "^8.1.0",
+    "cucumber-pretty": "^6.0.0",
+    "fs-extra": "^9.0.1",
     "got": "^9.6.0",
     "merge": "^1.2.1",
     "node-dir": "^0.1.17",
     "node-resemble-js": "^0.2.0",
     "nodemailer": "^6.3.0",
+    "recursive-readdir": "^2.2.2",
     "require-dir": "^1.2.0",
-    "ua-parser-js": "^0.7.21",
+    "webdriverio": "^6.4.2",
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "aws-sdk": "^2.707.0",
-    "chromedriver": "^2.46.0",
-    "eslint": "^6.5.1",
+    "chromedriver": "^85.0.0",
+    "devtools": "^6.4.1",
+    "eslint": "^7.6.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "geckodriver": "^1.19.1",
-    "npm-check": "^5.9.2",
-    "prettier": "^1.18.2",
-    "recursive-readdir": "^2.2.2",
-    "request": "^2.88.0",
-    "webdriverio": "^5.13.2"
+    "eslint-plugin-wdio": "^6.0.12",
+    "geckodriver": "^1.20.0",
+    "prettier": "^2.1.1"
   }
 }

@@ -5,9 +5,6 @@
     "type": "git",
     "url": "https://github.com/{repoName}"
   },
-  "engines": {
-    "node": "^8.11.3"
-  },
   "main": "index.js",
   "scripts": {
     "all": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -ed",

@@ -17,25 +17,29 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
 const wdio = require('webdriverio');
-const loadConfig = require('./configLoader.js');
+const loadConfig = require('./configLoader');
 const browserstack = require('./remotes/browserstack.js');
 
 module.exports = async function browserstackDriver(options, configType) {
-  let config = loadConfig(`./browserstack/${configType}.json`);
-  let credentials = browserstack.getCredentials();
-  let user = credentials.user;
-  let key = credentials.key;
-  let buildNameFromConfig = configType.replace(/-/g, ''); // BrowserStack will do this anyway, this is to make it explicit
-  // configs can define their own build name or it is inferred from the configType
-  if (!config.build) {
+  const config = loadConfig(`./browserstack/${configType}.json`);
+  const credentials = browserstack.getCredentials();
+  const { user } = credentials;
+  const { key } = credentials;
+  const buildNameFromConfig = configType.replace(/-/g, ' '); // BrowserStack will do this anyway, this is to make it explicit
+
+  if (process.env.CI || process.env.CIRCLE_CI) {
+    const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
+
+    config.build = `CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
+  } else if (!config.build) {
+    // configs can define their own build name or it is inferred from the configType
     config.build = buildNameFromConfig;
   }
+
   const defaults = {
-    user: user,
-    key: key,
+    user,
+    key,
 
     updateJob: false,
     exclude: [],
@@ -48,8 +52,9 @@ module.exports = async function browserstackDriver(options, configType) {
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
-    host: 'hub.browserstack.com'
+    host: 'hub.browserstack.com',
   };
+
   const extendedOptions = Object.assign(defaults, options);
   if (config.logLevel) {
     // OPTIONS: verbose | silent | command | data | result
