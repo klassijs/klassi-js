@@ -17,22 +17,14 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
-/**
- * @type {{submitResults, getCredentials}|*}
- */
 const browserstack = require('./remotes/browserstack.js');
 
 module.exports = function getRemote(remoteService) {
-  let remote = {};
+  const remote = {};
 
   function noop() {
-    log.info(
-      'If you are seeing this, you are running a non-existent remoteService'
-    );
+    console.log('If you\'re seeing this, you\'re running a non-existent remoteService');
   }
-
   if (!remoteService) {
     remote.type = 'disabled';
     remote.after = noop;
@@ -40,10 +32,9 @@ module.exports = function getRemote(remoteService) {
     remote.type = 'browserstack';
     remote.after = browserstack.submitResults;
   } else {
-    log.info(`Unknown remote service ${remoteService}`);
+    console.log(`Unknown remote service ${remoteService}`);
     remote.type = 'unknown';
     remote.after = noop;
   }
-
   return remote;
 };

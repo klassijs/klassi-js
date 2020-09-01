@@ -15,13 +15,11 @@
   },
   "main": "index.js",
   "scripts": {
-    "all": "cross-env PROJECT_NAME=example-test-suit&& node ../../index.js -ed",
-    "dev": "cross-env PROJECT_NAME=example-test-suite&& node ../../index.js -dt @api",
-    "uat": "cross-env PROJECT_NAME=example-test-suite&& node ../../index.js -edt @search",
-    "bslocal": "cross-env PROJECT_NAME=example-test-suite&& node ../../index.js -edw browserstack -x",
-    "cibsdev": "cross-env PROJECT_NAME=example-test-suite&& node ../../index.js -t @api -w browserstack -x",
-    "cibsuat": "cross-env PROJECT_NAME=example-test-suite&& node ../../index.js -edt @search -w browserstack -x",
-    "pkgchecks": "yarn check"
+    "all": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d",
+    "dev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t",
+    "bslocal": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @search -w browserstack -x",
+    "cibsuat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @search -w browserstack -x",
+    "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {

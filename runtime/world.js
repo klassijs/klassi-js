@@ -17,38 +17,33 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
-/**
- * world.js is loaded by the cucumber framework before loading the step definitions and feature files
- * it sets all the globals
- * it is responsible for setting up and exposing the browser/expect/assert etc required within each step
- * definition
- */
 const fs = require('fs-extra');
-const requireDir = require('require-dir');
-const merge = require('merge');
 const chalk = require('chalk');
-const dir = require('node-dir');
+let dir = require('node-dir');
 const chai = require('chai');
 const apiGot = require('got');
 const program = require('commander');
-
-const assert = chai.assert;
-const expect = chai.expect;
-const log = require('./logger').klassiLog();
+const merge = require('merge');
+const requireDir = require('require-dir');
+const { Before, After, AfterAll, Status } = require('cucumber');
+const { Given, When, Then, And, But } = require('cucumber');
 const getRemote = require('./getRemote.js');
 
-let cp_path;
+const { assert } = chai;
+const { expect } = chai;
+const log = require('./logger').klassiLog();
+
+let cpPath;
 if (program.aces) {
-  cp_path = '../projects/' + projectName + '/test/settings/helpers.js';
+  cpPath = `../projects/${projectName}/test/settings/helpers`;
 } else {
-  cp_path = '../projects/' + projectName + '/settings/helpers.js';
+  cpPath = `../projects/${projectName}/settings/helpers`;
 }
-const helpers = require(cp_path);
+// eslint-disable-next-line import/no-dynamic-require
+const helpers = require(cpPath);
 
 /**
- * Adding logging
+ * Adding logging adn helpers
  */
 global.log = log;
 global.helpers = helpers;
@@ -77,12 +72,13 @@ global.expect = expect;
 
 /**
  * Environment variables
- * @type {*|(function(): driver)}
+ * @type {*|(function(): browser)}
  */
-let ChromeDriver = require('./chromeDriver'),
-  FirefoxDriver = require('./firefoxDriver'),
-  BrowserStackDriver = require('./browserStackDriver');
-let remoteService = getRemote(global.settings.remoteService);
+const ChromeDriver = require('./chromeDriver');
+const FirefoxDriver = require('./firefoxDriver');
+const BrowserStackDriver = require('./browserStackDriver');
+
+const remoteService = getRemote(global.settings.remoteService);
 
 let browser = {};
 
@@ -91,36 +87,38 @@ let browser = {};
  * @returns {{}}
  */
 async function getDriverInstance() {
-  let browsers = global.settings.browserName;
-  let options = {};
+  const browsers = global.settings.BROWSER_NAME;
+  const options = {};
   if (remoteService && remoteService.type === 'browserstack') {
-    let configType = global.settings.remoteConfig;
-    assert.isString(
-      configType,
-      'BrowserStack requires a config type e.g. win10-chrome'
-    );
+    const configType = global.settings.remoteConfig;
+    assert.isString(configType, 'BrowserStack requires a config type e.g. chrome.json');
     browser = BrowserStackDriver(options, configType);
     return browser;
   }
-  assert.isNotEmpty(browsers, 'Browser Name must be defined');
+  assert.isNotEmpty(browsers, 'Browser must be defined');
+  // eslint-disable-next-line default-case
   switch (browsers || '') {
   case 'firefox':
-    browser = FirefoxDriver(options);
-    break;
+    // eslint-disable-next-line no-lone-blocks
+    {browser = FirefoxDriver(options);} break;
   case 'chrome':
-    browser = ChromeDriver(options);
-    break;
+    // eslint-disable-next-line no-lone-blocks
+    {browser = ChromeDriver(options);} break;
+  default:
+  {browser = ChromeDriver(options);}
   }
   return browser;
 }
 
-let envName = global.envName;
+const { envName } = global;
 let environ;
 
 if (program.aces) {
-  environ = require('../projects/' + projectName + '/test/configs/envConfig');
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  environ = require(`../projects/${projectName}/test/configs/envConfig`);
 } else {
-  environ = require('../projects/' + projectName + '/configs/envConfig');
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  environ = require(`../projects/${projectName}/configs/envConfig`);
 }
 
 /**
@@ -128,30 +126,23 @@ if (program.aces) {
  */
 switch (envName || '') {
 case 'dev':
-{
-    global.envConfig = environ.dev;
-}
-  break;
+  // eslint-disable-next-line no-lone-blocks
+  {global.envConfig = environ.dev;} break;
 case 'test':
-{
-    global.envConfig = environ.test;
-}
-  break;
+  // eslint-disable-next-line no-lone-blocks
+  {global.envConfig = environ.test;} break;
 case 'uat':
-{
-    global.envConfig = environ.uat;
-}
-  break;
-case 'preProd':
-{
-    global.envConfig = environ.preprod;
-}
-  break;
+  // eslint-disable-next-line no-lone-blocks
+  {global.envConfig = environ.uat;} break;
+case 'preprod':
+  // eslint-disable-next-line no-lone-blocks
+  {global.envConfig = environ.preprod;} break;
 case 'prod':
-{
-    global.envConfig = environ.prod;
-}
-  break;
+  // eslint-disable-next-line no-lone-blocks
+  {global.envConfig = environ.prod;} break;
+default:
+  // eslint-disable-next-line no-lone-blocks
+  {global.envConfig = environ.test;} break;
 }
 
 /**
@@ -162,16 +153,25 @@ global.DELAY_100ms = 100; // 100 millisecond delay
 global.DELAY_200ms = 200; // 200 millisecond delay
 global.DELAY_300ms = 300; // 300 millisecond delay
 global.DELAY_500ms = 500; // 500 millisecond delay
+global.DELAY_7500ms = 7500; // 7500 milliseconds delay
 global.DELAY_1s = 1000; // 1 second delay
 global.DELAY_2s = 2000; // 2 second delay
 global.DELAY_3s = 3000; // 3 second delay
 global.DELAY_5s = 5000; // 5 second delay
+global.DELAY_7s = 7000; // 7 second delay
+global.DELAY_8s = 8000; // 8 seconds delay
 global.DELAY_10s = 10000; // 10 second delay
 global.DELAY_15s = 15000; // 15 second delay
+global.DELAY_20s = 20000; // 20 second delay
+global.DELAY_1m = 60000; // 1 minute delay
+global.DELAY_2m = 120000; // 2 minutes delay
+global.DELAY_3m = 180000; // 3 minutes delay
+global.DELAY_5m = 300000; // 5 minutes delay
 
 function consoleInfo() {
-  let args = [].slice.call(arguments),
-    output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
+  // eslint-disable-next-line prefer-rest-params
+  const args = [].slice.call(arguments);
+  const output = chalk.bgBlue.white(`\n>>>>> \n${args}\n<<<<<\n`);
   console.log(output);
 }
 
@@ -179,37 +179,38 @@ function consoleInfo() {
  * All Global variables
  * @constructor
  */
-const { Before, After, AfterAll, Status } = require('cucumber');
-const { Given, When, Then } = require('cucumber');
-
 global.Given = Given;
 global.When = When;
 global.Then = Then;
+global.And = And;
+global.But = But;
 
-function World() {
+function World({ attach, parameters }) {
+  this.attach = attach;
+  this.parameters = parameters;
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{browser: null, webdriverio, expect: *, assert: (*), trace: consoleInfo,
+   * @type {{browser: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
    * log: log, page: {}, shared: {}}}
    */
-  let runtime = {
+  const runtime = {
     browser: {}, // the browser object
     expect: global.expect, // expose chai expect to allow variable testing
     assert: global.assert, // expose chai assert to allow variable testing
-    fs: fs, // expose fs (file system) for use globally
-    dir: dir, // expose dir for getting an array of files, subdirectories or both
+    fs, // expose fs (file system) for use globally
+    dir, // expose dir for getting an array of files, subdirectories or both
     trace: consoleInfo, // expose an info method to log output to the console in a readable/visible format
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
     log: global.log, // expose the log method for output to files for emailing
     downloader: global.downloader, // exposes the downloader for global usage
-    gotApi: global.gotApi, // exposes the request-promise for API testing
-    date: global.date // expose the date method for logs and reports
+    gotApi: global.gotApi, // exposes GOT for API testing
+    date: global.date, // expose the date method for logs and reports
   };
   /**
    *  expose properties to step definition methods via global variables
    */
-  Object.keys(runtime).forEach(function(key) {
+  Object.keys(runtime).forEach((key) => {
     /** make property/method available as a global (no this. prefix required)
      */
     global[key] = runtime[key];
@@ -235,13 +236,13 @@ function World() {
     Array.isArray(global.paths.sharedObjects) &&
     global.paths.sharedObjects.length > 0
   ) {
-    let allDirs = {};
+    const allDirs = {};
     /**
      * first require directories into objects by directory
      */
-    global.paths.sharedObjects.forEach(function(itemPath) {
+    global.paths.sharedObjects.forEach((itemPath) => {
       if (fs.existsSync(itemPath)) {
-        let dir = requireDir(itemPath, { camelcase: true });
+        dir = requireDir(itemPath, { camelcase: true });
         merge(allDirs, dir);
       }
     });
@@ -257,18 +258,21 @@ function World() {
 }
 
 /**
- * export the "World" required by cucumber to allow it to expose methods within step def's
+ * export the 'World' required by cucumber to allow it to expose methods within step def's
  */
 this.World = World;
 
 /**
  * set the default timeout for all tests
  */
+// eslint-disable-next-line import/order
 const { setDefaultTimeout } = require('cucumber');
 
-// Add timeout based on env var.
-const timeout = process.env.CUCUMBER_TIMEOUT || 120000;
-setDefaultTimeout(timeout);
+/**
+ * Add timeout based on env var.
+ */
+const globalTimeout = process.env.CUCUMBER_TIMEOUT || 300000;
+setDefaultTimeout(globalTimeout);
 
 /**
  * start recording of the Test run time
@@ -276,102 +280,76 @@ setDefaultTimeout(timeout);
 global.startDateTime = require('./confSettings').getStartDateTime();
 
 /**
- * create the browser before scenario if it's not instantiated
+ * create the browser before scenario if it's not instantiated and
+ * also exposing the world object in global bariable 'cucumberThis' so that
+ * it can be used in arrow fuctions
  */
-Before(function() {
+// eslint-disable-next-line func-names
+Before(function () {
+  const world = this;
+  global.cucumberThis = world;
   global.browser = getDriverInstance();
   return browser;
 });
 
 /**
+ * compile and generate a report at the END of the test run to be send by Email
  * send email with the report to stakeholders after test run
  */
-AfterAll(function() {
-  let browser = global.browser;
-  let helpers = require('./confSettings');
-  if (program.email) {
-    browser.pause(DELAY_3s).then(function() {
-      return helpers.klassiEmail();
-    });
-  }
+AfterAll(async () => {
+  // eslint-disable-next-line no-shadow
+  const { browser } = global;
+  // eslint-disable-next-line global-require
+  const confSettings = require('./confSettings');
+  await browser.pause(DELAY_300ms);
+  await confSettings.oupReporter();
+  browser.pause(DELAY_5s).then(async () => {
+    if (remoteService && remoteService.type === 'browserstack') {
+      await confSettings.s3Upload();
+    } else if (program.email) {
+      browser.pause(DELAY_5s).then(() => {
+        return confSettings.klassiEmail();
+      });
+    }
+  });
 });
-
-/**
- * compile and generate a report at the END of the test run to be send by Email
- */
-AfterAll(function() {
-  let browser = global.browser;
-  let helpers = require('./confSettings');
-  // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
-  //  ingests it
-
-  // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-  //   let metaDataFile = require('./reporter/metaData');
-  //   let json = JSON.parse(data);
-  //   json.push(data + metaDataFile);
-  //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
-  //     if (err) throw err;
-  //     console.log('The "data to append" was appended to the file!!');
-  //   })
-  //   );
-  // })
-  // );
-
-  browser.pause(DELAY_300ms);
-  helpers.klassiReporter();
-});
-
-// /**
-//  * adding Metadata to the report
-//  */
-// const path = require('path');
-// AfterAll(function(){
-//   // TODO: create and add a method here to append the "metadata information" to the .json file before the reporter
-//   //  ingests it
-//   // fs.readFile(global.paths.reports, browserName + '-' + dateTime + '.json', function (data) {
-//   // // fs.readFile( path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', function (data) {
-//   //   let metaDataFile = require('./reporter/metaData');
-//   //   let json = JSON.parse(data);
-//   //   json.push(data + metaDataFile);
-//   //   fs.writeFile(path.resolve(global.reports, browserName + ' ' + projectName + ' ' + settings.reportName + '-' + dateTime + '.json', JSON.stringify(json), function (err) {
-//   //     if (err) throw err;
-//   //     console.log('The "data to append" was appended to the file!!');
-//   //   })
-//   //   );
-//   // }
-//   // );
-// });
 
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
-After(function(scenario) {
-  let browser = global.browser;
+After(async (scenario) => {
+  // eslint-disable-next-line no-shadow
+  const { browser } = global;
   if (scenario.result.status === Status.FAILED) {
     if (remoteService && remoteService.type === 'browserstack') {
-      return browser.deleteSession();
+      await browser.deleteSession();
     } else {
-      // Comment out to do nothing | leave browser open
-      return browser.deleteSession();
+      // Comment out to leave the browser open after test run
+      console.log(scenario.result.status);
+      await browser.deleteSession();
     }
+  } else if (remoteService && remoteService.type !== 'browserstack') {
+    // Comment out to leave the browser open after test run
+    console.log(scenario.result.status);
+    await browser.deleteSession();
   } else {
-    if (remoteService && remoteService.type !== 'browserstack') {
-      // Comment out to do nothing | leave browser open
-      return browser.deleteSession();
-    } else {
-      return browser.deleteSession();
-    }
+    console.log(scenario.result.status);
+    await browser.deleteSession();
   }
 });
 
 /**
  * get executed only if there is an error within a scenario
  */
-After(function(scenario) {
-  let browser = global.browser;
-  let world = this;
+// eslint-disable-next-line consistent-return,func-names
+After(function (scenario) {
+  // eslint-disable-next-line no-shadow
+  const { browser } = global;
+  const world = this;
   if (scenario.result.status === Status.FAILED) {
-    return browser.takeScreenshot().then(function(screenShot) {
+    // eslint-disable-next-line func-names
+    return browser.takeScreenshot().then(function (screenShot) {
+      // screenShot is a base-64 encoded PNG
       world.attach(screenShot, 'image/png');
     });
   }

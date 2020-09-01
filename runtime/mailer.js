@@ -17,69 +17,114 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
 const path = require('path');
-let shared = require('./scripts/emailConfig');
-let mailingList = require('../projects/' + projectName + '/configs/emailData');
+const program = require('commander');
+const nodeMailer = require('nodemailer');
+const getRemote = require('./getRemote.js');
+const shared = require('./scripts/secrets/emailConfig');
+
+const remoteService = getRemote(global.settings.remoteService);
+const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+// eslint-disable-next-line import/no-dynamic-require
+let dataList;
+if (program.aces) {
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  dataList = require(`../projects/${projectName}/test/configs/emailData.json`);
+} else {
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  dataList = require(`../projects/${projectName}/configs/emailData.json`);
+}
+const mailList = dataList;
 
 /**
  * Functionality for sending test results via email
  * @type {exports|module.exports}
  */
-const nodemailer = require('nodemailer');
-
 module.exports = {
-  klassiSendMail: function() {
-    let devTeam = mailingList.emailList;
+  oupSendMail() {
+    /** To get all the files that need to be attached */
+    let fileList;
+    const date = this.formatDate();
+    if (remoteService && remoteService.type === 'browserstack') {
+      fileList = [
+        {
+          filename: `testReport-${date}.html`,
+          path: path.resolve(`${global.paths.reports}/testReport-${date}.html`),
+        },
+      ];
+    } else {
+      fileList = [
+        {
+          filename: `${projectName} ${global.reportName}-${dateTime}.html`,
+          path: path.resolve(global.paths.reports, browserName, `${projectName} ${global.reportName}-${dateTime}.html`),
+        },
+      ];
+      if (mailList.AccessibilityReport === 'Yes') {
+        fileList = fileList.concat(global.accessibilityReportList);
+      }
+    }
+    const devTeam = mailList.nameList;
     /**
      * Email relay server connections
      */
-    let transporter = nodemailer.createTransport({
-      host: shared.auth.host,
-      port: shared.auth.port,
+    const transporter = nodeMailer.createTransport({
+      host: shared.host,
+      port: shared.port,
+      secure: false,
       auth: {
         user: shared.auth.user,
-        pass: shared.auth.pass
+        pass: shared.auth.pass,
       },
       tls: {
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
-    let mailOptions = {
+    const mailOptions = {
       to: devTeam,
-      from: 'Klassi-QATEST <email@email.com>',
-      subject: projectReportName + ' ' + global.reportName + '-' + date,
+      from: 'OUP-QaAutoTest <QaAutoTest@oup.com>',
+      subject: `${projectName} ${global.reportName}-${browserName}-${dateTime}`,
       alternative: true,
-      // TODO: add code for zipping report files for emailing.
-      // attachments: [
-      //   {
-      //     filename:
-      //       projectName + ' ' + global.reportName + '-' + date + '.html',
-      //     path: path.resolve(
-      //       global.paths.reports,
-      //       projectName + ' ' + global.reportName + '-' + date + '.html'
-      //     )
-      //   }
-      // ],
-      html: '<b>Please find attached the automated test results</b>'
+      attachments: fileList,
+      html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,
     };
     /**
-     *  sends the message and get a callback with an error or details of the message that was sent
+     *  verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
-    try {
-      transporter.sendMail(mailOptions, function(err) {
-        if (err) {
-          log.error('Test Automation Report Result CANNOT be sent: ' + err.stack);
+    transporter.verify((err, success) => {
+      if (err) {
+        log.error('Server failed to Start', err.stack);
+      } else {
+        log.info('Server is ready to take our messages');
+      }
+      if (success) {
+        try {
+          transporter.sendMail(mailOptions, () => {
+            if (err) {
+              log.error(`Results Email CANNOT be sent: ${err.stack}`);
+              throw err;
+            } else {
+              log.info('Results Email successfully sent');
+            }
+          });
+          // eslint-disable-next-line no-shadow
+        } catch (err) {
+          log.error('This is a system error: ', err.stack);
           throw err;
-        } else {
-          log.info('Test Automation Report Results successfully sent');
-          process.exit();
         }
-      });
-    } catch (err) {
-      log.info('This is a system error: ', err.stack);
-      throw err;
+      }
+    });
+  },
+  formatDate() {
+    const today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; // January is 0!
+    const yyyy = today.getFullYear();
+    if (dd < 10) {
+      dd = `0${dd}`;
     }
-  }
+    if (mm < 10) {
+      mm = `0${mm}`;
+    }
+    return `${dd}-${mm}-${yyyy}`;
+  },
 };

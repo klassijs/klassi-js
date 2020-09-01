@@ -25,19 +25,19 @@ references:
   container_config: &container_config
     working_directory: ~/klassi-js
     docker:
-      - image: circleci/openjdk:11.0.2-jdk-node-browsers
+      - image: circleci/node:12.9.1-browsers
 
   restore_repo: &restore_repo
     restore_cache:
       keys:
-        - v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
-        - v1-klassi-repo-{{ .Branch }}
-        - v1-klassi-repo
+        - v2-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
+        - v2-klassi-repo-{{ .Branch }}
+        - v2-klassi-repo
 
   yarn_cache_key: &yarn_cache_key
-    v3-dependency-yarn-{{ checksum "yarn.lock" }}
+    v2-dependency-yarn-{{ checksum "yarn.lock" }}
   yarn_backup_cache_key: &yarn_backup_cache_key
-    v3-dependency-yarn
+    v2-dependency-yarn
 
   restore_yarn_dependencies: &restore_yarn_dependencies
     restore_cache:
@@ -47,7 +47,7 @@ references:
 
   restore_acceptance_builds: &restore_acceptance_builds
     restore_cache:
-      key: v1-acceptance-build-{{ .Environment.CIRCLE_SHA1 }}
+      key: v2-acceptance-build-{{ .Environment.CIRCLE_SHA1 }}
 
 jobs:
   checkout_code:
@@ -57,7 +57,7 @@ jobs:
       - checkout
 
       - save_cache:
-          key:  v1-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
+          key:  v2-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - .
 
@@ -99,14 +99,14 @@ jobs:
           name: Set BrowserStack Local Identifier
           command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
 
-      - run:
-          name: Start BrowserStack Local
-          command: node runtime/remotes/browserstackLocal.js start
-          background: true
-
-      - run:
-          name: Check BrowserStack Local running
-          command: sleep 5;node runtime/remotes/browserstackLocal.js check
+#      - run:
+#          name: Start BrowserStack Local
+#          command: node runtime/remotes/browserstackLocal.js start
+#          background: true
+#
+#      - run:
+#          name: Check BrowserStack Local running
+#          command: sleep 5;node runtime/remotes/browserstackLocal.js check
 
       - run:
           name: Install Dependencies
@@ -145,6 +145,10 @@ jobs:
   integration_test_safari:
     <<: *integration_test_base
     environment: { BROWSER_NAME: 'safari' }
+
+  integration_test_macChrome:
+    <<: *integration_test_base
+    environment: { BROWSER_NAME: 'macChrome' }
 
   integration_test_tabletiPad:
     <<: *integration_test_base
@@ -214,6 +218,10 @@ jobs:
   acceptance_test_safari:
     <<: *acceptance_test_base
     environment: { BROWSER_NAME: 'safari' }
+
+  acceptance_test_macChrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER_NAME: 'macChrome' }
 
   acceptance_test_tabletiPad:
     <<: *acceptance_test_base
@@ -290,6 +298,11 @@ workflows:
             - integration_test_build
             - run_all_integration_tests
 
+      - integration_test_macChrome:
+          requires:
+            - integration_test_build
+            - run_all_integration_tests
+
       - integration_test_tabletiPad:
           requires:
             - integration_test_build
@@ -347,6 +360,11 @@ workflows:
             - run_all_acceptance_tests
 
       - acceptance_test_safari:
+          requires:
+            - acceptance_test_build
+            - run_all_acceptance_tests
+
+      - acceptance_test_macChrome:
           requires:
             - acceptance_test_build
             - run_all_acceptance_tests

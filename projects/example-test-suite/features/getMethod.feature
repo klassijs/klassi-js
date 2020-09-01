@@ -1,4 +1,4 @@
-@api
+@api @uatTest
 Feature: The API feature/functionality
 
   Background: Getting the time

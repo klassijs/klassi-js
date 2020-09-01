@@ -1,92 +1,41 @@
-/**
- Klassi Automated Testing Tool
- Created by Larry Goddard
- */
-/**
- Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
- 
- http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
-'use strict';
-
 const wdio = require('webdriverio');
 const browserstacklocal = require('browserstack-local');
 const loadConfig = require('../configLoader.js');
-let secrets = loadConfig('./browserstack/secrets/browserstack.json');
 
-let bs_local;
-let key = secrets.BROWSERSTACK_ACCESS_KEY;
-let localIdentifier = secrets.BROWSERSTACK_LOCAL_IDENTIFIER;
+const secrets = loadConfig('./runtime/scripts/secrets/browserstack.json');
 
-console.log(
-  `\nExpecting a player build served at port: ${process.env.http || '8080'}\n`
-);
+let bsLocal;
+const key = secrets.BROWSERSTACK_ACCESS_KEY;
+const localIdentifier = secrets.BROWSERSTACK_LOCAL_IDENTIFIER;
+
+// console.log(
+//   `\nExpecting a player build served at port: ${process.env.http || '8080'}\n`
+// );
 
 // start browserstack-local for testing
 console.log('Connecting local to browserstack automate...');
-let bs_local_args = {
-  key: key,
-  localIdentifier: localIdentifier,
-  force: true,
-  logfile: './browserstackLocal.log'
+const bsLocalArgs = {
+  key,
+  localIdentifier,
+  force: 'true',
+  logfile: './browserstack.log',
 };
 
-bs_local = new browserstacklocal.Local();
-wdio.bs_local = bs_local;
+// eslint-disable-next-line prefer-const
+bsLocal = new browserstacklocal.Local();
+wdio.bsLocal = bsLocal;
 
-// bs_local.stop(function() {
-//   console.log('Stopped BrowserStackLocal');
-// });
-
-// start: function() {
-
-bs_local.start(bs_local_args, async function(err) {
+bsLocal.start(bsLocalArgs, async function (err) {
   if (err) {
     console.log('its done and not working', err.message);
   }
-  console.log(
-    'Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n'
-  );
+  console.log('Connected.\n\nNight gathers, and now my watch begins..\nI am the sword in the darkness.\n');
+
   // check if BrowserStack local instance is running
-  console.log(
-    bs_local.isRunning() + ' - Browserstack local instance is running'
-  );
+  console.log(bsLocal.isRunning());
+
+  // stop the Local instance
+  // bsLocal.stop(function() {
+  //   console.log('Stopped BrowserStackLocal');
+  // });
 });
-// }
-// {
-// }
-
-// if (bs_local === 'stop') {
-//   bs_local.stop(function() {
-//     console.log('Stopped BrowserStackLocal');
-//   });
-// }
-
-// }
-// wdio.cli(argv => {
-//   wdio.CliRunner(argv)
-//     .setup(null, () => {
-//       // Stop browserstack local after parallel test
-//       bs_local.stop(() => {
-//         console.log('\tAnd now my watch has ended..');
-//       });
-//       process.exit();
-//     })
-//     .runTests(() => {
-//       // Stop browserstack local after single test
-//       bs_local.stop(() => {
-//         console.log('\tAnd now my watch has ended..');
-//       });
-//       process.exit();
-//     });
-// });

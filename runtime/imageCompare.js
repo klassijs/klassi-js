@@ -17,25 +17,27 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-'use strict';
-
 const resemble = require('node-resemble-js');
 const fs = require('fs-extra');
 
-let helpers = require('./confSettings.js');
-let log = require('./logger').klassiLog();
+const confSettings = require('./confSettings.js');
+const log = require('./logger').klassiLog();
 
-let browserName = global.settings.remoteConfig || global.browserName;
+const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
 
-let baselineDir = `./visual-regression-baseline/${browserName}/`,
-  resultDir = `./artifacts/visual-regression/new-screens/${browserName}/`,
-  resultDirPositive = `${resultDir}positive/`,
-  resultDirNegative = `${resultDir}negative/`,
-  diffDir = `./artifacts/visual-regression/diffs/${browserName}/`,
-  diffDirPositive = `${diffDir}positive/`,
-  diffDirNegative = `${diffDir}negative/`;
+const baselineDir = `./visual-regression-baseline/${browserName}/`;
+const resultDir = `./artifacts/visual-regression/new-screens/${browserName}/`;
+const resultDirPositive = `${resultDir}positive/`;
+const resultDirNegative = `${resultDir}negative/`;
+const diffDir = `./artifacts/visual-regression/diffs/${browserName}/`;
+const diffDirPositive = `${diffDir}positive/`;
+const diffDirNegative = `${diffDir}negative/`;
 
-let file_name, result, diffFile, value;
+// eslint-disable-next-line camelcase
+let file_name;
+let result;
+let diffFile;
+let value;
 
 module.exports = {
   /**
@@ -43,32 +45,33 @@ module.exports = {
    * @method saveScreenshot
    * @param {string} filename The complete path to the file name where the screenshot should be saved.
    * @param filename
-   * @param {string|array} elementsToHide Selectors of elements that should be hidden in the screenshot, like a clock
    * @returns {Promise<void>}
    */
-  saveScreenshot: async function(filename, elementsToHide) {
+  async saveScreenshot(filename, elementsToHide) {
     if (elementsToHide) {
-      await helpers.hideElements(elementsToHide);
+      await confSettings.hideElements(elementsToHide);
     }
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
-    await browser.saveScreenshot(resultPathPositive, err => {
+    await browser.saveScreenshot(resultPathPositive, (err) => {
       if (err) {
         log.error(err.message);
       }
     });
     if (elementsToHide) {
-      await helpers.showElements(elementsToHide);
+      await confSettings.showElements(elementsToHide);
     }
     log.info(`\tScreenshot saved to: ${resultPathPositive}`);
   },
+
   /**
    * Runs assertions and comparison checks on the taken screenshots
    * @param filename
    * @param expected
    * @returns {Promise<void>}
    */
-  assertion: async function(filename, expected) {
+  async assertion(filename, expected) {
+    // eslint-disable-next-line camelcase
     file_name = filename;
     const baselinePath = `${baselineDir}${filename}`;
     const resultPathPositive = `${resultDirPositive}${filename}`;
@@ -85,17 +88,17 @@ module.exports = {
       errorColor: {
         red: 225,
         green: 0,
-        blue: 0
+        blue: 0,
       },
       errorType: 'movement',
       transparency: 0.11,
-      largeImageThreshold: 1200
+      largeImageThreshold: 1200,
     });
     resemble(baselinePath)
       .compareTo(resultPathPositive)
       .ignoreAntialiasing()
       .ignoreColors()
-      .onComplete(async function(res) {
+      .onComplete(async function (res) {
         result = await res;
       });
     /**
@@ -103,31 +106,28 @@ module.exports = {
      * @param result
      * @returns {Promise<void>}
      */
-    this.value = async function() {
+    this.value = async function () {
+      // eslint-disable-next-line no-param-reassign,camelcase
       filename = await file_name;
       const resultPathNegative = `${resultDirNegative}${filename}`;
+      // eslint-disable-next-line no-shadow
       const resultPathPositive = `${resultDirPositive}${filename}`;
-      while (typeof result == 'undefined') {
+      while (typeof result === 'undefined') {
+        // eslint-disable-next-line no-await-in-loop
         await browser.pause(DELAY_100ms);
       }
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
       fs.ensureDirSync(diffDirNegative);
       if (error > this.expected) {
         diffFile = `${diffDirNegative}${filename}`;
-        result
-          .getDiffImage()
-          .pack()
-          .pipe(fs.createWriteStream(diffFile));
+        result.getDiffImage().pack().pipe(fs.createWriteStream(diffFile));
         fs.ensureDirSync(resultDirNegative);
         fs.removeSync(resultPathNegative);
         fs.moveSync(resultPathPositive, resultPathNegative);
         log.info(`\tCreate diff image [negative]: ${diffFile}`);
       } else {
         diffFile = `${diffDirPositive}${filename}`;
-        result
-          .getDiffImage()
-          .pack()
-          .pipe(fs.createWriteStream(diffFile));
+        result.getDiffImage().pack().pipe(fs.createWriteStream(diffFile));
       }
     };
     /**
@@ -135,29 +135,24 @@ module.exports = {
      * @param value
      * @returns {Promise<boolean>}
      */
-    this.pass = async function() {
+    this.pass = async function () {
       // res = await res;
       value = parseFloat(result.misMatchPercentage);
-      this.message = `Screenshot Match Failed for ${filename} with a tolerance difference of ${value -
-        this.expected +
-        ' - expected: ' +
-        this.expected +
-        ' but got: ' +
-        value}`;
+      this.message = `Screenshot Match Failed for ${filename} with a tolerance difference of ${`${
+        value - this.expected
+      } - expected: ${this.expected} but got: ${value}`}`;
+      // eslint-disable-next-line no-shadow
       const baselinePath = `${baselineDir}${filename}`;
       const resultPathNegative = `${resultDirNegative}${filename}`;
       const pass = value <= this.expected;
       const err = value > this.expected;
       if (pass) {
-        log.info(
-          `  Screenshots Matched for ${filename} with ${value}% difference.`
-        );
+        log.info(`  Screenshots Matched for ${filename} with ${value}% difference.`);
       }
       if (err === true) {
         log.error(
           console.log(
-            this.message +
-              '   Screenshots at:\n' +
+            `${this.message}   Screenshots at:\n` +
               `   Baseline: ${baselinePath}\n` +
               `   Result: ${resultPathNegative}\n` +
               `   Diff: ${diffFile}\n` +
@@ -167,10 +162,9 @@ module.exports = {
           )
         );
         if (settings.updateBaselineImage) {
-          log.info(
-            ` All Baseline Screenshots have now been updated from: ${resultPathNegative}`
-          );
-          fs.copy(resultPathNegative, baselinePath, err => {
+          log.info(` All Baseline Screenshots have now been updated from: ${resultPathNegative}`);
+          // eslint-disable-next-line no-shadow
+          fs.copy(resultPathNegative, baselinePath, (err) => {
             if (err) {
               log.error(err.message);
               console.log(err.message);
@@ -178,9 +172,10 @@ module.exports = {
             }
           });
         }
-        throw err + ' - ' + this.message;
+        // eslint-disable-next-line no-throw-literal
+        throw `${err} - ${this.message}`;
       }
       return pass;
     };
-  }
+  },
 };

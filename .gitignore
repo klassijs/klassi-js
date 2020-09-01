@@ -30,7 +30,7 @@ reports
 artifacts
 coverage
 testDir
-projects/shared-objects/docs/userAgent.txt
+/projects/shared-objects/docs/userAgent.txt
 
 
 klassi-browserstack.js
@@ -43,6 +43,8 @@ gen
 configs/emailData.json
 configs/envConfig.json
 browserstack/secrets/browserstack.json
+
+!projects/shared-objects/docs/*.txt
 # Logs
 
 yarn-debug.log*

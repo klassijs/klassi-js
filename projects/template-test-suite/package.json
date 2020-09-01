@@ -1,27 +1,17 @@
 {
-  "name": "template-test-suite",
-  "version": "3.0.0",
-  "description": "A debuggable JS BDD framework that uses nodeJs, webdriverio, JavaScript and cucumber-js",
-  "Author": {
-    "name": "Larry Goddard",
-    "email": "larryg@klassitech.co.uk",
-    "url": "linkedin.com/in/larryg"
-  },
-  "license": "Apache-2.0",
+  "name": "project-name",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com"
-  },
-  "engines": {
-    "node": ">= 8.11.3"
+    "url": "https://github.com/{repoName}"
   },
   "main": "index.js",
   "scripts": {
-    "all": "export PROJECT_NAME=template-test-suite; node ../../index.js -d ",
-    "dev": "export PROJECT_NAME=template-test-suite; node ../../index.js -d -t @myNew",
-    "test": "export PROJECT_NAME=template-test-suite; node ../../index.js -d -t @myNew -w browserstack/chrome",
-    "stack": "export PROJECT_NAME=template-test-suite; node ../../runtime/remote/browserstack && node ../../index.js -d -w browserstack -x",
-    "start": "set NODE_ENV=dev && node index.js"
+    "all": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -ed",
+    "dev": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -dt @tagName",
+    "bslocal": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -edw browserstack -x",
+    "cibsdev": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -edt @tagName -w browserstack -x",
+    "pkgchecks": "yarn check"
   }
 
 }

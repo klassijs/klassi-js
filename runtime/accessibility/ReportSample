@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+ 
+</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body style="background-color:#FEF9E7">
+
+<div class="container" >
+
+  <h2>Accessibility Report - XXX-PageName</h2>
+  <p></p>
+  <ul class="nav nav-pills" >
+    <li class="active"><a data-toggle="pill" href="#home" ><h5>Summary</h5></a></li>
+    <li><a data-toggle="pill" href="#menu1"><h5>Violations</h5></a></li>
+    <li><a data-toggle="pill" href="#menu2"><h5>Incomplete</h5></a></li>
+    <li><a data-toggle="pill" href="#menu3"><h5>Passed</h5></a></li>
+	<li><a data-toggle="pill" href="#menu4"><h5>Not Applicable</h5></a></li>
+	
+  </ul> 
+  
+  <hr>
+  
+  <div class="tab-content">
+    <div id="home" class="tab-pane fade in active" >
+      
+	  
+	  <h4>Execution Overview</h4>
+	  <div style="background-color: #D6FCF9; padding: 10px 10px 10px 10px;border-radius: 15px;">
+      
+	  <div id="browserDetails"></div> 	
+	  <div id="systemDetails"></div>
+	
+	  </div>
+	 <div class="panel-group" id="accordion" style="width:500px ; padding-top:10px">
+	<div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+       Violated Rule(s)
+	   <div style="float: right" id="ViolatedRuleCount"></div>
+      </h4>  
+	</div>
+    </div> 
+	
+	<div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+       Incompleted Rule(s)
+	   <div style="float: right" id="IncompleteRuleCount"></div>
+      </h4>  
+	</div>
+    </div> 
+	<div class="panel panel-default">
+	<div class="panel-heading">
+	  <h4 class="panel-title">
+	   Passed Rule(s)
+	  <div style="float: right" id="PassesRuleCount"></div>
+	  </h4>  
+	</div>
+	</div>
+	
+	</div>
+	</div>
+	
+	
+    <div id="menu1" class="tab-pane fade">
+      <h4>Violated Rule(s)</h4>
+      <div name="ViolationReport" class="panel-group" id="accordion" >
+		</div>
+    </div>
+    <div id="menu2" class="tab-pane fade">
+     <h4>Incomplete Rule(s)</h4>
+      <div name="IncompleteReport" class="panel-group" id="accordion" >
+		</div>
+	</div>
+    <div id="menu3" class="tab-pane fade">
+      <h4>Pass Report</h4>
+      <div name="PassReport" class="panel-group" id="accordion" >
+		</div>
+    </div>
+	<div id="menu4" class="tab-pane fade">
+      <h4>Not Applicable Rule(s)</h4>
+      <div name="InapplicableReport" class="panel-group" id="accordion" >
+		</div>
+    </div>
+  </div>
+
+  
+
+
+
+</div>
+
+<hr>
+
+<script>
+
+var data= XXX-DetailData
+
+var browserData= XXX-AdditinalData
+
+function testdata(data,y,type){
+var panColor="#F9E79F";
+var changeColor=false;
+if(type=="Violation"|| type=="Incomplete"){
+changeColor=true;
+}
+var txt ="";
+//var y=0;
+var z=0;
+for (x in data) {
+ 
+var ImpactMessage="";
+
+if(data[x].impact!=null && (type=='Violation' || type =='Incomplete')){
+
+ImpactMessage=data[x].impact;
+
+if(changeColor){
+if(data[x].impact=='serious'){
+panColor="#F78C75";}
+
+if(data[x].impact=='critical'){
+panColor="#F7994B";
+}
+if(data[x].impact=='moderate'){
+panColor="#F7CD4B";
+}
+
+}
+}else if(type=="Passed"){
+panColor="#A0F9AC";
+}
+
+y=y+1;
+z=z+1;
+txt+='<div class="panel panel-default">';
+     txt+= '<div class="panel-heading" style="background-color:'+panColor+'"'
+	 txt+='>';
+        txt+='<h4 class="panel-title">';
+		
+         txt+='<a data-toggle="collapse" data-parent="#accordion" href="#collapse'
+		txt+=y
+		txt+='">'
+		txt+= z+". "+(data[x].help).replace( /(<([^>]+)>)/ig, '');
+		//txt+= z+": "+(data[x].help).replace( /<>/ig, '');
+		txt+='</a>'
+		
+		txt+='<div style="float: right">'
+		txt+= ImpactMessage;
+		txt+='</div>'
+        txt+='</h4>'
+      txt+='</div>'
+      txt+='<div id="collapse'
+	  txt+=y
+	  txt+='" class="panel-collapse collapse">'
+       txt+='<div class="panel-body" style="background-color: #F3EBD0">'
+        txt+='<a href='
+		txt+= data[x].helpUrl;
+		txt+=' target="_blank">'
+		
+		txt+= '<xmp>'+data[x].help+'</xmp>'
+		txt+='</a>'
+		txt+= '<div>'
+	   txt+= '<xmp>'+data[x].description+'</xmp>'
+      txt+='</div>'
+	  txt+= '<div>'
+	   txt+= data[x].impact;
+      txt+='</div>'
+		txt+= '<div style="overflow:auto">'
+		txt+='<xmp>'
+	   txt+= JSON.stringify(data[x].nodes,undefined,2);
+	 txt+= '</xmp>'
+      txt+='</div>'
+       txt+= '</div>'
+	   
+      txt+='</div>'
+	  
+    txt+='</div>'
+
+/*txt +="<div>"
+txt+= data[x].help;
+txt+="</dev>"*/
+panColor="#F9E79F";
+}
+return txt;
+}
+		function summaryView(data){
+			if( data.violations.length ===undefined){
+			document.getElementById("ViolatedRuleCount").innerHTML = "0";
+			}else{
+			document.getElementById("ViolatedRuleCount").innerHTML=data.violations.length;
+				}
+			if( data.incomplete.length ===undefined){
+			document.getElementById("IncompleteRuleCount").innerHTML = "0";
+			}else{
+			document.getElementById("IncompleteRuleCount").innerHTML=data.incomplete.length;
+				}	
+				
+			if( data.passes.length ===undefined){
+			document.getElementById("PassesRuleCount").innerHTML = "0";
+			}else{
+			document.getElementById("PassesRuleCount").innerHTML=data.passes.length;
+				}
+			
+		}
+		
+		function summaryData(jsonObject,jsonDetail){
+			var txthtml="";
+			txthtml+='<p>URL :'+jsonDetail.url+'</p>'
+			txthtml+='<p>DateTime :'+jsonDetail.timestamp+'</p>'
+		for (var key in jsonObject) {
+				console.log(key, jsonObject[key]);
+				txthtml+='<p>'+ key +" : "+ jsonObject[key] + '</p>'
+							}
+			
+		
+		document.getElementById("systemDetails").innerHTML=txthtml;
+		}
+		
+	function browserInfo(jsonObject){
+			var txthtml="";
+			var bVersion="";
+			var plName="";
+			var plVersion="";
+			if(jsonObject.browserVersion==null){
+				bVersion=jsonObject.version;
+			}else bVersion=jsonObject.browserVersion;
+
+			if(jsonObject.platformName==null){
+				plName=jsonObject.platform;
+			}else plName=jsonObject.platformName;
+
+			txthtml+='<p>Browser Name:'+jsonObject.browserName+'</p>'
+			txthtml+='<p>Browser Version :'+bVersion+'</p>'
+			txthtml+='<p>Platform Used :'+plName+'</p>'
+			
+
+			if(jsonObject.platformVersion==null){
+				plVersion="";
+			}else {plVersion=jsonObject.platformVersion;
+				txthtml+='<p>Platform Version :'+plVersion+'</p>'
+			}
+
+			
+		
+		document.getElementById("browserDetails").innerHTML=txthtml;
+		}
+		
+document.getElementsByName("ViolationReport")[0].innerHTML=testdata(data.violations,1000,"Violation");
+document.getElementsByName("IncompleteReport")[0].innerHTML=testdata(data.incomplete,2000,"Incomplete");
+document.getElementsByName("PassReport")[0].innerHTML=testdata(data.passes,3000,"Passed");
+document.getElementsByName("InapplicableReport")[0].innerHTML=testdata(data.inapplicable,4000,"Inapplicable");
+summaryView(data);
+summaryData(data.testEnvironment,data);
+browserInfo(browserData);
+</script>
+    
+</body>
+</html>

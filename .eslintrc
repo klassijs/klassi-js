@@ -1,70 +1,7 @@
 {
-    "env": {
-        "browser": false,
-        "commonjs": false,
-        "es6": true,
-        "node": true
-    },
-    "parserOptions": {
-        "ecmaVersion":2017,
-        "ecmaFeatures": {
-            "jsx": true
-        },
-        "sourceType": "module"
-    },
-    "plugins": ["prettier"],
-    "extends": "eslint:recommended",
-    "rules": {
-        "no-const-assign": "warn",
-        "no-this-before-super": "warn",
-        "no-undef": "warn",
-        "no-unreachable": "warn",
-        "no-unused-vars": "warn",
-        "constructor-super": "warn",
-        "valid-typeof": "warn",
-        "linebreak-style": [ "error", "unix" ],
-        "no-console": [ 0, "error" ],
-        "indent": [ "error", 2 ],
-        "semi": [ "error", "always" ],
-        "quotes":["error", "single"]
-    },
-    "globals": {
-        "Given": true,
-        "When": true,
-        "Then": true,
-        "helpers":true,
-        "browser": false,
-        "log": true,
-        "date": false,
-        "dateTime": true,
-        "startDateTime": false,
-        "endDateTime": false,
-        "browserName": false,
-        "reportName": true,
-        "projectName": true,
-        "projectReportName": true,
-        "settings": false,
-        "envConfig": true,
-        "request": true,
-        "assert": true,
-        "expect": true,
-        "shared": true,
-        "DELAY_100ms": true,
-        "DELAY_200ms": true,
-        "DELAY_300ms": true,
-        "DELAY_500ms": true,
-        "DELAY_1s": true,
-        "DELAY_2s": true,
-        "DELAY_3s": true,
-        "DELAY_5s": true,
-        "DELAY_10s": true,
-        "DELAY_15s": true,
-        "DELAY_20s": true,
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "strictNullChecks": true,
-        "strictFunctionTypes": false,
-        "noEmit": true,
-        "forceConsistentCasingInFileNames": true
-    }
+    // most folder contexts extend rules in a language-specific way (e.g. src, lambda) so these are a catch-all for other folders
+    "root":true,
+    "extends": [
+        "./runtime/coding-standards/eslint/.eslintrc"
+    ]
 }

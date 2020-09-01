@@ -1,8 +1,5 @@
 {
-  "Details" : {
-    "Name": "Klassi Automated Testing Tool",
-    "Created by": "Larry Goddard"
-  },
-
-  "emailList": "Me <lcg1@hotmail.com>"
+  "nameList": "QA Auto Test <qaautotest@oup.com>",
+  "AccessibilityReport": "Yes",
+  "AccessibilityLiteReport":"No"
 }

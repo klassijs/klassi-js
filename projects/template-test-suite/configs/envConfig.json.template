@@ -5,15 +5,15 @@
   },
 
   "reportName": "{test reportName}",
-  "reportProjectName": "{Project Name}"
+  "projectReportName": "{Project Name}",
 
   "uat": {
-      "envName": "UAT",
-      "base_url": ""
+    "envName": "UAT",
+    "base_url": ""
   },
 
   "dev": {
     "envName": "DEV",
     "base_url": ""
-  },
+  }
 }

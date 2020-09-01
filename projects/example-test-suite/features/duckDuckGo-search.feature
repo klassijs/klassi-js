@@ -1,4 +1,4 @@
-@search
+@search @uatTest
 Feature: Searching for apps with duckduckgo
   As an internet user
   In order to find out more about certain user apps
@@ -13,6 +13,6 @@ Feature: Searching for apps with duckduckgo
 
     Examples:
       |searchword  |
-      |testguild |
-      |@techgirl1908 |
-      |joe colantonio  |
+      |space 1999  |
+#      |oup         |
+#      |angry birds |
