@@ -30,6 +30,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "test": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t @api",
     "all": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d",
     "dev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t",
     "bslocal": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e-d-w browserstack -x",
