@@ -25,7 +25,7 @@ const wdio = require('webdriverio');
 module.exports = async function firefoxDriver(options) {
   const defaults = {
     logLevel: 'error',
-    path: '/wd/hub',
+    // path: '/wd/hub',
     capabilities: {
       browserName: 'firefox',
     },
