@@ -304,12 +304,10 @@ AfterAll(async () => {
   await browser.pause(DELAY_300ms);
   await confSettings.oupReporter();
   browser.pause(DELAY_5s).then(async () => {
-    if (remoteService && remoteService.type === 'browserstack') {
-      await confSettings.s3Upload();
+    if (remoteService && remoteService.type === 'browserstack' && program.email) {
+      // await confSettings.s3Upload();
     } else if (program.email) {
-      browser.pause(DELAY_5s).then(() => {
-        return confSettings.klassiEmail();
-      });
+      browser.pause(DELAY_3s).then(() => confSettings.klassiEmail());
     }
   });
 });
