@@ -35,7 +35,7 @@
     "dev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t",
     "bslocal": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d -w browserstack -x",
     "cibsuat": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d -t @search -w browserstack -x",
-    "cibsdev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t @s3 -w browserstack -x",
+    "cibsdev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d -t @api -w browserstack -x",
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",

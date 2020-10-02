@@ -215,18 +215,20 @@ module.exports = {
       }
     );
   },
-  
   formatDate() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
-    if (dd < 10) {
-      dd = `0${dd}`;
+    const $today = new Date();
+    let $yesterday = new Date($today);
+    $yesterday.setDate($today.getDate() - 1); // setDate also supports negative values, which cause the month to rollover.
+    let $dd = $yesterday.getDate();
+    let $mm = $yesterday.getMonth() + 1; // January is 0!
+    const $yyyy = $yesterday.getFullYear();
+    if ($dd < 10) {
+      $dd = `0${$dd}`;
     }
-    if (mm < 10) {
-      mm = `0${mm}`;
+    if ($mm < 10) {
+      $mm = `0${$mm}`;
     }
-    return `${dd}-${mm}-${yyyy}`;
+    $yesterday = `${$dd}-${$mm}-${$yyyy}`;
+    return $yesterday;
   },
 };

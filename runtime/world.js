@@ -304,12 +304,10 @@ AfterAll(async () => {
   await browser.pause(DELAY_300ms);
   await confSettings.oupReporter();
   browser.pause(DELAY_5s).then(async () => {
-    if (remoteService && remoteService.type === 'browserstack') {
-      await confSettings.s3Upload();
+    if (remoteService && remoteService.type === 'browserstack' && program.email) {
+      // await confSettings.s3Upload();
     } else if (program.email) {
-      browser.pause(DELAY_5s).then(() => {
-        return confSettings.klassiEmail();
-      });
+      browser.pause(DELAY_3s).then(() => confSettings.klassiEmail());
     }
   });
 });
@@ -317,25 +315,17 @@ AfterAll(async () => {
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
-After(async (scenario) => {
+After((scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   if (scenario.result.status === Status.FAILED) {
     if (remoteService && remoteService.type === 'browserstack') {
-      await browser.deleteSession();
-    } else {
-      // Comment out to leave the browser open after test run
-      console.log(scenario.result.status);
-      await browser.deleteSession();
+      return browser.deleteSession();
     }
-  } else if (remoteService && remoteService.type !== 'browserstack') {
-    // Comment out to leave the browser open after test run
-    console.log(scenario.result.status);
-    await browser.deleteSession();
-  } else {
-    console.log(scenario.result.status);
-    await browser.deleteSession();
   }
+  console.log(scenario.result.status);
+  // Comment out to leave the browser open after test run
+  return browser.deleteSession();
 });
 
 /**
