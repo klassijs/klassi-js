@@ -25,7 +25,7 @@ const wdio = require('webdriverio');
 module.exports = async function chromeDriver(options) {
   const defaults = {
     logLevel: 'error',
-    // automationProtocol: 'devtools',
+    path: '/wd/hub',
     capabilities: {
       browserName: 'chrome',
     },

@@ -315,25 +315,17 @@ AfterAll(async () => {
 /**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
-After(async (scenario) => {
+After((scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   if (scenario.result.status === Status.FAILED) {
     if (remoteService && remoteService.type === 'browserstack') {
-      await browser.deleteSession();
-    } else {
-      // Comment out to leave the browser open after test run
-      console.log(scenario.result.status);
-      await browser.deleteSession();
+      return browser.deleteSession();
     }
-  } else if (remoteService && remoteService.type !== 'browserstack') {
-    // Comment out to leave the browser open after test run
-    console.log(scenario.result.status);
-    await browser.deleteSession();
-  } else {
-    console.log(scenario.result.status);
-    await browser.deleteSession();
   }
+  console.log(scenario.result.status);
+  // Comment out to leave the browser open after test run
+  return browser.deleteSession();
 });
 
 /**
