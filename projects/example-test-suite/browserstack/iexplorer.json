@@ -1,8 +1,8 @@
 {
-  "project":"klassi Automated Test",
+  "project":"Klassi Automated Test",
 
   "os": "Windows",
-  "os_version": "7",
+  "os_version": "10",
   "browser": "IE",
   "browserName": "Internet Explorer",
   "browser_version": "11.0",
@@ -17,5 +17,6 @@
   "acceptSslCerts": true,
   "browserstackLocal": true,
   "browserstack.debug": true,
-  "browserstack.networkLogs": true
+  "browserstack.networkLogs": true,
+  "browserstack.selenium_version" : "3.5.2"
 }

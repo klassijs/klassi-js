@@ -1,5 +1,5 @@
 {
-  "project":"klassi Automated Test",
+  "project":"Klassi Automated Test",
 
   "os": "OS X",
   "os_version": "Mojave",
@@ -18,5 +18,6 @@
   "browserstackLocal": true,
   "browserstack.debug": true,
   "browserstack.networkLogs": true,
-  "browserstack.selenium_version": "3.141.5"
+  "browserstack.selenium_version2": "3.141.5",
+  "browserstack.selenium_version": "3.14.0"
 }

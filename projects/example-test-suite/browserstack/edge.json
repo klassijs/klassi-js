@@ -1,11 +1,11 @@
 {
-  "project":"klassi Automated Test",
+  "project":"Klassi Automated Test",
 
   "os": "Windows",
   "os_version": "10",
   "browser": "Edge",
   "browserName": "Edge",
-  "browser_version": "81.0",
+  "browser_version": "latest",
   "resolution": "1280x800",
 
   "javascriptEnabled":true,
@@ -17,5 +17,6 @@
   "acceptSslCerts": true,
   "browserstackLocal": true,
   "browserstack.debug": true,
-  "browserstack.networkLogs": true
+  "browserstack.networkLogs": true,
+  "browserstack.selenium_version" : "3.5.2"
 }
