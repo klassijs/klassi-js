@@ -104,6 +104,7 @@ program
   )
   .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
   .option('-a, --aces [optional]', 'the switch to change the relative path for aces tests')
+  .option('-l, --webDriverProtocol [optional]', 'the switch to change the browser option from devtools to webdriver')
   .parse(process.argv);
 
 program.on('--help', function () {

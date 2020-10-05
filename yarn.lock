@@ -940,7 +940,7 @@ devtools-protocol@0.0.781568:
   resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.781568.tgz#4cdca90a952d2c77831096ff6cd32695d8715a04"
   integrity sha512-9Uqnzy6m6zEStluH9iyJ3iHyaQziFnMnLeC8vK0eN6smiJmIx7+yB64d67C2lH/LZra+5cGscJAJsNXO+MdPMg==
 
-devtools@6.4.5, devtools@^6.4.1:
+devtools@6.4.5:
   version "6.4.5"
   resolved "https://registry.yarnpkg.com/devtools/-/devtools-6.4.5.tgz#2e79861bb3391b4e7c4d06d93ff4e838e920bff9"
   integrity sha512-3mmRdV3MusO+z52Ek9kgjoyW0q/NvUbHCQiKg92iGCsonHmFAaNLrDJL8Wp9KZsboAXSXWkkGgJQoVQcD4Bb7A==

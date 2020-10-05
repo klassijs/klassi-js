@@ -18,19 +18,31 @@
  limitations under the License.
  */
 const wdio = require('webdriverio');
+const program = require('commander');
+
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function firefoxDriver(options) {
-  const defaults = {
-    logLevel: 'error',
-    // path: '/wd/hub',
-    capabilities: {
-      browserName: 'firefox',
-    },
-  };
+let defaults;
 
+module.exports = async function firefoxDriver(options) {
+  if (program.webDriverProtocol) {
+    defaults = {
+      logLevel: 'error',
+      path: '/wd/hub',
+      capabilities: {
+        browserName: 'firefox',
+      },
+    };
+  } else {
+    defaults = {
+      logLevel: 'error',
+      capabilities: {
+        browserName: 'firefox',
+      },
+    };
+  }
   // Add proxy based on env var.
   const useProxy = process.env.USE_PROXY || false;
 

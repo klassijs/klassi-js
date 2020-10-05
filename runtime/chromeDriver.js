@@ -18,19 +18,33 @@
  limitations under the License.
  */
 const wdio = require('webdriverio');
+const program = require('commander');
+
+let defaults = {};
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
 module.exports = async function chromeDriver(options) {
-  const defaults = {
-    logLevel: 'error',
-    // path: '/wd/hub',
-    capabilities: {
-      browserName: 'chrome',
-    },
-  };
-
+  if (program.webDriverProtocol) {
+    defaults = {
+      logLevel: 'error',
+      path: '/wd/hub',
+      capabilities: {
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+          args: ['--disable-popup-blocking'],
+        },
+      },
+    };
+  } else {
+    defaults = {
+      logLevel: 'error',
+      capabilities: {
+        browserName: 'chrome',
+      },
+    };
+  }
   // Add proxy based on env var.
   const useProxy = process.env.USE_PROXY || false;
 
@@ -44,7 +58,7 @@ module.exports = async function chromeDriver(options) {
 
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
-  // await browser.setWindowSize(1280, 800);
-  await browser.setWindowSize(2560, 1600);
+  await browser.setWindowSize(1280, 800);
+  // await browser.setWindowSize(2560, 1600);
   return browser;
 };

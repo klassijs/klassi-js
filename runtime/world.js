@@ -89,12 +89,14 @@ let browser = {};
 async function getDriverInstance() {
   const browsers = global.settings.BROWSER_NAME;
   const options = {};
+
   if (remoteService && remoteService.type === 'browserstack') {
     const configType = global.settings.remoteConfig;
     assert.isString(configType, 'BrowserStack requires a config type e.g. chrome.json');
     browser = BrowserStackDriver(options, configType);
     return browser;
   }
+
   assert.isNotEmpty(browsers, 'Browser must be defined');
   // eslint-disable-next-line default-case
   switch (browsers || '') {
