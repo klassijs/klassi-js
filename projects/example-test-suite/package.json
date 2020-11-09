@@ -5,7 +5,7 @@
   "Author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
-    "twitter": "twitter.com/lcgoddard",
+    "twitter": "twitter.com/Larry_G0",
     "url": "linkedin.com/in/larryg"
   },
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
   "scripts": {
     "all": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d",
     "dev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -d -t",
-    "bslocal": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @search -w browserstack -x",
+    "bslocal": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -d -t @search -w browserstack -x",
     "cibsuat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @search -w browserstack -x",
     "pkgcheck": "yarn install --check-files"
   },
