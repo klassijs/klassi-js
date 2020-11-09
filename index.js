@@ -245,6 +245,21 @@ if (fs.existsSync(accessibility_lib)) {
 } else console.log('No Accessibility Lib');
 
 /**
+ * adding video link access
+ * @type {string}
+ */
+// eslint-disable-next-line camelcase
+const video_lib = path.resolve(__dirname, './runtime/getBsVideoLinks.js');
+if (fs.existsSync(video_lib)) {
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  global.videoLib = require(video_lib);
+
+  console.log('Video library is available for this project');
+} else {
+  console.log('No Video Lib');
+}
+
+/**
  *  adding global date function
  */
 global.date = require('./runtime/confSettings').currentDate();

@@ -4,6 +4,7 @@
     "Created by": "Larry Goddard"
   },
 
+  "bsProjectName": "{browserstack project name}", // name to be same as listed in the Browserstack browser.json file
   "reportName": "{test reportName}",
   "projectReportName": "{Project Name}",
 

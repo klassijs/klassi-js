@@ -5,7 +5,7 @@
   "os_version": "10",
   "browser": "Edge",
   "browserName": "Edge",
-  "browser_version": "81.0",
+  "browser_version": "85.0",
   "resolution": "1280x800",
 
   "javascriptEnabled":true,
@@ -15,7 +15,8 @@
   "logLevel":"silent",
 
   "acceptSslCerts": true,
-  "browserstackLocal": true,
+  "browserstack.local": false,
+  "browserstack.localIdentifier": "QaAutoTest",
   "browserstack.debug": true,
   "browserstack.networkLogs": true
 }

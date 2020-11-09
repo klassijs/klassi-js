@@ -315,6 +315,27 @@ AfterAll(async () => {
 });
 
 /**
+ * BrowserStack Only
+ * executed ONLY on failure of a scenario to get the video link
+ * from browserstack when it fails
+ */
+// eslint-disable-next-line func-names
+After(async (scenario) => {
+  // eslint-disable-next-line global-require
+  const confSettings = require('./confSettings');
+  // eslint-disable-next-line no-shadow
+  const { browser } = global;
+  if (scenario.result.status === Status.FAILED) {
+    if (remoteService && remoteService.type === 'browserstack') {
+      await confSettings.bsVideo();
+      console.log('video link capture is running.......');
+      const vidLink = await videoLib.getVideoId();
+      cucumberThis.attach(`download video link: ${vidLink}`);
+    }
+  }
+});
+
+/**
  *  executed after each scenario (always closes the browser to ensure fresh tests)
  */
 After((scenario) => {

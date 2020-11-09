@@ -285,7 +285,7 @@ module.exports = {
    * @param statusCode
    * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
    */
-  apiCall(url, auth, method, body, fileName, fileData, statusCode) {
+  apiCall(url, method, auth, body, fileName, fileData, statusCode) {
     const options = {
       url,
       method,
@@ -436,5 +436,17 @@ module.exports = {
       const violationcount = accessibilityLib.getAccessibilityError();
       assert.equal(violationcount, 0);
     }
+  },
+
+  /**
+   * getting the video link from browserstack
+   * @returns {Promise<void>}
+   */
+  bsVideo: async () => {
+    // eslint-disable-next-line global-require
+    const page = require('./getBsVideoLinks');
+    await page.getProjectList();
+    await page.getProjectDetails();
+    await page.getSessionID();
   },
 };
