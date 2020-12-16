@@ -22,7 +22,7 @@ const fs = require('fs-extra');
 const winston = require('winston');
 
 module.exports = {
-  klassiLog() {
+  oupLog() {
     const MyDate = new Date();
     let date;
 
@@ -70,3 +70,4 @@ module.exports = {
     return logger;
   },
 };
+

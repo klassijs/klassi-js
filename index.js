@@ -108,7 +108,7 @@ program
   .parse(process.argv);
 
 program.on('--help', function () {
-  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
+  console.log('For more details please visit https://github.com/oup/OAF#readme\n');
 });
 
 const settings = {
@@ -178,9 +178,7 @@ const paths = {
   }),
 };
 
-/**
- *  expose settings and paths for global use
- */
+/** expose settings and paths for global use */
 global.BROWSER_NAME = program.browsers;
 global.settings = settings;
 global.paths = paths;
@@ -189,14 +187,12 @@ global.paths = paths;
  * Adding Global browser folder
  * Adding Accessibility folder at project level
  */
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+global.browserName = global.settings.remoteConfig || global.BROWSER_NAME;
 const reports = `./reports/${browserName}`;
 const axereports = `./reports/${browserName}/accessibility`;
 let file;
 
-/**
- * file creation for userAgent globally
- */
+/** file creation for userAgent globally */
 if (program.aces) {
   file = './shared-objects/docs/userAgent.txt';
 } else {
@@ -219,20 +215,16 @@ fs.ensureDirSync(axereports, function (err) {
   }
 });
 
-/**
- * adding global helpers and making it global
- */
+/** adding global helpers and making it global */
 if (program.aces) {
   cpPath = `./projects/${projectName}/test/settings/helpers.js`;
 } else {
-  cpPath = `./projects/${projectName}/settings/helpers.js`;
+  cpPath = `./projects/${projectName}/settings/helpers`;
 }
 // eslint-disable-next-line import/no-dynamic-require
 global.helpers = require(cpPath);
 
-/**
- * adding global accessibility library
- */
+/** adding global accessibility library */
 // eslint-disable-next-line camelcase
 const accessibility_lib = path.resolve(__dirname, './runtime/accessibility/accessibilityLib.js');
 if (fs.existsSync(accessibility_lib)) {
@@ -245,34 +237,37 @@ if (fs.existsSync(accessibility_lib)) {
 } else console.log('No Accessibility Lib');
 
 /**
- *  adding global date function
+ * adding video link access
+ * @type {string}
  */
+// eslint-disable-next-line camelcase
+const video_lib = path.resolve(__dirname, './runtime/getBsVideoLinks.js');
+if (fs.existsSync(video_lib)) {
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  global.videoLib = require(video_lib);
+
+  console.log('Video library is available for this project');
+} else {
+  console.log('No Video Lib');
+}
+
+/** adding global date function */
 global.date = require('./runtime/confSettings').currentDate();
 global.dateTime = require('./runtime/confSettings').reportDate();
 
-/**
- * store EnvName globally (used within world.js when building browser)
- */
+/** store EnvName globally (used within world.js when building browser) */
 global.envName = program.environment;
 
-/**
- * store BaseUrl globally (uesd within the world.js when building browser)
- */
+/** store BaseUrl globally (uesd within the world.js when building browser) */
 global.base_url = program.environment;
 
-/**
- * rewrite command line switches for cucumber
- */
+/** rewrite command line switches for cucumber */
 process.argv.splice(2, 100);
 
-/**
- * specify the feature files folder (this must be the first argument for Cucumber)
- */
+/** specify the feature files folder (this must be the first argument for Cucumber) */
 process.argv.push(paths.featuresPath);
 
-/**
- * specify the feature files to be executed
- */
+/** specify the feature files to be executed */
 if (program.featureFile) {
   const splitFeatureFiles = program.featureFile.split(',');
 
@@ -281,9 +276,7 @@ if (program.featureFile) {
   });
 }
 
-/**
- * add switch to tell cucumber to produce json report files
- */
+/** add switch to tell cucumber to produce json report files */
 if (program.aces) {
   cpPath = '../../../node_modules/cucumber-pretty';
 } else {
@@ -297,19 +290,13 @@ process.argv.push(
   `json:${path.resolve(__dirname, paths.reports, browserName, `${projectName} ${global.reportName}-${dateTime}.json`)}`
 );
 
-/**
- * add cucumber world as first required script (this sets up the globals)
- */
+/** add cucumber world as first required script (this sets up the globals) */
 process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
 
-/**
- * add path to import step definitions
- */
+/** add path to import step definitions */
 process.argv.push('-r', path.resolve(program.steps));
 
-/**
- * add tag to the scenarios
- */
+/** add tag to the scenarios */
 if (program.tags) {
   // const splitTags = program.tags.split(',');
   // splitTags.forEach(function (tag) {
@@ -318,24 +305,18 @@ if (program.tags) {
   process.argv.push('-t', program.tags);
 }
 
-/**
- * Add split to run multiple browsers from the command line
- */
+/** Add split to run multiple browsers from the command line */
 if (program.browsers) {
   const splitBrowsers = program.browsers.split(',');
-  splitBrowsers.forEach(function (browser) {
+  splitBrowsers.forEach((browser) => {
     process.argv.push('-b', browser);
   });
 }
 
-/**
- * add strict option (fail if there are any undefined or pending steps)
- */
+/** add strict option (fail if there are any undefined or pending steps) */
 process.argv.push('-S');
 
-/**
- * execute cucumber Cli
- */
+/** execute cucumber Cli */
 global.cucumber = cucumber;
 
 // eslint-disable-next-line global-require
@@ -346,26 +327,25 @@ const klassiCli = new (require('cucumber').Cli)({
 });
 
 // eslint-disable-next-line no-new
-new Promise(function (resolve, reject) {
-  try {
-    klassiCli.run(function (success) {
-      // eslint-disable-next-line no-param-reassign
-      resolve = success ? 0 : 1;
-      function exitNow() {
-        process.exit(resolve);
-      }
-      if (process.stdout.write('')) {
-        exitNow();
-      } else {
-        /**
-         * write() returned false, kernel buffer is not empty yet...
-         */
-        process.stdout.on('drain', exitNow);
-      }
-    });
-  } catch (err) {
-    console.log(`cucumber integration has failed ${err.message}`);
-    reject(err);
-    throw err;
-  }
-});
+try {
+  klassiCli.run((success) => {
+    // eslint-disable-next-line no-param-reassign
+    // error status from cucumber, exit non-zero
+    // FIXME: capture actual exit states from cucumber and use that
+    if (!success) {
+      process.exit(1);
+    }
+
+    if (process.stdout.write('')) {
+      process.exit();
+    } else {
+      // kernel buffer is not empty yet
+      process.stdout.on('drain', () => {
+        process.exit();
+      });
+    }
+  });
+} catch (err) {
+  console.log(`cucumber integration has failed ${err.message}`);
+  throw err;
+}

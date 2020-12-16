@@ -27,11 +27,12 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const { Before, After, AfterAll, Status } = require('cucumber');
 const { Given, When, Then, And, But } = require('cucumber');
+const confSettings = require('./confSettings');
 const getRemote = require('./getRemote.js');
 
 const { assert } = chai;
 const { expect } = chai;
-const log = require('./logger').klassiLog();
+const log = require('./logger').oupLog();
 
 let cpPath;
 if (program.aces) {
@@ -42,9 +43,7 @@ if (program.aces) {
 // eslint-disable-next-line import/no-dynamic-require
 const helpers = require(cpPath);
 
-/**
- * Adding logging adn helpers
- */
+/** Adding logging adn helpers */
 global.log = log;
 global.helpers = helpers;
 
@@ -89,25 +88,27 @@ let browser = {};
 async function getDriverInstance() {
   const browsers = global.settings.BROWSER_NAME;
   const options = {};
-
   if (remoteService && remoteService.type === 'browserstack') {
     const configType = global.settings.remoteConfig;
     assert.isString(configType, 'BrowserStack requires a config type e.g. chrome.json');
     browser = BrowserStackDriver(options, configType);
     return browser;
   }
-
   assert.isNotEmpty(browsers, 'Browser must be defined');
-  // eslint-disable-next-line default-case
   switch (browsers || '') {
   case 'firefox':
-    // eslint-disable-next-line no-lone-blocks
-    {browser = FirefoxDriver(options);} break;
+  {
+    browser = FirefoxDriver(options);
+  }
+    break;
   case 'chrome':
-    // eslint-disable-next-line no-lone-blocks
-    {browser = ChromeDriver(options);} break;
-  default:
-  {browser = ChromeDriver(options);}
+  {
+    browser = ChromeDriver(options);
+  }
+    break;
+  default: {
+    browser = ChromeDriver(options);
+  }
   }
   return browser;
 }
@@ -128,23 +129,35 @@ if (program.aces) {
  */
 switch (envName || '') {
 case 'dev':
-  // eslint-disable-next-line no-lone-blocks
-  {global.envConfig = environ.dev;} break;
+{
+  global.envConfig = environ.dev;
+}
+  break;
 case 'test':
-  // eslint-disable-next-line no-lone-blocks
-  {global.envConfig = environ.test;} break;
+{
+  global.envConfig = environ.test;
+}
+  break;
 case 'uat':
-  // eslint-disable-next-line no-lone-blocks
-  {global.envConfig = environ.uat;} break;
+{
+  global.envConfig = environ.uat;
+}
+  break;
 case 'preprod':
-  // eslint-disable-next-line no-lone-blocks
-  {global.envConfig = environ.preprod;} break;
+{
+  global.envConfig = environ.preprod;
+}
+  break;
 case 'prod':
-  // eslint-disable-next-line no-lone-blocks
-  {global.envConfig = environ.prod;} break;
+{
+  global.envConfig = environ.prod;
+}
+  break;
 default:
-  // eslint-disable-next-line no-lone-blocks
-  {global.envConfig = environ.test;} break;
+{
+  global.envConfig = environ.test;
+}
+  break;
 }
 
 /**
@@ -187,9 +200,7 @@ global.Then = Then;
 global.And = And;
 global.But = But;
 
-function World({ attach, parameters }) {
-  this.attach = attach;
-  this.parameters = parameters;
+function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
    * @type {{browser: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
@@ -201,6 +212,7 @@ function World({ attach, parameters }) {
     assert: global.assert, // expose chai assert to allow variable testing
     fs, // expose fs (file system) for use globally
     dir, // expose dir for getting an array of files, subdirectories or both
+    // eslint-disable-next-line max-len
     trace: consoleInfo, // expose an info method to log output to the console in a readable/visible format
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
@@ -273,9 +285,9 @@ const { setDefaultTimeout } = require('cucumber');
 /**
  * Add timeout based on env var.
  */
-const globalTimeout = process.env.CUCUMBER_TIMEOUT || 300000;
+const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);
-
+global.timeout = globalTimeout;
 /**
  * start recording of the Test run time
  */
@@ -288,11 +300,12 @@ global.startDateTime = require('./confSettings').getStartDateTime();
  */
 // eslint-disable-next-line func-names
 Before(function () {
-  const world = this;
-  global.cucumberThis = world;
+  global.cucumberThis = this;
   global.browser = getDriverInstance();
   return browser;
 });
+
+global.status = 0;
 
 /**
  * compile and generate a report at the END of the test run to be send by Email
@@ -301,32 +314,52 @@ Before(function () {
 AfterAll(async () => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  // eslint-disable-next-line global-require
-  const confSettings = require('./confSettings');
-  await browser.pause(DELAY_300ms);
   await confSettings.oupReporter();
-  browser.pause(DELAY_5s).then(async () => {
-    if (remoteService && remoteService.type === 'browserstack' && program.email) {
-      // await confSettings.s3Upload();
-    } else if (program.email) {
-      browser.pause(DELAY_3s).then(() => confSettings.klassiEmail());
-    }
-  });
+  if (remoteService && remoteService.type === 'browserstack' && program.email) {
+    browser.pause(DELAY_5s).then(async () => {
+      await confSettings.s3Upload();
+      browser.pause(DELAY_10s).then(async () => {
+        process.exit(global.status);
+      });
+    });
+  } else if (remoteService && remoteService.type === 'browserstack') {
+    browser.pause(DELAY_5s).then(async () => {
+      process.exit(global.status);
+    });
+  } else if (program.email) {
+    browser.pause(DELAY_3s).then(() => confSettings.oupEmail());
+  }
 });
 
 /**
- *  executed after each scenario (always closes the browser to ensure fresh tests)
+ * BrowserStack Only
+ * executed ONLY on failure of a scenario to get the video link
+ * from browserstack when it fails for the report
  */
-After((scenario) => {
+After(async (scenario) => {
+  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'browserstack') {
+    await confSettings.bsVideo();
+    console.log('video link capture is running.......');
+    // eslint-disable-next-line no-undef
+    const vidLink = await videoLib.getVideoId();
+    // eslint-disable-next-line no-undef
+    cucumberThis.attach(`downloaded video link: ${vidLink}`);
+  }
+});
+
+/**
+ *  executed after each scenario - always closes the browser to ensure fresh tests)
+ */
+After(async (scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  if (scenario.result.status === Status.FAILED) {
+  if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
     if (remoteService && remoteService.type === 'browserstack') {
       return browser.deleteSession();
     }
   }
   console.log(scenario.result.status);
-  // Comment out to leave the browser open after test run
+  // Comment out to leave the browser open after test run while test creation
   return browser.deleteSession();
 });
 
@@ -339,8 +372,8 @@ After(function (scenario) {
   const { browser } = global;
   const world = this;
   if (scenario.result.status === Status.FAILED) {
-    // eslint-disable-next-line func-names
-    return browser.takeScreenshot().then(function (screenShot) {
+    global.status = 1;
+    return browser.takeScreenshot().then((screenShot) => {
       // screenShot is a base-64 encoded PNG
       world.attach(screenShot, 'image/png');
     });

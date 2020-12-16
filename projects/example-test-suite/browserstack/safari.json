@@ -15,7 +15,8 @@
   "logLevel":"silent",
 
   "acceptSslCerts": true,
-  "browserstackLocal": true,
+  "browserstack.local": false,
+  "browserstack.localIdentifier": "QaAutoTest",
   "browserstack.debug": true,
   "browserstack.networkLogs": true,
   "browserstack.selenium_version2": "3.141.5",

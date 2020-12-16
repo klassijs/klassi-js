@@ -1,0 +1,349 @@
+# OUP Automated Testing Tool
+# Created by Larry Goddard
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+
+version: 2.0
+
+references:
+  filter_ignore_wip_branches: &filter_ignore_wip_branches
+    filters:
+      branches:
+        ignore:
+          - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
+          - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
+          - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
+          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
+
+  filter_only_integration_branches: &filter_only_integration_branches
+    filters:
+      branches:
+        only:
+          - develop # git flow production branch
+
+  filter_only_releasable_branches: &filter_only_releasable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow production branch
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
+
+jobs:
+  ###########################################
+  # s3 Report base configuration            #
+  ###########################################
+  s3_report_base: &s3_report_base
+    docker:
+      - image: circleci/node:12.14.1-browsers
+    working_directory: ~/oup-oaf
+    steps:
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Checkout the OAF framework repo
+          command: git clone git@github.com:OUP/oaf.git
+
+      - run:
+          name: Checkout the ELT LTI Management Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/elt_lti_management-js.git
+
+      - run:
+          name: Checkout the ELT TAO Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/elt_tao-js.git
+
+      - run:
+          name: Checkout the EPS Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/EPS-test-suite.git
+
+      - run:
+          name: Checkout the ELT OUPE Marketing Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/elt-oupe-marketing-test-suite.git
+
+      - run:
+          name: Checkout the NGS Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/NGS-Automation_js.git
+
+      - run:
+          name: Checkout the OEUK ORB Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/oeuk-orb-test-suite.git
+
+      - run:
+          name: Checkout the OUP Common Front Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/oup-common-front.git
+
+      - run:
+          name: Checkout the MyMaths Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/mymaths-test-suite.git
+
+      - run:
+          name: Checkout the ELT OET Project repo
+          path: ~/oup-oaf/oaf/projects
+          command: git clone git@github.com:OUP/elt-oet-js.git
+
+      - run:
+          name: Generate dependency cache key
+          command: cat ~/oup-oaf/oaf/package.json ~/oup-oaf/oaf/projects/elt_lti_management-js/package.json ~/oup-oaf/oaf/projects/elt_tao-js/package.json ~/oup-oaf/oaf/projects/EPS-test-suite/package.json ~/oup-oaf/oaf/projects/NGS-Automation_js/package.json ~/oup-oaf/oaf/projects/oeuk-orb-test-suite/package.json ~/oup-oaf/oaf/projects/oup-common-front/test/package.json ~/oup-oaf/oaf/projects/mymaths-test-suite/package.json ~/oup-oaf/oaf/projects/elt-oet-js/package.json > CACHE_KEY
+
+      - restore_cache:
+          key: oaf-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      ## Install Project dependencies
+      - run:
+          name: Install the OAF framework dependencies
+          path: ~/oup-oaf/oaf
+          command: yarn install
+
+      - run:
+          name: Install the ELT LTI Management Project Dependencies
+          path: ~/oup-oaf/oaf/projects/elt_lti_management-js
+          command: yarn install
+
+      - run:
+          name: Install the ELT TAO Project Dependencies
+          path: ~/oup-oaf/oaf/projects/elt_tao-js
+          command: yarn install
+
+      - run:
+          name: Install the EPS Project Dependencies
+          path: ~/oup-oaf/oaf/projects/EPS-test-suite
+          command: yarn install
+
+      - run:
+          name: Install the ELT OUPE Marketing Project Dependencies
+          path: ~/oup-oaf/oaf/projects/elt-oupe-marketing-test-suite
+          command: yarn install
+
+      - run:
+          name: Install the NGS Project Dependencies
+          path: ~/oup-oaf/oaf/projects/NGS-Automation_js
+          command: yarn install
+
+      - run:
+          name: Install the OEUK ORB Project Dependencies
+          path: ~/oup-oaf/oaf/projects/oeuk-orb-test-suite
+          command: yarn install
+
+      - run:
+          name: Install the OUP Common Front Project Dependencies
+          path: ~/oup-oaf/oaf/projects/oup-common-front/test
+          command: yarn install
+
+      - run:
+          name: Install the MyMaths Project Dependencies
+          path: ~/oup-oaf/oaf/projects/mymaths-test-suite
+          command: yarn install
+
+      - run:
+          name: Install the ELT OET Project Dependencies
+          path: ~/oup-oaf/oaf/projects/elt-oet-js
+          command: yarn install
+
+      # Save yarn cache, don't include node modules because we end up with an
+      # archive so large that unarchiving takes longer than the yarn install
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+            - ~/oup-oaf/oaf/yarn.lock
+            - ~/oup-oaf/oaf/projects/elt_lti_management-js/yarn.lock
+            - ~/oup-oaf/oaf/projects/elt_tao-js/yarn.lock
+            - ~/oup-oaf/oaf/projects/EPS-test-suite/yarn.lock
+            - ~/oup-oaf/oaf/projects/elt-oupe-marketing-test-suite/yarn.lock
+            - ~/oup-oaf/oaf/projects/NGS-Automation_js/yarn.lock
+            - ~/oup-oaf/oaf/projects/oeuk-orb-test-suite/yarn.lock
+            - ~/oup-oaf/oaf/projects/oup-common-front/test/yarn.lock
+            - ~/oup-oaf/oaf/projects/mymaths-test-suite/yarn.lock
+            - ~/oup-oaf/oaf/projects/elt-oet-js/yarn.lock
+          key: oaf-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      - run:
+          name: Set BrowserStack local identifier
+          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
+
+      - run:
+          name: Start BrowserStack local
+          path: ~/oup-oaf/oaf
+          command: node ./runtime/remotes/browserstackLocal.js start
+          background: true
+
+      - run:
+          name: Check BrowserStack local running
+          path: ~/oup-oaf/oaf
+          command: sleep 5;node ./runtime/remotes/browserstackLocal.js check
+
+      ## run s3 report
+      - run:
+          name: OAF s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibsoaf $BROWSER
+
+      - run:
+          name: ELT LTI Management s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibseltlti $BROWSER
+
+      - run:
+          name: ELT TAO s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibselttao $BROWSER
+
+      - run:
+          name: EPS s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibseps $BROWSER
+
+      - run:
+          name: ELT OUPE Marketing s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibsoupe $BROWSER
+
+      - run:
+          name: NGS s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibsngs $BROWSER
+
+      - run:
+          name: OEUK ORB s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibsoeukorb $BROWSER
+
+      - run:
+          name: OUP Common Front s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibsoupcf $BROWSER
+
+      - run:
+          name: ELT OET s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibseltoet $BROWSER
+
+      - run:
+          name: MyMaths s3 Report Processing and Email
+          path: ~/oup-oaf/oaf
+          command: yarn run cibsmm $BROWSER
+
+  s3Report_chrome:
+    <<: *s3_report_base
+    environment: { BROWSER: 'chrome'}
+
+
+  ###########################################
+  # Acceptance test base configuration      #
+  ###########################################
+  acceptance_test_base: &acceptance_test_base
+    docker:
+      - image: circleci/node:12.14.1-browsers
+    working_directory: ~/oup-oaf
+    steps:
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Checkout the OAF framework repo
+          command: git clone git@github.com:OUP/oaf.git
+
+      - run:
+          name: Check out the working branch
+          path: ~/oup-oaf/oaf
+          command: git checkout ${CIRCLE_BRANCH}
+
+      - run:
+          name: Generate dependency cache key
+          command: cat ~/oup-oaf/oaf/package.json ~/oup-oaf/oaf/projects/example-test-suite/package.json > CACHE_KEY
+
+      - restore_cache:
+          key: oaf-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      - run:
+          name: Install the OAF framework dependencies
+          path: ~/oup-oaf/oaf
+          command: yarn install
+
+      - run:
+          name: Install the Project dependencies
+          path: ~/oup-oaf/oaf/projects/example-test-suite
+          command: yarn install
+
+      # Save yarn cache, don't include node modules because we end up with an
+      # archive so large that unarchiving takes longer than the yarn install
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+            - ~/oup-oaf/oaf/yarn.lock
+            - ~/oup-oaf/oaf/projects/example-test-suite/yarn.lock
+          key: oaf-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      - run:
+          name: Run acceptance tests
+          path: ~/oup-oaf/oaf/projects/example-test-suite
+          command: yarn run cibs${STAGE} ${BROWSER}
+
+      - store_artifacts:
+          path: ~/oup-oaf/oaf/projects/example-test-suite/artifacts
+
+      - store_test_results:
+          command: sleep 2
+          path: ~/oup-oaf/oaf/projects/example-test-suite/reports
+
+  acceptance_test_chrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'test' }
+
+  acceptance_test_edge:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'edge', STAGE: 'test' }
+
+  acceptance_test_tabletiPad:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'tabletiPad', STAGE: 'test'  }
+
+  acceptance_test_tabletGalaxy:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'tabletGalaxy', STAGE: 'test'  }
+
+  dev_acceptance_test_chrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'dev' }
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - acceptance_test_chrome:
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_edge:
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_tabletGalaxy:
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_tabletiPad:
+          <<: *filter_only_releasable_branches
+
+      - dev_acceptance_test_chrome:
+          <<: *filter_only_integration_branches
+
+  s3Report_run:
+    triggers:
+      - schedule:
+          cron: "00 03 * * *"
+          filters:
+            branches:
+              only:
+                - master
+
+    jobs:
+      - s3Report_chrome

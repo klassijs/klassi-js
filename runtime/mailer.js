@@ -36,8 +36,7 @@ if (program.aces) {
 }
 const mailList = dataList;
 
-/**
- * Functionality for sending test results via email
+/** Functionality for sending test results via email
  * @type {exports|module.exports}
  */
 module.exports = {
@@ -64,18 +63,17 @@ module.exports = {
       }
     }
     const devTeam = mailList.nameList;
-    /**
-     * Email relay server connections
-     */
+    /** Email relay server connections */
     const transporter = nodeMailer.createTransport({
       host: shared.host,
       port: shared.port,
-      secure: false,
+      secure: true,
       auth: {
         user: shared.auth.user,
         pass: shared.auth.pass,
       },
       tls: {
+        // prevent it from failing with invalid/expired cert
         rejectUnauthorized: false,
       },
     });
@@ -87,8 +85,7 @@ module.exports = {
       attachments: fileList,
       html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,
     };
-    /**
-     *  verify the connection and sends the message and get a callback with an error or details of the message that was sent
+    /** verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
     transporter.verify((err, success) => {
       if (err) {
@@ -104,6 +101,10 @@ module.exports = {
               throw err;
             } else {
               log.info('Results Email successfully sent');
+              // eslint-disable-next-line no-unused-vars
+              browser.pause(DELAY_200ms).then((r) => {
+                process.exit(0);
+              });
             }
           });
           // eslint-disable-next-line no-shadow
@@ -114,6 +115,7 @@ module.exports = {
       }
     });
   },
+  /** @returns {string} */
   formatDate() {
     const $today = new Date();
     let $yesterday = new Date($today);
