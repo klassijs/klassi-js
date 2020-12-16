@@ -18,7 +18,8 @@
     "all": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d",
     "dev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -d -t",
     "bslocal": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -d -w browserstack -x",
-    "cibsuat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @search -w browserstack -x",
+    "cibsuat": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @uatTest -w browserstack -x",
+    "cibsdev": "cross-env PROJECT_NAME=example-test-suite node ../../index.js -e -d -t @api -w browserstack -x",
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",

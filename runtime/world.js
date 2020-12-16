@@ -25,7 +25,9 @@ const apiGot = require('got');
 const program = require('commander');
 const merge = require('merge');
 const requireDir = require('require-dir');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const { Before, After, AfterAll, Status } = require('cucumber');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const { Given, When, Then, And, But } = require('cucumber');
 const confSettings = require('./confSettings');
 const getRemote = require('./getRemote.js');
@@ -279,7 +281,7 @@ this.World = World;
 /**
  * set the default timeout for all tests
  */
-// eslint-disable-next-line import/order
+// eslint-disable-next-line import/order,import/no-extraneous-dependencies
 const { setDefaultTimeout } = require('cucumber');
 
 /**

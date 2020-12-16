@@ -12,6 +12,8 @@
     "bslocal": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -edw browserstack -x",
     "cibsdev": "cross-env PROJECT_NAME={projectName}&& node ../../index.js -edt @tagName -w browserstack -x",
     "pkgchecks": "yarn check"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.2"
   }
-
 }

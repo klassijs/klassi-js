@@ -23,6 +23,7 @@ const program = require('commander');
 const fs = require('fs-extra');
 // eslint-disable-next-line import/order
 const pjson = require('./package.json');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const cucumber = require('cucumber');
 
 function collectPaths(value, paths) {
@@ -319,7 +320,7 @@ process.argv.push('-S');
 /** execute cucumber Cli */
 global.cucumber = cucumber;
 
-// eslint-disable-next-line global-require
+// eslint-disable-next-line global-require,import/no-extraneous-dependencies
 const klassiCli = new (require('cucumber').Cli)({
   argv: process.argv,
   cwd: process.cwd(),
@@ -329,9 +330,6 @@ const klassiCli = new (require('cucumber').Cli)({
 // eslint-disable-next-line no-new
 try {
   klassiCli.run((success) => {
-    // eslint-disable-next-line no-param-reassign
-    // error status from cucumber, exit non-zero
-    // FIXME: capture actual exit states from cucumber and use that
     if (!success) {
       process.exit(1);
     }
