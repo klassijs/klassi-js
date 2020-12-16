@@ -63,3 +63,4 @@ module.exports = async function browserstackDriver(options, configType) {
   global.browser = await wdio.remote(extendedOptions);
   return browser;
 };
+

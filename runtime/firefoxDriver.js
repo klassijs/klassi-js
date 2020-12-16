@@ -20,12 +20,11 @@
 const wdio = require('webdriverio');
 const program = require('commander');
 
+let defaults = {};
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-let defaults;
-
 module.exports = async function firefoxDriver(options) {
   if (program.webDriverProtocol) {
     defaults = {
@@ -48,14 +47,13 @@ module.exports = async function firefoxDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domain.com:8080', // input the correct proxy name
+      httpProxy: 'http://ouparray.oup.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false,
     };
   }
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
-  await browser.setWindowSize(1280, 800);
-  // await browser.setWindowSize(2560, 1600);
+  // await browser.setWindowSize(1280, 800);
   return browser;
 };

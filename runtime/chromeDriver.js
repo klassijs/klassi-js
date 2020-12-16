@@ -17,7 +17,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-const wdio = require('webdriverio');
+const { remote } = require('webdriverio');
 const program = require('commander');
 
 let defaults = {};
@@ -42,6 +42,9 @@ module.exports = async function chromeDriver(options) {
       logLevel: 'error',
       capabilities: {
         browserName: 'chrome',
+        'goog:chromeOptions': {
+          args: ['--disable-popup-blocking'],
+        },
       },
     };
   }
@@ -50,14 +53,14 @@ module.exports = async function chromeDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domain.com:8080', // input the correct proxy name
+      httpProxy: 'http://ouparray.oup.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false,
     };
   }
 
   const extendedOptions = Object.assign(defaults, options);
-  global.browser = await wdio.remote(extendedOptions);
+  global.browser = await remote(extendedOptions);
   await browser.setWindowSize(1280, 800);
   // await browser.setWindowSize(2560, 1600);
   return browser;

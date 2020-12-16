@@ -42,36 +42,21 @@ module.exports = {
      * @param seconds
      * @type {number}
      */
-    // eslint-disable-next-line no-undef
-    const timeout = seconds ? seconds * 1000 : globalTimeout;
+    const timeout = seconds ? seconds * 1000 : global.timeout;
     /**
      * load the url and wait for it to complete
-     * and grab the userAgent details
      */
-    // this.getUserAgent();
     await browser.url(url, function () {
       /**
        * now wait for the body element to be present
        */
       browser.waitUntil(browser.$('body'), timeout);
     });
-    // await browser.url(url);
-    // let elem = browser.getPuppeteer();
-    // try{
-    //   await browser.call(async () => {
-    //     // eslint-disable-next-line no-unused-vars
-    //     const page = (await (await elem).pages())[0];
-    //   });
-    // } catch (err) {
-    //   console.log(err);
-    // }
-    // await browser.refresh();
-    // await browser.pause(DELAY_500ms);
-    // /**
-    //  * now wait for the body element to be present
-    //  */
-    // elem = await browser.$('body');
-    // await elem.isExisting();
+    /**
+     * grab the userAgent details from the loaded url
+     */
+    // this.getUserAgent();
+    cucumberThis.attach(`loaded url: ${url}`);
   },
   
   /**
@@ -87,7 +72,7 @@ module.exports = {
     } else {
       file = `../${projectName}/shared-objects/docs/userAgent.txt`;
     }
-    await this.createTxtFile(file, script);
+    await this.writeToTxtFile(file, script);
     await browser.pause(DELAY_100ms);
   },
 
@@ -96,19 +81,21 @@ module.exports = {
    * @param filepath
    * @param output
    */
-  createTxtFile: async (filepath, output) => {
+  writeToTxtFile: async (filepath, output) => {
     try {
       await fs.truncate(filepath, 0);
       await fs.writeFile(filepath, output);
     } catch (err) {
-      if (err) {
-        log.error(`Error in writing file ${err.message}`);
-        throw err;
-      }
+      log.error(`Error in writing file ${err.message}`);
+      throw err;
     }
   },
 
-  readTxtFile: (filePath) => {
+  /**
+   * @param filePath
+   * @returns {Promise<unknown>}
+   */
+  readFromFile: (filePath) => {
     return new Promise((resolve, reject) => {
       fs.readFile(filePath, 'utf-8', (err, data) => {
         // eslint-disable-next-line no-param-reassign
@@ -117,6 +104,7 @@ module.exports = {
       });
     });
   },
+
   /**
    * Visual comparison function
    * @param fileName
@@ -128,6 +116,17 @@ module.exports = {
     await verify.assertion(fileName);
     await verify.value();
     await verify.pass();
+  },
+
+  /**
+   * @param fileName
+   * @param elementsToHide
+   * @returns {Promise<void>}
+   */
+  takeImage: async (fileName, elementsToHide) => {
+    // eslint-disable-next-line global-require
+    const verify = require('./imageCompare');
+    await verify.saveScreenshot(fileName, elementsToHide);
   },
 
   /**
