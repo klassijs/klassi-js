@@ -320,7 +320,7 @@ AfterAll(async () => {
   if (remoteService && remoteService.type === 'browserstack' && program.email) {
     browser.pause(DELAY_5s).then(async () => {
       await confSettings.s3Upload();
-      browser.pause(DELAY_10s).then(async () => {
+      browser.pause(DELAY_5s).then(async () => {
         process.exit(global.status);
       });
     });
@@ -330,6 +330,9 @@ AfterAll(async () => {
     });
   } else if (program.email) {
     browser.pause(DELAY_3s).then(() => confSettings.oupEmail());
+    browser.pause(DELAY_1s).then(async () => {
+      process.exit(global.status);
+    });
   }
 });
 
