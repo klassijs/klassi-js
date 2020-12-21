@@ -330,7 +330,7 @@ AfterAll(async () => {
     });
   } else if (program.email) {
     browser.pause(DELAY_3s).then(() => confSettings.oupEmail());
-    browser.pause(DELAY_1s).then(async () => {
+    browser.pause(DELAY_1s).then(() => {
       process.exit(global.status);
     });
   }
