@@ -170,9 +170,9 @@ module.exports = {
         log.error(
           console.log(
             `${this.message}   images at:\n` +
-            `   Baseline: ${baselinePath}\n` +
-            `   Result: ${resultPathNegative}\n` +
-            `    cp ${resultPathNegative} ${baselinePath}`
+              `   Baseline: ${baselinePath}\n` +
+              `   Result: ${resultPathNegative}\n` +
+              `    cp ${resultPathNegative} ${baselinePath}`
           )
         );
         // eslint-disable-next-line no-shadow
@@ -186,12 +186,12 @@ module.exports = {
       } else if (err) {
         console.log(
           `${this.message}   images at:\n` +
-          `   Baseline: ${baselinePath}\n` +
-          `   Result: ${resultPathNegative}\n` +
-          `   Diff: ${diffFile}\n` +
-          `   Open ${diffFile} to see how the image has changed.\n` +
-          '   If the Resulting image is correct you can use it to update the Baseline image and re-run your test:\n' +
-          `    cp ${resultPathNegative} ${baselinePath}`
+            `   Baseline: ${baselinePath}\n` +
+            `   Result: ${resultPathNegative}\n` +
+            `   Diff: ${diffFile}\n` +
+            `   Open ${diffFile} to see how the image has changed.\n` +
+            '   If the Resulting image is correct you can use it to update the Baseline image and re-run your test:\n' +
+            `    cp ${resultPathNegative} ${baselinePath}`
         );
         // eslint-disable-next-line no-throw-literal
         throw `${err} - ${this.message}`;
