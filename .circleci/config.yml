@@ -22,359 +22,131 @@
 version: 2.0
 
 references:
-  container_config: &container_config
-    working_directory: ~/klassi-js
-    docker:
-      - image: circleci/node:12.9.1-browsers
+  filter_ignore_wip_branches: &filter_ignore_wip_branches
+    filters:
+      branches:
+        ignore:
+          - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
+          - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
+          - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
+          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
 
-  restore_repo: &restore_repo
-    restore_cache:
-      keys:
-        - v2-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
-        - v2-klassi-repo-{{ .Branch }}
-        - v2-klassi-repo
+  filter_only_integration_branches: &filter_only_integration_branches
+    filters:
+      branches:
+        only:
+          - develop # git flow production branch
 
-  yarn_cache_key: &yarn_cache_key
-    v2-dependency-yarn-{{ checksum "yarn.lock" }}
-  yarn_backup_cache_key: &yarn_backup_cache_key
-    v2-dependency-yarn
-
-  restore_yarn_dependencies: &restore_yarn_dependencies
-    restore_cache:
-      keys:
-        - *yarn_cache_key
-        - *yarn_backup_cache_key
-
-  restore_acceptance_builds: &restore_acceptance_builds
-    restore_cache:
-      key: v2-acceptance-build-{{ .Environment.CIRCLE_SHA1 }}
+  filter_only_releasable_branches: &filter_only_releasable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow production branch
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
 
 jobs:
-  checkout_code:
-    <<: *container_config
-    steps:
-      - *restore_repo
-      - checkout
-
-      - save_cache:
-          key:  v2-klassi-repo-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - .
-
-  install_dependencies:
-    <<: *container_config
-    steps:
-      - *restore_repo
-      - *restore_yarn_dependencies
-
-      - run:
-          name: Install Dependencies
-          command: yarn install --frozen-lockfile
-
-      - run:
-          name: Install klassi dependencies
-          command: yarn install
-
-      - save_cache:
-          key: *yarn_cache_key
-          paths:
-            - "~/.cache/yarn"
-            - node_modules
-
-  #                                     #
-  # Integration test base configuration #
-  #                                     #
-  integration_test_base: &integration_test_base
-    <<: *container_config
-    steps:
-      - *restore_repo
-      - *restore_yarn_dependencies
-      - *restore_acceptance_builds
-
-      - run:
-          name: Create Test-Result Directory
-          command: mkdir ./test-results
-
-      - run:
-          name: Set BrowserStack Local Identifier
-          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=integration_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-
-#      - run:
-#          name: Start BrowserStack Local
-#          command: node runtime/remotes/browserstackLocal.js start
-#          background: true
-#
-#      - run:
-#          name: Check BrowserStack Local running
-#          command: sleep 5;node runtime/remotes/browserstackLocal.js check
-
-      - run:
-          name: Install Dependencies
-          command: yarn install
-
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules
-      - run:
-          name: Integration Test Run
-          command: yarn run cibsdev $BROWSER_NAME
-
-      - store_artifacts:
-          path: artifacts
-
-      - store_test_results:
-          path: ./test-results
-
-  integration_test_chrome:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'chrome' }
-
-  integration_test_iexplorer:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'iexplorer' }
-
-  integration_test_edge:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'edge' }
-
-  integration_test_firefox:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'firefox' }
-
-  integration_test_safari:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'safari' }
-
-  integration_test_macChrome:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'macChrome' }
-
-  integration_test_tabletiPad:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'tabletiPad' }
-
-  integration_test_tabletGalaxy:
-    <<: *integration_test_base
-    environment: { BROWSER_NAME: 'tabletGalaxy' }
-
-  integration_test_build:
-    <<: *container_config
-    steps:
-      - run: "echo 'FINISHED'"
-
-  #                                    #
-  # Acceptance test base configuration #
-  #                                    #
+  ###########################################
+  # Acceptance test base configuration      #
+  ###########################################
   acceptance_test_base: &acceptance_test_base
-    <<: *container_config
+    docker:
+      - image: circleci/node:12.14.1-browsers
+    working_directory: ~/klassiG
     steps:
-      - *restore_repo
-      - *restore_yarn_dependencies
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
       - run:
-          name: Create Test-Result Directory
-          command: mkdir ./test-results
+          name: Checkout the klassi framework repo
+          command: git clone git@github.com:larryg01/klassi-js.git
 
       - run:
-          name: Install Dependencies
+          name: Check out the working branch
+          path: ~/klassiG/klassi-js
+          command: git checkout ${CIRCLE_BRANCH}
+
+      - run:
+          name: Generate dependency cache key
+          command: cat ~/klassiG/klassi-js/package.json ~/klassiG/klassi-js/projects/example-test-suite/package.json > CACHE_KEY
+
+      - restore_cache:
+          key: klassi-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      - run:
+          name: Install the klassi framework dependencies
+          path: ~/klassiG/klassi-js
           command: yarn install
 
+      - run:
+          name: Install the Project dependencies
+          path: ~/klassiG/klassi-js/projects/example-test-suite
+          command: yarn install
+
+      # Save yarn cache, don't include node modules because we end up with an
+      # archive so large that unarchiving takes longer than the yarn install
       - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
-            - node_modules
+            - ~/.cache/yarn
+            - ~/klassiG/klassi-js/yarn.lock
+            - ~/klassiG/klassi-js/projects/example-test-suite/yarn.lock
+          key: klassi-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:
-          name: Set BrowserStack Local Identifier
-          command: echo 'export BROWSERSTACK_LOCAL_IDENTIFIER=acceptance_test_$BROWSER_NAME_run_$CIRCLE_BUILD_NUM' >> $BASH_ENV
-
-      - run:
-          name: Acceptance Test Run
-          command: yarn run cibsuat $BROWSER_NAME
+          name: Run acceptance tests
+          path: ~/klassiG/klassi-js/projects/example-test-suite
+          command: yarn run cibs${STAGE} ${BROWSER}
 
       - store_artifacts:
-          path: artifacts
+          path: ~/klassiG/klassi-js/projects/example-test-suite/artifacts
 
       - store_test_results:
-          path: ./test-results
+          command: sleep 2
+          path: ~/klassiG/klassi-js/projects/example-test-suite/reports
 
   acceptance_test_chrome:
     <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'chrome' }
-
-  acceptance_test_iexplorer:
-    <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'iexplorer' }
+    environment: { BROWSER: 'chrome', STAGE: 'uat' }
 
   acceptance_test_edge:
     <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'edge' }
-
-  acceptance_test_firefox:
-    <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'firefox' }
+    environment: { BROWSER: 'edge', STAGE: 'uat' }
 
   acceptance_test_safari:
     <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'safari' }
-
-  acceptance_test_macChrome:
-    <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'macChrome' }
+    environment: { BROWSER: 'safari', STAGE: 'uat' }
 
   acceptance_test_tabletiPad:
     <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'tabletiPad' }
+    environment: { BROWSER: 'tabletiPad', STAGE: 'uat'  }
 
   acceptance_test_tabletGalaxy:
     <<: *acceptance_test_base
-    environment: { BROWSER_NAME: 'tabletGalaxy' }
+    environment: { BROWSER: 'tabletGalaxy', STAGE: 'uat'  }
 
-  acceptance_test_build:
-    <<: *container_config
-    steps:
-      - run: "echo 'FINISHED'"
-
+  dev_acceptance_test_chrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'dev' }
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - checkout_code
-
-      - install_dependencies:
-          requires:
-            - checkout_code
-
-      - integration_test_build:
-          requires:
-            - checkout_code
-            - install_dependencies
-
-      - run_basic_integration_tests:
-          type: approval
-          requires:
-            - integration_test_build
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
-
-      - integration_test_chrome:
-          requires:
-            - integration_test_build
-            - run_basic_integration_tests
-
-      - integration_test_iexplorer:
-          requires:
-            - integration_test_build
-            - run_basic_integration_tests
-
-      - run_all_integration_tests:
-          type: approval
-          requires:
-            - integration_test_build
-            - run_basic_integration_tests
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
-
-      - integration_test_edge:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_firefox:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_safari:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_macChrome:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_tabletiPad:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - integration_test_tabletGalaxy:
-          requires:
-            - integration_test_build
-            - run_all_integration_tests
-
-      - acceptance_test_build:
-          requires:
-            - checkout_code
-            - install_dependencies
-
-      - run_basic_acceptance_tests:
-          type: approval
-          requires:
-            - acceptance_test_build
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
-
       - acceptance_test_chrome:
-          requires:
-            - acceptance_test_build
-            - run_basic_acceptance_tests
-
-      - acceptance_test_iexplorer:
-          requires:
-            - acceptance_test_build
-            - run_basic_acceptance_tests
-
-      - run_all_acceptance_tests:
-          type: approval
-          requires:
-            - acceptance_test_build
-            - run_basic_acceptance_tests
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
+          <<: *filter_only_releasable_branches
 
       - acceptance_test_edge:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_firefox:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
+          <<: *filter_only_releasable_branches
 
       - acceptance_test_safari:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_macChrome:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
-
-      - acceptance_test_tabletiPad:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
+          <<: *filter_only_releasable_branches
 
       - acceptance_test_tabletGalaxy:
-          requires:
-            - acceptance_test_build
-            - run_all_acceptance_tests
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_tabletiPad:
+          <<: *filter_only_releasable_branches
+
+      - dev_acceptance_test_chrome:
+          <<: *filter_only_integration_branches

@@ -5,7 +5,7 @@
   "Creator": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
-    "twitter": "twitter.com/larry_G0",
+    "twitter": "twitter.com/larryG_01",
     "url": "linkedin.com/in/larryg"
   },
   "license": "Apache-2.0",
@@ -31,45 +31,40 @@
   "main": "index.js",
   "scripts": {
     "test": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t @api",
-    "all": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d",
-    "dev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t",
-    "bslocal": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t @search -w browserstack -x",
-    "cibsuat": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d -t @search -w browserstack -x",
-    "cibsdev": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -e -d -t @api -w browserstack -x",
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "dependencies": {
-    "aws-sdk": "^2.740.0",
-    "axe-core": "^4.0.1",
+    "aws-sdk": "^2.811.0",
+    "axe-core": "^4.1.1",
     "browserstack-local": "^1.4.5",
     "chai": "^4.2.0",
     "chalk": "^4.1.0",
-    "commander": "^6.0.0",
-    "cross-env": "^7.0.2",
+    "commander": "^6.2.1",
+    "cross-env": "^7.0.3",
     "cucumber": "^6.0.5",
-    "cucumber-html-reporter": "^5.0.0",
+    "cucumber-html-reporter": "^5.3.0",
     "cucumber-pretty": "^6.0.0",
     "fs-extra": "^9.0.1",
     "got": "^9.6.0",
-    "merge": "^1.2.1",
+    "merge": "^2.1.0",
     "node-dir": "^0.1.17",
     "node-resemble-js": "^0.2.0",
-    "nodemailer": "^6.3.0",
+    "nodemailer": "^6.4.17",
     "recursive-readdir": "^2.2.2",
     "require-dir": "^1.2.0",
-    "webdriverio": "^6.4.2",
+    "webdriverio": "^6.10.10",
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "chromedriver": "^85.0.0",
-    "eslint": "^7.6.0",
+    "chromedriver": "^87.0.4",
+    "eslint": "^7.15.0",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-import": "^2.3.0",
-    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-prettier": "^3.3.0",
     "eslint-plugin-wdio": "^6.0.12",
-    "geckodriver": "^1.20.0",
-    "prettier": "^2.1.1"
+    "geckodriver": "^1.21.1",
+    "prettier": "^2.2.1"
   }
 }
