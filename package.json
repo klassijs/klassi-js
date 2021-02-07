@@ -9,6 +9,10 @@
     "url": "linkedin.com/in/larryg"
   },
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=12.14.1",
+    "yarn": ">=1.21.1"
+  },
   "keywords": [
     "api",
     "api testing",
