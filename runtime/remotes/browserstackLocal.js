@@ -1,14 +1,11 @@
 const wdio = require('webdriverio');
 const browserstacklocal = require('browserstack-local');
-
-// eslint-disable-next-line global-require
-const secrets = require('../scripts/secrets/browserstack.json');
+const { dataconfig } = global;
 
 let bsLocal;
-const key = secrets.BROWSERSTACK_ACCESS_KEY;
-const localIdentifier = secrets.BROWSERSTACK_LOCAL_IDENTIFIER;
+const key = process.env.BROWSERSTACK_ACCESS_KEY || dataconfig.bslocal.accessKey;
+const localIdentifier = process.env.BROWSERSTACK_LOCAL_IDENTIFIER || dataconfig.bslocal.identifier;
 
-// start browserstack-local for testing
 console.log('Connecting local to browserstack automate.....');
 const bsLocalArgs = {
   key,
@@ -32,9 +29,3 @@ bsLocal.start(bsLocalArgs, async function (err) {
     console.log('Connected and running: ', bsLocal.isRunning());
   }
 });
-
-// stop the Local instance
-// eslint-disable-next-line func-names
-// bsLocal.stop(function () {
-//   console.log('stopped BrowserStackLocal');
-// });

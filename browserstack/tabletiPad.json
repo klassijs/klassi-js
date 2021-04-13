@@ -16,7 +16,6 @@
       "logLevel": "silent",
 
       "acceptSslCerts": true,
-      "browserstackLocal": true,
       "browserstack.debug": true,
       "browserstack.networkLogs": true
     },

@@ -15,7 +15,6 @@
   "logLevel":"silent",
 
   "acceptSslCerts": true,
-  "browserstackLocal": true,
   "browserstack.debug": true,
   "browserstack.networkLogs": true,
   "browserstack.selenium_version" : "3.5.2"

@@ -4,13 +4,13 @@
  */
 /**
  Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,33 +18,25 @@
  limitations under the License.
  */
 const path = require('path');
-const program = require('commander');
 const nodeMailer = require('nodemailer');
 const getRemote = require('./getRemote.js');
 const shared = require('./scripts/secrets/emailConfig');
 
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
-// eslint-disable-next-line import/no-dynamic-require
-let dataList;
-if (program.aces) {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  dataList = require(`../projects/${projectName}/test/configs/emailData.json`);
-} else {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  dataList = require(`../projects/${projectName}/configs/emailData.json`);
-}
-const mailList = dataList;
 
 /** Functionality for sending test results via email
  * @type {exports|module.exports}
  */
 module.exports = {
-  oupSendMail() {
+  klassiSendMail() {
     /** To get all the files that need to be attached */
     let fileList;
     const date = this.formatDate();
-    if (remoteService && remoteService.type === 'browserstack') {
+    if (
+      (remoteService && remoteService.type === 'browserstack') ||
+      (remoteService && remoteService.type === 'lambdatest')
+    ) {
       fileList = [
         {
           filename: `testReport-${date}.html`,
@@ -54,15 +46,17 @@ module.exports = {
     } else {
       fileList = [
         {
-          filename: `${projectName} ${global.reportName}-${dateTime}.html`,
-          path: path.resolve(global.paths.reports, browserName, `${projectName} ${global.reportName}-${dateTime}.html`),
+          filename: `${global.reportName}-${dateTime}.html`,
+          path: path.resolve(global.paths.reports, browserName, `${global.reportName}-${dateTime}.html`),
         },
       ];
-      if (mailList.AccessibilityReport === 'Yes') {
+      // eslint-disable-next-line no-undef
+      if (emailData.AccessibilityReport === 'Yes') {
         fileList = fileList.concat(global.accessibilityReportList);
       }
     }
-    const devTeam = mailList.nameList;
+    // eslint-disable-next-line no-undef
+    const devTeam = emailData.emailList;
     /** Email relay server connections */
     const transporter = nodeMailer.createTransport({
       host: shared.host,
@@ -79,8 +73,8 @@ module.exports = {
     });
     const mailOptions = {
       to: devTeam,
-      from: 'OUP-QaAutoTest <QaAutoTest@oup.com>',
-      subject: `${projectName} ${global.reportName}-${browserName}-${dateTime}`,
+      from: 'QaAutoTest <test@test.com>',
+      subject: `${global.reportName}-${browserName}-${dateTime}`,
       alternative: true,
       attachments: fileList,
       html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,
@@ -89,18 +83,18 @@ module.exports = {
      */
     transporter.verify((err, success) => {
       if (err) {
-        log.error('Server failed to Start', err.stack);
+        console.error('Server failed to Start', err.stack);
       } else {
-        log.info('Server is ready to take our messages');
+        console.log('Server is ready to take our messages');
       }
       if (success) {
         try {
           transporter.sendMail(mailOptions, () => {
             if (err) {
-              log.error(`Results Email CANNOT be sent: ${err.stack}`);
+              console.error(`Results Email CANNOT be sent: ${err.stack}`);
               throw err;
             } else {
-              log.info('Results Email successfully sent');
+              console.log('Results Email successfully sent');
               // eslint-disable-next-line no-unused-vars
               browser.pause(DELAY_200ms).then((r) => {
                 process.exit(0);
@@ -109,7 +103,7 @@ module.exports = {
           });
           // eslint-disable-next-line no-shadow
         } catch (err) {
-          log.error('This is a system error: ', err.stack);
+          console.error('This is a system error: ', err.stack);
           throw err;
         }
       }

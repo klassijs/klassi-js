@@ -20,8 +20,6 @@
 const resemble = require('node-resemble-js');
 const fs = require('fs-extra');
 const program = require('commander');
-const confSettings = require('./confSettings.js');
-const log = require('./logger').oupLog();
 
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
 
@@ -34,7 +32,7 @@ const diffDirPositive = `${diffDir}positive/`;
 const diffDirNegative = `${diffDir}negative/`;
 
 // eslint-disable-next-line camelcase
-let file_name;
+let fileName;
 let diffFile;
 
 module.exports = {
@@ -46,9 +44,9 @@ module.exports = {
    * @param filename
    * @returns {Promise<void>}
    */
-  saveScreenshot: async (filename, elementsToHide) => {
+  takeScreenshot: async (filename, elementsToHide) => {
     if (elementsToHide) {
-      await confSettings.hideElements(elementsToHide);
+      await helpers.hideElements(elementsToHide);
     }
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
@@ -58,9 +56,9 @@ module.exports = {
       }
     });
     if (elementsToHide) {
-      await confSettings.showElements(elementsToHide);
+      await helpers.showElements(elementsToHide);
     }
-    log.info(`\t images saved to: ${resultPathPositive}`);
+    console.log(`\t images saved to: ${resultPathPositive}`);
   },
 
   /**
@@ -72,8 +70,7 @@ module.exports = {
    * @returns {Promise<void>}
    */
   assertion(filename, expected, result, value) {
-    // eslint-disable-next-line camelcase
-    file_name = filename;
+    fileName = filename;
     const baselinePath = `${baselineDir}${filename}`;
     const resultPathPositive = `${resultDirPositive}${filename}`;
     fs.ensureDirSync(baselineDir); // Make sure destination folder exists, if not, create it
@@ -81,8 +78,8 @@ module.exports = {
     this.expected = expected || 0.1; // misMatchPercentage tolerance default 0.3%
     if (!fs.existsSync(baselinePath)) {
       // create new baseline image if none exists
-      log.info('\t WARNING: Baseline image does NOT exist.');
-      log.info(`\t Creating Baseline image from Result: ${baselinePath}`);
+      console.log('\t WARNING: Baseline image does NOT exist.');
+      console.log(`\t Creating Baseline image from Result: ${baselinePath}`);
       fs.writeFileSync(baselinePath, fs.readFileSync(resultPathPositive));
     }
     resemble.outputSettings({
@@ -109,8 +106,8 @@ module.exports = {
      */
     // eslint-disable-next-line func-names
     this.value = async function () {
-      // eslint-disable-next-line no-param-reassign,camelcase
-      filename = await file_name;
+      // eslint-disable-next-line no-param-reassign
+      filename = await fileName;
       const resultPathNegative = `${resultDirNegative}${filename}`;
       // eslint-disable-next-line no-shadow
       const resultPathPositive = `${resultDirPositive}${filename}`;
@@ -127,20 +124,20 @@ module.exports = {
         const writeStream = fs.createWriteStream(diffFile);
         await result.getDiffImage().pack().pipe(writeStream);
         // eslint-disable-next-line func-names
-        writeStream.on('error', function (err) {
+        writeStream.on('error', (err) => {
           console.log('this is the writeStream error ', err);
         });
         fs.ensureDirSync(resultDirNegative); // Make sure destination folder exists, if not, create it
         fs.removeSync(resultPathNegative);
         fs.moveSync(resultPathPositive, resultPathNegative);
-        log.info(`\t Create diff image [negative]: ${diffFile}`);
+        console.log(`\t Create diff image [negative]: ${diffFile}`);
       } else {
         diffFile = `${diffDirPositive}${filename}`;
 
         const writeStream = fs.createWriteStream(diffFile);
         result.getDiffImage().pack().pipe(writeStream);
         // eslint-disable-next-line func-names
-        writeStream.on('error', function (err) {
+        writeStream.on('error', (err) => {
           console.log('this is the writeStream error ', err);
         });
       }
@@ -162,22 +159,20 @@ module.exports = {
       const err = value > this.expected;
 
       if (pass) {
-        log.info(`image Match for ${filename} with ${value}% difference.`);
+        console.log(`image Match for ${filename} with ${value}% difference.`);
         await browser.pause(DELAY_1s);
       }
 
-      if (err === true && program.updateBaselineImage) {
-        log.error(
-          console.log(
-            `${this.message}   images at:\n` +
-              `   Baseline: ${baselinePath}\n` +
-              `   Result: ${resultPathNegative}\n` +
-              `    cp ${resultPathNegative} ${baselinePath}`
-          )
+      if (err === true && program.updateBaselineImages) {
+        console.log(
+          `${this.message}   images at:\n` +
+            `   Baseline: ${baselinePath}\n` +
+            `   Result: ${resultPathNegative}\n` +
+            `    cp ${resultPathNegative} ${baselinePath}`
         );
         // eslint-disable-next-line no-shadow
         await fs.copy(resultPathNegative, baselinePath, (err) => {
-          log.info(` All Baseline images have now been updated from: ${resultPathNegative}`);
+          console.log(` All Baseline images have now been updated from: ${resultPathNegative}`);
           if (err) {
             log.error('The Baseline images were NOT updated: ', err.message);
             throw err;

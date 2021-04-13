@@ -1,16 +1,15 @@
 /**
  Klassi Automated Testing Tool
  Created by Larry Goddard
- */
-/**
+
  Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +25,8 @@ module.exports = async function browserstackDriver(options, configType) {
   const credentials = browserstack.getCredentials();
   const { user } = credentials;
   const { key } = credentials;
-  const buildNameFromConfig = configType.replace(/-/g, ' '); // BrowserStack will do this anyway, this is to make it explicit
+  // BrowserStack will do this anyway, this is to make it explicit
+  const buildNameFromConfig = configType.replace(/-/g, ' ');
 
   if (process.env.CI || process.env.CIRCLE_CI) {
     const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
@@ -46,6 +46,7 @@ module.exports = async function browserstackDriver(options, configType) {
     maxInstances: 10,
     capabilities: config,
 
+    logLevel: 'silent',
     coloredLogs: true,
     screenshotPath: './errorShots/',
     baseUrl: '',
@@ -63,4 +64,3 @@ module.exports = async function browserstackDriver(options, configType) {
   global.browser = await wdio.remote(extendedOptions);
   return browser;
 };
-

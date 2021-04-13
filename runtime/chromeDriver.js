@@ -26,7 +26,7 @@ let defaults = {};
  * @returns {{}}
  */
 module.exports = async function chromeDriver(options) {
-  if (program.webDriverProtocol) {
+  if (program.wdProtocol) {
     defaults = {
       logLevel: 'error',
       path: '/wd/hub',
@@ -53,7 +53,7 @@ module.exports = async function chromeDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080', // input the correct proxy name
+      httpProxy: 'http://xxxxxx.xxx.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false,
     };
@@ -62,6 +62,5 @@ module.exports = async function chromeDriver(options) {
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
   await browser.setWindowSize(1280, 800);
-  // await browser.setWindowSize(2560, 1600);
   return browser;
 };
