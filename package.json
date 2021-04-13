@@ -34,6 +34,7 @@
     "dev": "node index.js --disableReport --tags @search",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
     "ciltuat": "node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
+    "ciltdev": "node index.js --disableReport --tags @uattest --remoteService lambdatest --extraSettings",
     "bslocal": "node index.js --disableReport --remoteService browserstack --extraSettings",
     "cibsdev": "node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
     "pkgcheck": "yarn install --check-files"

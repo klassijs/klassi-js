@@ -103,14 +103,10 @@ jobs:
       - run:
           name: Run acceptance tests
           path: ~/klassiG/klassi-js
-          command: yarn run cibs${STAGE} ${BROWSER}
+          command: yarn run cilt${STAGE} ${BROWSER}
 
       - store_artifacts:
           path: ~/klassiG/klassi-js/artifacts
-
-      - store_test_results:
-          command: sleep 2
-          path: ~/klassiG/klassi-js/reports
 
   acceptance_test_chrome:
     <<: *acceptance_test_base
