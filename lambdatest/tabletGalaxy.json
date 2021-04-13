@@ -1,0 +1,10 @@
+{
+  "build": "Klassi Automated Test",
+  "platform" : "Android",
+  "deviceName" : "Galaxy Tab S4",
+  "platformVersion" : "8.1",
+  "deviceOrientation" : "LANDSCAPE",
+  "console" : true,
+  "network" : true,
+  "visual" : true
+}

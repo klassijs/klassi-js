@@ -4,13 +4,13 @@
  */
 /**
  Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
 const getRemote = require('../getRemote');
-const confSettings = require('../confSettings');
 
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
@@ -30,7 +29,7 @@ let resp;
 module.exports = {
   ipAddr: async () => {
     const endPoint = 'http://ip-api.com/json';
-    resp = await confSettings.apiCall(endPoint, 'GET');
+    resp = await helpers.apiCall(endPoint, 'GET');
     await resp;
   },
 
@@ -39,36 +38,42 @@ module.exports = {
     try {
       await this.ipAddr();
       iPData = await resp.body;
+      console.log('this is the IP data ', iPData.country);
     } catch (err) {
-      console.log(err);
       iPData = {};
+      console.log('IP addr func err: ', err.message);
     }
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
-      global.endDateTime = confSettings.getEndDateTime();
+      global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
         theme: 'bootstrap',
-        jsonFile: path.resolve(global.paths.reports, browserName, `${projectName} ${reportName}-${dateTime}.json`),
-        output: path.resolve(global.paths.reports, browserName, `${projectName} ${reportName}-${dateTime}.html`),
+        jsonFile: path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.json`),
+        output: path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
-          Environment: envConfig.envName,
+          // eslint-disable-next-line no-undef
+          Environment: env.envName,
           IpAddress: iPData.query,
           Browser: browserName,
           Location: `${iPData.city} ${iPData.regionName}`,
           Platform: process.platform,
           'Test Completion': endDateTime,
-          Executed: remoteService && remoteService.type === 'browserstack' ? 'Remote' : 'Local',
+          Executed:
+            (remoteService && remoteService.type === 'browserstack') ||
+            (remoteService && remoteService.type === 'lambdatest')
+              ? 'Remote'
+              : 'Local',
         },
-        brandTitle: `${projectName} ${reportName}-${dateTime}`,
-        name: `${projectReportName} ${browserName}`,
+        brandTitle: `${reportName}-${dateTime}`,
+        name: `${projectName} ${browserName}`,
       };
       // eslint-disable-next-line func-names
-      browser.pause(DELAY_3s).then(function () {
+      browser.pause(DELAY_3s).then(() => {
         reporter.generate(reportOptions);
       });
     }

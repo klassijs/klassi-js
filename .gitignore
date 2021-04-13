@@ -14,9 +14,6 @@ build/Release
 node_modules
 
 # Files and Directory
-## project folders
-projects/*
-!projects/testExample/*
 .npm
 .iml
 .node_repl_history
@@ -25,27 +22,19 @@ projects/*
 .nyc*
 .txt
 files
-cssImages
 reports
 artifacts
 coverage
 testDir
-/projects/shared-objects/docs/userAgent.txt
+!shared-objects/docs/userAgent.txt
 
-
-klassi-browserstack.js
 # IntelliJ project files
 .idea
 out
 gen
 .DS_Store
 
-configs/emailData.json
-configs/envConfig.json
-browserstack/secrets/browserstack.json
-
-!projects/shared-objects/docs/*.txt
-# Logs
+visual-regression-baseline/
 
 yarn-debug.log*
 yarn-error.log*
@@ -62,15 +51,11 @@ lib-cov
 # nyc test coverage
 .nyc_output
 
-
-
 # Bower dependency directory (https://bower.io/)
 bower_components
 
 # node-waf configuration
 .lock-wscript
-
-
 
 # Dependency directories
 node_modules/
@@ -93,4 +78,3 @@ typings/
 
 # next.js build output
 .next
-webdriverio-cucumber-js.iml

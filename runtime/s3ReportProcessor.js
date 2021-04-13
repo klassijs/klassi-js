@@ -4,29 +4,30 @@
  */
 /**
  Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
  */
+const path = require('path');
 const fs = require('fs-extra');
 const AWS = require('aws-sdk');
-const program = require('commander');
-const confSettings = require('./confSettings');
-const s3Data = require('./scripts/secrets/awsConfig');
 
-const s3Bucket = s3Data.BUCKET_NAME;
-const s3AccessKeyId = s3Data.ID;
-const s3SecretAccessKey = s3Data.SECRET;
-const domainName = s3Data.DOMAIN_NAME;
+// eslint-disable-next-line no-undef
+const awsData = dataconfig.awsConfig;
+
+const s3Bucket = process.env.AWS_BUCKET_NAME || s3Data.BUCKET_NAME || awsData.BUCKET_NAME;
+const s3AccessKeyId = process.env.AWS_ID || s3Data.ID || awsData.ID;
+const s3SecretAccessKey = process.env.AWS_SECRET || s3Data.SECRET || awsData.SECRET;
+const domainName = process.env.AWS_DOMAIN_NAME || s3Data.DOMAIN_NAME || awsData.DOMAIN_NAME;
 
 const s3 = new AWS.S3({
   region: 'eu-west-1',
@@ -39,27 +40,14 @@ module.exports = {
     const date = this.formatDate();
     const folderName = date;
     // eslint-disable-next-line no-param-reassign
-    projectName = global.projectName;
+    projectName = s3Data.s3FolderName || awsData.s3FolderName;
     console.log(`Starting Processing of Test Report for: ${date}/${projectName} ...`);
     /**
      * This creates the test report from the sample template
      * @type {string}
      */
-    let cpPath;
-    if (program.aces) {
-      cpPath = `../../${projectName}/test/shared-objects/docs/s3ReportSample`;
-    } else {
-      cpPath = `../${projectName}/shared-objects/docs/s3ReportSample`;
-    }
-    const tempFile = cpPath;
-
-    let filePath;
-    if (program.aces) {
-      filePath = `../../${projectName}/test/reports/testReport-${date}.html`;
-    } else {
-      filePath = `../${projectName}/reports/testReport-${date}.html`;
-    }
-    const file = filePath;
+    const tempFile = path.resolve(__dirname, './scripts/secrets/s3ReportSample');
+    const file = `../${projectName}/reports/testReport-${date}.html`;
     await fs.copySync(tempFile, file);
 
     /**
@@ -81,7 +69,7 @@ module.exports = {
     let dataList;
     let dataNew = '';
     let browsername;
-    let dataOut = await confSettings.readFromFile(tempFile);
+    let dataOut = await helpers.readFromFile(tempFile);
 
     s3.listObjects(
       {
@@ -116,12 +104,12 @@ module.exports = {
             dataOut = dataOut.replace(`This is ${browsername}`, browserData.join(' '));
           }
         }
-        await confSettings.writeToTxtFile(file, dataOut);
+        await helpers.writeToTxtFile(file, dataOut);
         if (dataList === undefined) {
           console.log('There is no Data for this Project / project does not exist ....', dataList);
         } else if (dataList.length > 0) {
           console.log('Test run completed and s3 report being sent .....');
-          await confSettings.oupEmail();
+          await helpers.klassiEmail();
         }
       }
     );

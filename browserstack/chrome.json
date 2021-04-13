@@ -5,7 +5,7 @@
   "os_version": "10",
   "browser": "Chrome",
   "browserName": "Chrome",
-  "browser_version": "latest",
+  "browser_version": "87",
   "resolution": "1280x800",
   "chromeOptions": {
     "args": ["disable-infobars"]
@@ -18,8 +18,6 @@
   "logLevel":"silent",
 
   "acceptSslCerts": true,
-  "browserstackLocal": true,
   "browserstack.debug": true,
-  "browserstack.networkLogs": true,
-  "browserstack.selenium_version" : "3.14.0"
+  "browserstack.networkLogs": true
 }

@@ -19,10 +19,10 @@ module.exports = {
     const axeSource = require('axe-core').source;
 
     await browser.execute(axeSource);
-    const results = await browser.executeAsync(function (done) {
+    const results = await browser.executeAsync((done) => {
       // run axe on our site
       // eslint-disable-next-line func-names,no-shadow
-      axe.run(function (err, results) {
+      axe.run((err, results) => {
         if (err) done(err);
         done(results);
       });
@@ -30,8 +30,8 @@ module.exports = {
 
     const additionalData = await browser.capabilities;
     const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
-    console.log('Generating Axe Report');
-    const reportLiteType = mailList.AccessibilityLiteReport;
+    console.log('Generating Axe Report........');
+    const reportLiteType = emailData.AccessibilityLiteReport;
     if (reportLiteType === 'Yes') {
       await module.exports.GenerateFinalAccessibilityLiteReport(results, additionalData, PageName, browserName);
     } else {
@@ -53,8 +53,7 @@ module.exports = {
     let finalHtml = addDataInHtml.replace('XXX-AdditinalData', JSON.stringify(additionalData));
     finalHtml = finalHtml.replace('XXX-PageName', Pagename);
 
-    //  let screenpic=await module.exports.takeScreenPic();
-    //  finalHtml=finalHtml.replace('XXX-Pic',screenpic);
+    // take screen pics
     const dirAcc = `${global.paths.reports}/${browserName}/accessibility`;
     if (!fs.existsSync(dirAcc)) {
       fs.ensureDirSync(dirAcc);
@@ -63,7 +62,7 @@ module.exports = {
     const curdatatime = module.exports.getCurrentDateTime();
     const fileName = `AccessbilityReport_${Pagename}-${browserName}_${curdatatime}`;
 
-    fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', function (err) {
+    fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', (err) => {
       if (err) throw err;
       else
         accessibilityReportList.push({
@@ -75,7 +74,7 @@ module.exports = {
       `${dirAcc}/AccessbilityReport_${Pagename}-${browserName}_${curdatatime}.json`,
       JSON.stringify(fullData, null, 4),
       'utf-8',
-      function (err) {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -92,7 +91,6 @@ module.exports = {
     const violationdata = await module.exports.htmlDataRender(fullData.violations, 1000, 'Violation');
     const incompletedata = await module.exports.htmlDataRender(fullData.incomplete, 2000, 'Incomplete');
 
-    // let addDataInHtml=sample.replace('XXX-DetailData',JSON.stringify(fullData));
     let addDataInHtml = sample.replace('XXXNoViolationRuleXXX', violationdata);
     addDataInHtml = addDataInHtml.replace('XXXNoIncompleteRuleXXX', incompletedata);
     addDataInHtml = addDataInHtml.replace('XXsystemDetailsXX', summaryViewData);
@@ -101,8 +99,6 @@ module.exports = {
     let finalHtml = addDataInHtml.replace('XXX-AdditinalData', JSON.stringify(additionalData));
     finalHtml = finalHtml.replace('XXX-PageName', Pagename);
 
-    //  let screenpic=await module.exports.takeScreenPic();
-    //  finalHtml=finalHtml.replace('XXX-Pic',screenpic);
     const dirAcc = `${global.paths.reports}/${browserName}/accessibility`;
     if (!fs.existsSync(dirAcc)) {
       fs.ensureDirSync(dirAcc);
@@ -111,7 +107,7 @@ module.exports = {
     const curdatatime = module.exports.getCurrentDateTime();
     const fileName = `AccessbilityReport_${Pagename}-${browserName}_${curdatatime}`;
 
-    fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', function (err) {
+    fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', (err) => {
       if (err) throw err;
       else
         accessibilityReportList.push({
@@ -123,7 +119,7 @@ module.exports = {
       `${dirAcc}/AccessbilityReport_${Pagename}-${browserName}_${curdatatime}.json`,
       JSON.stringify(fullData, null, 4),
       'utf-8',
-      function (err) {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -147,7 +143,7 @@ module.exports = {
       fs.mkdirSync(dirAcc);
     }
 
-    fs.writeFile(`${dirAcc}/AccessbilityReport_${Pagename}.html`, NewHtml, 'utf-8', function (err) {
+    fs.writeFile(`${dirAcc}/AccessbilityReport_${Pagename}.html`, NewHtml, 'utf-8', (err) => {
       if (err) throw err;
     });
   },
@@ -210,7 +206,7 @@ module.exports = {
   /** fuction to attach screen shot into the acceesibility report */
   async takeScreenPic() {
     let picstring;
-    await browser.takeScreenshot().then(function (screenShot) {
+    await browser.takeScreenshot().then((screenShot) => {
       picstring = screenShot;
     });
     return picstring;
@@ -320,9 +316,6 @@ module.exports = {
 
       txt += '</div>';
 
-      /* txt +="<div>"
-      txt+= data[x].help;
-      txt+="</dev>" */
       panColor = '#F9E79F';
     }
     return txt;
@@ -359,11 +352,8 @@ module.exports = {
     txthtml += `<p>DateTime :${jsonDetail.timestamp}</p>`;
     // eslint-disable-next-line guard-for-in,no-restricted-syntax
     for (const key in jsonObject) {
-      //	console.log(key, jsonObject[key]);
       txthtml += `<p>${key} : ${jsonObject[key]}</p>`;
     }
-
-    // document.getElementById("systemDetails").innerHTML=;
     return txthtml;
   },
 };

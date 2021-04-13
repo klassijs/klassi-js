@@ -19,9 +19,21 @@
 #
 #    Check https://circleci.com/docs/2.0/language-javascript/ for more details
 
-version: 2.0
+version: 2.1
 
 references:
+  filter_only_testable_branches: &filter_only_testable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow production branch
+          - develop # git flow integration branch
+          - /feature\/.*/ # git flow feature branches
+          - /bugfix\/.*/ # git flow bugfix branches
+          - /release\/.*/ # git flow release branches
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /support\/.*/ # git flow support branches
+
   filter_ignore_wip_branches: &filter_ignore_wip_branches
     filters:
       branches:
@@ -29,19 +41,20 @@ references:
           - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
           - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
           - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
-          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
 
   filter_only_integration_branches: &filter_only_integration_branches
     filters:
       branches:
         only:
           - develop # git flow production branch
+          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
 
   filter_only_releasable_branches: &filter_only_releasable_branches
     filters:
       branches:
         only:
           - master # git flow production branch
+          - main # git flow production branch
           - /hotfix\/.*/ # git flow hotfix branches
           - /release\/.*/ # git flow release branches
 
@@ -59,7 +72,7 @@ jobs:
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
       - run:
-          name: Checkout the klassi framework repo
+          name: Checkout klassi framework repo
           command: git clone git@github.com:larryg01/klassi-js.git
 
       - run:
@@ -69,19 +82,14 @@ jobs:
 
       - run:
           name: Generate dependency cache key
-          command: cat ~/klassiG/klassi-js/package.json ~/klassiG/klassi-js/projects/example-test-suite/package.json > CACHE_KEY
+          command: cat ~/klassiG/klassi-js/package.json > CACHE_KEY
 
       - restore_cache:
           key: klassi-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:
-          name: Install the klassi framework dependencies
+          name: Install klassi framework dependencies
           path: ~/klassiG/klassi-js
-          command: yarn install
-
-      - run:
-          name: Install the Project dependencies
-          path: ~/klassiG/klassi-js/projects/example-test-suite
           command: yarn install
 
       # Save yarn cache, don't include node modules because we end up with an
@@ -90,20 +98,19 @@ jobs:
           paths:
             - ~/.cache/yarn
             - ~/klassiG/klassi-js/yarn.lock
-            - ~/klassiG/klassi-js/projects/example-test-suite/yarn.lock
           key: klassi-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:
           name: Run acceptance tests
-          path: ~/klassiG/klassi-js/projects/example-test-suite
+          path: ~/klassiG/klassi-js
           command: yarn run cibs${STAGE} ${BROWSER}
 
       - store_artifacts:
-          path: ~/klassiG/klassi-js/projects/example-test-suite/artifacts
+          path: ~/klassiG/klassi-js/artifacts
 
       - store_test_results:
           command: sleep 2
-          path: ~/klassiG/klassi-js/projects/example-test-suite/reports
+          path: ~/klassiG/klassi-js/reports
 
   acceptance_test_chrome:
     <<: *acceptance_test_base
@@ -113,9 +120,17 @@ jobs:
     <<: *acceptance_test_base
     environment: { BROWSER: 'edge', STAGE: 'uat' }
 
+  acceptance_test_firefox:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'firefox', STAGE: 'uat' }
+
   acceptance_test_safari:
     <<: *acceptance_test_base
     environment: { BROWSER: 'safari', STAGE: 'uat' }
+
+  acceptance_test_iexplorer:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'iexplorer', STAGE: 'uat' }
 
   acceptance_test_tabletiPad:
     <<: *acceptance_test_base
@@ -139,7 +154,13 @@ workflows:
       - acceptance_test_edge:
           <<: *filter_only_releasable_branches
 
+      - acceptance_test_firefox:
+          <<: *filter_only_releasable_branches
+
       - acceptance_test_safari:
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_iexplorer:
           <<: *filter_only_releasable_branches
 
       - acceptance_test_tabletGalaxy:
@@ -150,3 +171,21 @@ workflows:
 
       - dev_acceptance_test_chrome:
           <<: *filter_only_integration_branches
+
+  nightly_run:
+    triggers:
+      - schedule:
+          cron: "00 20 * * *"
+          filters:
+            branches:
+              only:
+                - main
+
+    jobs:
+      - acceptance_test_chrome
+      - acceptance_test_edge
+      - acceptance_test_firefox
+      - acceptance_test_safari
+      - acceptance_test_iexplorer
+      - acceptance_test_tabletGalaxy
+      - acceptance_test_tabletiPad

@@ -1,144 +1,204 @@
 [![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
 
-# klassi-js [![Run Status](https://api.shippable.com/projects/585832b28171491100bb123f/badge?branch=master)](https://app.shippable.com/projects/585832b28171491100bb123f) [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js)
+# klassi-js
+[![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js)
+[![GitHub license](https://img.shields.io/github/license/larryg01/klassi-js)](https://github.com/larryg01/klassi-js/blob/master/LICENSE)
+[![Webdriverio API](https://img.shields.io/badge/webdriverio-docs-40b5a4)](https://webdriver.io/docs/api.html)
+[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
 
-
-  A platform independent debuggable BDD Javascript testing framework. It's simple, easy to use . It's built on [nodeJs](https://nodejs.org/en/), [webdriver.io (the Selenium 2.0 
-    bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view 
-    cucumber js documentation") complete with integrated Visual and API Testing. 
-
+  A debuggable BDD Javascript testing framework. It's simple and easy to use. Built on [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view
+    cucumber js documentation") with integrated Visual, accessibility and API Testing.
 
 ## Installation
 
 ```bash
-git-clone-ssh: git@github.com:larryg01/klassi-js.git
-git-clone-https: https://github.com/larryg01/klassi-js.git
-npm i klassi-js 
-
-
-# To run your test locally, you'll need a local selenium server running, you can install and
-# launch a selenium standalone server with chrome, firefox and phantomjs drivers via the 
-# following commands in a separate terminal:
-
-yarn global add selenium-standalone@latest
-selenium-standalone install && selenium-standalone start
+yarn add klassi-js
+ or
+npm install klassi-js
 ```
 
 ## Usage
 
 ```bash
-# run 'yarn install' in a terminal window from within the project folder
-node ../../index.js -ds ./step_definitions
-or
-node ../../index.js -dt @search // locally
-or
-yarn run bslocal chrome/@search // via browserstack
+node ./node_modules/klassi-js/index.js
+
 ```
 
-### Options
+## Options
 
 ```bash
--h, --help                   output usage information
--v, --version                output the version number
--s, --steps <path>           path to step definitions. defaults to ./step-definitions
--p, --pageObjects <path>     path to page objects. defaults to ./page-objects
--o, --sharedObjects [paths]  path to shared objects - repeatable. defaults to ./shared-objects
--b, --browser <path>         name of browser to use. defaults to chrome
--r, --reports <path>         output path to save reports. defaults to ./reports
--d, --disableTestReport [optional]  disables the test report from opening after test completion
--t, --tag <tagName>          name of tag to run - Single TAG usage
---t, --tags <tagName>,<tagName>  name of tags to run - Multiple TAGS usage
--c, --context <path>        contextual root path for project-specific features, steps, objects etc
--f, --featuresPath <path>   path to feature definitions. defaults to ./features
--e, --email [optional]      sends email reports to stakeholders
--n, --environment [<path>]  name of environment to run the framework/test in. default to dev
--g, --reportName [optional] basename for report files e.g. use report for report.json
--x, --extraSettings [optional]  further piped configs split with pipes
--w, --remoteService [optional]  which remote driver service, if any, should be used e.g. browserstack
+--help                              output usage information
+--version                           output the version number
+--browser <name>                    name of browser to use (chrome, firefox). defaults to chrome
+--tags <@tagName>                   name of cucumber tags to run - Multiple TAGS usage
+--steps <path>                      path to step definitions. defaults to ./step-definitions
+--featureFiles <path>               path to feature definitions. defaults to ./features
+--pageObjects <path>                path to page objects. defaults to ./page-objects
+--sharedObjects <paths>             path to shared objects - repeatable. defaults to ./shared-objects
+--reports <path>                    output path to save reports. defaults to ./reports
+--disableReport                     disables the test report from opening after test completion
+--email                             sends email reports to stakeholders
+--env <path>                        name of environment to run the framework/test in. default to dev
+--reportName <optional>             name of what the report would be called i.e. 'Automated Test'
+--remoteService <optional>          which remote driver service, if any, should be used e.g. browserstack
+--extraSettings <optional>          further piped configs split with pipes
+--updateBaselineImages              automatically update the baseline image after a failed comparison or new images
+--wdProtocol                        the switch to change the browser option from using devtools to webdriver
+--closeBrowser <optional>           this closes the browser after each scenario, defaults to always, use 'no' if you want to want to keep the  browser open
 ```
 
-By default tests are run using Google Chrome, to run tests using another browser supply the name of that browser along with the `-b` switch. Available options are:
+## Directory Structure
+To help with usage of the built in functionality, we have added a .envConfigrc.js file at the base of the project. You can check out the [template here](https://github.com/larryg01/klassi-test-suite)
 
-| Browser | Example |
-| :--- | :--- |
-| Chrome | `-b chrome` |
-| Firefox | `-b firefox` |
+```bash
+.
+└── features
+    └── search.feature
+└── page-objects
+    └── search.js
+└── shared-objects
+    └── searchData.js
+└── step_definitions
+    └── search-steps.js
+└── reports  # folder and content gets created automatically on test run
+    └── chrome
+        ├── reportName-01-01-1900-235959.html
+        └── reportName-01-01-1900-235959.json
+.envConfigrc.js # this file will contain all your environment variables #projectName, emailAddresses, environments, browserstack/lambdatest config
+```
 
+## Step definitions
 The following variables are available within the ```Given()```, ```When()``` and ```Then()``` functions:
 
 | Variable | Description |
 | :--- | :---  |
-| `browser`     | an instance of [web driver](https://webdriver.io/docs/setuptypes.html) (_the browser_) |
-| `webdriverio`| the raw [webdriver](https://webdriver.io/docs/api.html) module, providing access to static properties/methods |
-| `page`       | collection of **page** objects loaded from disk and keyed by filename |
-| `shared`     | collection of **shared** objects loaded from disk and keyed by filename |
-| `helpers`    | a collection of [helper methods](projects/example-test-suite/settings/helpers.js) _things webdriver.io does not provide but really should!_ |
+| `browser`     | an instance of [webdriverio](https://webdriver.io/docs/setuptypes.html) (_the browser_) |
+| `wdio`| the raw [webdriverio](https://webdriver.io/docs/api.html) module, providing access to static properties/methods |
+| `pageObjects`       | collection of **page** objects loaded from disk and keyed by filename |
+| `sharedObjects`     | collection of **shared** objects loaded from disk and keyed by filename |
+| `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
 | `expect`     | instance of [chai expect](https://www.chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
 | `assert`     | instance of [chai assert](https://www.chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |
-| `fs`         | exposes fs (file system) for use globally |
-| `dir`        | exposes dir for getting an array of files, subdirectories or both |
 | `got`    | exposes the GOT subroutine for API testing | ```use for making API calls``` |
-| `date`       | exposes the date method for logs and reports  |
-| `log`        | exposes the log method for output to files and emailing  |
 
 
-### Visual Regression functionality with [Resemble JS](https://github.com/rsmbl/Resemble.js)
-
-Visual regression testing, gives the ability to take and compare whole page screenshots or of specific parts of the application / page under test.
-If there are Elements in the page that contain dynamic contents (like a clock or something like 'tip of the day'), you can hide this elements before 
-taking the screenshot by passing the selector (or an array of selectors) to  the saveScreenshot function.
+## Helpers
+Klassi-js contains a few helper methods to help along the way, these methods are:
 ```js
-// ./runtime/imageCompare.js
+// Load a URL, returning only when the <body> tag is present
+await helpers.loadPage('https://duckduckgo.com', 10);
 
-compareImage: async (fileName) => {
-  const verify = require('./imageCompare');
-  await verify.assertion(fileName);
-  await verify.value();
-  await verify.pass();
-}
+// take image for comparisson
+await helpers.takeImage('flower_1-0.png', 'div.badge-link--serp.ddg-extension-hide.js-badge-link');
 
+// compare taken image with baseline image
+await helpers.compareImage('flower_1-0.png');
+
+// get the content of an endpoint
+await helpers.apiCall('http://httpbin.org/', 'get');
+
+// writing content to a text file
+await helpers.writeToTxtFile(filepath, output);
+
+// reading content froma text file
+await helpers.readFromFile(filepath);
+
+// applying the current date to files
+await helpers.currentDate();
+
+// get current date and time (dd-mm-yyyy-00:00:00)
+await helpers.getCurrentDateTime()
+
+// clicks an element (or multiple if present) that is not visible, useful in situations where a menu needs a hover before a child link appears
+await helpers.clickHiddenElement(selector, textToMatch)
+
+// This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
+await helpers.getRandomIntegerExcludeFirst(range)
+
+// Get the href link from an element
+await helpers.getLink(selector)
+
+//wait until and element is visible and click it
+await helpers.waitAndClick(selector)
+
+// wait until element to be in focus and set the value
+await helpers.waitAndSetValue(selector, value)
+
+// function to get element from frame or frameset
+await helpers.getElementFromFrame(frameName, selector)
+
+// This will assert 'equal' text being returned
+await helpers.assertText(selector, expected)
+
+// This will assert text being returned includes
+await helpers.expectToIncludeText(selector, expectedText)
+
+// this asserts that the returned url is the correct one
+await helpers.assertUrl(expected)
+```
+
+## Browser usage
+By default, the test run using Google Chrome/devtools protocol, to run tests using another browser locally you'll need a local selenium server running, supply the browser name along with the `--wdProtocol --browser` switch
+
+| Browser | Example |
+| :--- | :--- |
+| Chrome | `--wdProtocol --browser chrome` |
+| Firefox | `--wdProtocol --browser firefox` |
+
+All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest)
+
+Selenium Standalone Server installation
+```bash
+yarn global add selenium-standalone@latest
+selenium-standalone install && selenium-standalone start
+```
+
+## Visual Regression with [Resemble JS](https://github.com/rsmbl/Resemble.js)
+
+Visual regression testing, the ability to compare a whole page screenshots or of specific parts of the application / page under test.
+If there is dynamic content (i.e. a clock), hide this element by passing the selector (or an array of selectors) to the takeImage function.
+```js
 // usage within page-object file:
-  await verify.saveScreenshot(fileName, elementsToHide);
+  await helpers.takeImage(fileName, [elementsToHide, elementsToHide]);
+  await browser.pause(DELAY_100ms);
   await helpers.compareImage(fileName);
 ```
 
-### API Testing functionality with [got](https://github.com/sindresorhus/got#readme)
+## API Testing with [got](https://github.com/sindresorhus/got#readme)
 Getting data from a JSON REST API
 ```js
-// ./runtime/helpers.js
- apiCall: function (url, method, body) {
+ function apiCall(url, method, auth, body, fileName, fileData, statusCode) {
     let endPoint = ('http://endpoint.com');
-    
+
     let options = {
         url: endPoint,
-        method: 'GET',
+        method: 'GET' || 'PUT' || 'POST' || 'DELETE',
         json: true,
         simple: false,
         resolveWithFullResponse: true,
     };
-    
+
     return gotApi(options)
-    .then(async function (response, err) {
-        if (err) {
-           // API call failed
-        }
-        // response = API call is successful
-    });
- },
+
+    if ('GET') {
+       return res;
+    }
+    if ('DELETE' && fileName != null || 'PUT' && fileName != null) {
+        return fs.readFileSync(fileName, 'utf8');
+    }
+    if ('POST' && fileName != null) {
+        return res.json().then(async function (res) {
+          const data = await res.id;
+          await fs.writeFileSync(fileName, data);
+        });
+    }
+ }
 ```
 ## Accessibility Testing with [Axe](https://www.deque.com/axe/)
 Automated accessibility testing feature has been introduced using the Axe-Core OpenSource library.
 
-### Browser Support 
-```
-Microsoft Edge v40 and above
-Google Chrome v42 and above
-Mozilla Firefox v38 and above
-Apple Safari v7 and above
-Internet Explorer v9, 10, 11
-```
-### Sample code 
+### Sample code
 All the accessibility fuctions can be accessed through the global variable ``` accessibilityLib ```.
 | function          | Description                                                     |
 |----------------------------|-----------------------------------------------------------------|
@@ -147,8 +207,9 @@ All the accessibility fuctions can be accessed through the global variable ``` a
 | ``` accessibilityLib.getAccessibilityTotalError() ``` | returns the total number of error count for all the pages in a particilar execution |
 
 ```js
+// usage within page-object file:
 When('I run the accesibility analysis for {string}', async function (PageName) {
-  // After navigating to a particular page, just call the function to generate the accessibility report 
+  // After navigating to a particular page, just call the function to generate the accessibility report
   await accessibilityLib.getAccessibilityReport(PageName);
 });
 
@@ -159,66 +220,62 @@ assert.equal(violationcount, 0);
 });
 ```
 
-### Test Execution Reports
+## Test Execution Reports
 
 HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be
- changed by providing a new path using the `-r` command line switch:
+ changed by providing a new path using the `--reports` command line switch:
 
 ![Cucumber HTML report](runtime/img/cucumber-html-report.png)
 
-### Accessibility Report
+## Accessibility Report
 
-HTML and JSON reports will be automatically generated and stored in the default `./reports/accessibility`  folder.This location can be changed by providing a new path using the `-r` command line switch:
+HTML and JSON reports will be automatically generated and stored in the default `./reports/accessibility`  folder.This location can be changed by providing a new path using the `--reports` command line switch:
 
 ![Aceessibility HTML report](./runtime/img/accessibility-html-report.png)
 
-### Event handlers
+## Event handlers
 
 You can register event handlers for the following events within the cucumber lifecycle.
 
-const {After, Before, AfterAll, BeforeAll} = require('cucumber');
+const {After, Before, AfterAll, BeforeAll, BeforeStep, AfterStep} = require('@cucumber/cucumber');
 
 | Event          | Example                                                     |
 |----------------|-------------------------------------------------------------|
-| Before    | ```Before(function() { // This hook will be executed before all scenarios}) ```  |
-| After     | ```After(function() {// This hook will be executed after all scenarios});```    |
-| BeforeAll | ```BeforeAll(function() {// perform some shared setup});``` |
-| AfterAll  | ```AfterAll(function() {// perform some shared teardown});```  |
+| Before     | ```Before(function() { // This hook will be executed before all scenarios}) ```  |
+| After      | ```After(function() {// This hook will be executed after all scenarios});```    |
+| BeforeAll  | ```BeforeAll(function() {// perform some shared setup});``` |
+| AfterAll   | ```AfterAll(function() {// perform some shared teardown});```  |
+| BeforeStep | ```BeforeStep(function() {// This hook will be executed before all steps in a scenario with tagname;``` |
+| AfterStep  | ```AfterStep(function() {// This hook will be executed after all steps, and take a screenshot on step failure;```  |
 
 ## How to debug
 
-Most webdriverio methods return a [JavaScript Promise](https://spring.io/understanding/javascript-promises "view JavaScript promise introduction") that is resolved when the method completes. The easiest way to step in with a debugger is to add a ```.then``` method to a selenium function and place a ```debugger``` statement within it, for example:
+Most webdriverio methods return a [JavaScript Promise](https://spring.io/understanding/javascript-promises "view JavaScript promise introduction") that is resolved when the method completes. The easiest way to step in with a debugger is to add a ```.then``` method to the function and place a ```debugger``` statement within it, for example:
 
 ```js
   When(/^I search DuckDuckGo for "([^"]*)"$/, function (searchQuery, done) {
-    driver.element('#search_form_input_homepage').then(function(input) {
+    elem = browser.$('#search_form_input_homepage').then(function(input) {
       expect(input).to.exist;
       debugger; // <<- your IDE should step in at this point, with the browser open
       return input;
     })
-    .then(function(input){
-       input.setValue(selector, searchQuery);
-       input.setValue(selector, 'Enter');
-
        done(); // <<- let cucumber know you're done
-    });
   });
 ```
 
 ## Bugs
 
-Please raise bugs via the [klassi-js issue tracker](https://github.com/larryg01/klassi-js/issues) and, if possible, please provide enough information to allow the bug to be 
-reproduced.
+Please raise bugs via the [klassi-js issue tracker](https://github.com/larryg01/klassi-js/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 
-Anyone can contribute to this project simply by [opening an issue here](https://github.com/larryg01/klassi-js/issues) or fork the project and issue a pull request with suggested improvements. In lieu of a formal styleguide, please take care to maintain the existing coding style.
+Anyone can contribute to this project, PRs are welcome. In lieu of a formal styleguide, please take care to maintain the existing coding style.
 
 ## Credits
 
 [John Doherty](https://www.linkedin.com/in/john-i-doherty)
- 
+
 
 ## License
 
-[Apache License](LICENSE) &copy; 2016 [Larry Goddard](https://uk.linkedin.com/in/larryg)
+Licenced under [Apache License](LICENSE) &copy; 2016 [Larry Goddard](https://www.linkedin.com/in/larryg)

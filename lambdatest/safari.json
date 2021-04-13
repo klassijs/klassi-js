@@ -1,0 +1,11 @@
+{
+  "build": "Klassi Automated Test",
+  "platform" : "macOS Mojave",
+  "browserName" : "Safari",
+  "version" : "12.0",
+  "resolution" : "1280x1024",
+  "selenium_version" : "3.141.59",
+  "console" : true,
+  "network" : true,
+  "visual" : true
+}
