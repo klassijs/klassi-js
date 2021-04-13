@@ -30,6 +30,7 @@
   "browser": "index.js",
   "scripts": {
     "start": "node index.js --disableReport",
+    "test": "node index.js --disableReport --tags @api",
     "dev": "node index.js --disableReport --tags",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
     "ciltuat": "node index.js --disableReport --email --tags @api --remoteService lambdatest --extraSettings",
