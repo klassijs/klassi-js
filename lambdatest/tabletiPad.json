@@ -1,0 +1,11 @@
+{
+  "build": "Klassi Automated Test",
+  "platform" : "iOS",
+  "deviceName" : "iPhone 12",
+  "platformVersion" : "14.1",
+  "deviceOrientation" : "LANDSCAPE",
+  "console" : true,
+  "network" : true,
+  "visual" : true
+}
+

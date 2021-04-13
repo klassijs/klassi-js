@@ -1,8 +1,9 @@
 {
   "name": "klassi-js",
-  "version": "3.2.2",
-  "description": "A debuggable Javascript BDD testing framework, built on webdriverio and nodejs",
-  "Creator": {
+  "version": "4.0.0",
+  "private": "true",
+  "description": "A debuggable Javascript testing framework using webdriverio",
+  "author": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
     "twitter": "twitter.com/larryG_01",
@@ -14,41 +15,47 @@
     "yarn": ">=1.21.1"
   },
   "keywords": [
-    "api",
     "api testing",
     "bdd",
     "browserstack",
+    "lambdatest",
     "cucumber-js",
     "javascript",
-    "framework",
-    "functional testing",
-    "tdd",
-    "testing",
-    "testing-framework",
-    "webdriver",
+    "testing framework",
     "webdriverio"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/larryg01/klassi-js"
+    "url": "https://github.com/larryg01/klassi-js.git"
   },
-  "main": "index.js",
+  "browser": "index.js",
   "scripts": {
-    "test": "export PROJECT_NAME=example-test-suite&& cd projects/example-test-suite&& node ../../index.js -d -t @api",
+    "start": "node index.js --disableReport",
+    "test": "node index.js --disableReport --tags @api",
+    "dev": "node index.js --disableReport --tags @search",
+    "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
+    "ciltuat": "node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
+    "bslocal": "node index.js --disableReport --remoteService browserstack --extraSettings",
+    "cibsdev": "node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
+  "bugs": {
+    "url": "https://github.com/larryg01/klassi-js/issues"
+  },
   "dependencies": {
-    "aws-sdk": "^2.811.0",
+    "@cucumber/cucumber": "^7.0.0",
+    "@cucumber/pretty-formatter": "^1.0.0-alpha.0",
+    "@lambdatest/node-tunnel": "^3.0.0",
+    "async": "^3.2.0",
+    "aws-sdk": "^2.863.0",
     "axe-core": "^4.1.1",
     "browserstack-local": "^1.4.5",
-    "chai": "^4.2.0",
+    "chai": "^4.3.4",
     "chalk": "^4.1.0",
     "commander": "^6.2.1",
-    "cross-env": "^7.0.3",
-    "cucumber": "^6.0.5",
+    "cosmiconfig": "^7.0.0",
     "cucumber-html-reporter": "^5.3.0",
-    "cucumber-pretty": "^6.0.0",
     "fs-extra": "^9.0.1",
     "got": "^9.6.0",
     "merge": "^2.1.0",
@@ -57,18 +64,16 @@
     "nodemailer": "^6.4.17",
     "recursive-readdir": "^2.2.2",
     "require-dir": "^1.2.0",
-    "webdriverio": "^6.10.10",
-    "winston": "^3.2.1"
+    "text-files-loader": "^1.0.5",
+    "webdriverio": "^7.2.0"
   },
   "devDependencies": {
-    "chromedriver": "^87.0.4",
-    "eslint": "^7.15.0",
+    "eslint": "^7.22.0",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-config-prettier": "^7.0.0",
+    "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-prettier": "^3.3.0",
-    "eslint-plugin-wdio": "^6.0.12",
-    "geckodriver": "^1.21.1",
+    "eslint-plugin-wdio": "^7.0.0",
     "prettier": "^2.2.1"
   }
 }

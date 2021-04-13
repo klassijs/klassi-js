@@ -4,13 +4,13 @@
  */
 /**
  Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,40 +19,29 @@
  */
 const fs = require('fs-extra');
 const chalk = require('chalk');
-let dir = require('node-dir');
 const chai = require('chai');
 const apiGot = require('got');
 const program = require('commander');
 const merge = require('merge');
 const requireDir = require('require-dir');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { Before, After, AfterAll, Status } = require('cucumber');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { Given, When, Then, And, But } = require('cucumber');
-const confSettings = require('./confSettings');
+let dir = require('node-dir');
+
+const { Before, After, AfterAll, Status } = require('@cucumber/cucumber');
+const { Given, When, Then, And, But } = require('@cucumber/cucumber');
 const getRemote = require('./getRemote.js');
 
+/**
+ * all assertions for variable testing
+ */
 const { assert } = chai;
 const { expect } = chai;
-const log = require('./logger').oupLog();
-
-let cpPath;
-if (program.aces) {
-  cpPath = `../projects/${projectName}/test/settings/helpers`;
-} else {
-  cpPath = `../projects/${projectName}/settings/helpers`;
-}
-// eslint-disable-next-line import/no-dynamic-require
-const helpers = require(cpPath);
-
-/** Adding logging adn helpers */
-global.log = log;
-global.helpers = helpers;
+global.assert = assert;
+global.expect = expect;
 
 /**
  * This is the Global date functionality
  */
-global.date = require('./confSettings').currentDate();
+global.date = require('./helpers').currentDate();
 
 /**
  * for all API test calls
@@ -61,15 +50,9 @@ global.date = require('./confSettings').currentDate();
 global.gotApi = apiGot;
 
 /**
- *  for the Download of all file types
+ * for the Download of all file types
  */
 global.downloader = require('./downloader.js');
-
-/**
- * for all assertions for variable testing
- */
-global.assert = assert;
-global.expect = expect;
 
 /**
  * Environment variables
@@ -78,6 +61,7 @@ global.expect = expect;
 const ChromeDriver = require('./chromeDriver');
 const FirefoxDriver = require('./firefoxDriver');
 const BrowserStackDriver = require('./browserStackDriver');
+const LambdaTestDriver = require('./lambdatestDriver');
 
 const remoteService = getRemote(global.settings.remoteService);
 
@@ -90,76 +74,39 @@ let browser = {};
 async function getDriverInstance() {
   const browsers = global.settings.BROWSER_NAME;
   const options = {};
+
   if (remoteService && remoteService.type === 'browserstack') {
     const configType = global.settings.remoteConfig;
     assert.isString(configType, 'BrowserStack requires a config type e.g. chrome.json');
     browser = BrowserStackDriver(options, configType);
     return browser;
   }
+  if (remoteService && remoteService.type === 'lambdatest') {
+    const configType = global.settings.remoteConfig;
+    assert.isString(configType, 'LambdaTest requires a config type e.g. chrome.json');
+    browser = LambdaTestDriver(options, configType);
+    return browser;
+  }
   assert.isNotEmpty(browsers, 'Browser must be defined');
+
   switch (browsers || '') {
   case 'firefox':
-  {
-    browser = FirefoxDriver(options);
-  }
+    {
+      browser = FirefoxDriver(options);
+    }
     break;
+
   case 'chrome':
-  {
-    browser = ChromeDriver(options);
-  }
+    {
+      browser = ChromeDriver(options);
+    }
     break;
+
   default: {
     browser = ChromeDriver(options);
   }
   }
   return browser;
-}
-
-const { envName } = global;
-let environ;
-
-if (program.aces) {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  environ = require(`../projects/${projectName}/test/configs/envConfig`);
-} else {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  environ = require(`../projects/${projectName}/configs/envConfig`);
-}
-
-/**
- * for the environment variables
- */
-switch (envName || '') {
-case 'dev':
-{
-  global.envConfig = environ.dev;
-}
-  break;
-case 'test':
-{
-  global.envConfig = environ.test;
-}
-  break;
-case 'uat':
-{
-  global.envConfig = environ.uat;
-}
-  break;
-case 'preprod':
-{
-  global.envConfig = environ.preprod;
-}
-  break;
-case 'prod':
-{
-  global.envConfig = environ.prod;
-}
-  break;
-default:
-{
-  global.envConfig = environ.test;
-}
-  break;
 }
 
 /**
@@ -205,11 +152,9 @@ global.But = But;
 function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{browser: null, webdriverio, webdrivercss: *, expect: *, assert: (*), trace: consoleInfo,
-   * log: log, page: {}, shared: {}}}
+   * @type {{date: (string|*|date), expect: Chai.ExpectStatic, shared: {}, trace: consoleInfo, assert: ((function(Philosophical, (String|Function), (String|Function), Mixed, Mixed, Boolean))|chai.assert|chai.assert), page: [], gotApi: Function, dir, fs: ({mkdirpSync: function(*=, *=): (*), ensureFileSync: function(*=): (undefined), createSymlinkSync: function(*=, *=, *=): (any), emptydirSync: function(*=): (undefined|undefined), moveSync: function(*=, *=, *=): undefined, ensureDirSync: function(*=, *=): (*), createFile: *, createLink: *, ensureLinkSync: function(*=, *=): (any), writeJson: *, readJsonSync: *, ensureSymlink: *, emptyDir: *, mkdirsSync: function(*=, *=): (*), writeJsonSync: *, copy: *, readJson: *, ensureFile: *, ensureSymlinkSync: function(*=, *=, *=): (any), move: *, ensureLink: *, createSymlink: *, ensureDir: *, copySync: function(*=, *=, *=): undefined|void, emptyDirSync: function(*=): (undefined|undefined), mkdirp: *, createFileSync: function(*=): (undefined), emptydir: *, mkdirs: *, createLinkSync: function(*=, *=): (any)}|{emptyDirSync: function(*=): (undefined|undefined), copySync: function(*=, *=, *=): undefined|void, emptyDir: *, emptydir: *, emptydirSync: function(*=): (undefined|undefined), copy: *}), downloader: {fileDownload(*=, *=, *=): void}}}
    */
   const runtime = {
-    browser: {}, // the browser object
     expect: global.expect, // expose chai expect to allow variable testing
     assert: global.assert, // expose chai assert to allow variable testing
     fs, // expose fs (file system) for use globally
@@ -218,11 +163,11 @@ function World() {
     trace: consoleInfo, // expose an info method to log output to the console in a readable/visible format
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
-    log: global.log, // expose the log method for output to files for emailing
     downloader: global.downloader, // exposes the downloader for global usage
     gotApi: global.gotApi, // exposes GOT for API testing
     date: global.date, // expose the date method for logs and reports
   };
+
   /**
    *  expose properties to step definition methods via global variables
    */
@@ -282,23 +227,21 @@ this.World = World;
  * set the default timeout for all tests
  */
 // eslint-disable-next-line import/order,import/no-extraneous-dependencies
-const { setDefaultTimeout } = require('cucumber');
+const { setDefaultTimeout } = require('@cucumber/cucumber');
 
-/**
- * Add timeout based on env var.
- */
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);
 global.timeout = globalTimeout;
+
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require('./confSettings').getStartDateTime();
+global.startDateTime = require('./helpers').getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
- * also exposing the world object in global bariable 'cucumberThis' so that
- * it can be used in arrow fuctions
+ * also exposing the world object in global variable 'cucumberThis' so that
+ * it can be used in arrow functions
  */
 // eslint-disable-next-line func-names
 Before(function () {
@@ -316,56 +259,99 @@ global.status = 0;
 AfterAll(async () => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  await confSettings.oupReporter();
-  if (remoteService && remoteService.type === 'browserstack' && program.email) {
-    browser.pause(DELAY_5s).then(async () => {
-      await confSettings.s3Upload();
+  await helpers.klassiReporter();
+  try {
+    browser.pause(DELAY_5s);
+    if (
+      (remoteService && remoteService.type === 'browserstack' && program.email) ||
+      (remoteService && remoteService.type === 'lambdatest' && program.email)
+    ) {
+      browser.pause(DELAY_5s).then(async () => {
+        await helpers.s3Upload();
+        browser.pause(DELAY_10s).then(() => {
+          process.exit(global.status);
+        });
+      });
+    } else if (
+      (remoteService && remoteService.type === 'browserstack') ||
+      (remoteService && remoteService.type === 'lambdatest')
+    ) {
       browser.pause(DELAY_5s).then(async () => {
         process.exit(global.status);
       });
-    });
-  } else if (remoteService && remoteService.type === 'browserstack') {
-    browser.pause(DELAY_5s).then(async () => {
-      process.exit(global.status);
-    });
-  } else if (program.email) {
-    browser.pause(DELAY_3s).then(() => confSettings.oupEmail());
-    browser.pause(DELAY_1s).then(() => {
-      process.exit(global.status);
-    });
+    } else if (program.email) {
+      browser.pause(DELAY_5s).then(async () => {
+        await helpers.klassiEmail();
+        browser.pause(DELAY_3s).then(async () => {
+          process.exit(global.status);
+        });
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
   }
 });
 
 /**
- * BrowserStack Only
+ * BrowserStack || LambdaTest Only
  * executed ONLY on failure of a scenario to get the video link
- * from browserstack when it fails for the report
+ * from browserstack || lambdatest when it fails for the report
  */
 After(async (scenario) => {
   if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'browserstack') {
-    await confSettings.bsVideo();
+    await helpers.bsVideo();
     console.log('video link capture is running.......');
     // eslint-disable-next-line no-undef
     const vidLink = await videoLib.getVideoId();
     // eslint-disable-next-line no-undef
-    cucumberThis.attach(`downloaded video link: ${vidLink}`);
+    cucumberThis.attach(
+      `video: <video width='320' height='240' controls autoplay> <source src='${vidLink}' type=video/mp4> </video>`
+    );
+  } else if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
+    await helpers.ltVideo();
+    console.log('video link capture is running.......');
+    // eslint-disable-next-line no-undef
+    const vidLink = await videoLib.getVideoId();
+    // eslint-disable-next-line no-undef
+    cucumberThis.attach(
+      `video: <video width='320' height='240' controls autoplay> <source src='${vidLink}' type=video/mp4> </video>`
+    );
   }
 });
 
 /**
- *  executed after each scenario - always closes the browser to ensure fresh tests)
+ * This is to control closing the browser or keeping it open after each scenario
+ * @returns {Promise<void|Request<LexRuntime.DeleteSessionResponse, AWSError>|Request<LexRuntimeV2.DeleteSessionResponse, AWSError>>}
  */
-After(async (scenario) => {
+// eslint-disable-next-line func-names
+this.closebrowser = function () {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
-    if (remoteService && remoteService.type === 'browserstack') {
+  switch (global.closeBrowser) {
+  case 'no':
+    return Promise.resolve();
+  default:
+    if (browser) {
       return browser.deleteSession();
+    }
+    return Promise.resolve();
+  }
+};
+
+/**
+ * executed after each scenario - always closes the browser to ensure clean browser not cached)
+ */
+After(async (scenario) => {
+  if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
+    if (
+      (remoteService && remoteService.type === 'browserstack') ||
+      (remoteService && remoteService.type === 'lambdatest')
+    ) {
+      return this.closebrowser();
     }
   }
   console.log(scenario.result.status);
-  // Comment out to leave the browser open after test run while test creation
-  return browser.deleteSession();
+  return this.closebrowser();
 });
 
 /**

@@ -82,6 +82,9 @@
         "strictNullChecks": true,
         "strictFunctionTypes": false,
         "noEmit": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "confSettings": true,
+        "sharedObjects": true,
+        "pageObjects": true
     }
 }

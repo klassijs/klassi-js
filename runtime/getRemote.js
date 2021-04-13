@@ -18,6 +18,7 @@
  limitations under the License.
  */
 const browserstack = require('./remotes/browserstack.js');
+const lambdatest = require('./remotes/lambdatest.js');
 
 module.exports = function getRemote(remoteService) {
   const remote = {};
@@ -31,6 +32,9 @@ module.exports = function getRemote(remoteService) {
   } else if (remoteService === 'browserstack') {
     remote.type = 'browserstack';
     remote.after = browserstack.submitResults;
+  } else if (remoteService === 'lambdatest') {
+    remote.type = 'lambdatest';
+    remote.after = lambdatest.submitResults;
   } else {
     console.log(`Unknown remote service ${remoteService}`);
     remote.type = 'unknown';

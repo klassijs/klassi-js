@@ -1,30 +1,40 @@
 /**
  Klassi Automated Testing Tool
  Created by Larry Goddard
- */
-/**
+
  Copyright © klassitech 2016 - Larry Goddard <larryg@klassitech.co.uk>
- 
+
  Licensed under the Apache License, Version 2.0 (the 'License');
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an 'AS IS' BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-
 const path = require('path');
-const program = require('commander');
+const { Command } = require('commander');
 const fs = require('fs-extra');
-// eslint-disable-next-line import/order
-const pjson = require('./package.json');
+const merge = require('merge');
+const requireDir = require('require-dir');
+// const cucumber = require('@cucumber/cucumber');
 // eslint-disable-next-line import/no-extraneous-dependencies
-const cucumber = require('cucumber');
+const loadTextFile = require('text-files-loader');
+const { cosmiconfigSync } = require('cosmiconfig');
+
+// eslint-disable-next-line global-require
+const klassiCli = new (require('@cucumber/cucumber').Cli)({
+  argv: process.argv,
+  cwd: process.cwd(),
+  stdout: process.stdout,
+});
+const pjson = require('./package.json');
+
+const program = new Command();
 
 function collectPaths(value, paths) {
   paths.push(value);
@@ -45,111 +55,84 @@ function parseRemoteArguments(argumentString) {
   return parsed;
 }
 
-let cpPath;
-let envConfig;
-
-/**
- * Create all the required files and folders needed for the framework to function correctly
- * @type {string}
- */
-const fileDnldFldr = './shared-objects/fileDnldFolder';
-const docsFolder = './shared-objects/docs';
-
-fs.ensureDirSync(fileDnldFldr, (err) => {
-  if (err) {
-    console.log(`The File Download Folder has NOT been created: ${err.stack}`);
-  }
-});
-fs.ensureDir(docsFolder, (err) => {
-  if (err) {
-    console.log(`The Docs Folder has NOT been created: ${err.stack}`);
-  }
-});
-
 program
   .version(pjson.version)
   .description(pjson.description)
+  .option('--browser <name>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
+  .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
+  .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
+  .option('--email', 'email for sending reports to stakeholders')
+  .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
+  .option('--reportName <optional>', 'basename for report files e.g. use report for report.json', global.reportName)
+  .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
   .option(
-    '-b, --browsers [optional]',
-    'name of browser to use. defaults to chrome',
-    /(chrome|edge|firefox|iexplorer|safari|tabletGalaxy|tabletiPad)$/i,
-    'chrome'
-  )
-  .option('-c, --context <path>', 'contextual root path for project-specific features, steps, objects etc', './')
-  .option('-d, --disableReport [optional]', 'Disables the auto opening of the test report in the browser')
-  .option('-e, --email [optional]', 'email for sending reports to stakeholders')
-  .option('-f, --featuresPath <path>', 'path to feature definitions. defaults to ./features', 'features')
-  .option('-F, --featuresFiles <path>', 'comma-separated list of feature files to run')
-  .option('-g, --reportName [optional]', 'basename for report files e.g. use report for report.json', global.reportName)
-  .option(
-    '-n, --environment <path>',
-    'name of environment to run the framework / test in. default to test',
-    /^(dev|test|uat|preprod|prod)$/i,
-    'test'
-  )
-  .option(
-    '-o, --sharedObjects <paths>',
+    '--sharedObjects <paths>',
     'path to shared objects (repeatable). defaults to ./shared-objects',
-    collectPaths,
-    ['shared-objects']
+    'shared-objects'
   )
-  .option('-p, --pageObjects <path>', 'path to page objects. defaults to ./page-objects', 'page-objects')
-  .option('-r, --reports <path>', 'output path to save reports. defaults to ./reports', 'reports')
-  .option('-s, --steps <path>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
-  .option('-t, --tags <tagName>', 'name of tag to run')
-  .option('-u, --updateBaselineImage [optional]', 'automatically update the baseline image after a failed comparison')
+  .option('--pageObjects <paths>', 'path to page objects. defaults to ./page-objects', 'page-objects')
+  .option('--reports <paths>', 'output path to save reports. defaults to ./reports', 'reports')
+  .option('--steps <paths>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option(
-    '-w, --remoteService [optional]',
-    'which remote browser service, if any, should be used e.g. browserstack',
+    '--tags <EXPRESSION>',
+    'only execute the features or scenarios with tags matching the expression (repeatable)',
+    collectPaths,
+    []
+  )
+  .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison')
+  .option(
+    '--remoteService <optional>',
+    'which remote browser service, if any, should be used e.g. browserstack or lambdatest',
     ''
   )
-  .option('-x, --extraSettings [optional]', 'further piped configs split with pipes', '')
-  .option('-a, --aces [optional]', 'the switch to change the relative path for aces tests')
-  .option('-l, --webDriverProtocol [optional]', 'the switch to change the browser option from devtools to webdriver')
+  .option(
+    '--closeBrowser <optional>',
+    'close the browser after each scenario (always, no). defaults to always',
+    'always'
+  )
+  .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
+  .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
   .parse(process.argv);
 
-program.on('--help', function () {
-  console.log('For more details please visit https://github.com/oup/OAF#readme\n');
+program.on('--help', () => {
+  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
 });
 
 const settings = {
-  aces: program.aces,
   projectRoot: program.context,
   reportName: program.reportName,
-  BROWSER_NAME: program.browsers,
+  BROWSER_NAME: program.browser,
   disableReport: program.disableReport,
+  closeBrowser: program.closeBrowser,
   updateBaselineImage: program.updateBaselineImage,
-  defaultTimeout: '300000 * 1000', // 5 mins
   remoteService: program.remoteService,
 };
 
 /**
- * Setting and Naming the Project Report files Globally
+ * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
  */
-global.projectName = process.env.PROJECT_NAME || projectName;
+// add line to call dotenv
+const moduleName = process.env.ENV_CONFIG || 'envConfig'; // name of the rc.js file for global variables
+const explorerSync = cosmiconfigSync(moduleName);
+const searchedFor = explorerSync.search();
+const envConfig = searchedFor.config;
+const { dataConfig, environment } = envConfig;
+// console.log(searchedFor);
 
-if (program.aces) {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  envConfig = require(`./projects/${projectName}/test/configs/envConfig`);
-} else {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  envConfig = require(`./projects/${projectName}/configs/envConfig`);
-}
-const { reportName } = envConfig;
-const { projectReportName } = envConfig;
+global.dataconfig = dataConfig;
+global.emailData = dataConfig.emailData;
+global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
+global.reportName = process.env.REPORT_NAME || 'Automated Report';
+global.env = process.env.ENVIRONMENT || environment[program.env];
+global.closeBrowser = settings.closeBrowser;
 
-/** Setting emailList to be global so it works for all projects */
-let emailData;
+global.s3Data = require('./runtime/scripts/secrets/awsConfig');
+global.bssecrets = require('./runtime/scripts/secrets/browserstack');
+global.ltsecrets = require('./runtime/scripts/secrets/lambdatest');
 
-if (program.aces) {
-  emailData = `./projects/${projectName}/test/configs/emailData`;
-} else {
-  emailData = `./projects/${projectName}/configs/emailData`;
-}
-global.mailList = emailData;
-global.reportName = process.env.REPORT_NAME || reportName;
-global.projectReportName = process.env.PROJECT_REPORT_NAME || projectReportName;
+global.date = require('./runtime/helpers').currentDate();
+global.dateTime = require('./runtime/helpers').reportDate();
 
 if (program.remoteService && program.extraSettings) {
   const additionalSettings = parseRemoteArguments(program.extraSettings);
@@ -161,26 +144,24 @@ if (program.remoteService && program.extraSettings) {
     if (program.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
     }
-    // TODO: test this on multiple tags
     program.tags = additionalSettings.tags;
   }
 }
 
 function getProjectPath(objectName) {
-  return path.resolve(settings.projectRoot + program[objectName]);
+  // return settings.projectRoot + program[objectName];
+  return path.resolve(settings.projectRoot, program[objectName]);
 }
 
 const paths = {
   pageObjects: getProjectPath('pageObjects'),
   reports: getProjectPath('reports'),
-  featuresPath: getProjectPath('featuresPath'),
-  sharedObjects: program.sharedObjects.map(function (item) {
-    return path.resolve(settings.projectRoot + item);
-  }),
+  featureFiles: getProjectPath('featureFiles'),
+  sharedObjects: getProjectPath('sharedObjects'),
 };
 
 /** expose settings and paths for global use */
-global.BROWSER_NAME = program.browsers;
+global.BROWSER_NAME = program.browser;
 global.settings = settings;
 global.paths = paths;
 
@@ -188,42 +169,31 @@ global.paths = paths;
  * Adding Global browser folder
  * Adding Accessibility folder at project level
  */
-global.browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+global.browserName = global.settings.remoteConfig || BROWSER_NAME;
 const reports = `./reports/${browserName}`;
 const axereports = `./reports/${browserName}/accessibility`;
-let file;
 
 /** file creation for userAgent globally */
-if (program.aces) {
-  file = './shared-objects/docs/userAgent.txt';
-} else {
-  file = `../${projectName}/shared-objects/docs/userAgent.txt`;
-}
+const file = './shared-objects/docs/userAgent.txt';
 
-fs.ensureFileSync(file, function (err) {
+fs.ensureFileSync(file, (err) => {
   if (err) {
-    console.log(`The fileName has NOT been created: ${err.stack}`);
+    console.error(`The fileName has NOT been created: ${err.stack}`);
   }
 });
-fs.ensureDirSync(reports, function (err) {
+fs.ensureDirSync(reports, (err) => {
   if (err) {
-    console.log(`The Reports Folder has NOT been created: ${err.stack}`);
+    console.error(`The Reports Folder has NOT been created: ${err.stack}`);
   }
 });
-fs.ensureDirSync(axereports, function (err) {
+fs.ensureDirSync(axereports, (err) => {
   if (err) {
-    console.log(`The Accessibility Reports Folder has NOT been created: ${err.stack}`);
+    console.error(`The Accessibility Reports Folder has NOT been created: ${err.stack}`);
   }
 });
 
-/** adding global helpers and making it global */
-if (program.aces) {
-  cpPath = `./projects/${projectName}/test/settings/helpers.js`;
-} else {
-  cpPath = `./projects/${projectName}/settings/helpers`;
-}
-// eslint-disable-next-line import/no-dynamic-require
-global.helpers = require(cpPath);
+/** adding global helpers */
+global.helpers = require('./runtime/helpers');
 
 /** adding global accessibility library */
 // eslint-disable-next-line camelcase
@@ -233,62 +203,64 @@ if (fs.existsSync(accessibility_lib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.accessibilityLib = require(accessibility_lib);
   global.accessibilityReportList = rList;
-
-  console.log('Accessibility library is available for this project');
-} else console.log('No Accessibility Lib');
+  // console.log('Accessibility library is available')
+} else console.error('No Accessibility Lib');
 
 /**
  * adding video link access
  * @type {string}
  */
 // eslint-disable-next-line camelcase
-const video_lib = path.resolve(__dirname, './runtime/getBsVideoLinks.js');
-if (fs.existsSync(video_lib)) {
+const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
+if (fs.existsSync(videoLib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
-  global.videoLib = require(video_lib);
-
-  console.log('Video library is available for this project');
+  global.videoLib = require(videoLib);
+  // console.log('Video library is available');
 } else {
-  console.log('No Video Lib');
+  console.error('No Video Lib');
 }
 
-/** adding global date function */
-global.date = require('./runtime/confSettings').currentDate();
-global.dateTime = require('./runtime/confSettings').reportDate();
+/** add path to import shared objects */
+const sharedObjectsPath = path.resolve(paths.sharedObjects);
+if (fs.existsSync(sharedObjectsPath)) {
+  const allDirs = {};
+  const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
 
-/** store EnvName globally (used within world.js when building browser) */
-global.envName = program.environment;
+  merge(allDirs, dir);
+  if (Object.keys(allDirs).length > 0) {
+    global.sharedObjects = allDirs;
+  }
+}
 
-/** store BaseUrl globally (uesd within the world.js when building browser) */
-global.base_url = program.environment;
+/** add path to import page objects */
+const pageObjectPath = path.resolve(paths.pageObjects);
+if (fs.existsSync(pageObjectPath)) {
+  global.pageObjects = requireDir(pageObjectPath, { camelcase: true, recurse: true });
+}
 
 /** rewrite command line switches for cucumber */
 process.argv.splice(2, 100);
 
 /** specify the feature files folder (this must be the first argument for Cucumber) */
-process.argv.push(paths.featuresPath);
+process.argv.push(paths.featureFiles);
 
 /** specify the feature files to be executed */
 if (program.featureFile) {
   const splitFeatureFiles = program.featureFile.split(',');
 
-  splitFeatureFiles.forEach(function (feature) {
+  splitFeatureFiles.forEach((feature) => {
     process.argv.push(feature);
   });
 }
 
 /** add switch to tell cucumber to produce json report files */
-if (program.aces) {
-  cpPath = '../../../node_modules/cucumber-pretty';
-} else {
-  cpPath = '../../node_modules/cucumber-pretty';
-}
+const cpPath = '@cucumber/pretty-formatter';
 
 process.argv.push(
   '-f',
   cpPath,
   '-f',
-  `json:${path.resolve(__dirname, paths.reports, browserName, `${projectName} ${global.reportName}-${dateTime}.json`)}`
+  `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
 );
 
 /** add cucumber world as first required script (this sets up the globals) */
@@ -297,40 +269,59 @@ process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
 /** add path to import step definitions */
 process.argv.push('-r', path.resolve(program.steps));
 
-/** add tag to the scenarios */
+/**
+ * Get tags from feature files
+ * @returns {Array<string>} list of all tags found
+ */
+function getTagsFromFeatureFiles() {
+  let result = [];
+  loadTextFile.setup({ matchRegExp: /\.feature/ });
+  const featurefiles = loadTextFile.loadSync(path.resolve(program.featureFiles));
+  Object.keys(featurefiles).forEach((key) => {
+    const content = String(featurefiles[key] || '');
+    result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
+  });
+  return result;
+}
+
+/**
+ * verify the correct tags for scenarios to run
+ */
 if (program.tags) {
-  // const splitTags = program.tags.split(',');
-  // splitTags.forEach(function (tag) {
-  //   process.argv.push('-t', tag);
-  // });
-  process.argv.push('-t', program.tags);
+  const tagsFound = getTagsFromFeatureFiles();
+  // console.log('these are the found tags ', tagsFound);
+  program.tags.forEach((tag) => {
+    if (tag[0] !== '@') {
+      console.error('tags must start with a @');
+      process.exit();
+    }
+    if (tagsFound.indexOf(tag) === -1) {
+      console.error(`this tag ${tag} does not exist`);
+      process.exit();
+    }
+  });
+  program.tags.forEach((tag) => {
+    process.argv.push('--tags');
+    process.argv.push(tag);
+  });
 }
 
 /** Add split to run multiple browsers from the command line */
 if (program.browsers) {
-  const splitBrowsers = program.browsers.split(',');
+  const splitBrowsers = program.browser.split(',');
   splitBrowsers.forEach((browser) => {
-    process.argv.push('-b', browser);
+    process.argv.push('-b', program.browser);
   });
+  process.argv.push('-b', program.browser);
 }
 
 /** add strict option (fail if there are any undefined or pending steps) */
-process.argv.push('-S');
+// process.argv.push('-S');
 
 /** execute cucumber Cli */
-global.cucumber = cucumber;
-
-// eslint-disable-next-line global-require,import/no-extraneous-dependencies
-const klassiCli = new (require('cucumber').Cli)({
-  argv: process.argv,
-  cwd: process.cwd(),
-  stdout: process.stdout,
-});
-
-// eslint-disable-next-line no-new
 try {
-  klassiCli.run((success) => {
-    if (!success) {
+  klassiCli.run((succeeded) => {
+    if (!succeeded) {
       process.exit(1);
     }
 

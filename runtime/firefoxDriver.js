@@ -26,7 +26,7 @@ let defaults = {};
  * @returns {{}}
  */
 module.exports = async function firefoxDriver(options) {
-  if (program.webDriverProtocol) {
+  if (program.wdProtocol) {
     defaults = {
       logLevel: 'error',
       path: '/wd/hub',
@@ -47,13 +47,13 @@ module.exports = async function firefoxDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080', // input the correct proxy name
+      httpProxy: 'http://xxxxxxxxxx.com:8080', // input the correct proxy name
       proxyType: 'MANUAL',
       autodetect: false,
     };
   }
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
-  // await browser.setWindowSize(1280, 800);
+  await browser.setWindowSize(1280, 800);
   return browser;
 };
