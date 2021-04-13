@@ -19,10 +19,22 @@
 #
 #    Check https://circleci.com/docs/2.0/language-javascript/ for more details
 
-version: 2.0
+version: 2.1
 
 references:
-  filter_ignore_wip_branches:
+  filter_only_testable_branches: &filter_only_testable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow production branch
+          - develop # git flow integration branch
+          - /feature\/.*/ # git flow feature branches
+          - /bugfix\/.*/ # git flow bugfix branches
+          - /release\/.*/ # git flow release branches
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /support\/.*/ # git flow support branches
+
+  filter_ignore_wip_branches: &filter_ignore_wip_branches
     filters:
       branches:
         ignore:

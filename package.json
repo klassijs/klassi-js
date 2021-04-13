@@ -1,7 +1,6 @@
 {
   "name": "klassi-js",
   "version": "4.0.0",
-  "private": "true",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "author": {
     "name": "Larry Goddard",
