@@ -140,6 +140,10 @@ jobs:
     <<: *acceptance_test_base
     environment: { BROWSER: 'chrome', STAGE: 'dev' }
 
+  dev_acceptance_test_firefox:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'firefox', STAGE: 'dev' }
+
 workflows:
   version: 2
   build_and_test:
