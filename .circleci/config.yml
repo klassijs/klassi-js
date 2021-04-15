@@ -144,6 +144,9 @@ workflows:
   version: 2
   build_and_test:
     jobs:
+      - dev_acceptance_test_firefox:
+          <<: *filter_only_testable_branches
+
       - acceptance_test_chrome:
           <<: *filter_only_releasable_branches
 
@@ -175,7 +178,7 @@ workflows:
           filters:
             branches:
               only:
-                - main
+                - master
 
     jobs:
       - acceptance_test_chrome
