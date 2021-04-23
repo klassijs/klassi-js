@@ -1,4 +1,4 @@
-How to use klassi-Js
+What is klassi-Js
 
 klassi-js is a debuggable BDD JavaScript testing framework built on NodeJS, webdriverIO (in standalone mode) and cucumber. It&#39;s simple and easy to setup and have a few integrated features like Visual, Accessibility and API testing.
 
