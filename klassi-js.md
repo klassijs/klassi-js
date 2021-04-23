@@ -9,14 +9,60 @@ folder structure format
 ![folder structure](runtime/img/folder.png)
 
 framework usage in package.json
-
-![package json](runtime/img/pkgjson.png)
+```js
+{
+  "dependencies": {
+    "klassi-js": "^4.0.0"
+  } 
+}   
+```
 
 The content of the &#39;.envConfigrc.js&#39; and &#39;config.yml&#39; files and the &#39;lambdatest / browserstack&#39; folder can be found in the template.
 
 format of content in &#39;.envConfigrc.js&#39; file
+```js
+module.exports = {
+  "environment": {
+    "test": {
+      "envName": "TEST",
+      "web_url": "https://duckduckgo.com/",
+      "api_base_url": "http://httpbin.org/"
+    }
+  },
+  
+  "dataConfig": {
+    "projectName": "Klassi Automated Test",
+    
+    "emailData": {
+       "nameList": 'QaAutoTest <test@test.com>',
+       "AccessibilityReport": "Yes"
+    },
 
-![envConfig](runtime/img/envConfig.png)
+    // if you are using lambdatest
+    "ltlocal": {
+      "userName": "",
+      "accessKey": ""
+    },
+    
+    // if you are using Browserstack
+    "bslocal": {
+      "localIdentifier": "",
+      "userName": "",
+      "accessKey": ""
+    },
+    
+     // to use AWS for storing and processing reports
+    "awsConfig": {
+      "s3FolderName": "", // This must match your Github Repo Name exactly (minus the .git)
+      "ID": "",
+      "SECRET": "",
+      "REGION": "",
+      "BUCKET_NAME": "",
+      "DOMAIN_NAME": ""
+    },
+  },
+}
+```
 
 Other folders used by the framework are the reports, artifacts, logs and visual-regression folders which are all auto-created at runtime.
 
