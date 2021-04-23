@@ -5,6 +5,7 @@ klassi-js is a debuggable BDD JavaScript testing framework built on NodeJS, webd
 We have also configured it to work with Lambdatest and Browserstack for cross browser testing and AWS s3 for test report storage and retrieval via email and CircleCi for continuous integration out of the box.
 
 folder structure format
+
 ![folder structure](runtime/img/folder.png)
 
 framework usage in package.json
