@@ -16,3 +16,8 @@ Then(/^they should see some results$/, async () => {
   /** return the promise of an element to the following then */
   await pageObjects.duckDuckGoSearch.searchResult();
 });
+
+When(/^The screenshots should differ with the filenames "([^"]*)" & "([^"]*)"$/, async (fileName1, fileName2) => {
+  const numDiffPixels = await helpers.imagePixelMatch(fileName1, fileName2);
+  assert.isAbove(numDiffPixels, 0, 'Num of pixels should be greater than 0');
+});

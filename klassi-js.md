@@ -5,21 +5,15 @@ klassi-js is a debuggable BDD JavaScript testing framework built on NodeJS, webd
 We have also configured it to work with Lambdatest and Browserstack for cross browser testing and AWS s3 for test report storage and retrieval via email and CircleCi for continuous integration out of the box.
 
 folder structure format
-```bash.
-└── features
-    └── search.feature
-└── page-objects
-    └── search.js
-└── shared-objects
-    └── searchData.js
-└── step_definitions
-    └── search-steps.js
-.envConfigrc.js # this file will contain all your environment variables #projectName, emailAddresses, environments, browserstack/lambdatest config
-```
+
+![folder](runtime/img/folder.png) 
 
 framework usage in package.json
 ```js
 {
+  "scripts": {
+    "start": "node ./node_modules/klassi-js/index.js"
+  },
   "dependencies": {
     "klassi-js": "^4.0.0"
   } 

@@ -11,6 +11,8 @@ Feature: Searching for apps with duckduckgo
   Scenario Outline: User inputs some search data
     When they input <searchword>
     Then they should see some results
+#    Then The screenshots should differ with the filenames "dark-theme" & "light-theme"
+
 
     Examples:
       |searchword  |

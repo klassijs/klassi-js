@@ -13,15 +13,14 @@
 
 ```bash
 yarn add klassi-js
- or
+ 
 npm install klassi-js
 ```
 
 ## Usage
 
 ```bash
-node ./node_modules/klassi-js/index.js
-
+node ./node_modules/klassi-js/index.js # path to the module within your project
 ```
 
 ## Options
@@ -261,6 +260,19 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
     })
        done(); // <<- let cucumber know you're done
   });
+```
+## Demo
+To demo the framework without installing it into your project use the following commands:
+```js
+ # download this example code
+  git clone https://github.com/larryg01/klassi-js.git
+
+ # browser to the new directory
+  cd klassi-js
+
+ # run the search feature
+  yarn install
+  node index.js --tags @search
 ```
 
 ## Bugs

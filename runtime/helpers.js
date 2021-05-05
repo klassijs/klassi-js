@@ -23,6 +23,9 @@ const program = require('commander');
 const AWS = require('aws-sdk');
 const readdir = require('recursive-readdir');
 const async = require('async');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { PNG } = require('pngjs');
+const pixelmatch = require('pixelmatch');
 
 module.exports = {
   /**
@@ -149,6 +152,24 @@ module.exports = {
       // eslint-disable-next-line no-await-in-loop
       await browser.execute(script);
     }
+  },
+
+  /**
+   * Returns number of diff pixels between images
+   * @param {string} fileName1 - name of the file
+   * @param {string} fileName2 - name of the file
+   * @returns
+   */
+  imagePixelMatch: async (fileName1, fileName2) => {
+    const img1 = PNG.sync.read(
+      fs.readFileSync(`./artifacts/visual-regression/original/chrome/positive/${fileName1}.png`)
+    );
+    const img2 = PNG.sync.read(
+      fs.readFileSync(`./artifacts/visual-regression/original/chrome/positive/${fileName2}.png`)
+    );
+    const { width, height } = img1;
+    const diff = new PNG({ width, height });
+    return pixelmatch(img1.data, img2.data, diff.data, width, height, { threshold: 0.1 });
   },
 
   /**

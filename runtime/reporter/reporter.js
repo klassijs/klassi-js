@@ -20,6 +20,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
+const jUnit = require('cucumber-junit');
 const getRemote = require('../getRemote');
 
 const remoteService = getRemote(global.settings.remoteService);
@@ -38,18 +39,19 @@ module.exports = {
     try {
       await this.ipAddr();
       iPData = await resp.body;
-      console.log('this is the IP data ', iPData.country);
     } catch (err) {
       iPData = {};
       console.log('IP addr func err: ', err.message);
     }
+
+    const jsonFile = path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.json`);
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
         theme: 'bootstrap',
-        jsonFile: path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.json`),
+        jsonFile,
         output: path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,
@@ -75,6 +77,15 @@ module.exports = {
       // eslint-disable-next-line func-names
       browser.pause(DELAY_3s).then(() => {
         reporter.generate(reportOptions);
+
+        // grab the file data for xml creation
+        const reportRaw = fs.readFileSync(jsonFile).toString().trim();
+        const xmlReport = jUnit(reportRaw);
+        const junitOutputPath = path.resolve(
+          path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.xml`)
+        );
+
+        fs.writeFileSync(junitOutputPath, xmlReport);
       });
     }
   },
