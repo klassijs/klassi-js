@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js)
 [![GitHub license](https://img.shields.io/github/license/larryg01/klassi-js)](https://github.com/larryg01/klassi-js/blob/master/LICENSE)
 [![Webdriverio API](https://img.shields.io/badge/webdriverio-docs-40b5a4)](https://webdriver.io/docs/api.html)
-[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
+[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/) [![Join the chat at https://gitter.im/klassi-js/community](https://badges.gitter.im/klassi-js/community.svg)](https://gitter.im/klassi-js/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
   A debuggable BDD Javascript testing framework. It's simple and easy to use. Built on [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view
     cucumber js documentation") with integrated Visual, accessibility and API Testing.
