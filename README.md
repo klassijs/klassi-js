@@ -2,6 +2,7 @@
     <a href="https://github.com/larryg01/klassi-js/">
         <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
     </a>
+    <h1 align="center" font-size: 2.5em > klassi-js </h1>
 </p>
 
 <h1 align="center" font-size: 2.5em > klassi-js </h1>
