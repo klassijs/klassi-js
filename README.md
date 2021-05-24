@@ -1,6 +1,14 @@
-[![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
+***
+<p align="center">
+    <a href="https://github.com/larryg01/klassi-js/">
+        <img alt="Klassi-Js" src="./runtime/img/klassi_logo.png" width="546">
+    </a>
+</p>
+***
 
 # klassi-js
+[![logo](./runtime/img/klassi_logo.png)](#home)
+[![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
 [![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js)
 [![GitHub license](https://img.shields.io/github/license/larryg01/klassi-js)](https://github.com/larryg01/klassi-js/blob/master/LICENSE)
 [![Webdriverio API](https://img.shields.io/badge/webdriverio-docs-40b5a4)](https://webdriver.io/docs/api.html)
@@ -160,7 +168,6 @@ If there is dynamic content (i.e. a clock), hide this element by passing the sel
 ```js
 // usage within page-object file:
   await helpers.takeImage(fileName, [elementsToHide, elementsToHide]);
-  await browser.pause(DELAY_100ms);
   await helpers.compareImage(fileName);
 ```
 
