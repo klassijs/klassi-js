@@ -1,11 +1,8 @@
 <p align="center">
+    <h1 align="center" font-size: 2.5em > klassi-js <br>
     <a href="https://github.com/larryg01/klassi-js/">
         <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
-    <h1 align="center" font-size: 2.5em > klassi-js <br>
-    </h1>  </a>
-</p>
-
-<p align="center">
+    </a> </h1>
     <a href ="https://travis-ci.org/larryg01/klassi-js">
     <img alt="Build Status" src="https://travis-ci.org/larryg01/klassi-js.svg?branch=master">
     </a> 
