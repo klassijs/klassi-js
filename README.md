@@ -1,21 +1,33 @@
-***
 <p align="center">
     <a href="https://github.com/larryg01/klassi-js/">
-        <img alt="Klassi-Js" src="./runtime/img/klassi_logo.png" width="546">
+        <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
     </a>
 </p>
-***
 
-# klassi-js
-[![logo](./runtime/img/klassi_logo.png)](#home)
-[![STAT](https://nodei.co/npm/klassi-js.png?download=true)](https://nodei.co/npm/klassi-js/)
-[![Build Status](https://travis-ci.org/larryg01/klassi-js.svg?branch=master)](https://travis-ci.org/larryg01/klassi-js)
-[![GitHub license](https://img.shields.io/github/license/larryg01/klassi-js)](https://github.com/larryg01/klassi-js/blob/master/LICENSE)
-[![Webdriverio API](https://img.shields.io/badge/webdriverio-docs-40b5a4)](https://webdriver.io/docs/api.html)
-[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/) [![Join the chat at https://gitter.im/klassi-js/community](https://badges.gitter.im/klassi-js/community.svg)](https://gitter.im/klassi-js/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+<h1 align="center" font-size: 2.5em > klassi-js </h1>
 
-  A debuggable BDD Javascript testing framework. It's simple and easy to use. Built on [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view
-    cucumber js documentation") with integrated Visual, accessibility and API Testing.
+<p align="center">
+    <a href ="https://travis-ci.org/larryg01/klassi-js">
+    <img alt="Build Status" src="https://travis-ci.org/larryg01/klassi-js.svg?branch=master">
+    </a> 
+    <a href="https://github.com/larryg01/klassi-js/blob/master/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/larryg01/klassi-js">
+    </a> 
+    <a href="https://gitter.im/klassi-js/klassi-js">
+    <img alt="Gitter" src="https://badges.gitter.im/klassi-js/klassi-js.svg">
+    </a>
+    <a href="https://webdriver.io/">
+    <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
+    </a>
+    <a href="https://webdriver.io/docs/api.html">
+    <img alt="WebdriverIO" src="https://img.shields.io/badge/webdriverio-docs-40b5a4">
+    </a>
+</p>
+
+<p align="center">
+  A debuggable BDD Javascript testing framework. Built on [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view
+    cucumber js documentation") with integrated Visual, accessibility and API Testing. Simple and easy to use. 
+</p>
 
 ## Installation
 
