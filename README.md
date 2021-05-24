@@ -3,6 +3,8 @@
     <a href="https://github.com/larryg01/klassi-js/">
         <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
     </a> </h1>
+</p>
+<p align="center">
     <a href ="https://travis-ci.org/larryg01/klassi-js">
     <img alt="Build Status" src="https://travis-ci.org/larryg01/klassi-js.svg?branch=master">
     </a> 
