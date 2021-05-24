@@ -2,8 +2,8 @@
     <h1 align="center" font-size: 2.5em > klassi-js <br>
     <a href="https://github.com/larryg01/klassi-js/">
         <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
-    </a> </h1>
-</p>
+    </a> </h1> </p>
+
 <p align="center">
     <a href ="https://travis-ci.org/larryg01/klassi-js">
     <img alt="Build Status" src="https://travis-ci.org/larryg01/klassi-js.svg?branch=master">
@@ -19,12 +19,8 @@
     </a>
     <a href="https://webdriver.io/docs/api.html">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/webdriverio-docs-40b5a4">
-    </a>
-</p>
-
-<p align="center">
-  A debuggable BDD Javascript testing framework. Built on [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view
-    cucumber js documentation") with integrated Visual, accessibility and API Testing. Simple and easy to use. 
+    </a> <br>
+  klassi-Js is a debuggable BDD Javascript test automation framework. Built on [webdriver.io (the Selenium 2.0 bindings for NodeJS)](http://webdriver.io/) and [cucumber-js](https://github.com/cucumber/cucumber-js "view cucumber js documentation") with integrated Visual, accessibility and API Testing, your test can run locally or in the cloud using Lambdatest, BrowserStack or Sauce Labs 
 </p>
 
 ## Installation
