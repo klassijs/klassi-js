@@ -12,7 +12,6 @@ module.exports = {
     elem = await browser.$(sharedObjects.searchData.elem.searchInput);
     await elem.addValue(searchWord);
     await helpers.takeImage(`${image}_1-0.png`);
-
     /** Accessibility verification */
     await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
     await helpers.takeImage(`${image}_1-1.png`, sharedObjects.searchData.elem.leftBadge);

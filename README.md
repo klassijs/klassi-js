@@ -185,11 +185,15 @@ Getting data from a JSON REST API
     let endPoint = ('http://endpoint.com');
 
     let options = {
-        url: endPoint,
-        method: 'GET' || 'PUT' || 'POST' || 'DELETE',
-        json: true,
-        simple: false,
-        resolveWithFullResponse: true,
+      url: endPoint,
+      method: 'GET' || 'PUT' || 'POST' || 'DELETE',
+      headers: {
+       Authorization: auth,
+       'Content-Type': 'application/json',
+      },
+      body,
+      time: true,
+      resolveWithFullResponse: true,
     };
 
     return gotApi(options)

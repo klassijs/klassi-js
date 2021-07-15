@@ -295,7 +295,7 @@ module.exports = {
    * @param statusCode
    * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
    */
-  apiCall(url, method, auth, fileName, fileData, statusCode) {
+  apiCall(url, method, auth, body, fileName, fileData, statusCode) {
     const options = {
       url,
       method,
@@ -303,9 +303,8 @@ module.exports = {
         Authorization: auth,
         'Content-Type': 'application/json',
       },
-      json: true,
+      body,
       time: true,
-      // allowGetBody: true,
       resolveWithFullResponse: true,
     };
 

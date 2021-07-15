@@ -1,3 +1,5 @@
+const { Given, When, Then } = require('@cucumber/cucumber');
+
 Given(/^The user arrives on the duckduckgo search page$/, async () => {
   await helpers.loadPage(env.web_url, 10);
 });
@@ -5,11 +7,7 @@ Given(/^The user arrives on the duckduckgo search page$/, async () => {
 When(/^they input (.*)$/, async (searchWord) => {
   /** use a method on the page object which also returns a promise */
   await pageObjects.duckDuckGoSearch.performSearch(searchWord);
-});
-
-When(/^they use (.*)$/, async (searchWord) => {
-  /** use a method on the page object which also returns a promise */
-  await pageObjects.duckDuckGoSearch.performSearch(searchWord);
+  // eslint-disable-next-line no-debugger
 });
 
 Then(/^they should see some results$/, async () => {
