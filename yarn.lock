@@ -321,7 +321,7 @@
     reflect-metadata "0.1.13"
     uuid "8.3.2"
 
-"@cucumber/pretty-formatter@^1.0.0-alpha.0":
+"@cucumber/pretty-formatter@^1.0.0-alpha.1":
   version "1.0.0-alpha.1"
   resolved "https://registry.yarnpkg.com/@cucumber/pretty-formatter/-/pretty-formatter-1.0.0-alpha.1.tgz#361eb972036c6cf114f2978b42c79c48ea800f0e"
   integrity sha512-emVFdRkEFAqksd3X9cMWn7cOE2fIPB0aTwZAFZPMO55ZRf+7IaZ7VlEY2Pd5qPxhTXNmyZvaBf6AOoZmx47pmA==

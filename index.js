@@ -25,8 +25,6 @@ const { Command } = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
-// const cucumber = require('@cucumber/cucumber');
-// eslint-disable-next-line import/no-extraneous-dependencies
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 
@@ -52,11 +50,10 @@ function parseRemoteArguments(argumentString) {
   const argSplit = argumentString.split('/');
   const CONFIG = 0;
   const TAGS = 1;
-  const parsed = {
+  return {
     config: argSplit[CONFIG],
     tags: argSplit[TAGS],
   };
-  return parsed;
 }
 
 program
@@ -131,9 +128,9 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[program.env];
 global.closeBrowser = settings.closeBrowser;
 
-global.s3Data = require('./runtime/scripts/secrets/awsConfig');
-global.bssecrets = require('./runtime/scripts/secrets/browserstack');
-global.ltsecrets = require('./runtime/scripts/secrets/lambdatest');
+global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
+global.bssecrets = require('./runtime/scripts/secrets/browserstack.json');
+global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
 
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
@@ -305,18 +302,17 @@ if (program.tags) {
     }
   });
   program.tags.forEach((tag) => {
-    process.argv.push('--tags');
-    process.argv.push(tag);
+    process.argv.push('--tags', tag);
   });
 }
 
 /** Add split to run multiple browsers from the command line */
-if (program.browsers) {
+if (program.browser) {
   const splitBrowsers = program.browser.split(',');
-  splitBrowsers.forEach((browser) => {
-    process.argv.push('-b', program.browser);
+  splitBrowsers.forEach(() => {
+    process.argv.push(program.browser);
   });
-  process.argv.push('-b', program.browser);
+  process.argv.push(program.browser);
 }
 
 /** add strict option (fail if there are any undefined or pending steps) */
