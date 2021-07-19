@@ -24,12 +24,12 @@
  * setting the envConfig variables for file list
  */
 const bsUrl = process.env.BROWSERSTACK_API_URL || bssecrets.crossBrowserUrl;
-const username = process.env.BROWSERSTACK_USERNAME || bssecrets.userName || dataconfig.bslocal.userName;
-const key = process.env.BROWSERSTACK_ACCESS_KEY || bssecrets.accessKey || dataconfig.bslocal.accessKey;
+const username = process.env.BROWSERSTACK_USERNAME || bssecrets.userName || dataconfig.bslocal.userName || '';
+const key = process.env.BROWSERSTACK_ACCESS_KEY || bssecrets.accessKey || dataconfig.bslocal.accessKey || '';
 
 const ltUrl = process.env.LAMBDATEST_API_URL || ltsecrets.crossBrowserUrl;
-const ltUsername = process.env.LAMBDATEST_USERNAME || ltsecrets.userName || dataconfig.ltlocal.userName;
-const ltKey = process.env.LAMBDATEST_ACCESS_KEY || ltsecrets.accessKey || dataconfig.ltlocal.accessKey;
+const ltUsername = process.env.LAMBDATEST_USERNAME || ltsecrets.userName || dataconfig.ltlocal.userName || '';
+const ltKey = process.env.LAMBDATEST_ACCESS_KEY || ltsecrets.accessKey || dataconfig.ltlocal.accessKey || '';
 
 const method = 'GET';
 let res;
