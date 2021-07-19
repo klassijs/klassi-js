@@ -59,7 +59,7 @@ module.exports = {
             "userName": "",
             "accessKey": ""
         },
-    
+
         /**
          *  if you are using Browserstack
          */
@@ -68,7 +68,7 @@ module.exports = {
             "userName": "",
             "accessKey": ""
         },
-    
+
         /**
          * if you are using AWS for storing and processing reports
          * else this can be deleted
@@ -81,6 +81,6 @@ module.exports = {
             "BUCKET_NAME": "",
             "DOMAIN_NAME": ""
         },
-    
+
     },
 }

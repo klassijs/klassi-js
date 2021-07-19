@@ -24,13 +24,30 @@ const path = require('path');
 const fs = require('fs-extra');
 const AWS = require('aws-sdk');
 
+let s3Bucket;
+let s3AccessKeyId;
+let s3SecretAccessKey;
+let domainName;
+
 // eslint-disable-next-line no-undef
 const awsData = dataconfig.awsConfig;
 
-const s3Bucket = process.env.AWS_BUCKET_NAME || s3Data.BUCKET_NAME || awsData.BUCKET_NAME;
-const s3AccessKeyId = process.env.AWS_ID || s3Data.ID || awsData.ID;
-const s3SecretAccessKey = process.env.AWS_SECRET || s3Data.SECRET || awsData.SECRET;
-const domainName = process.env.AWS_DOMAIN_NAME || s3Data.DOMAIN_NAME || awsData.DOMAIN_NAME;
+if (s3Bucket) {
+  // eslint-disable-next-line no-unused-expressions
+  process.env.AWS_BUCKET_NAME || s3Data.BUCKET_NAME || awsData.BUCKET_NAME;
+}
+if (s3AccessKeyId) {
+  // eslint-disable-next-line no-unused-expressions
+  process.env.AWS_ID || s3Data.ID || awsData.ID;
+}
+if (s3SecretAccessKey) {
+  // eslint-disable-next-line no-unused-expressions
+  process.env.AWS_SECRET || s3Data.SECRET || awsData.SECRET;
+}
+if (domainName) {
+  // eslint-disable-next-line no-unused-expressions
+  process.env.AWS_DOMAIN_NAME || s3Data.DOMAIN_NAME || awsData.DOMAIN_NAME;
+}
 
 const s3 = new AWS.S3({
   region: 'eu-west-1',

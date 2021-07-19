@@ -31,7 +31,7 @@
   "scripts": {
     "start": "nyc node index.js --disableReport --wdProtocol --tags @uattest",
     "test": "node index.js --disableReport --tags @api",
-    "dev": "nyc node index.js --disableReport --tags @search",
+    "dev": "node index.js --disableReport --tags @search",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltdev": "nyc node index.js --disableReport --tags @api --remoteService lambdatest --extraSettings",
