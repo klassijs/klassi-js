@@ -59,12 +59,11 @@ module.exports = {
    * making a call to the Api to get Browserstack video links
    */
   getBsVideoLink: async () => {
-    // eslint-disable-next-line camelcase
-    const session_id = browser.sessionId;
-    // eslint-disable-next-line camelcase
-    const url = `https://${username}:${key}${bsUrl}/sessions/${session_id}`;
+    const { sessionId } = browser;
+    const url = `https://${username}:${key}${bsUrl}/sessions/${sessionId}`;
     res = await helpers.apiCall(url, method);
-    videoID = res.body.automation_session.video_url;
+    const obj = JSON.parse(res.body);
+    videoID = obj.video_url;
     return videoID;
   },
 
@@ -73,12 +72,11 @@ module.exports = {
    * @returns {Promise<*>}
    */
   getLtVideoLink: async () => {
-    // eslint-disable-next-line camelcase
-    const session_id = browser.sessionId;
-    // eslint-disable-next-line camelcase
-    const url = `https://${ltUsername}:${ltKey}${ltUrl}/sessions/${session_id}/video`;
+    const { sessionId } = browser;
+    const url = `https://${ltUsername}:${ltKey}${ltUrl}/sessions/${sessionId}/video`;
     res = await helpers.apiCall(url, method);
-    videoID = res.body.url;
+    const obj = JSON.parse(res.body);
+    videoID = obj.url;
     return videoID;
   },
 

@@ -29,6 +29,7 @@ const getRemote = require('../getRemote');
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
 let resp;
+let obj;
 
 module.exports = {
   ipAddr: async () => {
@@ -38,15 +39,13 @@ module.exports = {
   },
 
   async reporter() {
-    let iPData;
     try {
       await this.ipAddr();
-      iPData = await resp.body;
+      obj = JSON.parse(await resp.body);
     } catch (err) {
-      iPData = {};
-      console.log('IP addr func err: ', err.message);
+      obj = {};
+      console.log('IpAddr func err: ', err.message);
     }
-
     const jsonFile = path.resolve(global.paths.reports, browserName, `${reportName}-${dateTime}.json`);
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
@@ -63,9 +62,9 @@ module.exports = {
           'Test Started': startDateTime,
           // eslint-disable-next-line no-undef
           Environment: env.envName,
-          IpAddress: iPData.query,
+          IpAddress: obj.query,
           Browser: browserName,
-          Location: `${iPData.city} ${iPData.regionName}`,
+          Location: `${obj.city} ${obj.regionName}`,
           Platform: process.platform,
           'Test Completion': endDateTime,
           Executed:
