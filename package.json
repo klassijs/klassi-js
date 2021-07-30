@@ -1,11 +1,12 @@
 {
   "name": "klassi-js",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
     "twitter": "@larryG_01",
+    "gitter": "https://gitter.im/klassi-js/klassi-js",
     "url": "https://linkedin.com/in/larryg"
   },
   "license": "MIT",
