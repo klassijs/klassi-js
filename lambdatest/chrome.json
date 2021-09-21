@@ -1,12 +1,14 @@
 {
-  "build": "Klassi Automated Test",
-  "platform" : "Windows 10",
-  "browserName" : "Chrome",
-  "version" : "85.0",
-  "resolution" : "1280x1024",
-  "selenium_version" : "3.13.0",
-  "console" : true,
-  "network" : true,
-  "visual" : true,
-  "chrome.driver" : "85.0"
+  "LT:Options": {
+    "build": "Klassi Automated Test",
+    "platform" : "Windows 10",
+    "browserName" : "Chrome",
+    "version" : "85.0",
+    "resolution" : "1280x1024",
+    "selenium_version" : "3.13.0",
+    "console" : true,
+    "network" : true,
+    "visual" : true,
+    "chrome.driver" : "85.0"
+  }
 }

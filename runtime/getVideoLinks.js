@@ -20,6 +20,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
+const pactumJs = require('pactum');
+
+const spec = pactumJs.spec();
 /**
  * setting the envConfig variables for file list
  */
@@ -50,8 +53,9 @@ if (ltKey) {
 const bsUrl = process.env.BROWSERSTACK_API_URL || bssecrets.crossBrowserUrl;
 const ltUrl = process.env.LAMBDATEST_API_URL || ltsecrets.crossBrowserUrl;
 
-const method = 'GET';
+// const method = 'GET';
 let res;
+let url;
 let videoID;
 
 module.exports = {
@@ -60,10 +64,14 @@ module.exports = {
    */
   getBsVideoLink: async () => {
     const { sessionId } = browser;
-    const url = `https://${username}:${key}${bsUrl}/sessions/${sessionId}`;
-    res = await helpers.apiCall(url, method);
-    const obj = JSON.parse(res.body);
-    videoID = obj.video_url;
+    url = `https://${bsUrl}/sessions/${sessionId}`;
+    // url = `https://${username}:${key}${bsUrl}/sessions/${sessionId}`;
+    await spec.get(url).withAuth(username, key).expectStatus(200);
+    res = await spec.toss();
+    // res = await helpers.apiCall(url, method);
+    // const obj = JSON.parse(res.body);
+    // videoID = obj.video_url;
+    videoID = res.body.url;
     return videoID;
   },
 
@@ -73,10 +81,11 @@ module.exports = {
    */
   getLtVideoLink: async () => {
     const { sessionId } = browser;
-    const url = `https://${ltUsername}:${ltKey}${ltUrl}/sessions/${sessionId}/video`;
-    res = await helpers.apiCall(url, method);
-    const obj = JSON.parse(res.body);
-    videoID = obj.url;
+    url = `https://${ltUrl}/sessions/${sessionId}/video`;
+    await spec.get(url).withAuth(ltUsername, ltKey).expectStatus(200);
+    res = await spec.toss();
+    // console.log('this is the res ', res.body);
+    videoID = res.body.url;
     return videoID;
   },
 

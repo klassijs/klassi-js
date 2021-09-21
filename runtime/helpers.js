@@ -26,6 +26,7 @@ const program = require('commander');
 const AWS = require('aws-sdk');
 const readdir = require('recursive-readdir');
 const async = require('async');
+const pactumJs = require('pactum');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { PNG } = require('pngjs');
 const pixelmatch = require('pixelmatch');
@@ -283,73 +284,143 @@ module.exports = {
     return mailer;
   },
 
+  // /**
+  //  * ========== API FUNCTIONALITY ==========
+  //  *  API call for GET, PUT, POST and DELETE functionality
+  //  * @param url
+  //  * @param auth
+  //  * @param method
+  //  * @param body
+  //  * @param fileName
+  //  * @param fileData
+  //  * @param statusCode
+  //  * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
+  //  */
+  // apiCall(url, method, auth, body, fileName, fileData, statusCode) {
+  //   const options = {
+  //     url,
+  //     method,
+  //     headers: {
+  //       Authorization: auth,
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body,
+  //     time: true,
+  //     resolveWithFullResponse: true,
+  //   };
+  //
+  //   /**
+  //    * when using VPN connection ... Add proxy based on env var.
+  //    * if proxy name 'ouparray.oup.com' does not work then please try to use
+  //    * the IP. Example : http://10.0.130.110:8080 - please check the IP with
+  //    * Networking engineers as it may change */
+  //   const useProxy = process.env.USE_PROXY || false;
+  //   if (useProxy) {
+  //     defaults.options.proxy = {
+  //       proxy: 'http://xxxxxxx.com:8080',
+  //     };
+  //   }
+  //
+  //   return gotApi(options).then(async (res) => {
+  //     if (statusCode != null) {
+  //       assert.equal(res.statusCode, statusCode);
+  //       console.log(`API Response time : ${res.timings.response}`);
+  //     }
+  //
+  //     if (method === 'GET') {
+  //       return res;
+  //     }
+  //     if ((method === 'DELETE' && fileName != null) || (method === 'PUT' && fileName != null)) {
+  //       return fs.readFileSync(fileName, 'utf8', (err) => {
+  //         if (err) {
+  //           console.error(err.message);
+  //         }
+  //       });
+  //     }
+  //     if (method === 'POST' && fileName != null) {
+  //       // eslint-disable-next-line func-names,no-shadow
+  //       return res.json().then(async (res) => {
+  //         console.log('parsed json', res);
+  //         const data = await res.id;
+  //         await fs.writeFileSync(fileName, data, (err) => {
+  //           if (err) {
+  //             console.error(err.message);
+  //           }
+  //         });
+  //       });
+  //     }
+  //     return res;
+  //   });
+  // },
+
   /**
    * ========== API FUNCTIONALITY ==========
-   *  API call for GET, PUT, POST and DELETE functionality
+   * API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
    * @param url
-   * @param auth
    * @param method
+   * @param auth
    * @param body
-   * @param fileName
-   * @param fileData
-   * @param statusCode
-   * @type {{ GET: receive all info, POST: create, PUT: edit / update, DELETE: remove info }},
+   * @param status
+   * @returns {Promise<*>}
    */
-  apiCall(url, method, auth, body, fileName, fileData, statusCode) {
+
+  apiCall: async (url, method, auth, body, status) => {
+    let resp;
     const options = {
       url,
       method,
+      auth,
       headers: {
-        Authorization: auth,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth}`,
+        'content-Type': 'application/json',
       },
       body,
-      time: true,
-      resolveWithFullResponse: true,
     };
-
-    /**
-     * when using VPN connection ... Add proxy based on env var.
-     * if proxy name 'ouparray.oup.com' does not work then please try to use
-     * the IP. Example : http://10.0.130.110:8080 - please check the IP with
-     * Networking engineers as it may change */
-    const useProxy = process.env.USE_PROXY || false;
-    if (useProxy) {
-      defaults.options.proxy = {
-        proxy: 'http://xxxxxxx.com:8080',
-      };
+    if (method === 'GET') {
+      resp = await pactumJs
+        .spec()
+        .get(options.url)
+        .withHeaders(options.headers)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(200)
+        .toss();
+      status = resp.statusCode;
+      console.log('endPoint and statusCode ', `${url}:${status}`);
+    }
+    if (method === 'PUT') {
+      resp = await pactumJs
+        .spec()
+        .put(options.url)
+        .withHeaders(options.headers)
+        .withBody(options.body)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(200);
+      status = resp.statusCode;
     }
 
-    return gotApi(options).then(async (res) => {
-      if (statusCode != null) {
-        assert.equal(res.statusCode, statusCode);
-        console.log(`API Response time : ${res.timings.response}`);
-      }
+    if (method === 'POST') {
+      resp = await pactumJs
+        .spec()
+        .post(options.url)
+        .withHeaders(options.headers)
+        .withBody(options.body)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(200);
+      status = resp.statusCode;
+    }
 
-      if (method === 'GET') {
-        return res;
-      }
-      if ((method === 'DELETE' && fileName != null) || (method === 'PUT' && fileName != null)) {
-        return fs.readFileSync(fileName, 'utf8', (err) => {
-          if (err) {
-            console.error(err.message);
-          }
-        });
-      }
-      if (method === 'POST' && fileName != null) {
-        // eslint-disable-next-line func-names,no-shadow
-        return res.json().then(async (res) => {
-          console.log('parsed json', res);
-          const data = await res.id;
-          await fs.writeFileSync(fileName, data, (err) => {
-            if (err) {
-              console.error(err.message);
-            }
-          });
-        });
-      }
-      return res;
-    });
+    if (method === 'DELETE') {
+      resp = await pactumJs
+        .spec()
+        .post(options.url)
+        .withHeaders(options.headers)
+        .withBody(options.body)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(200);
+      status = resp.statusCode;
+    }
+
+    return resp.body;
   },
 
   /**
@@ -365,7 +436,7 @@ module.exports = {
     const KEY = process.env.AWS_ID || s3Data.ID;
     const SECRET = process.env.AWS_SECRET || s3Data.SECRET;
     let cpPath;
-    if (program.aces) {
+    if (program.opts().aces) {
       cpPath = path.resolve('./test/reports');
     } else {
       cpPath = path.resolve('./reports');

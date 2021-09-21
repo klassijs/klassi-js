@@ -21,11 +21,32 @@
  SOFTWARE.
  */
 const wdio = require('webdriverio');
+const fs = require('fs-extra');
+const path = require('path');
 const loadConfig = require('./configLoader');
-const lambdatest = require('./remotes/lambdatest.js');
+const lambdatest = require('./remotes/lambdatest');
+
+const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
+  encoding: 'base64',
+});
+const chExt = {
+  'goog:chromeOptions': {
+    extensions: [modHeader],
+  },
+};
+
+let defaults;
+let config;
 
 module.exports = async function lambdatestDriver(options, configType) {
-  const config = loadConfig(`./lambdatest/${configType}.json`);
+  const browserCapabilities = loadConfig(`./lambdatest/${configType}.json`);
+  if (
+    (projectName === 'OAF' && browserName === 'chrome')
+  ) {
+    config = Object.assign(browserCapabilities, chExt);
+  } else {
+    config = browserCapabilities;
+  }
 
   const credentials = lambdatest.getCredentials();
   const { user } = credentials;
@@ -35,16 +56,25 @@ module.exports = async function lambdatestDriver(options, configType) {
   const buildNameFromConfig = configType.replace(/-/g, ' ');
 
   if (process.env.CI || process.env.CIRCLE_CI) {
-    config.tunnelName = process.env.TUNNEL_NAME;
-    const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
-    config.build = `CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
+    if (
+      (projectName !== 'OAF' && browserName !== 'chrome')
+    ) {
+      config.tunnelName = process.env.TUNNEL_NAME;
+      const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
+      config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
+    }
   } else if (!config.build) {
-    // configs can define their own build name or it is inferred from the configType
-    config.build = buildNameFromConfig;
-    config.tunnelName = 'lttunnel';
+    if (
+      (projectName !== 'OAF' && browserName !== 'chrome')
+
+    ) {
+      // configs can define their own build name or it is inferred from the configType
+      config.build = buildNameFromConfig;
+      config.tunnelName = 'lttunnel';
+    }
   }
 
-  const defaults = {
+  defaults = {
     user,
     key,
 
@@ -52,7 +82,6 @@ module.exports = async function lambdatestDriver(options, configType) {
     exclude: [],
     maxInstances: 10,
     capabilities: config,
-
     logLevel: 'silent',
     coloredLogs: true,
     screenshotPath: './errorShots/',

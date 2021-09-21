@@ -29,7 +29,7 @@ let defaults = {};
  * @returns {{}}
  */
 module.exports = async function chromeDriver(options) {
-  if (program.wdProtocol) {
+  if (program.opts().wdProtocol) {
     defaults = {
       logLevel: 'error',
       path: '/wd/hub',

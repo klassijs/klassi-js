@@ -41,7 +41,8 @@ module.exports = {
   async reporter() {
     try {
       await this.ipAddr();
-      obj = JSON.parse(await resp.body);
+      // obj = JSON.parse(await resp.body);
+      obj = await resp;
     } catch (err) {
       obj = {};
       console.log('IpAddr func err: ', err.message);
