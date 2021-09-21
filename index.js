@@ -99,14 +99,16 @@ program.on('--help', () => {
   console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
 });
 
+const options = program.opts();
+
 const settings = {
-  projectRoot: program.context,
-  reportName: program.reportName,
-  BROWSER_NAME: program.browser,
-  disableReport: program.disableReport,
-  closeBrowser: program.closeBrowser,
-  updateBaselineImage: program.updateBaselineImage,
-  remoteService: program.remoteService,
+  projectRoot: options.context,
+  reportName: options.reportName,
+  BROWSER_NAME: options.browser,
+  disableReport: options.disableReport,
+  closeBrowser: options.closeBrowser,
+  updateBaselineImage: options.updateBaselineImage,
+  remoteService: options.remoteService,
 };
 
 /**
@@ -125,7 +127,7 @@ global.dataconfig = dataConfig;
 global.emailData = dataConfig.emailData;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
-global.env = process.env.ENVIRONMENT || environment[program.env];
+global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
@@ -135,23 +137,23 @@ global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
 
-if (program.remoteService && program.extraSettings) {
-  const additionalSettings = parseRemoteArguments(program.extraSettings);
+if (options.remoteService && options.extraSettings) {
+  const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
   /* this approach supports a single string defining both the target config and tags
     e.g. 'chrome/@tag1,@tag2'
    */
   if (additionalSettings.tags) {
-    if (program.tags) {
+    if (options.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
     }
-    program.tags = additionalSettings.tags;
+    options.tags = additionalSettings.tags;
   }
 }
 
 function getProjectPath(objectName) {
-  // return settings.projectRoot + program[objectName];
-  return path.resolve(settings.projectRoot, program[objectName]);
+  // return settings.projectRoot + options[objectName];
+  return path.resolve(settings.projectRoot, options[objectName]);
 }
 
 const paths = {
@@ -162,7 +164,7 @@ const paths = {
 };
 
 /** expose settings and paths for global use */
-global.BROWSER_NAME = program.browser;
+global.BROWSER_NAME = options.browser;
 global.settings = settings;
 global.paths = paths;
 
@@ -246,8 +248,8 @@ process.argv.splice(2, 100);
 process.argv.push(paths.featureFiles);
 
 /** specify the feature files to be executed */
-if (program.featureFile) {
-  const splitFeatureFiles = program.featureFile.split(',');
+if (options.featureFile) {
+  const splitFeatureFiles = options.featureFile.split(',');
 
   splitFeatureFiles.forEach((feature) => {
     process.argv.push(feature);
@@ -268,7 +270,7 @@ process.argv.push(
 process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
 
 /** add path to import step definitions */
-process.argv.push('-r', path.resolve(program.steps));
+process.argv.push('-r', path.resolve(options.steps));
 
 /**
  * Get tags from feature files
@@ -277,7 +279,7 @@ process.argv.push('-r', path.resolve(program.steps));
 function getTagsFromFeatureFiles() {
   let result = [];
   loadTextFile.setup({ matchRegExp: /\.feature/ });
-  const featurefiles = loadTextFile.loadSync(path.resolve(program.featureFiles));
+  const featurefiles = loadTextFile.loadSync(path.resolve(options.featureFiles));
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
     result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
@@ -288,10 +290,10 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
-if (program.tags) {
+if (options.tags) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);
-  program.tags.forEach((tag) => {
+  options.tags.forEach((tag) => {
     if (tag[0] !== '@') {
       console.error('tags must start with a @');
       process.exit();
@@ -301,18 +303,18 @@ if (program.tags) {
       process.exit();
     }
   });
-  program.tags.forEach((tag) => {
+  options.tags.forEach((tag) => {
     process.argv.push('--tags', tag);
   });
 }
 
 /** Add split to run multiple browsers from the command line */
-if (program.browser) {
-  const splitBrowsers = program.browser.split(',');
+if (options.browser) {
+  const splitBrowsers = options.browser.split(',');
   splitBrowsers.forEach(() => {
-    process.argv.push(program.browser);
+    process.argv.push(options.browser);
   });
-  process.argv.push(program.browser);
+  process.argv.push(options.browser);
 }
 
 /** add strict option (fail if there are any undefined or pending steps) */

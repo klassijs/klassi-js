@@ -166,7 +166,7 @@ module.exports = {
         await browser.pause(DELAY_1s);
       }
 
-      if (err === true && program.updateBaselineImages) {
+      if (err === true && program.opts().updateBaselineImages) {
         console.log(
           `${this.message}   images at:\n` +
             `   Baseline: ${baselinePath}\n` +

@@ -266,8 +266,8 @@ AfterAll(async () => {
   try {
     browser.pause(DELAY_5s);
     if (
-      (remoteService && remoteService.type === 'browserstack' && program.email) ||
-      (remoteService && remoteService.type === 'lambdatest' && program.email)
+      (remoteService && remoteService.type === 'browserstack' && program.opts().email) ||
+      (remoteService && remoteService.type === 'lambdatest' && program.opts().email)
     ) {
       browser.pause(DELAY_5s).then(async () => {
         await helpers.s3Upload();
@@ -282,7 +282,7 @@ AfterAll(async () => {
       browser.pause(DELAY_5s).then(async () => {
         process.exit(global.status);
       });
-    } else if (program.email) {
+    } else if (program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
         await helpers.klassiEmail();
         browser.pause(DELAY_3s).then(async () => {

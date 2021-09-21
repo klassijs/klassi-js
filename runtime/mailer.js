@@ -22,8 +22,8 @@
  */
 const path = require('path');
 const nodeMailer = require('nodemailer');
-const getRemote = require('./getRemote.js');
-const shared = require('./scripts/secrets/emailConfig');
+const getRemote = require('./getRemote');
+const shared = require('./scripts/secrets/emailConfig.json');
 
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
@@ -99,9 +99,11 @@ module.exports = {
             } else {
               console.log('Results Email successfully sent');
               // eslint-disable-next-line no-unused-vars
-              browser.pause(DELAY_200ms).then((r) => {
-                process.exit(0);
-              });
+              // browser.pause(DELAY_200ms).then((r) => {
+              //   process.exit(0);
+              // });
+              browser.pause(DELAY_500ms);
+              process.exit(0);
             }
           });
           // eslint-disable-next-line no-shadow

@@ -1,35 +1,32 @@
-let res;
+const pactum = require('pactum');
+
+const spec = pactum.spec();
+const url = env.api_base_url;
+
+let resp;
 
 module.exports = {
   /**
    * making a call to the Api
    */
   getCall: async () => {
-    // eslint-disable-next-line no-undef
-    const url = env.api_base_url;
-    const method = 'GET';
+    resp = await spec.get(`${url}`).expectStatus(200);
+  },
 
-    res = await helpers.apiCall(url, method);
-  },
-  /**
-   * Getting the Response Timing
-   */
-  resTime: async () => {
-    console.log(res.timings.response);
-  },
-  /**
-   * Getting the Status Code
-   */
-  staCode: async () => {
-    await browser.pause(DELAY_200ms);
-    expect(res.statusCode).to.equal(200);
-    console.log(res.statusCode);
-  },
   /**
    * Getting the Content of the API
    */
   contApi: async () => {
+    resp = await spec.toss();
     await browser.pause(DELAY_200ms);
-    console.log(res.body);
+    // console.log('the content ', resp.body);
+  },
+
+  /**
+   * Getting the Status Code
+   */
+  staCode: async () => {
+    const status = resp.statusCode;
+    // console.log('the status code: ', status);
   },
 };
