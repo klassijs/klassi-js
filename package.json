@@ -81,6 +81,7 @@
     "nodemailer": "^6.5.0",
     "pactum": "^3.0.16",
     "pixelmatch": "^5.2.1",
+    "pngjs": "^6.0.0",
     "recursive-readdir": "^2.2.2",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
