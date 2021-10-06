@@ -19,7 +19,7 @@ module.exports = {
   contApi: async () => {
     resp = await spec.toss();
     await browser.pause(DELAY_200ms);
-    // console.log('the content ', resp.body);
+    console.log('the content ', resp.body);
   },
 
   /**
@@ -27,6 +27,6 @@ module.exports = {
    */
   staCode: async () => {
     const status = resp.statusCode;
-    // console.log('the status code: ', status);
+    console.log('the status code: ', status);
   },
 };
