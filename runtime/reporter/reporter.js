@@ -24,6 +24,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
 const jUnit = require('cucumber-junit');
+const pactumJs = require('pactum');
 const getRemote = require('../getRemote');
 
 const remoteService = getRemote(global.settings.remoteService);
@@ -34,15 +35,15 @@ let obj;
 module.exports = {
   ipAddr: async () => {
     const endPoint = 'http://ip-api.com/json';
-    resp = await helpers.apiCall(endPoint, 'GET');
-    await resp;
+    resp = await pactumJs.spec().get(endPoint).toss();
+    return resp;
   },
 
   async reporter() {
     try {
       await this.ipAddr();
-      // obj = JSON.parse(await resp.body);
-      obj = await resp;
+      obj = await resp.body;
+      // console.log('this is in the reporter ', obj);
     } catch (err) {
       obj = {};
       console.log('IpAddr func err: ', err.message);

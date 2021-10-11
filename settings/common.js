@@ -83,7 +83,7 @@ module.exports = {
    * @returns {*}
    */
   sortByDate(array) {
-    array.sort(function (a, b) {
+    array.sort((a, b) => {
       const sentDateA = a.split('/');
       const c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
       const sentDateB = b.split('/');
@@ -97,7 +97,6 @@ module.exports = {
     try {
       const elem = await browser.$(selector);
       await elem.waitForExist(DELAY_5s);
-      await elem.waitForEnabled(DELAY_5s);
       await browser.pause(DELAY_500ms);
       await elem.click();
       await browser.setValue(itemToFilter);

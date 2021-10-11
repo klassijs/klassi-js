@@ -30,7 +30,7 @@
   },
   "browser": "index.js",
   "scripts": {
-    "start": "nyc node index.js --disableReport --wdProtocol --tags @uattest",
+    "start": "nyc node index.js --disableReport --wdProtocol --tags",
     "test": "node index.js --disableReport --tags @api",
     "dev": "node index.js --disableReport --tags @search",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
