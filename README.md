@@ -26,8 +26,8 @@
 
 ## Pre Installation
 
-<a>Please  Check that these applications are installed:/n
-<a href="https://nodejs.org/">NodeJs</a>,
+<a>Please  Check that these applications are installed:
+<li><a href="https://nodejs.org/">NodeJs</a></li>,
 <a href="http://java.sun.com/javase/downloads/index.jsp">Java JDK</a>,
 <a href="https://Atlassian.com/git/tutorials/install-git">Git</a> – You need to have an account on GitHub first and 
 <a href="https://yarnpkg.com">Yarn</a></p>
