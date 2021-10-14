@@ -317,6 +317,7 @@ module.exports = {
         .toss();
       getMethod = resp;
     }
+
     if (method === 'PUT') {
       resp = await pactumJs
         .spec()
