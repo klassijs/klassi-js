@@ -27,8 +27,8 @@
 ## Pre Installation
 
 <a>Please  Check that these applications are installed:
-<li><a href="https://nodejs.org/">NodeJs</a></li>,
-<li><a href="http://java.sun.com/javase/downloads/index.jsp">Java JDK</a></li>,
+<li><a href="https://nodejs.org/">NodeJs</a></li>
+<li><a href="http://java.sun.com/javase/downloads/index.jsp">Java JDK</a></li>
 <li><a href="https://Atlassian.com/git/tutorials/install-git">Git</a> – You need to have an account on GitHub first</li> 
 <li><a href="https://yarnpkg.com">Yarn</a></li></p>
 If not download and install with just the default configuration, it is enough for framework usage!
