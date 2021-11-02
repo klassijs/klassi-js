@@ -116,12 +116,16 @@ module.exports = {
                     // eslint-disable-next-line no-await-in-loop,no-unused-vars
                     dataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\.html/, '');
                     let dataFile = '';
-                    browserData.push((dataFile = `${dataFile}<a> <a href="${dataList}">${dataNew}</a></a>`));
+                    // browserData.push((dataFile = `${dataFile}<a> <a href="${dataList}">${dataNew}</a></a>`));
+                    browserData.push(
+                      (dataFile = `${dataFile}<div class="panel ${browsername}"><a href="${dataList}">${dataNew}</a></div>`)
+                    );
                   }
                 }
               }
             }
-            dataOut = dataOut.replace(`This is ${browsername}`, browserData.join(' '));
+            dataOut = dataOut.replace('<!-- browser_test_output -->', browserData.join(' '));
+            // dataOut = dataOut.replace(`This is ${browsername}`, browserData.join(' '));
           }
         }
         await helpers.writeToTxtFile(file, dataOut);
