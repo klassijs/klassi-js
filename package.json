@@ -89,7 +89,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "chromedriver": "^93.0.1",
+    "chromedriver": "^96.0.0",
     "eslint": "^7.15.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^8.1.0",
