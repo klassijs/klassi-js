@@ -40,9 +40,7 @@ let config;
 
 module.exports = async function lambdatestDriver(options, configType) {
   const browserCapabilities = loadConfig(`./lambdatest/${configType}.json`);
-  if (
-    (projectName === 'OAF' && browserName === 'chrome')
-  ) {
+  if (projectName === 'OAF' && browserName === 'chrome') {
     config = Object.assign(browserCapabilities, chExt);
   } else {
     config = browserCapabilities;
@@ -56,18 +54,13 @@ module.exports = async function lambdatestDriver(options, configType) {
   const buildNameFromConfig = configType.replace(/-/g, ' ');
 
   if (process.env.CI || process.env.CIRCLE_CI) {
-    if (
-      (projectName !== 'OAF' && browserName !== 'chrome')
-    ) {
+    if (projectName !== 'OAF' && browserName !== 'chrome') {
       config.tunnelName = process.env.TUNNEL_NAME;
       const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
       config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
     }
   } else if (!config.build) {
-    if (
-      (projectName !== 'OAF' && browserName !== 'chrome')
-
-    ) {
+    if (projectName !== 'OAF' && browserName !== 'chrome') {
       // configs can define their own build name or it is inferred from the configType
       config.build = buildNameFromConfig;
       config.tunnelName = 'lttunnel';

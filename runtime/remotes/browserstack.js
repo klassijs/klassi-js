@@ -20,7 +20,8 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const gotApi = require('got');
+// const gotApi = require('got');
+
 const { dataconfig } = global;
 
 function getCredentials() {

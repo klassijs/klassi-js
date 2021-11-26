@@ -22,6 +22,7 @@
  */
 const wdio = require('webdriverio');
 const browserstacklocal = require('browserstack-local');
+
 const { dataconfig } = global;
 
 let bsLocal;
@@ -42,7 +43,7 @@ const bsLocalArgs = {
 bsLocal = new browserstacklocal.Local();
 wdio.bsLocal = bsLocal;
 
-bsLocal.start(bsLocalArgs, async function (err) {
+bsLocal.start(bsLocalArgs, async (err) => {
   if (err) {
     console.log('its not connected nor working - ', err.message);
   } else {

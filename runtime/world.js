@@ -23,7 +23,7 @@
 const fs = require('fs-extra');
 const chalk = require('chalk');
 const chai = require('chai');
-const apiGot = require('got');
+// const apiGot = require('got');
 const program = require('commander');
 const merge = require('merge');
 const requireDir = require('require-dir');
@@ -31,7 +31,7 @@ let dir = require('node-dir');
 
 const { Before, After, AfterAll, Status } = require('@cucumber/cucumber');
 const { Given, When, Then, And, But } = require('@cucumber/cucumber');
-const getRemote = require('./getRemote.js');
+const getRemote = require('./getRemote');
 
 /**
  * all assertions for variable testing
@@ -50,18 +50,19 @@ global.date = require('./helpers').currentDate();
  * for all API test calls
  * @type {Function}
  */
-global.gotApi = apiGot;
+// global.gotApi = apiGot;
 
 /**
  * for the Download of all file types
  */
-global.downloader = require('./downloader.js');
+global.downloader = require('./downloader');
 
 /**
  * Environment variables
  * @type {*|(function(): browser)}
  */
 const ChromeDriver = require('./chromeDriver');
+const ChromiumDriver = require('./chromiumDriver');
 const FirefoxDriver = require('./firefoxDriver');
 const BrowserStackDriver = require('./browserStackDriver');
 const LambdaTestDriver = require('./lambdatestDriver');
@@ -102,6 +103,12 @@ async function getDriverInstance() {
   case 'chrome':
     {
       browser = ChromeDriver(options);
+    }
+    break;
+
+  case 'chromium':
+    {
+      browser = ChromiumDriver(options);
     }
     break;
 
@@ -232,7 +239,8 @@ this.World = World;
 // eslint-disable-next-line import/order,import/no-extraneous-dependencies
 const { setDefaultTimeout } = require('@cucumber/cucumber');
 
-const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
+// const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
+const globalTimeout = process.env.CUCUMBER_TIMEOUT || 10000;
 setDefaultTimeout(globalTimeout);
 global.timeout = globalTimeout;
 
