@@ -69,11 +69,7 @@ module.exports = {
           Location: `${obj.city} ${obj.regionName}`,
           Platform: process.platform,
           'Test Completion': endDateTime,
-          Executed:
-            (remoteService && remoteService.type === 'browserstack') ||
-            (remoteService && remoteService.type === 'lambdatest')
-              ? 'Remote'
-              : 'Local',
+          Executed: remoteService && remoteService.type === 'lambdatest' ? 'Remote' : 'Local',
         },
         brandTitle: `${reportName}-${dateTime}`,
         name: `${projectName} ${browserName}`,

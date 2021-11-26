@@ -30,14 +30,14 @@
   },
   "browser": "index.js",
   "scripts": {
+    "pretest": "eslint --ignore-path .gitignore .",
     "start": "nyc node index.js --disableReport --wdProtocol --tags",
-    "test": "node index.js --disableReport --tags @api",
-    "dev": "node index.js --disableReport --tags @search",
+    "test": "node index.js --disableReport --wdProtocol --tags",
+    "dev": "node index.js --disableReport --tags",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
-    "ciltuat": "nyc node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
-    "ciltdev": "nyc node index.js --disableReport --tags @api --remoteService lambdatest --extraSettings",
-    "bslocal": "node index.js --disableReport --remoteService browserstack --extraSettings",
-    "cibsdev": "node index.js --disableReport --email --tags @api --remoteService lambdatest --extraSettings",
+    "ciltdev": "nyc node index.js --disableReport --tags @uattest --remoteService lambdatest --extraSettings",
+
+
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
@@ -89,7 +89,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "chromedriver": "^93.0.1",
+    "chromedriver": "^96.0.0",
     "eslint": "^7.15.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^8.1.0",
@@ -97,7 +97,7 @@
     "eslint-plugin-istanbul": "^0.1.2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-wdio": "^7.0.0",
-    "geckodriver": "^2.0.0",
+    "geckodriver": "^2.0.4",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1"
   }

@@ -1050,10 +1050,10 @@ chrome-launcher@^0.14.0:
     is-wsl "^2.2.0"
     lighthouse-logger "^1.0.0"
 
-chromedriver@^93.0.1:
-  version "93.0.1"
-  resolved "https://registry.yarnpkg.com/chromedriver/-/chromedriver-93.0.1.tgz#3ed1f7baa98a754fc1788c42ac8e4bb1ab27db32"
-  integrity sha512-KDzbW34CvQLF5aTkm3b5VdlTrvdIt4wEpCzT2p4XJIQWQZEPco5pNce7Lu9UqZQGkhQ4mpZt4Ky6NKVyIS2N8A==
+chromedriver@^96.0.0:
+  version "96.0.0"
+  resolved "https://registry.yarnpkg.com/chromedriver/-/chromedriver-96.0.0.tgz#c8473498e4c94950fa168187b112019cce9e5c6c"
+  integrity sha512-4g6Hn5RHGsbaBmOrJbDlz/hdVPOc22eRsbvoAAMqkZxR2NJCcddHzCw2FAQeW8lX/C7xWVz3nyDsKX3fE9lIIw==
   dependencies:
     "@testim/chrome-version" "^1.0.7"
     axios "^0.21.2"
@@ -2068,7 +2068,7 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-geckodriver@^2.0.0:
+geckodriver@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/geckodriver/-/geckodriver-2.0.4.tgz#2f644ede43ce7bea10336d57838179da0f7374d9"
   integrity sha512-3Fu75v6Ov8h5Vt25+djJU56MJA2gRctgjhvG5xGzLFTQjltPz7nojQdBHbmgWznUt3CHl8VaiDn8MaepY7B0dA==
