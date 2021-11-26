@@ -74,18 +74,7 @@ module.exports = {
      * list of browsers test running on via lambdatest
      * @type {string[]}
      */
-    const browserName = [
-      'chrome',
-      'chromev81',
-      'chromeDE',
-      'firefox',
-      'edge',
-      'iexplorer',
-      'safari',
-      'tabletGalaxy',
-      'tabletiPad',
-      'tabletiPad12',
-    ];
+    const browserName = ['chrome', 'firefox', 'edge', 'iexplorer', 'safari', 'tabletGalaxy', 'tabletiPad'];
     let dataList;
     let dataNew = '';
     let browsername;
@@ -116,12 +105,17 @@ module.exports = {
                     // eslint-disable-next-line no-await-in-loop,no-unused-vars
                     dataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\.html/, '');
                     let dataFile = '';
-                    browserData.push((dataFile = `${dataFile}<a> <a href="${dataList}">${dataNew}</a></a>`));
+                    // browserData.push((dataFile = `${dataFile}<a> <a href="${dataList}">${dataNew}</a></a>`));
+                    browserData.push(
+                      (dataFile = `${dataFile}<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p><a href="${dataList}">${dataNew}</a></div>`)
+                    );
+                    // console.log('this is the browserData ', dataFile);
                   }
                 }
               }
             }
-            dataOut = dataOut.replace(`This is ${browsername}`, browserData.join(' '));
+            dataOut = dataOut.replace('<-- browser_test_output -->', browserData.join(' '));
+            // dataOut = dataOut.replace(`This is ${browsername}`, browserData.join(' '));
           }
         }
         await helpers.writeToTxtFile(file, dataOut);
