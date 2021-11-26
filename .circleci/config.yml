@@ -58,7 +58,7 @@ jobs:
           command: cat ~/klassiG/klassi-js/package.json > CACHE_KEY
 
       - restore_cache:
-          key: klassi-yarn-cache-{{ checksum "CACHE_KEY" }}
+          key: klassi-yarn-cache-v1{{ checksum "CACHE_KEY" }}
 
       - run:
           name: Install klassi framework dependencies
@@ -71,7 +71,7 @@ jobs:
           paths:
             - ~/.cache/yarn
             - ~/klassiG/klassi-js/yarn.lock
-          key: klassi-yarn-cache-{{ checksum "CACHE_KEY" }}
+          key: klassi-yarn-cache-v1{{ checksum "CACHE_KEY" }}
 
       - run:
           name: Run acceptance tests
