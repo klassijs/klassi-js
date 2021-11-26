@@ -23,6 +23,9 @@
 
 const fs = require('fs');
 const request = require('got');
+const pactumJs = require('pactum');
+
+const spec = pactumJs.spec();
 
 module.exports = {
   /**

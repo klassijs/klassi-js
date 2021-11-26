@@ -62,15 +62,6 @@ module.exports = {
         },
 
         /**
-         *  if you are using Browserstack
-         */
-        "bslocal": {
-            "localIdentifier": "",
-            "userName": "",
-            "accessKey": ""
-        },
-
-        /**
          * if you are using AWS for storing and processing reports
          * else this can be deleted
          */

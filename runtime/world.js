@@ -31,7 +31,7 @@ let dir = require('node-dir');
 
 const { Before, After, AfterAll, Status } = require('@cucumber/cucumber');
 const { Given, When, Then, And, But } = require('@cucumber/cucumber');
-const getRemote = require('./getRemote.js');
+const getRemote = require('./getRemote');
 
 /**
  * all assertions for variable testing
@@ -63,7 +63,6 @@ global.downloader = require('./downloader.js');
  */
 const ChromeDriver = require('./chromeDriver');
 const FirefoxDriver = require('./firefoxDriver');
-const BrowserStackDriver = require('./browserStackDriver');
 const LambdaTestDriver = require('./lambdatestDriver');
 
 const remoteService = getRemote(global.settings.remoteService);
@@ -78,12 +77,6 @@ async function getDriverInstance() {
   const browsers = global.settings.BROWSER_NAME;
   const options = {};
 
-  if (remoteService && remoteService.type === 'browserstack') {
-    const configType = global.settings.remoteConfig;
-    assert.isString(configType, 'BrowserStack requires a config type e.g. chrome.json');
-    browser = BrowserStackDriver(options, configType);
-    return browser;
-  }
   if (remoteService && remoteService.type === 'lambdatest') {
     const configType = global.settings.remoteConfig;
     assert.isString(configType, 'LambdaTest requires a config type e.g. chrome.json');
@@ -265,20 +258,14 @@ AfterAll(async () => {
   await helpers.klassiReporter();
   try {
     browser.pause(DELAY_5s);
-    if (
-      (remoteService && remoteService.type === 'browserstack' && program.opts().email) ||
-      (remoteService && remoteService.type === 'lambdatest' && program.opts().email)
-    ) {
+    if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
         await helpers.s3Upload();
         browser.pause(DELAY_10s).then(() => {
           process.exit(global.status);
         });
       });
-    } else if (
-      (remoteService && remoteService.type === 'browserstack') ||
-      (remoteService && remoteService.type === 'lambdatest')
-    ) {
+    } else if (remoteService && remoteService.type === 'lambdatest') {
       browser.pause(DELAY_5s).then(async () => {
         process.exit(global.status);
       });
@@ -296,21 +283,12 @@ AfterAll(async () => {
 });
 
 /**
- * BrowserStack || LambdaTest Only
+ * LambdaTest Only
  * executed ONLY on failure of a scenario to get the video link
- * from browserstack || lambdatest when it fails for the report
+ * from lambdatest when it fails for the report
  */
 After(async (scenario) => {
-  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'browserstack') {
-    await helpers.bsVideo();
-    console.log('video link capture is running.......');
-    // eslint-disable-next-line no-undef
-    const vidLink = await videoLib.getVideoId();
-    // eslint-disable-next-line no-undef
-    cucumberThis.attach(
-      `video: <video width='320' height='240' controls autoplay> <source src='${vidLink}' type=video/mp4> </video>`
-    );
-  } else if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
+  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
     await helpers.ltVideo();
     console.log('video link capture is running.......');
     // eslint-disable-next-line no-undef
@@ -346,10 +324,7 @@ this.closebrowser = function () {
  */
 After(async (scenario) => {
   if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
-    if (
-      (remoteService && remoteService.type === 'browserstack') ||
-      (remoteService && remoteService.type === 'lambdatest')
-    ) {
+    if (remoteService && remoteService.type === 'lambdatest') {
       return this.closebrowser();
     }
   }

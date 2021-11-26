@@ -26,31 +26,15 @@ const spec = pactumJs.spec();
 /**
  * setting the envConfig variables for file list
  */
-let username;
-let key;
 let ltUsername;
 let ltKey;
 
-if (username) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.BROWSERSTACK_USERNAME || bssecrets.userName || dataconfig.bslocal.userName;
-}
-if (ltUsername) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.LAMBDATEST_USERNAME || ltsecrets.userName || dataconfig.ltlocal.userName;
-}
+// eslint-disable-next-line no-unused-expressions
+process.env.LAMBDATEST_USERNAME || ltsecrets.userName || dataconfig.ltlocal.userName;
 
-if (key) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.BROWSERSTACK_ACCESS_KEY || bssecrets.accessKey || dataconfig.bslocal.accessKey;
-}
+// eslint-disable-next-line no-unused-expressions
+process.env.LAMBDATEST_ACCESS_KEY || ltsecrets.accessKey || dataconfig.ltlocal.accessKey;
 
-if (ltKey) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.LAMBDATEST_ACCESS_KEY || ltsecrets.accessKey || dataconfig.ltlocal.accessKey;
-}
-
-const bsUrl = process.env.BROWSERSTACK_API_URL || bssecrets.crossBrowserUrl;
 const ltUrl = process.env.LAMBDATEST_API_URL || ltsecrets.crossBrowserUrl;
 
 // const method = 'GET';
@@ -59,22 +43,6 @@ let url;
 let videoID;
 
 module.exports = {
-  /**
-   * making a call to the Api to get Browserstack video links
-   */
-  getBsVideoLink: async () => {
-    const { sessionId } = browser;
-    url = `https://${bsUrl}/sessions/${sessionId}`;
-    // url = `https://${username}:${key}${bsUrl}/sessions/${sessionId}`;
-    await spec.get(url).withAuth(username, key).expectStatus(200);
-    res = await spec.toss();
-    // res = await helpers.apiCall(url, method);
-    // const obj = JSON.parse(res.body);
-    // videoID = obj.video_url;
-    videoID = res.body.url;
-    return videoID;
-  },
-
   /**
    * making a call to the Api to get lambdatest video links
    * @returns {Promise<*>}
