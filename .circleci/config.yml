@@ -134,7 +134,7 @@ workflows:
   build_and_test:
     jobs:
       - dev_acceptance_test_firefox:
-          <<: *filter_only_testable_branches
+          <<: *filter_only_integration_branches
 
       - acceptance_test_chrome:
           <<: *filter_only_releasable_branches
@@ -160,20 +160,20 @@ workflows:
       - dev_acceptance_test_chrome:
           <<: *filter_only_integration_branches
 
-  nightly_run:
-    triggers:
-      - schedule:
-          cron: "00 20 * * *"
-          filters:
-            branches:
-              only:
-                - master
-
-    jobs:
-      - acceptance_test_chrome
-      - acceptance_test_edge
-      - acceptance_test_firefox
-      - acceptance_test_safari
-      - acceptance_test_iexplorer
-      - acceptance_test_tabletGalaxy
-      - acceptance_test_tabletiPad
+#  nightly_run:
+#    triggers:
+#      - schedule:
+#          cron: "00 20 * * *"
+#          filters:
+#            branches:
+#              only:
+#                - master
+#
+#    jobs:
+#      - acceptance_test_chrome
+#      - acceptance_test_edge
+#      - acceptance_test_firefox
+#      - acceptance_test_safari
+#      - acceptance_test_iexplorer
+#      - acceptance_test_tabletGalaxy
+#      - acceptance_test_tabletiPad
