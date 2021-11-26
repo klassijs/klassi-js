@@ -30,9 +30,10 @@
   },
   "browser": "index.js",
   "scripts": {
+    "pretest": "eslint --ignore-path .gitignore .",
     "start": "nyc node index.js --disableReport --wdProtocol --tags",
-    "test": "node index.js --disableReport --tags @api",
-    "dev": "node index.js --disableReport --tags @search",
+    "test": "node index.js --disableReport --wdProtocol --tags",
+    "dev": "node index.js --disableReport --tags",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --email --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltdev": "nyc node index.js --disableReport --tags @api --remoteService lambdatest --extraSettings",

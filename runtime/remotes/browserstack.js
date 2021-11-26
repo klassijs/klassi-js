@@ -21,6 +21,7 @@
  SOFTWARE.
  */
 const gotApi = require('got');
+
 const { dataconfig } = global;
 
 function getCredentials() {
