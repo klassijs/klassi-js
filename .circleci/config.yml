@@ -7,18 +7,6 @@
 version: 2.1
 
 references:
-  filter_only_testable_branches: &filter_only_testable_branches
-    filters:
-      branches:
-        only:
-          - master # git flow production branch
-          - develop # git flow integration branch
-          - /feature\/.*/ # git flow feature branches
-          - /bugfix\/.*/ # git flow bugfix branches
-          - /release\/.*/ # git flow release branches
-          - /hotfix\/.*/ # git flow hotfix branches
-          - /support\/.*/ # git flow support branches
-
   filter_ignore_wip_branches: &filter_ignore_wip_branches
     filters:
       branches:
@@ -95,37 +83,9 @@ jobs:
 
   acceptance_test_chrome:
     <<: *acceptance_test_base
-    environment: { BROWSER: 'chrome', STAGE: 'uat' }
-
-  acceptance_test_edge:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'edge', STAGE: 'uat' }
-
-  acceptance_test_firefox:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'firefox', STAGE: 'uat' }
-
-  acceptance_test_safari:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'safari', STAGE: 'uat' }
-
-  acceptance_test_iexplorer:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'iexplorer', STAGE: 'uat' }
-
-  acceptance_test_tabletiPad:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'tabletiPad', STAGE: 'uat'  }
-
-  acceptance_test_tabletGalaxy:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'tabletGalaxy', STAGE: 'uat'  }
-
-  dev_acceptance_test_chrome:
-    <<: *acceptance_test_base
     environment: { BROWSER: 'chrome', STAGE: 'dev' }
 
-  dev_acceptance_test_firefox:
+  acceptance_test_firefox:
     <<: *acceptance_test_base
     environment: { BROWSER: 'firefox', STAGE: 'dev' }
 
@@ -133,47 +93,8 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - dev_acceptance_test_firefox:
-          <<: *filter_only_testable_branches
-
-      - acceptance_test_chrome:
-          <<: *filter_only_releasable_branches
-
-      - acceptance_test_edge:
-          <<: *filter_only_releasable_branches
-
       - acceptance_test_firefox:
-          <<: *filter_only_releasable_branches
-
-      - acceptance_test_safari:
-          <<: *filter_only_releasable_branches
-
-      - acceptance_test_iexplorer:
-          <<: *filter_only_releasable_branches
-
-      - acceptance_test_tabletGalaxy:
-          <<: *filter_only_releasable_branches
-
-      - acceptance_test_tabletiPad:
-          <<: *filter_only_releasable_branches
-
-      - dev_acceptance_test_chrome:
           <<: *filter_only_integration_branches
 
-  nightly_run:
-    triggers:
-      - schedule:
-          cron: "00 20 * * *"
-          filters:
-            branches:
-              only:
-                - master
-
-    jobs:
-      - acceptance_test_chrome
-      - acceptance_test_edge
-      - acceptance_test_firefox
-      - acceptance_test_safari
-      - acceptance_test_iexplorer
-      - acceptance_test_tabletGalaxy
-      - acceptance_test_tabletiPad
+      - acceptance_test_chrome:
+          <<: *filter_only_integration_branches

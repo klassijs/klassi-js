@@ -71,7 +71,7 @@ module.exports = {
     await fs.copySync(tempFile, file);
 
     /**
-     * list of browsers test running on via BrowserStack
+     * list of browsers test running on via lambdatest
      * @type {string[]}
      */
     const browserName = [

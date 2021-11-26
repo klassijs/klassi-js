@@ -81,11 +81,7 @@ program
     []
   )
   .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison')
-  .option(
-    '--remoteService <optional>',
-    'which remote browser service, if any, should be used e.g. browserstack or lambdatest',
-    ''
-  )
+  .option('--remoteService <optional>', 'which remote browser service, if any, should be used e.g. lambdatest', '')
   .option(
     '--closeBrowser <optional>',
     'close the browser after each scenario (always, no). defaults to always',
@@ -131,7 +127,6 @@ global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
-global.bssecrets = require('./runtime/scripts/secrets/browserstack.json');
 global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
 
 global.date = require('./runtime/helpers').currentDate();

@@ -21,6 +21,9 @@
  SOFTWARE.
  */
 const gotApi = require('got');
+const pactumJs = require('pactum');
+
+const spec = pactumJs.spec();
 
 const { dataconfig } = global;
 function getCredentials() {

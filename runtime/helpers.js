@@ -457,16 +457,6 @@ module.exports = {
   },
 
   /**
-   * getting the video link from browserstack
-   * @returns {Promise<void>}
-   */
-  bsVideo: async () => {
-    // eslint-disable-next-line global-require
-    const page = require('./getVideoLinks');
-    await page.getBsVideoLink();
-  },
-
-  /**
    * getting the video link from lambdatest
    * @returns {Promise<void>}
    */

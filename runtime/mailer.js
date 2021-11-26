@@ -36,10 +36,7 @@ module.exports = {
     /** To get all the files that need to be attached */
     let fileList;
     const date = this.formatDate();
-    if (
-      (remoteService && remoteService.type === 'browserstack') ||
-      (remoteService && remoteService.type === 'lambdatest')
-    ) {
+    if (remoteService && remoteService.type === 'lambdatest') {
       fileList = [
         {
           filename: `testReport-${date}.html`,
