@@ -80,6 +80,12 @@ program
     collectPaths,
     []
   )
+  .option(
+    '--exclude <EXPRESSION>',
+    'excludes the features or scenarios with tags matching the expression (repeatable)',
+    collectPaths,
+    []
+  )
   .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison')
   .option('--remoteService <optional>', 'which remote browser service, if any, should be used e.g. lambdatest', '')
   .option(
@@ -285,10 +291,21 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
+
 if (options.tags) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);
-  options.tags.forEach((tag) => {
+  const separateMultipleTags = options.tags[0].split(',');
+  let separateExcludedTags;
+
+  if (options.exclude.length >= 1) {
+    separateExcludedTags = options?.exclude[0].split(',');
+  }
+
+  const correctTags = [];
+  const correctExcludedTags = [];
+
+  separateMultipleTags.forEach((tag) => {
     if (tag[0] !== '@') {
       console.error('tags must start with a @');
       process.exit();
@@ -297,11 +314,65 @@ if (options.tags) {
       console.error(`this tag ${tag} does not exist`);
       process.exit();
     }
+    correctTags.push(tag);
   });
-  options.tags.forEach((tag) => {
-    process.argv.push('--tags', tag);
-  });
+
+  if (separateExcludedTags && separateExcludedTags.length >= 1) {
+    separateExcludedTags.forEach((tag) => {
+      if (tag[0] !== '@') {
+        console.error('tags must start with a @');
+        process.exit();
+      }
+      if (tagsFound.indexOf(tag) === -1) {
+        console.error(`this tag ${tag} does not exist`);
+        process.exit();
+      }
+      correctExcludedTags.push(tag);
+    });
+  }
+
+  process.argv.push('--tags');
+
+  let resultingString;
+
+  if (correctTags.length > 1) {
+    const multipleTagsCommand = correctTags.reduce((acc, currentTag) => {
+      resultingString = acc + ` or ${currentTag}`;
+      return resultingString;
+    });
+
+    if (correctExcludedTags.length >= 1) {
+      const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
+        resultingString = acc + ` and not ${currentTag}`;
+        return resultingString;
+      });
+
+      resultingString = `${multipleTagsCommand} and not ${excludedCommand}`;
+    }
+
+    process.argv.push(resultingString);
+  } else {
+    switch (correctExcludedTags.length) {
+      case 0:
+        resultingString = correctTags[0];
+        break;
+
+      case 1:
+        resultingString = `${correctTags[0]} and not ${correctExcludedTags[0]}`;
+        break;
+
+      default:
+        const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
+          resultingString = acc + ` and not ${currentTag}`;
+          return resultingString;
+        });
+        resultingString = `${correctTags[0]} and not ${excludedCommand}`;
+        break;
+    }
+    process.argv.push(resultingString);
+  }
 }
+
 
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {

@@ -53,7 +53,8 @@ node ./node_modules/klassi-js/index.js
 --help                              output usage information
 --version                           output the version number
 --browser <name>                    name of browser to use (chrome, firefox). defaults to chrome
---tags <@tagName>                   name of cucumber tags to run - Multiple TAGS usage
+--tags <@tagName>                   name of cucumber tags to run - Multiple TAGS usage (@tag1,@tag2)
+--exclude <@tagName>                name of cucumber tags to exclude - Multiple TAGS usage(@tag3,@tag5)
 --steps <path>                      path to step definitions. defaults to ./step-definitions
 --featureFiles <path>               path to feature definitions. defaults to ./features
 --pageObjects <path>                path to page objects. defaults to ./page-objects
