@@ -1,0 +1,7 @@
+export default {
+  ID: '',
+  SECRET: '',
+  REGION: '',
+  BUCKET_NAME: '',
+  DOMAIN_NAME: '',
+};

@@ -20,21 +20,34 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require('fs-extra');
-const path = require('path');
-const program = require('commander');
-const AWS = require('aws-sdk');
-const readdir = require('recursive-readdir');
-const async = require('async');
-const pactumJs = require('pactum');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { PNG } = require('pngjs');
-const pixelmatch = require('pixelmatch');
+// const fs = require('fs-extra');
+// const path = require('path');
+// const program = require('commander');
+// const AWS = require('aws-sdk');
+// const readdir = require('recursive-readdir');
+// const async = require('async');
+// const pactumJs = require('pactum');
+// // eslint-disable-next-line import/no-extraneous-dependencies
+// const { PNG } = require('pngjs');
+// const pixelmatch = require('pixelmatch');
+import fs from 'fs-extra';
+import path from 'path';
+import program from 'commander';
+import AWS from 'aws-sdk';
+import readdir from 'recursive-readdir';
+import async from 'async';
+import pactumJs from 'pactum';
+import { PNG } from 'pngjs';
+import pixelmatch from 'pixelmatch';
+import verify from './imageCompare.js';
+
+// import { createRequire } from "module";
+// const require = createRequire(import.meta.url);
 
 let elem;
 let getMethod;
 let resp;
-module.exports = {
+export default {
   /**
    * returns a promise that is called when the url has loaded and the body element is present
    * @param {string} url to load
@@ -112,7 +125,7 @@ module.exports = {
    */
   compareImage: async (fileName) => {
     // eslint-disable-next-line global-require
-    const verify = require('./imageCompare');
+    // const verify = require('./imageCompare');
     await verify.assertion(fileName);
     await verify.value();
     await verify.pass();
@@ -125,7 +138,7 @@ module.exports = {
    */
   takeImage: async (fileName, elementsToHide) => {
     // eslint-disable-next-line global-require
-    const verify = require('./imageCompare');
+    // const verify = require('./imageCompare');
     await verify.takeScreenshot(fileName, elementsToHide);
   },
 

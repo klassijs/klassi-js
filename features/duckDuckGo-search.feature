@@ -15,4 +15,4 @@ Feature: Searching for apps with duckduckgo
     Examples:
       |searchword  |
       |space       |
-      |angry birds |
+#      |angry birds |

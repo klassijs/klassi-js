@@ -1,7 +1,7 @@
 let image;
 let elem;
 
-module.exports = {
+export default {
   /**
    * enters a search term into ebay's search box and presses enter
    * @param {string} searchWord
@@ -16,7 +16,7 @@ module.exports = {
       // do nothing
     } else {
       /** Accessibility verification */
-      await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
+      // await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
       await helpers.takeImage(`${image}_1-1.png`, sharedObjects.searchData.elem.leftBadge);
     }
 
@@ -30,10 +30,10 @@ module.exports = {
       // do nothing
     } else {
       /** Accessibility verification */
-      await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
+      // await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
       /** Accessibility Total error count/violations */
       // eslint-disable-next-line no-undef
-      cucumberThis.attach(`Accessibility Error Count : ${accessibilityLib.getAccessibilityTotalError()}`);
+      // cucumberThis.attach(`Accessibility Error Count : ${accessibilityLib.getAccessibilityTotalError()}`);
       await helpers.compareImage(`${image}_1-1.png`);
     }
     await helpers.compareImage(`${image}_1-0.png`);

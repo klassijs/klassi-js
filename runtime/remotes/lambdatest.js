@@ -20,8 +20,8 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const gotApi = require('got');
-const pactumJs = require('pactum');
+import gotApi from 'got';
+import pactumJs from 'pactum';
 
 const spec = pactumJs.spec();
 
@@ -96,7 +96,7 @@ async function submitResults(scenario) {
   console.log(`public_url: ${detailsToArray[publicUrlPosition + 2]}`);
 }
 
-module.exports = {
+export default {
   submitResults,
   getCredentials,
 };

@@ -1,13 +1,15 @@
+import page from '../page-objects/duckDuckGoSearch.js';
+
 Given(/^The user arrives on the duckduckgo search page$/, async () => {
   await helpers.loadPage(env.web_url, 10);
 });
 
 When(/^they input (.*)$/, async (searchWord) => {
-  await pageObjects.duckDuckGoSearch.performSearch(searchWord);
+  await page.performSearch(searchWord);
 });
 
 Then(/^they should see some results$/, async () => {
-  await pageObjects.duckDuckGoSearch.searchResult();
+  await page.searchResult();
 });
 
 When(/^The screenshots should differ with the filenames "([^"]*)" & "([^"]*)"$/, async (fileName1, fileName2) => {

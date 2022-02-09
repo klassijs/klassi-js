@@ -20,19 +20,25 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const path = require('path');
-const { Command } = require('commander');
-const fs = require('fs-extra');
-const merge = require('merge');
-const requireDir = require('require-dir');
-const loadTextFile = require('text-files-loader');
-const { cosmiconfigSync } = require('cosmiconfig');
-
+import path from 'path';
+import { Command } from 'commander';
+import fs from 'fs-extra';
+import merge from 'merge';
+import requireDir from 'esm-require-directory';
+import loadTextFile from 'text-files-loader';
+import { cosmiconfigSync } from 'cosmiconfig';
+import * as cucumber from '@cucumber/cucumber';
+// import s3Data from './runtime/scripts/secrets/awsConfig.json';
+// import ltsecrets from './runtime/scripts/secrets/lambdatest.js';
+import helpers from './runtime/helpers.js';
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 // eslint-disable-next-line global-require
-const klassiCli = new (require('@cucumber/cucumber').Cli)({
+const klassiCli = new cucumber.Cli({
   argv: process.argv,
   cwd: process.cwd(),
   stdout: process.stdout,
+  env: process.env,
 });
 const pjson = require('./package.json');
 
@@ -55,6 +61,9 @@ function parseRemoteArguments(argumentString) {
     tags: argSplit[TAGS],
   };
 }
+
+/** adding global helpers */
+global.helpers = helpers;
 
 program
   .version(pjson.version)
@@ -128,9 +137,13 @@ global.closeBrowser = settings.closeBrowser;
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
 global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
+// global.s3Data = s3Data;
+// global.ltsecrets = ltsecrets;
 
-global.date = require('./runtime/helpers').currentDate();
-global.dateTime = require('./runtime/helpers').reportDate();
+// global.date = require('./runtime/helpers').currentDate();
+// global.dateTime = require('./runtime/helpers').reportDate();
+global.date = helpers.currentDate();
+global.dateTime = helpers.reportDate();
 
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
@@ -159,7 +172,9 @@ const paths = {
 };
 
 /** expose settings and paths for global use */
-global.BROWSER_NAME = options.browser;
+console.log('this is the browser in index.js ===> ', options.browser);
+// global.BROWSER_NAME = options.browser;
+global.BROWSER_NAME = settings.BROWSER_NAME;
 global.settings = settings;
 global.paths = paths;
 
@@ -167,7 +182,7 @@ global.paths = paths;
  * Adding Global browser folder
  * Adding Accessibility folder at project level
  */
-global.browserName = global.settings.remoteConfig || BROWSER_NAME;
+global.browserName = global.settings.remoteConfig || global.settings.BROWSER_NAME;
 const reports = `./reports/${browserName}`;
 const axereports = `./reports/${browserName}/accessibility`;
 
@@ -190,16 +205,12 @@ fs.ensureDirSync(axereports, (err) => {
   }
 });
 
-/** adding global helpers */
-global.helpers = require('./runtime/helpers');
-
 /** adding global accessibility library */
 // eslint-disable-next-line camelcase
-const accessibility_lib = path.resolve(__dirname, './runtime/accessibility/accessibilityLib.js');
+const accessibility_lib = path.resolve('./runtime/accessibility/accessibilityLib.cjs');
 if (fs.existsSync(accessibility_lib)) {
   const rList = [];
-  // eslint-disable-next-line global-require,import/no-dynamic-require
-  global.accessibilityLib = require(accessibility_lib);
+  global.accessibilityLib = accessibility_lib;
   global.accessibilityReportList = rList;
   // console.log('Accessibility library is available')
 } else console.error('No Accessibility Lib');
@@ -209,10 +220,10 @@ if (fs.existsSync(accessibility_lib)) {
  * @type {string}
  */
 // eslint-disable-next-line camelcase
-const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
+const videoLib = path.resolve('./runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
-  global.videoLib = require(videoLib);
+  global.videoLib = videoLib;
   // console.log('Video library is available');
 } else {
   console.error('No Video Lib');
@@ -252,17 +263,17 @@ if (options.featureFile) {
 }
 
 /** add switch to tell cucumber to produce json report files */
-const cpPath = '@cucumber/pretty-formatter';
-
-process.argv.push(
-  '-f',
-  cpPath,
-  '-f',
-  `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
-);
+// const cpPath = '@cucumber/pretty-formatter';
+//
+// process.argv.push(
+//   '-f',
+//   cpPath,
+//   '-f',
+//   `json:${path.resolve(paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
+// );
 
 /** add cucumber world as first required script (this sets up the globals) */
-process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
+process.argv.push('-r', path.resolve('./runtime/world.js'));
 
 /** add path to import step definitions */
 process.argv.push('-r', path.resolve(options.steps));

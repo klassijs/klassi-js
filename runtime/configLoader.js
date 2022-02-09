@@ -1,8 +1,8 @@
-const fs = require('fs-extra');
+import fs from 'fs-extra';
 
-module.exports = function (configFilePath) {
+export default function (configFilePath) {
   const json = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
 
   // TODO: add validation if schema
   return json;
-};
+}

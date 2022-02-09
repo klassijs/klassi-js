@@ -17,15 +17,15 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const { remote } = require('webdriverio');
-const program = require('commander');
-const fs = require('fs');
-const path = require('path');
-const { Before } = require('@cucumber/cucumber');
+import { remote } from 'webdriverio';
+import program from 'commander';
+import fs from 'fs';
+import path from 'path';
+import { Before } from '@cucumber/cucumber';
 
 let defaults = {};
 
-const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
+const modHeader = fs.readFileSync(path.resolve('./runtime/scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
 });
 
@@ -39,7 +39,7 @@ Before((scenario) => {
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function chromeDriver(options) {
+export default async function chromeDriver(options) {
   if (program.opts().wdProtocol) {
     defaults = {
       logLevel: 'error',
@@ -92,4 +92,4 @@ module.exports = async function chromeDriver(options) {
   await browser.setWindowSize(1280, 1024);
   // console.log('this is the options', options);
   return browser;
-};
+}

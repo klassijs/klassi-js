@@ -20,18 +20,28 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require('fs-extra');
-const chalk = require('chalk');
-const chai = require('chai');
-const apiGot = require('got');
-const program = require('commander');
-const merge = require('merge');
-const requireDir = require('require-dir');
-let dir = require('node-dir');
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import chai from 'chai';
+import apiGot from 'got';
+import program from 'commander';
+import merge from 'merge';
+import requireDir from 'esm-require-directory';
+import dir from 'node-dir';
 
-const { Before, After, AfterAll, Status } = require('@cucumber/cucumber');
-const { Given, When, Then, And, But } = require('@cucumber/cucumber');
-const getRemote = require('./getRemote');
+import { Before, After, AfterAll, Status, Given, When, Then } from '@cucumber/cucumber';
+import getRemote from './getRemote.js';
+import helpers from './helpers.js';
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
+/**
+ * Environment variables
+ * @type {*|(function(): browser)}
+ */
+import ChromeDriver from './chromeDriver.js';
+import FirefoxDriver from './firefoxDriver.js';
+import LambdaTestDriver from './lambdatestDriver.js';
 
 /**
  * all assertions for variable testing
@@ -44,26 +54,26 @@ global.expect = expect;
 /**
  * This is the Global date functionality
  */
-global.date = require('./helpers').currentDate();
+global.date = helpers.currentDate();
 
 /**
  * for all API test calls
  * @type {Function}
  */
-global.gotApi = apiGot;
+// global.gotApi = apiGot;
 
 /**
  * for the Download of all file types
  */
-global.downloader = require('./downloader.js');
+// global.downloader = require('./downloader.js');
 
 /**
  * Environment variables
  * @type {*|(function(): browser)}
  */
-const ChromeDriver = require('./chromeDriver');
-const FirefoxDriver = require('./firefoxDriver');
-const LambdaTestDriver = require('./lambdatestDriver');
+// const ChromeDriver = require('./chromeDriver');
+// const FirefoxDriver = require('./firefoxDriver');
+// const LambdaTestDriver = require('./lambdatestDriver');
 
 const remoteService = getRemote(global.settings.remoteService);
 
@@ -142,8 +152,6 @@ function consoleInfo() {
 global.Given = Given;
 global.When = When;
 global.Then = Then;
-global.And = And;
-global.But = But;
 
 function World() {
   /**
@@ -159,8 +167,8 @@ function World() {
     trace: consoleInfo, // expose an info method to log output to the console in a readable/visible format
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
-    downloader: global.downloader, // exposes the downloader for global usage
-    gotApi: global.gotApi, // exposes GOT for API testing
+    // downloader: global.downloader, // exposes the downloader for global usage
+    // gotApi: global.gotApi, // exposes GOT for API testing
     date: global.date, // expose the date method for logs and reports
   };
 
@@ -172,6 +180,7 @@ function World() {
      */
     global[key] = runtime[key];
   });
+
   /**
    * import page objects (after global lets have been created)
    */
@@ -185,6 +194,7 @@ function World() {
      */
     global.page = runtime.page;
   }
+
   /**
    * import shared objects from multiple paths (after global lets have been created)
    */
@@ -217,7 +227,7 @@ function World() {
 /**
  * export the 'World' required by cucumber to allow it to expose methods within step def's
  */
-this.World = World;
+// this.World = World;
 
 /**
  * set the default timeout for all tests
@@ -232,7 +242,7 @@ global.timeout = globalTimeout;
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require('./helpers').getStartDateTime();
+global.startDateTime = helpers.getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
@@ -255,25 +265,25 @@ global.status = 0;
 AfterAll(async () => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  await helpers.klassiReporter();
+  // await helpers.klassiReporter();
   try {
     browser.pause(DELAY_5s);
     if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
         await helpers.s3Upload();
         browser.pause(DELAY_10s).then(() => {
-          process.exit(global.status);
+          // process.exit(global.status);
         });
       });
     } else if (remoteService && remoteService.type === 'lambdatest') {
       browser.pause(DELAY_5s).then(async () => {
-        process.exit(global.status);
+        // process.exit(global.status);
       });
     } else if (program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
         await helpers.klassiEmail();
         browser.pause(DELAY_3s).then(async () => {
-          process.exit(global.status);
+          // process.exit(global.status);
         });
       });
     }
@@ -305,7 +315,7 @@ After(async (scenario) => {
  * @returns {Promise<void|Request<LexRuntime.DeleteSessionResponse, AWSError>|Request<LexRuntimeV2.DeleteSessionResponse, AWSError>>}
  */
 // eslint-disable-next-line func-names
-this.closebrowser = function () {
+export default function closebrowser() {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   switch (global.closeBrowser) {
@@ -325,11 +335,11 @@ this.closebrowser = function () {
 After(async (scenario) => {
   if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
     if (remoteService && remoteService.type === 'lambdatest') {
-      return this.closebrowser();
+      return closebrowser();
     }
   }
   console.log(scenario.result.status);
-  return this.closebrowser();
+  return closebrowser();
 });
 
 /**

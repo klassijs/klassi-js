@@ -20,13 +20,13 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const wdio = require('webdriverio');
-const fs = require('fs-extra');
-const path = require('path');
-const loadConfig = require('./configLoader');
-const lambdatest = require('./remotes/lambdatest');
+import wdio from 'webdriverio';
+import fs from 'fs-extra';
+import path from 'path';
+import loadConfig from './configLoader.js';
+import lambdatest from './remotes/lambdatest.js';
 
-const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
+const modHeader = fs.readFileSync(path.resolve('./runtime/scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
 });
 const chExt = {
@@ -38,7 +38,7 @@ const chExt = {
 let defaults;
 let config;
 
-module.exports = async function lambdatestDriver(options, configType) {
+export default async function lambdatestDriver(options, configType) {
   const browserCapabilities = loadConfig(`./lambdatest/${configType}.json`);
   if (projectName === 'OAF' && browserName === 'chrome') {
     config = Object.assign(browserCapabilities, chExt);
@@ -94,4 +94,4 @@ module.exports = async function lambdatestDriver(options, configType) {
   }
   global.browser = await wdio.remote(extendedOptions);
   return browser;
-};
+}

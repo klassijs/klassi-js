@@ -20,9 +20,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const path = require('path');
-const fs = require('fs-extra');
-const AWS = require('aws-sdk');
+import path from 'path';
+import fs from 'fs-extra';
+import AWS from 'aws-sdk';
 
 let s3Bucket;
 let s3AccessKeyId;
@@ -55,7 +55,7 @@ const s3 = new AWS.S3({
   secretAccessKey: s3SecretAccessKey,
 });
 
-module.exports = {
+export default {
   async s3Processor(projectName) {
     const date = this.formatDate();
     const folderName = date;
@@ -66,7 +66,7 @@ module.exports = {
      * This creates the test report from the sample template
      * @type {string}
      */
-    const tempFile = path.resolve(__dirname, './scripts/secrets/s3ReportSample');
+    const tempFile = path.resolve('./runtime/scripts/secrets/s3ReportSample');
     const file = `../${projectName}/reports/testReport-${date}.html`;
     await fs.copySync(tempFile, file);
 

@@ -20,11 +20,12 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const resemble = require('node-resemble-js');
-const fs = require('fs-extra');
-const program = require('commander');
+import resemble from 'node-resemble-js';
+import fs from 'fs-extra';
+import program from 'commander';
 
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const browserName = global.remoteConfig || global.BROWSER_NAME;
+console.log('this is the browser in image comapre ===> ', browserName);
 
 const baselineDir = `./visual-regression-baseline/${browserName}/`;
 const resultDir = `./artifacts/visual-regression/original/${browserName}/`;
@@ -38,7 +39,7 @@ const diffDirNegative = `${diffDir}negative/`;
 let fileName;
 let diffFile;
 
-module.exports = {
+export default {
   /**
    * Take an image of the current page and saves it as the given filename.
    * @method saveScreenshot

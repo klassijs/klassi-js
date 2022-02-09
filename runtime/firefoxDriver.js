@@ -17,9 +17,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const wdio = require('webdriverio');
-const program = require('commander');
-const { Before } = require('@cucumber/cucumber');
+import wdio from 'webdriverio';
+import program from 'commander';
+import { Before } from '@cucumber/cucumber';
 
 let defaults = {};
 
@@ -34,7 +34,7 @@ Before((scenario) => {
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function firefoxDriver(options) {
+export default async function firefoxDriver(options) {
   if (program.opts().wdProtocol) {
     defaults = {
       logLevel: 'error',
@@ -76,4 +76,4 @@ module.exports = async function firefoxDriver(options) {
   global.browser = await wdio.remote(extendedOptions);
   await browser.setWindowSize(1280, 800);
   return browser;
-};
+}

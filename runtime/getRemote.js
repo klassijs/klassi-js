@@ -20,9 +20,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const lambdatest = require('./remotes/lambdatest');
+import lambdatest from './remotes/lambdatest.js';
 
-module.exports = function getRemote(remoteService) {
+export default function getRemote(remoteService) {
   const remote = {};
 
   function noop() {
@@ -40,4 +40,4 @@ module.exports = function getRemote(remoteService) {
     remote.after = noop;
   }
   return remote;
-};
+}
