@@ -18,6 +18,7 @@ module.exports = {
       /** Accessibility verification */
       await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
       await helpers.takeImage(`${image}_1-1.png`, sharedObjects.searchData.elem.leftBadge);
+      await helpers.addImageToReport();
     }
 
     const title = await browser.getTitle();

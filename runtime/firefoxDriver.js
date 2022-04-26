@@ -43,8 +43,7 @@ module.exports = async function firefoxDriver(options) {
         browserName: 'firefox',
       },
     };
-  }
-  if (program.opts().headless || isApiTest ? '--headless' : '') {
+  } else if (program.opts().headless || isApiTest ? '--headless' : '') {
     defaults = {
       logLevel: 'error',
       capabilities: {

@@ -42,6 +42,18 @@ module.exports = {
         "uat": {
             "envName": "UAT",
             "web_url": ""
+        },
+
+        "android": {
+            "envName": "android",
+            "appName": "oxford.learners.bookshelf.canary",
+            "appPath": "https://olb-android-release.s3-accelerate.amazonaws.com/test/olb-5.9.3-canary.apk"
+        },
+
+        "ios": {
+            "envName": "ios",
+            "appName": "io.appium.TestApp",
+            "appPath": "http://appium.github.io/appium/assets/TestApp9.4.app.zip"
         }
     },
 
