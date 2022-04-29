@@ -249,7 +249,7 @@ assert.equal(violationcount, 0);
 HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be
  changed by providing a new path using the `--reports` command line switch:
 
-![Cucumber HTML report](runtime/img/cucumber-html-report.png)
+![Cucumber HTML report](./runtime/img/cucumber-html-report.png)
 
 ## Accessibility Report
 
@@ -257,7 +257,8 @@ HTML and JSON reports will be automatically generated and stored in the default 
 
 ![Aceessibility HTML report](./runtime/img/accessibility-html-report.png)
 
-## Mobile App automation with Appium
+
+## Mobile App automation with [Appium](https://appium.io/docs/en/about-appium/getting-started/?lang=en)
 
 Besides the ability to test web applications on mobile environments, the framework allows for the automation of native mobile applications running on Android or iOS in LambdaTest.
 
@@ -330,15 +331,23 @@ Please bear in mind that the page describing each function will contain informat
 
 For instance, the page for the [App installation functions](https://appium.io/docs/en/commands/device/app/install-app/) describes that when used in JavaScript (specifically using WebdriverIO), `driver.installApp('/path/to/APK')` is the code to use (bear in mind when referencing the documentation that OAF uses WDIO asynchronously and that driver = browser, so we would use `await browser.installApp('/path/to/APK')`).
 
-![JavaScript implementation of installApp](runtime/img/javascript-code.jpg)
+![JavaScript implementation of installApp](./runtime/img/javascript-code.jpg)
 
 It also tells us that the function is compatible with XCUITest and UiAutomator2, so we can use it for our tests.
 
-![Install App support](runtime/img/installapp-support.jpg)
+![Install App support](./runtime/img/installapp-support.jpg)
 
 ### Mobile selectors
 
 As it is described in [WebDriverIO's website](https://webdriver.io/docs/selectors/#mobile-selectors), native app element selection can be achieved through different methods, though they are handled the same way at the framework level (i.e., `const elementName = await browser.$(selector);` or `const elementName = await browser.$$(selector);` for all elements that match the selectors).
+
+**Pre-considerations for local environment**: the Appium server (included as a dependency of the project) should be running for the tests to be executed locally, which should should only be done for debugging or creating the tests, by running the `yarn run appium-start` command.
+
+On Windows, both processes can be run concurrently using `start yarn appium-start & yarn android-local` or `start yarn appium-start & yarn ios-local`.
+
+On iOS, the equivalent commands would be `yarn appium-start & yarn android-local` and `yarn appium-start & yarn ios-local`.
+
+To verify that a local emulator or simulator is working correctly, use `adb devices` (Android) and `xcrun simctl list | grep Booted` (iOS).
 
 **For Android testing,** it is recommended to use [UISelector class of the UI Automator API](https://developer.android.com/reference/android/support/test/uiautomator/UiSelector), passing the Java code to the selector method.
 

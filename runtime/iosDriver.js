@@ -1,7 +1,4 @@
 const { remote } = require('webdriverio');
-const program = require('commander');
-const fs = require('fs');
-const path = require('path');
 
 let defaults = {};
 
