@@ -78,3 +78,6 @@ typings/
 
 # next.js build output
 .next
+
+# UTAM
+page-objects/__utam__/compiledUTAM 

@@ -34,10 +34,10 @@
     "start": "nyc node index.js --disableReport --wdProtocol --tags",
     "test": "node index.js --disableReport --wdProtocol --tags",
     "dev": "node index.js --disableReport --tags",
+    "dev:utam": "yarn utam:compile && yarn dev @utam",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
     "ciltdev": "nyc node index.js --disableReport --tags @uattest --remoteService lambdatest --extraSettings",
-
-
+    "utam:compile": "yarn run utam -c utam.config.js",
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
@@ -85,6 +85,8 @@
     "recursive-readdir": "^2.2.2",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
+    "utam": "^1.0.2",
+    "wdio-utam-service": "^1.0.2",
     "webdriverio": "^7.10.0",
     "winston": "^3.3.3"
   },
