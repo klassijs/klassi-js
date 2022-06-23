@@ -27,6 +27,7 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
+const { exec } = require("child_process");
 
 // eslint-disable-next-line global-require
 const klassiCli = new (require('@cucumber/cucumber').Cli)({
@@ -95,6 +96,7 @@ program
   )
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
+  .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.')
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -112,6 +114,15 @@ const settings = {
   updateBaselineImage: options.updateBaselineImage,
   remoteService: options.remoteService,
 };
+
+// Use the --utam config to compile the UTAM test files and generate the .JS files.
+if (options.utam) {
+  exec("yarn run utam -c utam.config.js", (err, stdout, stderr) => {
+    if (err) console.error(err);
+    if (stderr) console.error(stderr);
+    console.log(stdout);
+  });
+}
 
 /**
  * Setting envConfig to be global, used within the world.js when building browser
