@@ -21,7 +21,7 @@ const wdio = require('webdriverio');
 const program = require('commander');
 const { Before } = require('@cucumber/cucumber');
 const { UtamWdioService } = require('wdio-utam-service');
-const utamConfig = require('../utam.config');
+const utamConfig = require('./utam.config');
 
 let defaults = {};
 

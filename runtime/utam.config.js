@@ -1,5 +1,12 @@
+// const program = require('commander');
+//
+// console.log('this is the log file ', );
+
+console.log('this is the location ');
+
 module.exports = {
-  pageObjectsRootDir: './',
+  pageObjectsRootDir: '../',
+  //   pageObjectsRootDir: { dirPath } === ' Klassi Automated Test' ? './' : '../../',
   pageObjectsFileMask: ['**/__utam__/**/*.utam.json'],
   extensionsFileMask: ['**/__utam__/**/*.utam.json'],
   pageObjectsOutputDir: 'page-objects/__utam__/compiledUTAM',
