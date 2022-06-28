@@ -224,6 +224,7 @@ this.World = World;
  */
 // eslint-disable-next-line import/order,import/no-extraneous-dependencies
 const { setDefaultTimeout } = require('@cucumber/cucumber');
+const { exec } = require('child_process');
 
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);

@@ -1,9 +1,3 @@
-// const program = require('commander');
-//
-// console.log('this is the log file ', );
-
-console.log('this is the location ');
-
 module.exports = {
   pageObjectsRootDir: '../',
   //   pageObjectsRootDir: { dirPath } === ' Klassi Automated Test' ? './' : '../../',

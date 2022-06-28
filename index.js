@@ -113,9 +113,8 @@ const settings = {
   closeBrowser: options.closeBrowser,
   updateBaselineImage: options.updateBaselineImage,
   remoteService: options.remoteService,
-  // utam: options.utam,
 };
-//
+
 // // Use the --utam config to compile the UTAM test files and generate the .JS files.
 // if (utam) {
 //   exec("yarn run utam -c ./utam.config.js", (err, stdout, stderr) => {
@@ -143,27 +142,22 @@ global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
-// global.utam = settings.utam;
-
 
 // Use the --utam config to compile the UTAM test files and generate the .JS files.
-if (options.utam) {
-  if ( projectName === 'Klassi Automated Test' ) {
+if (options.utam && projectName === 'Klassi Automated Test') {
     exec("yarn run utam -c ./runtime/utam.config.js", (err, stdout, stderr) => {
       if (err) console.error(err);
       if (stderr) console.error(stderr);
       console.log(stdout);
     });
-  } else {
+  }
+if (options.utam && projectName === 'Klassi-js') {
     exec("yarn run utam -c ./node_modules/klassi-js/utam.config.js", (err, stdout, stderr) => {
       if (err) console.error(err);
       if (stderr) console.error(stderr);
       console.log(stdout);
     });
-  }
-
 }
-
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
 global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
