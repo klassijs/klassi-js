@@ -27,6 +27,7 @@ artifacts
 coverage
 testDir
 shared-objects/docs/*.txt
+page-objects/__utam__/compiledUTAM
 
 # IntelliJ project files
 .idea
