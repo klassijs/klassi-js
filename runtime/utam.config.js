@@ -1,9 +1,10 @@
 let rootDir;
 
+if ('Klassi-js') {
+  rootDir = '../../../';
+}
 if ('Klassi Automated Test') {
   rootDir = '../';
-} else {
-  rootDir = '../../../';
 }
 
 module.exports = {
