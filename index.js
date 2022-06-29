@@ -143,7 +143,9 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
 
-// Use the --utam config to compile the UTAM test files and generate the .JS files.
+/**
+ * Use the --utam config to compile the UTAM test files and generate the .JS files
+ */
 if (options.utam && projectName === 'Klassi Automated Test') {
     exec("yarn run utam -c ./runtime/utam.config.js", (err, stdout, stderr) => {
       if (err) console.error(err);

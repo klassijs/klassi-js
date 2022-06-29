@@ -1,6 +1,14 @@
+let rootDir;
+
+if ('Klassi Automated Test') {
+  rootDir = '../';
+} else {
+  rootDir = '../../../';
+}
+
 module.exports = {
-  pageObjectsRootDir: '../',
-  //   pageObjectsRootDir: { dirPath } === ' Klassi Automated Test' ? './' : '../../',
+  pageObjectsRootDir: rootDir,
+  // pageObjectsRootDir: '../',
   pageObjectsFileMask: ['**/__utam__/**/*.utam.json'],
   extensionsFileMask: ['**/__utam__/**/*.utam.json'],
   pageObjectsOutputDir: 'page-objects/__utam__/compiledUTAM',

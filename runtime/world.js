@@ -55,7 +55,7 @@ global.gotApi = apiGot;
 /**
  * for the Download of all file types
  */
-global.downloader = require('./downloader.js');
+global.downloader = require('./downloader');
 
 /**
  * Environment variables
