@@ -56,8 +56,7 @@ module.exports = async function chromeDriver(options) {
         },
       },
     };
-  }
-  if (program.opts().headless || isApiTest ? '--headless' : '') {
+  } else if (program.opts().headless || isApiTest ? '--headless' : '') {
     defaults = {
       logLevel: 'error',
       capabilities: {
@@ -98,6 +97,5 @@ module.exports = async function chromeDriver(options) {
     await utamInstance.before(extendedOptions.capabilities);
   }
   await browser.setWindowSize(1280, 1024);
-  // console.log('this is the options', options);
   return browser;
 };

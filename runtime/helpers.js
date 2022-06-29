@@ -34,6 +34,8 @@ const pixelmatch = require('pixelmatch');
 let elem;
 let getMethod;
 let resp;
+let modID;
+
 module.exports = {
   /**
    * returns a promise that is called when the url has loaded and the body element is present
@@ -610,5 +612,83 @@ module.exports = {
      * grab the matching elements
      */
     return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
+  },
+
+  /**
+   * @param extName
+   * @returns {Promise<*>}
+   */
+  modHeaderElement: async (extName) => {
+    await browser.pause();
+    await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
+    const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
+    if (script === true) {
+      elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
+      await elem[1].waitForExist();
+      await elem[1].scrollIntoView();
+      const elem1 = await elem[1].getText();
+      if (elem1 === 'I agree') {
+        await elem[1].click();
+        await browser.pause(DELAY_300ms);
+      }
+    }
+    elem = await browser.$('[role="row"] > div:nth-child(1)');
+    await elem.click();
+    await browser.pause(DELAY_200ms);
+    const str = await browser.getUrl();
+    const str2 = await str.split('/');
+    // eslint-disable-next-line prefer-destructuring
+    modID = str2[6];
+    return modID;
+  },
+
+  /**
+   * This is the function for installing modeHeader
+   * @param extName
+   * @param username
+   * @param password
+   * @returns {Promise<void>}
+   */
+  modHeader: async (extName, username, password) => {
+    await helpers.modHeaderElement(extName);
+    console.log('modID = ', modID);
+    await browser.pause();
+    await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
+    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
+    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
+    await helpers.waitAndClick('//button[@title="Lock to tab"]');
+  },
+
+  installMobileApp: async (appName, appPath) => {
+    if (env.envName === 'ANDROID' || env.envName === 'IOS') {
+      if (!browser.isAppInstalled(appName)) {
+        // if (!browser.getUrl(appName)) {
+        console.log('Installing application...');
+        await browser.installApp(appPath);
+        assert.isTrue(browser.isAppInstalled(appName), 'The app was not installed correctly.');
+      } else {
+        console.log(`The app ${appName} was already installed on the device, skipping installation...`);
+        await browser.terminateApp(appName);
+      }
+    }
+  },
+
+  uninstallMobileApp: async (appName, appPath) => {
+    if (env.envName === 'ANDROID' || env.envName === 'IOS') {
+      if (browser.isAppInstalled(appName)) {
+        console.log(`Uninstalling application ${appName}...`);
+        await browser.removeApp(appName);
+        assert.isNotTrue(browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
+      } else {
+        console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
+      }
+    }
+  },
+
+  addImageToReport: async () => {
+    await browser.takeScreenshot().then((image) => {
+      // screenShot is a base-64 encoded PNG
+      cucumberThis.attach(image, 'image/png');
+    });
   },
 };
