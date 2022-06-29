@@ -27,7 +27,7 @@ const { Before } = require('@cucumber/cucumber');
 const { UtamWdioService } = require('wdio-utam-service');
 const loadConfig = require('./configLoader');
 const lambdatest = require('./remotes/lambdatest');
-const utamConfig = require('./utam.config');
+const utamConfig = require('../utam.config');
 
 const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',

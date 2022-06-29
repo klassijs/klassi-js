@@ -146,15 +146,10 @@ global.closeBrowser = settings.closeBrowser;
 /**
  * Use the --utam config to compile the UTAM test files and generate the .JS files
  */
-if (options.utam && 'Klassi Automated Test') {
-  exec("yarn run utam -c ./runtime/utam.config.js", (err, stdout, stderr) => {
-    if (err) console.error(err);
-    if (stderr) console.error(stderr);
-    console.log(stdout);
-  });
-}
-if (options.utam && 'Klassi-js') {
-  exec("yarn run utam -c .node_module/klassi-js//runtime/utam.config.js", (err, stdout, stderr) => {
+if (options.utam) {
+  const filePath = projectName === 'Klassi Automated Test' ? 'utam.config.js' : './node_modules/klassi-js/utam.config.js';
+
+  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
     if (stderr) console.error(stderr);
     console.log(stdout);
