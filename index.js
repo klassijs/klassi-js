@@ -115,6 +115,15 @@ const settings = {
   remoteService: options.remoteService,
 };
 
+// // Use the --utam config to compile the UTAM test files and generate the .JS files.
+// if (utam) {
+//   exec("yarn run utam -c ./utam.config.js", (err, stdout, stderr) => {
+//     if (err) console.error(err);
+//     if (stderr) console.error(stderr);
+//     console.log(stdout);
+//   });
+// }
+
 /**
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -133,6 +142,19 @@ global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
+
+/**
+ * Use the --utam config to compile the UTAM test files and generate the .JS files
+ */
+if (options.utam) {
+  const filePath = projectName === 'Klassi Automated Test' ? 'utam.config.js' : './node_modules/klassi-js/utam.config.js';
+
+  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+    if (err) console.error(err);
+    if (stderr) console.error(stderr);
+    console.log(stdout);
+  });
+}
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
 global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
