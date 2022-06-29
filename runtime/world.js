@@ -55,7 +55,7 @@ global.gotApi = apiGot;
 /**
  * for the Download of all file types
  */
-global.downloader = require('./downloader.js');
+global.downloader = require('./downloader');
 
 /**
  * Environment variables
@@ -224,6 +224,7 @@ this.World = World;
  */
 // eslint-disable-next-line import/order,import/no-extraneous-dependencies
 const { setDefaultTimeout } = require('@cucumber/cucumber');
+const { exec } = require('child_process');
 
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);

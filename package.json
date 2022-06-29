@@ -88,6 +88,8 @@
     "recursive-readdir": "^2.2.2",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
+    "utam": "^1.0.2",
+    "wdio-utam-service": "^1.0.2",
     "webdriverio": "^7.10.0",
     "winston": "^3.3.3"
   },

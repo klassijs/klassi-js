@@ -27,6 +27,7 @@ artifacts
 coverage
 testDir
 shared-objects/docs/*.txt
+page-objects/__utam__/compiledUTAM
 
 # IntelliJ project files
 .idea
@@ -78,3 +79,6 @@ typings/
 
 # next.js build output
 .next
+
+# UTAM
+page-objects/__utam__/compiledUTAM-old
