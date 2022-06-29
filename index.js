@@ -162,6 +162,16 @@ global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
 
+// Use the --utam config to compile the UTAM test files and generate the .JS files.
+if (options.utam) {
+  const filePath = projectName === 'Klassi Automated Test' ? 'utam.config.js' : './node_modules/klassi-js/utam.config.js';
+
+  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+    if (err) console.error(err);
+    if (stderr) console.error(stderr);
+    console.log(stdout);
+  });
+}
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
