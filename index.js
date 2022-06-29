@@ -154,7 +154,7 @@ if (options.utam && 'Klassi Automated Test') {
   });
 }
 if (options.utam && 'Klassi-js') {
-  exec("yarn run utam -c ./runtime/utam.config.js", (err, stdout, stderr) => {
+  exec("yarn run utam -c .node_module/klassi-js//runtime/utam.config.js", (err, stdout, stderr) => {
     if (err) console.error(err);
     if (stderr) console.error(stderr);
     console.log(stdout);

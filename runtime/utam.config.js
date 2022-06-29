@@ -1,15 +1,15 @@
-let rootDir;
+const { cosmiconfigSync } = require('cosmiconfig');
 
-if ('Klassi-js') {
-  rootDir = '../../../';
-}
-if ('Klassi Automated Test') {
-  rootDir = '../';
-}
+const moduleName = process.env.ENV_CONFIG || 'envConfig';
+const explorerSync = cosmiconfigSync(moduleName);
+const searchedFor = explorerSync.search();
+const envConfig = searchedFor.config;
+const { dataConfig } = envConfig;
+
+global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 
 module.exports = {
-  pageObjectsRootDir: rootDir,
-  // pageObjectsRootDir: '../',
+  pageObjectsRootDir: projectName === 'Klassi Automated Test' ? './' : '../../',
   pageObjectsFileMask: ['**/__utam__/**/*.utam.json'],
   extensionsFileMask: ['**/__utam__/**/*.utam.json'],
   pageObjectsOutputDir: 'page-objects/__utam__/compiledUTAM',
