@@ -10,10 +10,6 @@
     "url": "https://linkedin.com/in/larryg"
   },
   "license": "MIT",
-  "engines": {
-    "node": ">=12.0.0",
-    "yarn": ">=1.21.1"
-  },
   "type": "module",
   "keywords": [
     "api testing",
@@ -61,8 +57,8 @@
     ]
   },
   "dependencies": {
-    "@cucumber/cucumber": "^8.0.0-rc.2",
-    "@cucumber/pretty-formatter": "^1.0.0-alpha.1",
+    "@cucumber/cucumber": "^8.4.0",
+    "@cucumber/pretty-formatter": "^1.0.0",
     "@lambdatest/node-tunnel": "^3.0.1",
     "async": "^3.2.0",
     "aws-sdk": "^2.865.0",
