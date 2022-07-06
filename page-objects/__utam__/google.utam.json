@@ -1,0 +1,60 @@
+{
+  "root": true,
+  "selector": {
+    "css": "body"
+  },
+  "elements": [
+    {
+      "name": "acceptModalBtn",
+      "selector": {
+        "css": "button[id='L2AGLb']"
+      },
+      "type": "clickable",
+      "public": true
+    },
+    {
+      "name": "searchInput",
+      "selector": {
+        "css": "input[class='gLFyf gsfi']"
+      },
+      "type": "editable",
+      "public": true
+    },
+    {
+      "name": "searchBtn",
+      "selector": {
+        "css": "input[name='btnK']"
+      },
+      "type": "clickable",
+      "public": true
+    },
+    {
+      "name": "resultHeadingText",
+      "selector": {
+        "css": "span[class='yKMVIe']"
+      },
+      "public": true
+    }
+  ],
+  "methods": [
+    {
+      "name": "searchWord",
+      "compose": [
+        {
+          "element": "searchInput",
+          "apply": "clearAndType",
+          "args": [
+            {
+              "name": "searchTerm",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "element": "searchBtn",
+          "apply": "click"
+        }
+      ]
+    }
+  ]
+}

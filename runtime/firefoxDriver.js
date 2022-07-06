@@ -17,24 +17,28 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-import wdio from 'webdriverio';
-import program from 'commander';
-import { Before } from '@cucumber/cucumber';
+const wdio = require('webdriverio');
+const program = require('commander');
+const { Before } = require('@cucumber/cucumber');
+const { UtamWdioService } = require('wdio-utam-service');
+const utamConfig = require('./utam.config');
 
 let defaults = {};
 
 let isApiTest;
+let isUTAMTest;
 const apiTagKeywords = ['api', 'get', 'put', 'post', 'delete'];
 
 Before((scenario) => {
   isApiTest = scenario.pickle.tags.some((tag) => apiTagKeywords.some((word) => tag.name.includes(word)));
+  isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
 });
 
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-export default async function firefoxDriver(options) {
+module.exports = async function firefoxDriver(options) {
   if (program.opts().wdProtocol) {
     defaults = {
       logLevel: 'error',
@@ -43,8 +47,7 @@ export default async function firefoxDriver(options) {
         browserName: 'firefox',
       },
     };
-  }
-  if (program.opts().headless || isApiTest ? '--headless' : '') {
+  } else if (program.opts().headless || isApiTest ? '--headless' : '') {
     defaults = {
       logLevel: 'error',
       capabilities: {
@@ -75,5 +78,9 @@ export default async function firefoxDriver(options) {
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
   await browser.setWindowSize(1280, 800);
+  if (isUTAMTest) {
+    const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
+    await utamInstance.before(extendedOptions.capabilities);
+  }
   return browser;
-}
+};

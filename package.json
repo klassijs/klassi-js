@@ -31,6 +31,10 @@
     "start": "nyc node index.js --disableReport --wdProtocol --tags",
     "test": "node index.js --disableReport --wdProtocol --tags",
     "dev": "node index.js --disableReport --tags",
+    "android": "node index.js --disableReport --tags @android --remoteService lambdatest --env android --extraSettings android",
+    "android-local": "node index.js --disableReport --tags @android --env android --browser android",
+    "ios-local": "node index.js --disableReport --tags @ios --env ios --browser ios",
+    "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
     "ltlocal": "node index.js --disableReport --remoteService lambdatest --extraSettings",
     "ciltdev": "nyc node index.js --disableReport --tags @uattest --remoteService lambdatest --extraSettings",
     "pkgcheck": "yarn install --check-files"
@@ -60,6 +64,7 @@
     "@cucumber/cucumber": "^8.4.0",
     "@cucumber/pretty-formatter": "^1.0.0",
     "@lambdatest/node-tunnel": "^3.0.1",
+    "appium": "^1.22.3",
     "async": "^3.2.0",
     "aws-sdk": "^2.865.0",
     "axe-core": "^4.1.1",
@@ -80,6 +85,8 @@
     "pngjs": "^6.0.0",
     "recursive-readdir": "^2.2.2",
     "text-files-loader": "^1.0.5",
+    "utam": "^1.0.2",
+    "wdio-utam-service": "^1.0.2",
     "webdriverio": "^7.10.0",
     "winston": "^3.3.3"
   },

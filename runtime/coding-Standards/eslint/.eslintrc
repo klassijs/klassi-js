@@ -92,6 +92,7 @@
         "forceConsistentCasingInFileNames": "readonly",
         "confSettings": "readonly",
         "sharedObjects": "readonly",
-        "pageObjects": "writable"
+        "pageObjects": "writable",
+        "utam": "readonly"
     }
 }

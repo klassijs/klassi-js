@@ -17,29 +17,33 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-import { remote } from 'webdriverio';
-import program from 'commander';
-import fs from 'fs';
-import path from 'path';
-import { Before } from '@cucumber/cucumber';
+const { remote } = require('webdriverio');
+const program = require('commander');
+const fs = require('fs');
+const path = require('path');
+const { Before } = require('@cucumber/cucumber');
+const { UtamWdioService } = require('wdio-utam-service');
+const utamConfig = require('./utam.config');
 
 let defaults = {};
 
-const modHeader = fs.readFileSync(path.resolve('./runtime/scripts/extensions/modHeader_3_1_22_0.crx'), {
+const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
 });
 
 let isApiTest;
+let isUTAMTest;
 const apiTagKeywords = ['api', 'get', 'put', 'post', 'delete'];
 
 Before((scenario) => {
   isApiTest = scenario.pickle.tags.some((tag) => apiTagKeywords.some((word) => tag.name.includes(word)));
+  isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
 });
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-export default async function chromeDriver(options) {
+module.exports = async function chromeDriver(options) {
   if (program.opts().wdProtocol) {
     defaults = {
       logLevel: 'error',
@@ -52,8 +56,7 @@ export default async function chromeDriver(options) {
         },
       },
     };
-  }
-  if (program.opts().headless || isApiTest ? '--headless' : '') {
+  } else if (program.opts().headless || isApiTest ? '--headless' : '') {
     defaults = {
       logLevel: 'error',
       capabilities: {
@@ -89,7 +92,10 @@ export default async function chromeDriver(options) {
 
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
+  if (isUTAMTest) {
+    const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
+    await utamInstance.before(extendedOptions.capabilities);
+  }
   await browser.setWindowSize(1280, 1024);
-  // console.log('this is the options', options);
   return browser;
-}
+};
