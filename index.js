@@ -34,6 +34,8 @@ const klassiCli = new (require('@cucumber/cucumber').Cli)({
   argv: process.argv,
   cwd: process.cwd(),
   stdout: process.stdout,
+  stderr: process.stderr,
+  env: process.env,
 });
 const pjson = require('./package.json');
 
@@ -297,6 +299,8 @@ const cpPath = '@cucumber/pretty-formatter';
 process.argv.push(
   '-f',
   cpPath,
+  '--format-options',
+  '{"colorsEnabled": true}',
   '-f',
   `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
 );
