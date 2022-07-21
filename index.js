@@ -66,7 +66,8 @@ program
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--email', 'email for sending reports to stakeholders')
-  .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
+  // .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
+  .option('--featureFiles', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json', global.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
   .option(
@@ -410,6 +411,79 @@ if (options.tags) {
     process.argv.push(resultingString);
   }
 }
+
+if (options.featureFiles) {
+  const stuff = helpers.readFromFile('./test-to-run.txt');
+  console.log('this is the value ', stuff);
+
+  const testFolder = path.join(__dirname, './features');
+  const results = fs.readdirSync(testFolder);
+  console.log('fileNames 2 : ', results);
+  results.forEach((result) => {
+    console.log(result);
+    return result;
+  });
+
+  // loadTextFile.setup({ matchRegExp: /\.feature/ || '' });
+  // const result = loadTextFile.loadSync(path.resolve('./features'));
+  // console.log('this is the list of files names ln 393 ', result);
+}
+
+/** specify the feature files to be executed */
+// if (options.featureFiles) {
+//   // const results =  helpers.readFromFile('./test-to-run.txt')
+//   helpers.readFromFile('./test-to-run.txt')
+//
+//   // console.log('this is the value ln 417 index ', results);
+//
+//   // results.forEach((result1)=>{
+//   //   console.log(result1);
+//   //   return result1;
+//   // })
+//   console.log('this is the value ln 423 index ');
+//
+//   const space = helpers.valueFromFile();
+//   console.log('this is ln 428 index ', space);
+//
+//   // const testFolder = path.join(__dirname, './features');
+//   // const results = fs.readdirSync(testFolder);
+//   // console.log('fileNames 2 ln 421 index  : ', results);
+//   // results.forEach((result) => {
+//   //   console.log(result);
+//   //   return result;
+//   // });
+//
+//   // loadTextFile.setup({ matchRegExp: /\.feature/ || '' });
+//   // const result = loadTextFile.loadSync(path.resolve('./features'));
+//   // console.log('this is the list of files names ln 393 ', result);
+// }
+
+/** specify the feature files to be executed */
+// if (options.featureFiles) {
+//   const featureFiles = getTagsFromFeatureFiles();
+//   console.log('this is good 2 ', featureFiles);
+//   // let results = [];
+//   // joining path of directory
+//   // const testFolder = path.join(__dirname, './features');
+//   // console.log('this is the directory path ', testFolder);
+//   // // passsing directoryPath and callback function
+//   //
+//   // loadTextFile.setup({ matchRegExp: /\.feature/ || '' });
+//   // const result = loadTextFile.loadSync(path.resolve('./features'));
+//   // console.log('this is the list of files names ln 292 ', result);
+//   //
+//   // // Object.keys(result).forEach((key) => {
+//   // const content = String(result[key] || '');
+//   //   results = result.concat(content.match(new RegExp('[a-z0-9]+', 'g')));
+//   // });
+//   // console.log('this is the list of files names ln 281 ', results);
+//
+//   // const splitFeatureFiles = options.featureFiles.split(',');
+//   // console.log('this is the list of files names 1 ln 272 ', splitFeatureFiles);
+//   // splitFeatureFiles.forEach((feature) => {
+//   //   process.argv.push(feature);
+//   // });
+// }
 
 
 /** Add split to run multiple browsers from the command line */

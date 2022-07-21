@@ -24,7 +24,7 @@ const resemble = require('node-resemble-js');
 const fs = require('fs-extra');
 const program = require('commander');
 
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const browserName = global.remoteConfig || global.BROWSER_NAME;
 
 const baselineDir = `./visual-regression-baseline/${browserName}/`;
 const resultDir = `./artifacts/visual-regression/original/${browserName}/`;

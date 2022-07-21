@@ -30,11 +30,13 @@ const pactumJs = require('pactum');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { PNG } = require('pngjs');
 const pixelmatch = require('pixelmatch');
+// const { value } = require('./imageCompare');
 
 let elem;
 let getMethod;
 let resp;
 let modID;
+let valueOfFile;
 
 module.exports = {
   /**
@@ -99,13 +101,28 @@ module.exports = {
    * @returns {Promise<unknown>}
    */
   readFromFile: (filepath) =>
-    new Promise((resolve, reject) => {
-      fs.readFile(filepath, 'utf-8', (err, data) => {
-        // eslint-disable-next-line no-param-reassign
-        data = data.toString();
-        resolve(data);
-      });
+    fs.readFile(filepath, 'utf-8', (err, result) => {
+      if (err) {
+        console.log('This is an error ln 106 helpers');
+      }
+      valueOfFile = result.toString();
+      console.log('davaValue in ln 109 helpers  ', valueOfFile);
+      return valueOfFile;
     }),
+
+  valueFromFile() {
+    console.log('this is the result ln 115 helpers ', valueOfFile);
+    // return result1;
+  },
+
+  // readFromFile: (filepath) =>
+  //   new Promise((resolve, reject) => {
+  //     fs.readFile(filepath, 'utf-8', (err, data) => {
+  //       // eslint-disable-next-line no-param-reassign
+  //       data = data.toString();
+  //       resolve(data);
+  //     });
+  //   }),
 
   /**
    * Visual comparison function

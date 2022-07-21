@@ -1,4 +1,5 @@
 Given(/^The user arrives on the duckduckgo search page$/, async () => {
+  // await helpers.valueFromFile();
   await helpers.loadPage(env.web_url, 10);
 });
 

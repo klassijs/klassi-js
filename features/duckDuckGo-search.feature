@@ -9,6 +9,7 @@ Feature: Searching for apps with duckduckgo
 
   @search
   Scenario Outline: User inputs some search data
+#    Given The user arrives on the duckduckgo search page
     When they input <searchword>
     Then they should see some results
 
@@ -16,3 +17,5 @@ Feature: Searching for apps with duckduckgo
       |searchword  |
       |space       |
 #      |angry birds |
+#      |BT Group |
+#      |Larry Goddard |
