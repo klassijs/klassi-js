@@ -117,15 +117,6 @@ const settings = {
   remoteService: options.remoteService,
 };
 
-// // Use the --utam config to compile the UTAM test files and generate the .JS files.
-// if (utam) {
-//   exec("yarn run utam -c ./utam.config.js", (err, stdout, stderr) => {
-//     if (err) console.error(err);
-//     if (stderr) console.error(stderr);
-//     console.log(stdout);
-//   });
-// }
-
 /**
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -145,6 +136,12 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
 
+global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
+global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
+
+global.date = require('./runtime/helpers').currentDate();
+global.dateTime = require('./runtime/helpers').reportDate();
+
 /**
  * Use the --utam config to compile the UTAM test files and generate the .JS files
  */
@@ -158,22 +155,6 @@ if (options.utam) {
   });
 }
 
-global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
-global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
-
-global.date = require('./runtime/helpers').currentDate();
-global.dateTime = require('./runtime/helpers').reportDate();
-
-// Use the --utam config to compile the UTAM test files and generate the .JS files.
-if (options.utam) {
-  const filePath = projectName === 'Klassi Automated Test' ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
-
-  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
-    if (err) console.error(err);
-    if (stderr) console.error(stderr);
-    console.log(stdout);
-  });
-}
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
@@ -281,12 +262,10 @@ if (fs.existsSync(pageObjectPath)) {
 /** rewrite command line switches for cucumber */
 process.argv.splice(2, 100);
 
-/** specify the feature files folder (this must be the first argument for Cucumber) */
-process.argv.push(paths.featureFiles);
-
-/** specify the feature files to be executed */
-if (options.featureFile) {
-  const splitFeatureFiles = options.featureFile.split(',');
+/** specify the feature files folder (this must be the first argument for Cucumber) 
+/*    specify the feature files to be executed */
+if (options.featureFiles) {
+  const splitFeatureFiles = options.featureFiles.split(',');
 
   splitFeatureFiles.forEach((feature) => {
     process.argv.push(feature);
@@ -317,8 +296,13 @@ process.argv.push('-r', path.resolve(options.steps));
  */
 function getTagsFromFeatureFiles() {
   let result = [];
+  let featurefiles = {};
   loadTextFile.setup({ matchRegExp: /\.feature/ });
-  const featurefiles = loadTextFile.loadSync(path.resolve(options.featureFiles));
+  const featureFilesList = options.featureFiles.split(',');
+  featureFilesList.forEach((feature) => {
+    featurefiles = Object.assign(featurefiles, loadTextFile.loadSync(path.resolve(feature)));
+  })
+
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
     result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
@@ -329,8 +313,7 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
-
-if (options.tags) {
+if (options.tags.length > 0) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);
   const separateMultipleTags = options.tags[0].split(',');
@@ -410,7 +393,6 @@ if (options.tags) {
     process.argv.push(resultingString);
   }
 }
-
 
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {
