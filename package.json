@@ -30,6 +30,7 @@
   },
   "browser": "index.js",
   "scripts": {
+    "feature": "node --trace-warnings index.js --disableReport --featureFiles",
     "pretest": "eslint --ignore-path .gitignore .",
     "start": "nyc node index.js --disableReport --wdProtocol --tags",
     "test": "node index.js --disableReport --wdProtocol --tags",

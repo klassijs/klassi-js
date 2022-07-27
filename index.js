@@ -27,7 +27,7 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
-const { exec } = require("child_process");
+const { exec } = require('child_process');
 
 // eslint-disable-next-line global-require
 const klassiCli = new (require('@cucumber/cucumber').Cli)({
@@ -66,7 +66,7 @@ program
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--email', 'email for sending reports to stakeholders')
-  .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
+  .option('--featureFiles', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json', global.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
   .option(
@@ -117,15 +117,6 @@ const settings = {
   remoteService: options.remoteService,
 };
 
-// // Use the --utam config to compile the UTAM test files and generate the .JS files.
-// if (utam) {
-//   exec("yarn run utam -c ./utam.config.js", (err, stdout, stderr) => {
-//     if (err) console.error(err);
-//     if (stderr) console.error(stderr);
-//     console.log(stdout);
-//   });
-// }
-
 /**
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -149,7 +140,10 @@ global.closeBrowser = settings.closeBrowser;
  * Use the --utam config to compile the UTAM test files and generate the .JS files
  */
 if (options.utam) {
-  const filePath = projectName === 'Klassi Automated Test' ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath =
+    projectName === 'Klassi Automated Test'
+      ? 'runtime/utam.config.js'
+      : './node_modules/klassi-js/runtime/utam.config.js';
 
   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
@@ -166,7 +160,10 @@ global.dateTime = require('./runtime/helpers').reportDate();
 
 // Use the --utam config to compile the UTAM test files and generate the .JS files.
 if (options.utam) {
-  const filePath = projectName === 'Klassi Automated Test' ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath =
+    projectName === 'Klassi Automated Test'
+      ? 'runtime/utam.config.js'
+      : './node_modules/klassi-js/runtime/utam.config.js';
 
   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
@@ -285,39 +282,95 @@ process.argv.splice(2, 100);
 process.argv.push(paths.featureFiles);
 
 /** specify the feature files to be executed */
-if (options.featureFile) {
-  const splitFeatureFiles = options.featureFile.split(',');
+let content;
+let legend;
+let id = Math.floor((Math.random()*100)+1);
 
-  splitFeatureFiles.forEach((feature) => {
-    process.argv.push(feature);
-  });
+if (options.featureFiles) {
+
+  const testFolder = path.join(__dirname, './features');
+  content = fs.readdirSync(testFolder);
+  console.log('fileNames 2 : ', content);
+
+  // const id = Math.floor((Math.random()*100)+1);
+  legend = {"Id": id, "Title": content };
+
+  fs.readFile('testFileList.json','utf8', function(err, data){
+    console.log('this si the data ln 296 index ', content)
+    const obj = JSON.parse(data);
+    console.log('this is the obj ln 298 index ', obj)
+    // obj.push(legend);
+    content.forEach((legend) => {
+      // const strNotes = JSON.stringify(obj);
+      const strNotes = JSON.stringify(legend);
+      fs.writeFile('testFileList.json', strNotes, function(err){
+        if(err) return console.log(err);
+        console.log('Note added');
+      });
+    })
+
+
+
+  })
+
+  // content.forEach((result) => {
+  //   console.log('The result is ', result);
+  //   // fs.writeFile('./testFileList.json', result,function(err){
+  //   fs.writeFile('./testFileList.json',JSON.stringify(result),function(err){
+  //     if(err) throw err;
+  //   })
+  //
+  // });
+
+  // fs.writeFile('./testFileList.json',JSON.stringify(content),function(err){
+  //   if(err) throw err;
+  // })
+  // fs.readFile('./testFileList.json',function(err, data){
+  //   console.log('this is the content ln 293 index ', content)
+  //   if(err) throw err;
+  //   const parseJson = JSON.parse(content);
+  //   for ( let i=0; i <11 ; i++){
+  //     parseJson.table.push({id:i, square:i*i})
+  //   }
+  //   // fs.writeFileSync('./testFileList.json',JSON.stringify(parseJson),function(err){
+  //   //   if(err) throw err;
+  //   // })
+  // })
+
+  // fs.readFile('testFileList.json',function(err,content){
+  // fs.readFileSync('./testFileList.json',function(err){
+  //   console.log('this is the content ln 298 index ', content)
+  //   if(err) throw err;
+  //   const parseJson = JSON.parse(content);
+  //   for ( let i=0; i <11 ; i++){
+  //     parseJson.table.push({id:i, square:i*i})
+  //   }
+  //   fs.writeFileSync('./testFileList.json',JSON.stringify(parseJson),function(err){
+  //     if(err) throw err;
+  //   })
+  // })
+
+  // const splitFeatureFiles = options.featureFile.split(',');
+  // splitFeatureFiles.forEach((feature) => {
+  //   process.argv.push(feature);
+  // });
+
+  // const stuff = helpers.readFromFile('./features');
+  // const stuff = helpers.readFromFile('./testFileList.json');
+  // console.log('this is the value ', stuff);
+
+  // loadTextFile.setup({ matchRegExp: /\.feature/ || '' });
+  // const result = loadTextFile.loadSync(path.resolve('./features'));
+  // console.log('this is the list of files names ln 393 ', result);
 }
 
-/** add switch to tell cucumber to produce json report files */
-const cpPath = '@cucumber/pretty-formatter';
-
-process.argv.push(
-  '-f',
-  cpPath,
-  '--format-options',
-  '{"colorsEnabled": true}',
-  '-f',
-  `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
-);
-
-/** add cucumber world as first required script (this sets up the globals) */
-process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
-
-/** add path to import step definitions */
-process.argv.push('-r', path.resolve(options.steps));
-
 /**
- * Get tags from feature files
+ * Get tags names from feature files
  * @returns {Array<string>} list of all tags found
  */
 function getTagsFromFeatureFiles() {
   let result = [];
-  loadTextFile.setup({ matchRegExp: /\.feature/ });
+  loadTextFile.setup({ matchRegExp: /\.feature/ } || '');
   const featurefiles = loadTextFile.loadSync(path.resolve(options.featureFiles));
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
@@ -411,6 +464,23 @@ if (options.tags) {
   }
 }
 
+/** add switch to tell cucumber to produce json report files */
+const cpPath = '@cucumber/pretty-formatter';
+
+process.argv.push(
+  '-f',
+  cpPath,
+  '--format-options',
+  '{"colorsEnabled": true}',
+  '-f',
+  `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
+);
+
+/** add cucumber world as first required script (this sets up the globals) */
+process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
+
+/** add path to import step definitions */
+process.argv.push('-r', path.resolve(options.steps));
 
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {
