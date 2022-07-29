@@ -73,6 +73,8 @@ node ./node_modules/klassi-js/index.js
 ## Options Usage
 ```bash
   --closeBrowser no || this leaves the browser open after the session completes, useful when debugging test
+  --tags @get,@put || will execute the scenarios tagged with the values provided. If multiple are necessary, separate them with a comma (no blank space in between).
+  --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
 ```
 
 ## Directory Structure
