@@ -27,7 +27,7 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 
 // eslint-disable-next-line global-require
 const klassiCli = new (require('@cucumber/cucumber').Cli)({
@@ -66,7 +66,7 @@ program
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--email', 'email for sending reports to stakeholders')
-  .option('--featureFiles', 'comma-separated list of feature files to run defaults to ./features', 'features')
+  .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json', global.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
   .option(
@@ -135,22 +135,6 @@ global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
-
-// /**
-//  * Use the --utam config to compile the UTAM test files and generate the .JS files
-//  */
-// if (options.utam) {
-//   const filePath =
-//     projectName === 'Klassi Automated Test'
-//       ? 'runtime/utam.config.js'
-//       : './node_modules/klassi-js/runtime/utam.config.js';
-//
-//   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
-//     if (err) console.error(err);
-//     if (stderr) console.error(stderr);
-//     console.log(stdout);
-//   });
-// }
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
 global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
@@ -278,7 +262,7 @@ if (fs.existsSync(pageObjectPath)) {
 process.argv.splice(2, 100);
 
 /** specify the feature files folder (this must be the first argument for Cucumber)
- /* specify the feature files to be executed */
+/*    specify the feature files to be executed */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
 
@@ -299,7 +283,7 @@ function getTagsFromFeatureFiles() {
   const featureFilesList = options.featureFiles.split(',');
   featureFilesList.forEach((feature) => {
     featurefiles = Object.assign(featurefiles, loadTextFile.loadSync(path.resolve(feature)));
-  });
+  })
 
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
@@ -311,7 +295,7 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
-if (options.tags) {
+if (options.tags.length > 0) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);
   const separateMultipleTags = options.tags[0].split(',');
