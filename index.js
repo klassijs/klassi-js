@@ -136,21 +136,21 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
 
-/**
- * Use the --utam config to compile the UTAM test files and generate the .JS files
- */
-if (options.utam) {
-  const filePath =
-    projectName === 'Klassi Automated Test'
-      ? 'runtime/utam.config.js'
-      : './node_modules/klassi-js/runtime/utam.config.js';
-
-  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
-    if (err) console.error(err);
-    if (stderr) console.error(stderr);
-    console.log(stdout);
-  });
-}
+// /**
+//  * Use the --utam config to compile the UTAM test files and generate the .JS files
+//  */
+// if (options.utam) {
+//   const filePath =
+//     projectName === 'Klassi Automated Test'
+//       ? 'runtime/utam.config.js'
+//       : './node_modules/klassi-js/runtime/utam.config.js';
+//
+//   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+//     if (err) console.error(err);
+//     if (stderr) console.error(stderr);
+//     console.log(stdout);
+//   });
+// }
 
 global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
 global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
@@ -158,10 +158,12 @@ global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
 
-// Use the --utam config to compile the UTAM test files and generate the .JS files.
+/**
+ * Use the --utam config to compile the UTAM test files and generate the .JS files
+ */
 if (options.utam) {
   const filePath =
-    projectName === 'Klassi Automated Test'
+    projectName === global.projectName
       ? 'runtime/utam.config.js'
       : './node_modules/klassi-js/runtime/utam.config.js';
 
@@ -171,12 +173,10 @@ if (options.utam) {
     console.log(stdout);
   });
 }
+
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-  /* this approach supports a single string defining both the target config and tags
-    e.g. 'chrome/@tag1,@tag2'
-   */
   if (additionalSettings.tags) {
     if (options.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
@@ -252,7 +252,6 @@ const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.videoLib = require(videoLib);
-  // console.log('Video library is available');
 } else {
   console.error('No Video Lib');
 }
@@ -278,91 +277,16 @@ if (fs.existsSync(pageObjectPath)) {
 /** rewrite command line switches for cucumber */
 process.argv.splice(2, 100);
 
-/** specify the feature files folder (this must be the first argument for Cucumber) */
-process.argv.push(paths.featureFiles);
-
-/** specify the feature files to be executed */
-let content;
-let legend;
-let id = Math.floor((Math.random()*100)+1);
-
+/** specify the feature files folder (this must be the first argument for Cucumber)
+ /* specify the feature files to be executed */
 if (options.featureFiles) {
+  const splitFeatureFiles = options.featureFiles.split(',');
 
-  const testFolder = path.join(__dirname, './features');
-  content = fs.readdirSync(testFolder);
-  console.log('fileNames 2 : ', content);
-
-  // const id = Math.floor((Math.random()*100)+1);
-  legend = {"Id": id, "Title": content };
-
-  fs.readFile('testFileList.json','utf8', function(err, data){
-    console.log('this si the data ln 296 index ', content)
-    const obj = JSON.parse(data);
-    console.log('this is the obj ln 298 index ', obj)
-    // obj.push(legend);
-    content.forEach((legend) => {
-      // const strNotes = JSON.stringify(obj);
-      const strNotes = JSON.stringify(legend);
-      fs.writeFile('testFileList.json', strNotes, function(err){
-        if(err) return console.log(err);
-        console.log('Note added');
-      });
-    })
-
-
-
-  })
-
-  // content.forEach((result) => {
-  //   console.log('The result is ', result);
-  //   // fs.writeFile('./testFileList.json', result,function(err){
-  //   fs.writeFile('./testFileList.json',JSON.stringify(result),function(err){
-  //     if(err) throw err;
-  //   })
-  //
-  // });
-
-  // fs.writeFile('./testFileList.json',JSON.stringify(content),function(err){
-  //   if(err) throw err;
-  // })
-  // fs.readFile('./testFileList.json',function(err, data){
-  //   console.log('this is the content ln 293 index ', content)
-  //   if(err) throw err;
-  //   const parseJson = JSON.parse(content);
-  //   for ( let i=0; i <11 ; i++){
-  //     parseJson.table.push({id:i, square:i*i})
-  //   }
-  //   // fs.writeFileSync('./testFileList.json',JSON.stringify(parseJson),function(err){
-  //   //   if(err) throw err;
-  //   // })
-  // })
-
-  // fs.readFile('testFileList.json',function(err,content){
-  // fs.readFileSync('./testFileList.json',function(err){
-  //   console.log('this is the content ln 298 index ', content)
-  //   if(err) throw err;
-  //   const parseJson = JSON.parse(content);
-  //   for ( let i=0; i <11 ; i++){
-  //     parseJson.table.push({id:i, square:i*i})
-  //   }
-  //   fs.writeFileSync('./testFileList.json',JSON.stringify(parseJson),function(err){
-  //     if(err) throw err;
-  //   })
-  // })
-
-  // const splitFeatureFiles = options.featureFile.split(',');
-  // splitFeatureFiles.forEach((feature) => {
-  //   process.argv.push(feature);
-  // });
-
-  // const stuff = helpers.readFromFile('./features');
-  // const stuff = helpers.readFromFile('./testFileList.json');
-  // console.log('this is the value ', stuff);
-
-  // loadTextFile.setup({ matchRegExp: /\.feature/ || '' });
-  // const result = loadTextFile.loadSync(path.resolve('./features'));
-  // console.log('this is the list of files names ln 393 ', result);
+  splitFeatureFiles.forEach((feature) => {
+    process.argv.push(feature);
+  });
 }
+
 
 /**
  * Get tags names from feature files
@@ -370,8 +294,13 @@ if (options.featureFiles) {
  */
 function getTagsFromFeatureFiles() {
   let result = [];
-  loadTextFile.setup({ matchRegExp: /\.feature/ } || '');
-  const featurefiles = loadTextFile.loadSync(path.resolve(options.featureFiles));
+  let featurefiles = {};
+  loadTextFile.setup({ matchRegExp: /\.feature/ });
+  const featureFilesList = options.featureFiles.split(',');
+  featureFilesList.forEach((feature) => {
+    featurefiles = Object.assign(featurefiles, loadTextFile.loadSync(path.resolve(feature)));
+  });
+
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
     result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
@@ -382,7 +311,6 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
-
 if (options.tags) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);

@@ -39,6 +39,7 @@ jobs:
     docker:
       - image: cimg/node:14.19.0-browsers
     resource_class: small
+    parallelism: 2
     working_directory: ~/klassiG
     steps:
       - run:
@@ -53,6 +54,18 @@ jobs:
           name: Check out the working branch
           path: ~/klassiG/klassi-js
           command: git checkout ${CIRCLE_BRANCH}
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ~/klassiG/klassi-js/tmp
+
+      - run:
+          name: Setting up parallelism and splitting features files
+          path: ~/klassiG/klassi-js
+          command: |
+            echo $(circleci tests glob "features/**/*.feature")
+            TEST_FILES=$(circleci tests glob "features/**/*.feature" | circleci tests split > tmp/test-to-run | xargs -n 1 echo)
+            echo $TEST_FILES
 
       - run:
           name: Generate dependency cache key
@@ -77,10 +90,17 @@ jobs:
       - run:
           name: Run acceptance tests
           path: ~/klassiG/klassi-js
-          command: yarn run cilt${STAGE} ${BROWSER}
+          command: |
+            circleci tests glob "features/**/*.feature" | circleci tests split > tmp/test-to-run | xargs -n 1 echo
+            TEST_FILES=$(cat tmp/test-to-run | xargs | sed -e 's/ /,/g')
+            echo $TEST_FILES
+            yarn cilt${STAGE} ${BROWSER} --featureFiles $TEST_FILES
 
       - store_artifacts:
           path: ~/klassiG/klassi-js/artifacts
+
+      - store_test_results:
+          path: ~/klassiG/klassi-js/reports
 
   acceptance_test_chrome:
     <<: *acceptance_test_base
