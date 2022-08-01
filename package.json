@@ -33,7 +33,11 @@
     "pretest": "eslint --ignore-path .gitignore .",
     "start": "nyc node index.js --disableReport --wdProtocol --tags",
     "test": "node index.js --disableReport --wdProtocol --tags",
-    "dev": "node --trace-warnings index.js --disableReport --wdProtocol --tags",
+
+    "dev": "yarn delete-dev && yarn dev1",
+    "delete-dev": "rm -rf ./reports ./artifacts ./log ./visual-regression-baseline",
+    "dev1": "node --trace-warnings index.js --disableReport --tags",
+
     "android": "node index.js --disableReport --tags @android --remoteService lambdatest --env android --extraSettings android",
     "android-local": "node index.js --disableReport --tags @android --env android --browser android",
     "ios-local": "node index.js --disableReport --tags @ios --env ios --browser ios",

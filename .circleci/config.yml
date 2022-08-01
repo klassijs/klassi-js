@@ -82,6 +82,9 @@ jobs:
       - store_artifacts:
           path: ~/klassiG/klassi-js/artifacts
 
+      - store_results:
+          path: ~/klassiG/klassi-js/reports
+
   acceptance_test_chrome:
     <<: *acceptance_test_base
     environment: { BROWSER: 'chrome', STAGE: 'dev' }
