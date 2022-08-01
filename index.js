@@ -161,6 +161,7 @@ if (options.utam) {
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
+
   if (additionalSettings.tags) {
     if (options.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
@@ -170,7 +171,6 @@ if (options.remoteService && options.extraSettings) {
 }
 
 function getProjectPath(objectName) {
-  // return settings.projectRoot + options[objectName];
   return path.resolve(settings.projectRoot, options[objectName]);
 }
 
@@ -270,7 +270,6 @@ if (options.featureFiles) {
     process.argv.push(feature);
   });
 }
-
 
 /**
  * Get tags names from feature files
@@ -396,15 +395,12 @@ process.argv.push('-r', path.resolve(options.steps));
 
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {
-  const splitBrowsers = options.browser.split(',');
-  splitBrowsers.forEach(() => {
-    process.argv.push(options.browser);
-  });
-  process.argv.push(options.browser);
-}
+  const splitBrowser = options.browser.split(',');
 
-/** add strict option (fail if there are any undefined or pending steps) */
-// process.argv.push('-S');
+  splitBrowser.forEach((browser) => {
+    process.argv.push(browser);
+  });
+}
 
 /** execute cucumber Cli */
 try {
