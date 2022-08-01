@@ -73,6 +73,8 @@ node ./node_modules/klassi-js/index.js
 ## Options Usage
 ```bash
   --closeBrowser no || this leaves the browser open after the session completes, useful when debugging test
+  --tags @get,@put || will execute the scenarios tagged with the values provided. If multiple are necessary, separate them with a comma (no blank space in between).
+  --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
 ```
 
 ## Directory Structure
@@ -249,13 +251,119 @@ assert.equal(violationcount, 0);
 HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be
  changed by providing a new path using the `--reports` command line switch:
 
-![Cucumber HTML report](runtime/img/cucumber-html-report.png)
+![Cucumber HTML report](./runtime/img/cucumber-html-report.png)
 
 ## Accessibility Report
 
 HTML and JSON reports will be automatically generated and stored in the default `./reports/accessibility`  folder.This location can be changed by providing a new path using the `--reports` command line switch:
 
 ![Aceessibility HTML report](./runtime/img/accessibility-html-report.png)
+
+
+## Mobile App automation with [Appium](https://appium.io/docs/en/about-appium/getting-started/?lang=en)
+
+Besides the ability to test web applications on mobile environments, the framework allows for the automation of native mobile applications running on Android or iOS in LambdaTest.
+
+OAF contains sample tests that can be run by executing the following commands:
+```
+yarn run android
+```
+
+Or:
+
+```
+yarn run ios
+```
+
+### Environment configuration
+
+The environment configuration needs to include the following information:
+
+* **envName**: Android or iOS. The application will be installed before the test is run and uninstalled on cleanup.
+* **appName**: the application package name. Used when handling and verifying app instalation, removal and can be used in selectors.
+* **appPath**: remote path to the .APK file (Android) or ZIP file (iOS) containing the application. Because the files need to be accessible to the Appium instance running on LambdaTest, remote locations are preferred.
+
+For instance:
+```
+{
+  environment: {
+      "android": {
+          "envName": "android",
+          "appName": "oxford.learners.bookshelf.canary",
+          "appPath": "https://olb-android-release.s3-accelerate.amazonaws.com/test/olb-5.9.3-canary.apk"
+      },
+   }
+}
+```
+
+### Mobile capabilities
+
+As far as the mobile capabilities set on `./lambdatest/`, please use [LambdaTest's application](https://www.lambdatest.com/capabilities-generator/) to ensure that you select a correct combination of OS, Appium version and device name that will be accepted by LT.
+
+As for properties that should be set to a specific option, please bear in mind the following considerations:
+
+* **build**: should be set to *"OAF Mobile"* so test executions for native mobile apps can be filtered easily from web app tests.
+* **browserName**: should be left empty so Lambdatest doesn't interpret that the intention is to test a web application.
+* **networkThrottling**: should be kept as *"Regular 4G"*, during development it was detected that element selection is flaky if the emulators do not keep a steady connection, achieved through this throttling option.
+
+For instance:
+
+```
+{
+    "projectName": "OAF",
+    "build": "OAF Mobile",
+    "platformName" : "Android",
+    "browserName": "",
+    "deviceName" : "Galaxy Tab S7 Plus",
+    "platformVersion" : "11",
+    "appiumVersion" : "1.17.0",
+    "deviceOrientation" : "LANDSCAPE",
+    "networkThrottling": "Regular 4G",
+    "console" : "true",
+    "network" : true,
+    "visual" : true
+}
+```
+
+### Appium documentation
+
+To learn about the APIs that can be used to interact with the mobile drivers, please refer to the [Appium documentation](https://appium.io/docs/en/about-appium/intro/). Find the specific functions by clicking on *Commands* and navigating to the specific section.
+
+Please bear in mind that the page describing each function will contain information about how to invoke the function in different languages and compatibility with different drivers.
+
+For instance, the page for the [App installation functions](https://appium.io/docs/en/commands/device/app/install-app/) describes that when used in JavaScript (specifically using WebdriverIO), `driver.installApp('/path/to/APK')` is the code to use (bear in mind when referencing the documentation that OAF uses WDIO asynchronously and that driver = browser, so we would use `await browser.installApp('/path/to/APK')`).
+
+![JavaScript implementation of installApp](./runtime/img/javascript-code.jpg)
+
+It also tells us that the function is compatible with XCUITest and UiAutomator2, so we can use it for our tests.
+
+![Install App support](./runtime/img/installapp-support.jpg)
+
+### Mobile selectors
+
+As it is described in [WebDriverIO's website](https://webdriver.io/docs/selectors/#mobile-selectors), native app element selection can be achieved through different methods, though they are handled the same way at the framework level (i.e., `const elementName = await browser.$(selector);` or `const elementName = await browser.$$(selector);` for all elements that match the selectors).
+
+**Pre-considerations for local environment**: the Appium server (included as a dependency of the project) should be running for the tests to be executed locally, which should should only be done for debugging or creating the tests, by running the `yarn run appium-start` command.
+
+On Windows, both processes can be run concurrently using `start yarn appium-start & yarn android-local` or `start yarn appium-start & yarn ios-local`.
+
+On iOS, the equivalent commands would be `yarn appium-start & yarn android-local` and `yarn appium-start & yarn ios-local`.
+
+To verify that a local emulator or simulator is working correctly, use `adb devices` (Android) and `xcrun simctl list | grep Booted` (iOS).
+
+**For Android testing,** it is recommended to use [UISelector class of the UI Automator API](https://developer.android.com/reference/android/support/test/uiautomator/UiSelector), passing the Java code to the selector method.
+
+For instance:
+```
+const navbarBtn = await browser.$(android=new UiSelector().text("Toggle navigation").className("android.widget.Button"));
+```
+
+Please remember that this example should actually be implemented setting the selector in its own shared objects script (e.g., `browser.$(sharedObjects.android.elem.navbarBtn);`).
+
+To retrieve the attributes that will be used in the selector, the [Appium Inspector desktop application](https://github.com/appium/appium-inspector) is recommended.
+
+**For iOS testing,** it is recommended to use [Apple's UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) to find elements and [Apple's API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771).
+
 
 ## Event handlers
 

@@ -37,7 +37,8 @@ jobs:
   ###########################################
   acceptance_test_base: &acceptance_test_base
     docker:
-      - image: circleci/node:12.14.1-browsers
+      - image: cimg/node:14.19.0-browsers
+    resource_class: small
     working_directory: ~/klassiG
     steps:
       - run:
@@ -80,6 +81,9 @@ jobs:
 
       - store_artifacts:
           path: ~/klassiG/klassi-js/artifacts
+
+      - store_results:
+          path: ~/klassiG/klassi-js/reports
 
   acceptance_test_chrome:
     <<: *acceptance_test_base

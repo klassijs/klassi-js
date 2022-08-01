@@ -27,12 +27,15 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
+const { exec } = require("child_process");
 
 // eslint-disable-next-line global-require
 const klassiCli = new (require('@cucumber/cucumber').Cli)({
   argv: process.argv,
   cwd: process.cwd(),
   stdout: process.stdout,
+  stderr: process.stderr,
+  env: process.env,
 });
 const pjson = require('./package.json');
 
@@ -95,6 +98,7 @@ program
   )
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
+  .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.')
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -138,12 +142,23 @@ global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
 
+/**
+ * Use the --utam config to compile the UTAM test files and generate the .JS files
+ */
+if (options.utam) {
+  const filePath = projectName === global.projectName ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+
+  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+    if (err) console.error(err);
+    if (stderr) console.error(stderr);
+    console.log(stdout);
+  });
+}
+
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-  /* this approach supports a single string defining both the target config and tags
-    e.g. 'chrome/@tag1,@tag2'
-   */
+
   if (additionalSettings.tags) {
     if (options.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
@@ -153,7 +168,6 @@ if (options.remoteService && options.extraSettings) {
 }
 
 function getProjectPath(objectName) {
-  // return settings.projectRoot + options[objectName];
   return path.resolve(settings.projectRoot, options[objectName]);
 }
 
@@ -245,12 +259,10 @@ if (fs.existsSync(pageObjectPath)) {
 /** rewrite command line switches for cucumber */
 process.argv.splice(2, 100);
 
-/** specify the feature files folder (this must be the first argument for Cucumber) */
-process.argv.push(paths.featureFiles);
-
-/** specify the feature files to be executed */
-if (options.featureFile) {
-  const splitFeatureFiles = options.featureFile.split(',');
+/** specify the feature files folder (this must be the first argument for Cucumber)
+/*    specify the feature files to be executed */
+if (options.featureFiles) {
+  const splitFeatureFiles = options.featureFiles.split(',');
 
   splitFeatureFiles.forEach((feature) => {
     process.argv.push(feature);
@@ -263,6 +275,8 @@ const cpPath = '@cucumber/pretty-formatter';
 process.argv.push(
   '-f',
   cpPath,
+  '--format-options',
+  '{"colorsEnabled": true}',
   '-f',
   `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
 );
@@ -279,8 +293,13 @@ process.argv.push('-r', path.resolve(options.steps));
  */
 function getTagsFromFeatureFiles() {
   let result = [];
+  let featurefiles = {};
   loadTextFile.setup({ matchRegExp: /\.feature/ });
-  const featurefiles = loadTextFile.loadSync(path.resolve(options.featureFiles));
+  const featureFilesList = options.featureFiles.split(',');
+  featureFilesList.forEach((feature) => {
+    featurefiles = Object.assign(featurefiles, loadTextFile.loadSync(path.resolve(feature)));
+  })
+
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
     result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
@@ -291,8 +310,7 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
-
-if (options.tags) {
+if (options.tags.length > 0) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);
   const separateMultipleTags = options.tags[0].split(',');
@@ -373,18 +391,14 @@ if (options.tags) {
   }
 }
 
-
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {
-  const splitBrowsers = options.browser.split(',');
-  splitBrowsers.forEach(() => {
-    process.argv.push(options.browser);
-  });
-  process.argv.push(options.browser);
-}
+  const splitBrowser = options.browser.split(',');
 
-/** add strict option (fail if there are any undefined or pending steps) */
-// process.argv.push('-S');
+  splitBrowser.forEach((browser) => {
+    process.argv.push(browser);
+  });
+}
 
 /** execute cucumber Cli */
 try {

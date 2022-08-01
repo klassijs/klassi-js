@@ -29,12 +29,14 @@ module.exports = {
         "dev": {
             "envName": "DEVELOPMENT",
             "web_url": "https://duckduckgo.com/",
+            "web_utam_url": "https://google.com/",
             "api_base_url": "http://httpbin.org/get"
         },
 
         "test": {
             "envName": "TEST",
             "web_url" :"https://duckduckgo.com/",
+            "web_utam_url" :"https://google.com/",
             "api_base_url": "http://httpbin.org/get"
             // "api_base_url": "http://ip-api.com/json"
         },
@@ -42,6 +44,18 @@ module.exports = {
         "uat": {
             "envName": "UAT",
             "web_url": ""
+        },
+
+        "android": {
+            "envName": "android",
+            "appName": "oxford.learners.bookshelf.canary",
+            "appPath": "https://olb-android-release.s3-accelerate.amazonaws.com/test/olb-5.9.3-canary.apk"
+        },
+
+        "ios": {
+            "envName": "ios",
+            "appName": "io.appium.TestApp",
+            "appPath": "http://appium.github.io/appium/assets/TestApp9.4.app.zip"
         }
     },
 
