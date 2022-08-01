@@ -117,15 +117,6 @@ const settings = {
   remoteService: options.remoteService,
 };
 
-// // Use the --utam config to compile the UTAM test files and generate the .JS files.
-// if (options.utam) {
-//   exec('yarn run utam -c ./utam.config.js', (err, stdout, stderr) => {
-//     if (err) console.error(err);
-//     if (stderr) console.error(stderr);
-//     console.log(stdout);
-//   });
-// }
-
 /**
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -155,7 +146,7 @@ global.dateTime = require('./runtime/helpers').reportDate();
  * Use the --utam config to compile the UTAM test files and generate the .JS files
  */
 if (options.utam) {
-  const filePath = projectName === 'Klassi Automated Test' ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath = projectName === global.projectName ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
 
   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
@@ -167,9 +158,7 @@ if (options.utam) {
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-  /* this approach supports a single string defining both the target config and tags
-    e.g. 'chrome/@tag1,@tag2'
-   */
+
   if (additionalSettings.tags) {
     if (options.tags) {
       throw new Error('Cannot sent two types of tags - either use -x or -t');
@@ -179,7 +168,6 @@ if (options.remoteService && options.extraSettings) {
 }
 
 function getProjectPath(objectName) {
-  // return settings.projectRoot + options[objectName];
   return path.resolve(settings.projectRoot, options[objectName]);
 }
 
@@ -405,15 +393,12 @@ if (options.tags.length > 0) {
 
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {
-  const splitBrowsers = options.browser.split(',');
-  splitBrowsers.forEach(() => {
-    process.argv.push(options.browser);
-  });
-  process.argv.push(options.browser);
-}
+  const splitBrowser = options.browser.split(',');
 
-/** add strict option (fail if there are any undefined or pending steps) */
-// process.argv.push('-S');
+  splitBrowser.forEach((browser) => {
+    process.argv.push(browser);
+  });
+}
 
 /** execute cucumber Cli */
 try {
