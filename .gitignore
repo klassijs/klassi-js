@@ -81,4 +81,4 @@ typings/
 .next
 
 # UTAM
-page-objects/__utam__/compiledUTAM-old
+page-objects/...__utam__/compiledUTAM-old

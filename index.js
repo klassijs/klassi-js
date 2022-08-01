@@ -117,6 +117,15 @@ const settings = {
   remoteService: options.remoteService,
 };
 
+// // Use the --utam config to compile the UTAM test files and generate the .JS files.
+// if (options.utam) {
+//   exec('yarn run utam -c ./utam.config.js', (err, stdout, stderr) => {
+//     if (err) console.error(err);
+//     if (stderr) console.error(stderr);
+//     console.log(stdout);
+//   });
+// }
+
 /**
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -262,7 +271,7 @@ if (fs.existsSync(pageObjectPath)) {
 /** rewrite command line switches for cucumber */
 process.argv.splice(2, 100);
 
-/** specify the feature files folder (this must be the first argument for Cucumber) 
+/** specify the feature files folder (this must be the first argument for Cucumber)
 /*    specify the feature files to be executed */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');

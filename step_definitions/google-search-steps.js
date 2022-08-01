@@ -2,12 +2,12 @@ let Google;
 
 try {
   // eslint-disable-next-line global-require
-  Google = require('../page-objects/__utam__/compiledUTAM/google');
+  Google = require('../page-objects/...__utam__/compiledUTAM/google');
   // eslint-disable-next-line no-empty
 } catch (e) {}
 
 Given(/^The user navigates to Google$/, async () => {
-  await helpers.loadPage('www.google.com', 10);
+  await helpers.loadPage(env.web_utam_url, 10);
   const google = await utam.load(Google);
   const acceptModalBtn = await google.getAcceptModalBtn();
   await acceptModalBtn.click();

@@ -29,12 +29,14 @@ module.exports = {
         "dev": {
             "envName": "DEVELOPMENT",
             "web_url": "https://duckduckgo.com/",
+            "web_utam_url": "https://google.com/",
             "api_base_url": "http://httpbin.org/get"
         },
 
         "test": {
             "envName": "TEST",
             "web_url" :"https://duckduckgo.com/",
+            "web_utam_url" :"https://google.com/",
             "api_base_url": "http://httpbin.org/get"
             // "api_base_url": "http://ip-api.com/json"
         },
