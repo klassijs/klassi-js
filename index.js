@@ -27,7 +27,7 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
-const { exec } = require("child_process");
+const { exec } = require('child_process');
 
 // eslint-disable-next-line global-require
 const klassiCli = new (require('@cucumber/cucumber').Cli)({
@@ -147,9 +147,7 @@ global.dateTime = require('./runtime/helpers').reportDate();
  */
 if (options.utam) {
   const filePath =
-    projectName === global.projectName
-      ? 'runtime/utam.config.js'
-      : './node_modules/klassi-js/runtime/utam.config.js';
+    projectName === global.projectName ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
 
   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
@@ -262,7 +260,8 @@ if (fs.existsSync(pageObjectPath)) {
 process.argv.splice(2, 100);
 
 /** specify the feature files folder (this must be the first argument for Cucumber)
-/*    specify the feature files to be executed */
+ *  specify the feature files to be executed
+ */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
 
@@ -282,7 +281,7 @@ function getTagsFromFeatureFiles() {
   const featureFilesList = options.featureFiles.split(',');
   featureFilesList.forEach((feature) => {
     featurefiles = Object.assign(featurefiles, loadTextFile.loadSync(path.resolve(feature)));
-  })
+  });
 
   Object.keys(featurefiles).forEach((key) => {
     const content = String(featurefiles[key] || '');
@@ -301,7 +300,7 @@ if (options.tags.length > 0) {
   let separateExcludedTags;
 
   if (options.exclude.length >= 1) {
-    separateExcludedTags = options?.exclude[0].split(',');
+    separateExcludedTags = options.exclude[0].split(',');
   }
 
   const correctTags = [];
@@ -339,13 +338,13 @@ if (options.tags.length > 0) {
 
   if (correctTags.length > 1) {
     const multipleTagsCommand = correctTags.reduce((acc, currentTag) => {
-      resultingString = acc + ` or ${currentTag}`;
+      resultingString = `${acc} or ${currentTag}`;
       return resultingString;
     });
 
     if (correctExcludedTags.length >= 1) {
       const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
-        resultingString = acc + ` and not ${currentTag}`;
+        resultingString = `${acc} and not ${currentTag}`;
         return resultingString;
       });
 
@@ -365,7 +364,7 @@ if (options.tags.length > 0) {
 
       default:
         const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
-          resultingString = acc + ` and not ${currentTag}`;
+          resultingString = `${acc} and not ${currentTag}`;
           return resultingString;
         });
         resultingString = `${correctTags[0]} and not ${excludedCommand}`;

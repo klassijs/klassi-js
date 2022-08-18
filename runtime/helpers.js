@@ -208,6 +208,7 @@ module.exports = {
     let hours = today.getHours();
     let minutes = today.getMinutes();
     let seconds = today.getSeconds();
+    let milliseconds = today.getMilliseconds();
 
     if (dd < 10) {
       dd = `0${dd}`;
@@ -224,7 +225,10 @@ module.exports = {
     if (seconds < 10) {
       seconds = `0${seconds}`;
     }
-    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
+    if (milliseconds < 10) {
+      milliseconds = `0${milliseconds}`;
+    }
+    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
   },
 
   /**

@@ -132,6 +132,7 @@ module.exports = {
     const $today = new Date();
     let $yesterday = new Date($today);
     $yesterday.setDate($today.getDate() - 1); // this cause the month to rollover.
+    // $yesterday.setDate($today.getDate()); // uncomment for testing sets the date to today.
     let $dd = $yesterday.getDate();
     let $mm = $yesterday.getMonth() + 1; // January is 0!
     const $yyyy = $yesterday.getFullYear();
