@@ -18,5 +18,5 @@ Feature: Searching for apps with duckduckgo
     Examples:
       | searchword | extName   | Username | password |
       | mango | modHeader | username | password |
-      | traffic | modHeader | username | password |
+#      | traffic | modHeader | username | password |
 
