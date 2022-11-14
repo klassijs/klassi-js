@@ -1,0 +1,11 @@
+{
+    "build" : "OAF",
+    "name" : "OAF Mobile",
+    "platformName" : "iOS",
+    "browserName": "",
+    "deviceName" : "iPhone 6s",
+    "platformVersion" : "12.0",
+    "automationName": "xcuitest",
+    "console" : "true",
+    "network" : true
+}

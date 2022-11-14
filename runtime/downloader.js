@@ -20,12 +20,8 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-
 const fs = require('fs');
 const request = require('got');
-const pactumJs = require('pactum');
-
-const spec = pactumJs.spec();
 
 module.exports = {
   /**

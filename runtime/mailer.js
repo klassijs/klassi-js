@@ -22,17 +22,28 @@
  */
 const path = require('path');
 const nodeMailer = require('nodemailer');
+const aws = require('@aws-sdk/client-ses');
+const { defaultProvider } = require('@aws-sdk/credential-provider-node');
 const getRemote = require('./getRemote');
-const shared = require('./scripts/secrets/emailConfig.json');
 
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const envName = global.env.envName.toLowerCase();
+
+process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
+process.env.AWS_SECRET_ACCESS_KEY = process.env.SES_SECRET;
+const ses = new aws.SES({
+  apiVersion: '2010-12-01',
+  // region: emailData.SES_REGION,
+  region: 'eu-west-1',
+  defaultProvider,
+});
 
 /** Functionality for sending test results via email
  * @type {exports|module.exports}
  */
 module.exports = {
-  klassiSendMail() {
+  oupSendMail() {
     /** To get all the files that need to be attached */
     let fileList;
     const date = this.formatDate();
@@ -42,39 +53,94 @@ module.exports = {
           filename: `testReport-${date}.html`,
           path: path.resolve(`${global.paths.reports}/testReport-${date}.html`),
         },
+        // {
+        //   filename: 'index.html',
+        //   path: path.resolve(`${global.paths.coverage}/index.html`),
+        // },
       ];
-    } else {
-      fileList = [
-        {
-          filename: `${global.reportName}-${dateTime}.html`,
-          path: path.resolve(global.paths.reports, browserName, `${global.reportName}-${dateTime}.html`),
-        },
-      ];
+      if (remoteService && remoteService.type === 'lambdatest' && projectName === 'OEUK ORB') {
+        fileList = [
+          {
+            filename: `testReport-${date}.html`,
+            path: path.resolve(`${global.paths.reports}/testReport-${date}.html`),
+          },
+          {
+            filename: 'reportData.json',
+            path: path.resolve(`${global.paths.reports}/reportData.json`),
+          },
+        ];
+      }
+      if (remoteService && remoteService.type === 'lambdatest' && projectName === 'OUP JOURNALS') {
+        fileList = [
+          {
+            filename: `testReport-${date}.html`,
+            path: path.resolve(`${global.paths.reports}/testReport-${date}.html`),
+          },
+          {
+            filename: 'urlData.xlsx',
+            path: path.resolve(`${global.paths.reports}/${browserName}/${envName}/urlData.xlsx`),
+          },
+        ];
+      }
       // eslint-disable-next-line no-undef
       if (emailData.AccessibilityReport === 'Yes') {
         fileList = fileList.concat(global.accessibilityReportList);
       }
+    } else {
+      fileList = [
+        {
+          filename: `${global.reportName}-${dateTime}.html`,
+          path: path.resolve(global.paths.reports, browserName, envName, `${global.reportName}-${dateTime}.html`),
+        },
+        // {
+        //   filename: 'index.html',
+        //   path: path.resolve(`${global.paths.coverage}/index.html`),
+        // },
+      ];
+      if (projectName === 'OEUK ORB') {
+        fileList = [
+          {
+            filename: `${global.reportName}-${dateTime}.html`,
+            path: path.resolve(global.paths.reports, browserName, `${global.reportName}-${dateTime}.html`),
+          },
+          {
+            filename: 'reportData.json',
+            path: path.resolve(`${global.paths.reports}/reportData.json`),
+          },
+        ];
+      }
+      if (projectName === 'OUP JOURNALS') {
+        fileList = [
+          {
+            filename: `testReport-${date}.html`,
+            path: path.resolve(`${global.paths.reports}/testReport-${date}.html`),
+          },
+          {
+            filename: 'urlData.xlsx',
+            path: path.resolve(`${global.paths.reports}/${browserName}/${envName}/urlData.xlsx`),
+          },
+        ];
+      }
     }
+
     // eslint-disable-next-line no-undef
-    const devTeam = emailData.emailList;
-    /** Email relay server connections */
+    const devTeam = emailData.nameList;
+    /** Email AWS server connections */
     const transporter = nodeMailer.createTransport({
-      host: shared.host,
-      port: shared.port,
-      secure: true,
-      auth: {
-        user: shared.auth.user,
-        pass: shared.auth.pass,
-      },
-      tls: {
-        // prevent it from failing with invalid/expired cert
-        rejectUnauthorized: false,
-      },
+      SES: { ses, aws },
+      Statement: [
+        {
+          Effect: 'Allow',
+          Action: 'ses:SendRawEmail',
+          Resource: '*',
+        },
+      ],
     });
+
     const mailOptions = {
       to: devTeam,
-      from: 'QaAutoTest <test@test.com>',
-      subject: `${global.reportName}-${browserName}-${dateTime}`,
+      from: 'OUP-QATEST <QAAutoTest@oup.com>',
+      subject: `${projectName} ${global.reportName}-${dateTime}`,
       alternative: true,
       attachments: fileList,
       html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,
@@ -89,28 +155,28 @@ module.exports = {
       }
       if (success) {
         try {
-          transporter.sendMail(mailOptions, () => {
+          // eslint-disable-next-line no-shadow
+          transporter.sendMail(mailOptions, (err) => {
             if (err) {
               console.error(`Results Email CANNOT be sent: ${err.stack}`);
               throw err;
             } else {
               console.log('Results Email successfully sent');
               // eslint-disable-next-line no-unused-vars
-              // browser.pause(DELAY_200ms).then((r) => {
-              //   process.exit(0);
-              // });
-              browser.pause(DELAY_500ms);
-              process.exit(0);
+              browser.pause(DELAY_200ms).then(() => {
+                process.exit(0);
+              });
             }
           });
           // eslint-disable-next-line no-shadow
         } catch (err) {
-          console.error('This is a system error: ', err.stack);
+          console.error('There is a system error: ', err.stack);
           throw err;
         }
       }
     });
   },
+
   /** @returns {string} */
   formatDate() {
     const $today = new Date();

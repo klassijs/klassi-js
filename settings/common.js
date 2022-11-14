@@ -20,7 +20,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-
 module.exports = {
   /**
    * drag the page into view
@@ -51,10 +50,7 @@ module.exports = {
   },
 
   /**
-   * ========== For all ASSERTIONS functions ==========
-   */
-  /**
-   *  Reformats date string into string
+   * Reformats date string into string
    * @param dateString
    * @returns {string}
    */
@@ -78,7 +74,7 @@ module.exports = {
   },
 
   /**
-   *  Sorts results by date
+   * Sorts results by date
    * @param array
    * @returns {*}
    */
@@ -97,6 +93,7 @@ module.exports = {
     try {
       const elem = await browser.$(selector);
       await elem.waitForExist(DELAY_5s);
+      await elem.waitForEnabled(DELAY_5s);
       await browser.pause(DELAY_500ms);
       await elem.click();
       await browser.setValue(itemToFilter);

@@ -26,13 +26,12 @@ const lambdaTunnel = require('@lambdatest/node-tunnel');
 // eslint-disable-next-line new-cap
 const tunnelInstance = new lambdaTunnel();
 wdio.tunnelInstance = tunnelInstance;
-const { dataconfig } = global;
 
 const tunnelArguments = {
-  user: process.env.LAMBDATEST_USERNAME || dataconfig.ltlocal.userName || ltsecrets.userName,
-  key: process.env.LAMBDATEST_ACCESS_KEY || dataconfig.ltlocal.accessKey || ltsecrets.accessKey,
+  user: process.env.LAMBDATEST_USERNAME,
+  key: process.env.LAMBDATEST_ACCESS_KEY,
   infoAPIPort: 8000,
-  tunnelName: 'lttunnel',
+  tunnelName: 'ouptunnel',
 };
 
 (async () => {
@@ -43,7 +42,7 @@ const tunnelArguments = {
     console.log(`Tunnel is Running ? ${tunnelRunningStatus}`);
     const tunnelName = await tunnelInstance.getTunnelName();
     console.log(`Tunnel Name : ${tunnelName}`);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err.message);
   }
 })();

@@ -2,6 +2,6 @@
     // most folder contexts extend rules in a language-specific way (e.g. src, lambda) so these are a catch-all for other folders
     "root":true,
     "extends": [
-        "./runtime/coding-standards/eslint/.eslintrc"
+        "./runtime/coding-standards/eslint/.eslintrc.json"
     ]
 }

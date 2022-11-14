@@ -1,5 +1,3 @@
-const { Before, After } = require('@cucumber/cucumber');
-
 Before(async () => {
   await helpers.installMobileApp(env.appName, env.appPath);
 });
@@ -62,4 +60,4 @@ Then(/^The user logs in correctly into the application$/, async () => {
 Then(/^The user navigates to the free samples screen when not logged in$/, async () => {
   const freeSamplesText = await browser.$(sharedObjects.android.elem.freeSamplesText);
   await freeSamplesText.waitForDisplayed({ timeout: DELAY_15s });
-});
+})

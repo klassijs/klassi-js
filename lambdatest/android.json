@@ -1,0 +1,14 @@
+{
+    "projectName": "OAF",
+    "build": "OAF Mobile",
+    "platformName" : "Android",
+    "browserName": "",
+    "deviceName" : "Galaxy Tab S7 Plus",
+    "platformVersion" : "11",
+    "appiumVersion" : "1.17.0",
+    "deviceOrientation" : "LANDSCAPE",
+    "networkThrottling": "Regular 4G",
+    "console" : "true",
+    "network" : true,
+    "visual" : true
+}

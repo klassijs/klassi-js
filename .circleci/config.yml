@@ -1,13 +1,12 @@
 #    klassi-js
 #    Copyright © 2016 - Larry Goddard
 #
-#    Javascript Node CircleCI 2.0 configuration file
+#    Javascript Node CircleCI 2.1 configuration file
 #    Check https://circleci.com/docs/2.0/language-javascript/ for more details
-
 version: 2.1
 
 references:
-  filter_ignore_wip_branches: &filter_ignore_wip_branches
+  filter_ignore_wip_branches:
     filters:
       branches:
         ignore:
@@ -19,49 +18,197 @@ references:
     filters:
       branches:
         only:
-          - develop # git flow production branch
+          - develop # git flow develop branch
           - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
 
   filter_only_releasable_branches: &filter_only_releasable_branches
     filters:
       branches:
         only:
-          - master # git flow production branch
-          - main # git flow production branch
+          - master # git flow master branch
           - /hotfix\/.*/ # git flow hotfix branches
           - /release\/.*/ # git flow release branches
 
 jobs:
   ###########################################
-  # Acceptance test base configuration      #
+  # s3 Report base configuration            #
   ###########################################
-  acceptance_test_base: &acceptance_test_base
+  s3_report_base: &s3_report_base
     docker:
       - image: cimg/node:14.19.0-browsers
     resource_class: small
-    parallelism: 2
-    working_directory: ~/klassiG
+    working_directory: ~/klassi
+
     steps:
       - run:
           name: Avoid hosts unknown for github
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
       - run:
-          name: Checkout klassi framework repo
+          command: mkdir ~/klassi/projects
+
+      - run:
+          name: Checkout the klassi-js framework repo
           command: git clone git@github.com:larryg01/klassi-js.git
 
       - run:
           name: Check out the working branch
-          path: ~/klassiG/klassi-js
+          path: ~/klassi/klassi-js
+          command: git checkout ${CIRCLE_BRANCH}
+
+      - run:
+          name: Checkout the Project Repos
+          path: ~/klassi/projects
+          command: git clone git@github.com:OUP/elt_lti_management-js.git&& git clone git@github.com:OUP/elt_tao-js.git
+
+      - run:
+          name: Generate dependency cache key
+          command: cat ~/klassi/klassi-js/package.json ~/klassi/projects/elt_lti_management-js/package.json ~/klassi/projects/elt_tao-js/package.json> CACHE_KEY
+
+      - restore_cache:
+          key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      #################################
+      ## Install Project dependencies #
+      #################################
+      - run:
+          name: Force git to use ssh instead of https
+          path: ~/klassi/
+          command: git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+      - run:
+          name: Install the klassi-js framework dependencies
+          path: ~/klassi/klassi-js
+          command: yarn install
+
+      - run:
+          name: Install the ProjectName Project Dependencies
+          path: ~/klassi/projects/ProjectName
+          command: yarn install
+
+      - run:
+          name: Install the ProjectName Project Dependencies
+          path: ~/klassi/projects/ProjectName
+          command: yarn install
+
+      ###############################################
+      # Lambdatest setup for execution and shutdown #
+      ###############################################
+      - run:
+          name: Lambdatest tunnel file downloading and upziping
+          command: |
+            sudo apt-get update && sudo apt-get install -y curl unzip iproute2 psmisc
+            curl -O https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip
+            unzip LT_Linux.zip
+            chmod +x LT
+            rm LT_Linux.zip
+
+      - run:
+          name: Adding tunnel name to project
+          background: true
+          command: echo 'export TUNNEL_NAME=${STAGE}-${BROWSER}-${CIRCLE_BUILD_NUM}' >> $BASH_ENV
+
+      - run:
+          name: Starting Lambdatest Tunnel for testing
+          background: true
+          command: |
+            if [ -z "qLzlsFECIptQEriaahXlT8RYD09zf83zePxByro9OYMlv725hs" ]; then
+              echo "Error: The parameter lambdatest_key is empty. Please ensure the environment variable LAMBDATEST_KEY has been added."
+              exit 1
+            fi
+            read LOWERPORT UPPERPORT < /proc/sys/net/ipv4/ip_local_port_range
+            PORT=$LOWERPORT
+            while [  $PORT -lt $UPPERPORT ]; do
+                ss -lpn | grep -q ":$PORT " || break
+                let PORT=PORT+1
+            done
+            echo "$PORT" > /tmp/port
+            echo $TUNNEL_NAME
+            ./LT --user QaAutoTest --key qLzlsFECIptQEriaahXlT8RYD09zf83zePxByro9OYMlv725hs --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME
+
+      - run:
+          name: Wait for LambdaTest Tunnel
+          command: |
+            while [ ! -f /tmp/port ]; do sleep 0.5; done
+            PORT=$(head -1 /tmp/port)
+            curl  --silent --retry-connrefused --connect-timeout 5 --max-time 5 --retry 10 --retry-delay 2 --retry-max-time 30 http://127.0.0.1:$PORT/api/v1.0/info 2>&1 > /dev/null
+
+      ##########################################################################
+      # Save yarn cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the yarn install   #
+      ##########################################################################
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+            - ~/klassi/klassi-js/yarn.lock
+            - ~/klassi/projects/ProjectName/yarn.lock
+            - ~/klassi/projects/ProjectName/yarn.lock
+          key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
+
+      #######################
+      ##   run s3 report   ##
+      #######################
+      - run:
+          name: ProjectName s3 Report Processing and Email
+          path: ~/klassi/projects/ProjectName
+          command: yarn run ciltProjectName $BROWSER
+
+      - run:
+          name: klassi-js s3 Report Processing and Email
+          path: ~/klassi/klassi-js
+          command: yarn run ciltklassi $BROWSER
+
+      - run:
+          name: ProjectName s3 Report Processing and Email
+          path: ~/klassi/projects/ProjectName
+          command: yarn run ciltProjectName $BROWSER
+
+      - run:
+          name: Close LambdaTest Tunnel
+          command: |
+            PORT=$(head -1 /tmp/port)
+            status_code=$(curl --request DELETE --write-out %{http_code} --silent --output /dev/null http://127.0.0.1:$PORT/api/v1.0/stop)
+            if [[ "$status_code" -ne 200 ]] ; then
+              killall LT
+            fi
+            rm /tmp/port
+
+  s3Report_chrome:
+    <<: *s3_report_base
+    environment: { BROWSER: 'chrome'}
+
+  ###########################################
+  #   Acceptance test base configuration    #
+  ###########################################
+  acceptance_test_base: &acceptance_test_base
+    docker:
+      - image: cimg/node:14.19.0-browsers
+    resource_class: small
+    parallelism: 2
+    working_directory: ~/klassi
+
+    steps:
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Checkout the klassi-js framework repo
+          command: git clone git@github.com:OUP/klassi-js.git
+      #          command: git clone https://qaautotest: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@github.com/OUP/klassi-js.git
+
+      - run:
+          name: Check out the working branch
+          path: ~/klassi/klassi-js
           command: git checkout ${CIRCLE_BRANCH}
 
       - run:
           name: Setting up tmp Dir for split files
-          command: mkdir ~/klassiG/klassi-js/tmp
+          command: mkdir ~/klassi/klassi-js/tmp
 
       - run:
-          name: Setting up parallelism and splitting features files
-          path: ~/klassiG/klassi-js
+          name: Setting up parallelism and splitting tests
+          path: ~/klassi/klassi-js
           command: |
             echo $(circleci tests glob "features/**/*.feature")
             TEST_FILES=$(circleci tests glob "features/**/*.feature" | circleci tests split > tmp/test-to-run | xargs -n 1 echo)
@@ -69,27 +216,29 @@ jobs:
 
       - run:
           name: Generate dependency cache key
-          command: cat ~/klassiG/klassi-js/package.json > CACHE_KEY
+          command: cat ~/klassi/klassi-js/package.json > CACHE_KEY
 
       - restore_cache:
-          key: klassi-yarn-cache-v1{{ checksum "CACHE_KEY" }}
+          key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:
-          name: Install klassi framework dependencies
-          path: ~/klassiG/klassi-js
+          name: Install the klassi-js framework dependencies
+          path: ~/klassi/klassi-js
           command: yarn install
 
-      # Save yarn cache, don't include node modules because we end up with an
-      # archive so large that unarchiving takes longer than the yarn install
+      ##########################################################################
+      # Save yarn cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the yarn install   #
+      ##########################################################################
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - ~/klassiG/klassi-js/yarn.lock
-          key: klassi-yarn-cache-v1{{ checksum "CACHE_KEY" }}
+            - ~/klassi/klassi-js/yarn.lock
+          key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:
           name: Run acceptance tests
-          path: ~/klassiG/klassi-js
+          path: ~/klassi/klassi-js
           command: |
             circleci tests glob "features/**/*.feature" | circleci tests split > tmp/test-to-run | xargs -n 1 echo
             TEST_FILES=$(cat tmp/test-to-run | xargs | sed -e 's/ /,/g')
@@ -97,16 +246,32 @@ jobs:
             yarn cilt${STAGE} ${BROWSER} --featureFiles $TEST_FILES
 
       - store_artifacts:
-          path: ~/klassiG/klassi-js/artifacts
+          path: ~/klassi/klassi-js/artifacts/visual-regression/original/
 
       - store_test_results:
-          path: ~/klassiG/klassi-js/reports
+          path: ~/klassi/klassi-js/reports
 
   acceptance_test_chrome:
     <<: *acceptance_test_base
-    environment: { BROWSER: 'chrome', STAGE: 'dev' }
+    environment: { BROWSER: 'chrome', STAGE: 'uat' }
 
   acceptance_test_firefox:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'firefox', STAGE: 'uat' }
+
+  acceptance_test_edge:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'edge', STAGE: 'uat' }
+
+  acceptance_test_tabletiPad:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'tabletiPad', STAGE: 'uat'  }
+
+  dev_acceptance_test_chrome:
+    <<: *acceptance_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'dev' }
+
+  dev_acceptance_test_firefox:
     <<: *acceptance_test_base
     environment: { BROWSER: 'firefox', STAGE: 'dev' }
 
@@ -114,8 +279,39 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - acceptance_test_firefox:
+      - dev_acceptance_test_firefox:
+          context: klassi-js-framework
           <<: *filter_only_integration_branches
 
       - acceptance_test_chrome:
+          context: klassi-js-framework
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_firefox:
+          context: klassi-js-framework
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_edge:
+          context: klassi-js-framework
+          <<: *filter_only_releasable_branches
+
+      - acceptance_test_tabletiPad:
+          context: klassi-js-framework
+          <<: *filter_only_releasable_branches
+
+      - dev_acceptance_test_chrome:
+          context: klassi-js-framework
           <<: *filter_only_integration_branches
+
+  s3Report_run:
+    triggers:
+      - schedule:
+          cron: "00 04 * * *"
+          filters:
+            branches:
+              only:
+                - master
+
+    jobs:
+      - s3Report_chrome:
+          context: klassi-js-framework

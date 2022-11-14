@@ -20,11 +20,13 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
+require('dotenv').config();
 const path = require('path');
-const { Command } = require('commander');
+const program = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { exec } = require('child_process');
@@ -37,9 +39,8 @@ const klassiCli = new (require('@cucumber/cucumber').Cli)({
   stderr: process.stderr,
   env: process.env,
 });
-const pjson = require('./package.json');
 
-const program = new Command();
+const pjson = require('./package.json');
 
 function collectPaths(value, paths) {
   paths.push(value);
@@ -53,10 +54,11 @@ function parseRemoteArguments(argumentString) {
   const argSplit = argumentString.split('/');
   const CONFIG = 0;
   const TAGS = 1;
-  return {
+  const parsed = {
     config: argSplit[CONFIG],
     tags: argSplit[TAGS],
   };
+  return parsed;
 }
 
 program
@@ -76,6 +78,9 @@ program
   )
   .option('--pageObjects <paths>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('--reports <paths>', 'output path to save reports. defaults to ./reports', 'reports')
+  .option('--headless', 'whether to run browser in headless mode. defaults to false', false)
+  // .option('--devTools', 'auto-open a DevTools. if true headless mode is disabled.', true)
+  .option('--coverage <paths>', 'output path to save nyc reports. defaults to ./coverage', 'coverage')
   .option('--steps <paths>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option(
     '--tags <EXPRESSION>',
@@ -98,6 +103,7 @@ program
   )
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
+  .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo')
   .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.')
   .parse(process.argv);
 
@@ -113,15 +119,16 @@ const settings = {
   BROWSER_NAME: options.browser,
   disableReport: options.disableReport,
   closeBrowser: options.closeBrowser,
+  dlink: options.dlink,
   updateBaselineImage: options.updateBaselineImage,
   remoteService: options.remoteService,
 };
 
+global.headless = options.headless;
 /**
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
  */
-// add line to call dotenv
 const moduleName = process.env.ENV_CONFIG || 'envConfig'; // name of the rc.js file for global variables
 const explorerSync = cosmiconfigSync(moduleName);
 const searchedFor = explorerSync.search();
@@ -130,24 +137,19 @@ const { dataConfig, environment } = envConfig;
 // console.log(searchedFor);
 
 global.dataconfig = dataConfig;
+global.s3Data = dataConfig.s3Data;
 global.emailData = dataConfig.emailData;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.closeBrowser = settings.closeBrowser;
 
-global.s3Data = require('./runtime/scripts/secrets/awsConfig.json');
-global.ltsecrets = require('./runtime/scripts/secrets/lambdatest.json');
-
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
 
-/**
- * Use the --utam config to compile the UTAM test files and generate the .JS files
- */
+/** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (options.utam) {
-  const filePath =
-    projectName === global.projectName ? 'runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath = projectName === 'OAF' ? './runtime/utam.config.js' : './node_modules/OAF/runtime/utam.config.js';
 
   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
@@ -159,22 +161,25 @@ if (options.utam) {
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-
+  /* this approach supports a single string defining both the target config and tags
+   e.g. 'chrome/@tag1,@tag2'
+   */
   if (additionalSettings.tags) {
-    if (options.tags) {
-      throw new Error('Cannot sent two types of tags - either use -x or -t');
+    if (options.tags.length !== 0) {
+      throw new Error('Cannot sent two types of tags - either use --extraSettings or --tags');
     }
-    options.tags = additionalSettings.tags;
+    options.tags = [additionalSettings.tags];
   }
 }
 
 function getProjectPath(objectName) {
-  return path.resolve(settings.projectRoot, options[objectName]);
+  return path.resolve(settings.projectRoot + options[objectName]);
 }
 
 const paths = {
   pageObjects: getProjectPath('pageObjects'),
   reports: getProjectPath('reports'),
+  coverage: getProjectPath('coverage'),
   featureFiles: getProjectPath('featureFiles'),
   sharedObjects: getProjectPath('sharedObjects'),
 };
@@ -183,14 +188,17 @@ const paths = {
 global.BROWSER_NAME = options.browser;
 global.settings = settings;
 global.paths = paths;
+global.fs = fs;
 
 /**
  * Adding Global browser folder
  * Adding Accessibility folder at project level
  */
 global.browserName = global.settings.remoteConfig || BROWSER_NAME;
-const reports = `./reports/${browserName}`;
-const axereports = `./reports/${browserName}/accessibility`;
+
+const envName = env.envName.toLowerCase();
+const reports = `./reports/${browserName}/${envName}`;
+const axereports = `./reports/${browserName}/${envName}/accessibility`;
 
 /** file creation for userAgent globally */
 const file = './shared-objects/docs/userAgent.txt';
@@ -222,7 +230,7 @@ if (fs.existsSync(accessibility_lib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.accessibilityLib = require(accessibility_lib);
   global.accessibilityReportList = rList;
-  // console.log('Accessibility library is available')
+  // console.log('Accessibility library is available');
 } else console.error('No Accessibility Lib');
 
 /**
@@ -234,6 +242,7 @@ const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.videoLib = require(videoLib);
+  // console.log('Video library is available');
 } else {
   console.error('No Video Lib');
 }
@@ -260,8 +269,7 @@ if (fs.existsSync(pageObjectPath)) {
 process.argv.splice(2, 100);
 
 /** specify the feature files folder (this must be the first argument for Cucumber)
- *  specify the feature files to be executed
- */
+ /* specify the feature files to be executed */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
 
@@ -270,8 +278,26 @@ if (options.featureFiles) {
   });
 }
 
+/** add switch to tell cucumber to produce json report files */
+const cpPath = '@cucumber/pretty-formatter';
+
+process.argv.push(
+  '-f',
+  cpPath,
+  '--format-options',
+  '{"colorsEnabled": true}',
+  '-f',
+  `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`
+);
+
+/** add cucumber world as first required script (this sets up the globals) */
+process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
+
+/** add path to import step definitions */
+process.argv.push('-r', path.resolve(options.steps));
+
 /**
- * Get tags names from feature files
+ * Get tags from feature files
  * @returns {Array<string>} list of all tags found
  */
 function getTagsFromFeatureFiles() {
@@ -374,32 +400,17 @@ if (options.tags.length > 0) {
   }
 }
 
-/** add switch to tell cucumber to produce json report files */
-const cpPath = '@cucumber/pretty-formatter';
-
-process.argv.push(
-  '-f',
-  cpPath,
-  '--format-options',
-  '{"colorsEnabled": true}',
-  '-f',
-  `json:${path.resolve(__dirname, paths.reports, browserName, `${global.reportName}-${dateTime}.json`)}`
-);
-
-/** add cucumber world as first required script (this sets up the globals) */
-process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
-
-/** add path to import step definitions */
-process.argv.push('-r', path.resolve(options.steps));
-
 /** Add split to run multiple browsers from the command line */
-if (options.browser) {
-  const splitBrowser = options.browser.split(',');
-
-  splitBrowser.forEach((browser) => {
-    process.argv.push(browser);
+if (options.browsers) {
+  const splitBrowsers = options.browser.split(',');
+  splitBrowsers.forEach((browserName) => {
+    process.argv.push('-b', options.browser);
   });
+  process.argv.push('-b', options.browser);
 }
+
+/** add strict option (fail if there are any undefined or pending steps) */
+// process.argv.push('-S');
 
 /** execute cucumber Cli */
 try {
@@ -407,7 +418,6 @@ try {
     if (!succeeded) {
       process.exit(1);
     }
-
     if (process.stdout.write('')) {
       process.exit();
     } else {
