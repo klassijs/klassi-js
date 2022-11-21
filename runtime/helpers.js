@@ -71,7 +71,7 @@ module.exports = {
     /**
      * grab the userAgent details from the loaded url
      */
-    await this.getUserAgent();
+    await helpers.getUserAgent();
     // eslint-disable-next-line no-undef
     cucumberThis.attach(`loaded url: ${url}`);
   },
