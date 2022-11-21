@@ -21,10 +21,10 @@
  SOFTWARE.
  */
 const wdio = require('webdriverio');
-const fs = require('fs-extra');
-const path = require('path');
 const { Before } = require('@cucumber/cucumber');
 const { UtamWdioService } = require('wdio-utam-service');
+const fs = require('fs');
+const path = require('path');
 const loadConfig = require('./configLoader');
 const lambdatest = require('./remotes/lambdatest');
 const utamConfig = require('./utam.config');
@@ -33,50 +33,45 @@ const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/
   encoding: 'base64',
 });
 const chExt = {
-  'goog:chromeOptions': {
-    extensions: [modHeader],
+  'LT:Options': {
+    'goog:chromeOptions': {
+      // args: ['--no-sandbox', '--disable-gpu', '--disable-popup-blocking'],
+      extensions: [modHeader],
+    },
   },
 };
 
-let defaults;
-let config;
-
 let isUTAMTest;
+let config;
 
 Before((scenario) => {
   isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
 });
 
 module.exports = async function lambdatestDriver(options, configType) {
-  const browserCapabilities = loadConfig(`./lambdatest/${configType}.json`);
-  if (projectName === 'OAF' && browserName === 'chrome') {
-    config = Object.assign(browserCapabilities, chExt);
-  } else {
-    config = browserCapabilities;
-  }
-
+  const browserCaps = loadConfig(`./lambdatest/${configType}.json`);
   const credentials = lambdatest.getCredentials();
   const { user } = credentials;
   const { key } = credentials;
-
+  if (browserName === 'chrome') {
+    config = Object.assign(browserCaps, [chExt]);
+  } else {
+    config = browserCaps;
+  }
   // lambdatest will do this anyway, this is to make it explicit
   const buildNameFromConfig = configType.replace(/-/g, ' ');
 
   if (process.env.CI || process.env.CIRCLE_CI) {
-    if (projectName !== 'OAF' && browserName !== 'chrome') {
-      config.tunnelName = process.env.TUNNEL_NAME;
-      const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
-      config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
-    }
-  } else if (!config.build) {
-    if (projectName !== 'OAF' && browserName !== 'chrome') {
-      // configs can define their own build name or it is inferred from the configType
-      config.build = buildNameFromConfig;
-      config.tunnelName = 'lttunnel';
-    }
+    config.tunnelName = process.env.TUNNEL_NAME;
+    const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
+    config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
+  } else {
+    // configs can define their own build name or it is inferred from the configType
+    config.build = `${global.projectName}-${buildNameFromConfig}`;
+    config.tunnelName = 'ouptunnel';
   }
 
-  defaults = {
+  const defaults = {
     user,
     key,
 
@@ -84,6 +79,7 @@ module.exports = async function lambdatestDriver(options, configType) {
     exclude: [],
     maxInstances: 10,
     capabilities: config,
+
     logLevel: 'silent',
     coloredLogs: true,
     screenshotPath: './errorShots/',

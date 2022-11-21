@@ -1,0 +1,12 @@
+{
+    "URLs": [
+        {
+            "data 1": {
+                "url": "https://duckduckgo.com/",
+                "refresh1": "0.243sec",
+                "refresh2": "0.171sec",
+                "average": "0.21"
+            }
+        }
+    ]
+}

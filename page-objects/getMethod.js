@@ -10,7 +10,6 @@ module.exports = {
     resp = await helpers.getContent();
     // console.log('endPoint and statusCode ', `${url}:${resp.statusCode}`);
   },
-
   /**
    * Getting the Status Code
    */
@@ -19,7 +18,6 @@ module.exports = {
     expect(resp.statusCode).to.equal(200);
     // console.log('the status code ', resp.statusCode);
   },
-
   /**
    * Getting the Content of the API
    */

@@ -20,23 +20,15 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const resemble = require('node-resemble-js');
-const fs = require('fs-extra');
-const program = require('commander');
+const resemble = require("node-resemble-js");
+const fs = require("fs-extra");
+const program = require("commander");
 
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const envName = env.envName.toLowerCase();
 
-const baselineDir = `./visual-regression-baseline/${browserName}/`;
-const resultDir = `./artifacts/visual-regression/original/${browserName}/`;
-const resultDirPositive = `${resultDir}positive/`;
-const resultDirNegative = `${resultDir}negative/`;
-const diffDir = `./artifacts/visual-regression/diffs/${browserName}/`;
-const diffDirPositive = `${diffDir}positive/`;
-const diffDirNegative = `${diffDir}negative/`;
-
-// eslint-disable-next-line camelcase
 let fileName;
 let diffFile;
+let browserName;
 
 module.exports = {
   /**
@@ -47,17 +39,34 @@ module.exports = {
    * @param filename
    * @returns {Promise<void>}
    */
-  takeScreenshot: async (filename, elementsToHide) => {
+  takePageImage: async (filename, elementsToHide) => {
+    // eslint-disable-next-line global-require
+    const getRemote = require("./getRemote");
+    const remoteService = getRemote(global.settings.remoteService);
+
+    if (remoteService && remoteService.type === "lambdatest") {
+      browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+      await browserName;
+    } else {
+      browserName = global.remoteConfig || program.opts().browser;
+    }
+
+    const resultDir = `./artifacts/visual-regression/original/${browserName}/${envName}/`;
+    const resultDirPositive = `${resultDir}positive/`;
+
     if (elementsToHide) {
       await helpers.hideElements(elementsToHide);
     }
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
-    await browser.saveScreenshot(resultPathPositive, (err) => {
+    await browser.saveScreenshot(resultPathPositive, async (err) => {
+      // eslint-disable-next-line wdio/no-pause
+      await browser.pause(DELAY_500ms);
       if (err) {
         log.error(err.message);
       }
     });
+
     if (elementsToHide) {
       await helpers.showElements(elementsToHide);
     }
@@ -73,15 +82,24 @@ module.exports = {
    * @returns {Promise<void>}
    */
   assertion(filename, expected, result, value) {
+    const baselineDir = `./visual-regression-baseline/${browserName}/${envName}/`;
+    const resultDir = `./artifacts/visual-regression/original/${browserName}/${envName}/`;
+    const resultDirPositive = `${resultDir}positive/`;
+    const resultDirNegative = `${resultDir}negative/`;
+
+    const diffDir = `./artifacts/visual-regression/diffs/${browserName}/${envName}/`;
+    const diffDirPositive = `${diffDir}positive/`;
+    const diffDirNegative = `${diffDir}negative/`;
+
     fileName = filename;
     const baselinePath = `${baselineDir}${filename}`;
     const resultPathPositive = `${resultDirPositive}${filename}`;
     fs.ensureDirSync(baselineDir); // Make sure destination folder exists, if not, create it
     fs.ensureDirSync(diffDirPositive); // Make sure destination folder exists, if not, create it
-    this.expected = expected || 0.1; // misMatchPercentage tolerance default 0.3%
+    this.expected = 0.2 || expected; // misMatchPercentage tolerance default 0.3%
     if (!fs.existsSync(baselinePath)) {
       // create new baseline image if none exists
-      console.log('\t WARNING: Baseline image does NOT exist.');
+      console.log("\t WARNING: Baseline image does NOT exist.");
       console.log(`\t Creating Baseline image from Result: ${baselinePath}`);
       fs.writeFileSync(baselinePath, fs.readFileSync(resultPathPositive));
     }
@@ -91,7 +109,7 @@ module.exports = {
         green: 0,
         blue: 225,
       },
-      errorType: 'movement',
+      errorType: "movement",
       transparency: 0.1,
       largeImageThreshold: 1200,
     });
@@ -114,8 +132,8 @@ module.exports = {
       const resultPathNegative = `${resultDirNegative}${filename}`;
       // eslint-disable-next-line no-shadow
       const resultPathPositive = `${resultDirPositive}${filename}`;
-      while (typeof result === 'undefined') {
-        // eslint-disable-next-line no-await-in-loop
+      while (typeof result === "undefined") {
+        // eslint-disable-next-line no-await-in-loop,wdio/no-pause
         await browser.pause(DELAY_100ms);
       }
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
@@ -127,12 +145,12 @@ module.exports = {
         const writeStream = fs.createWriteStream(diffFile);
         await result.getDiffImage().pack().pipe(writeStream);
         // eslint-disable-next-line func-names
-        writeStream.on('error', (err) => {
-          console.log('this is the writeStream error ', err);
+        writeStream.on("error", (err) => {
+          console.log("this is the writeStream error ", err);
         });
         fs.ensureDirSync(resultDirNegative); // Make sure destination folder exists, if not, create it
         fs.removeSync(resultPathNegative);
-        fs.moveSync(resultPathPositive, resultPathNegative);
+        fs.moveSync(resultPathPositive, resultPathNegative, false);
         console.log(`\t Create diff image [negative]: ${diffFile}`);
       } else {
         diffFile = `${diffDirPositive}${filename}`;
@@ -140,8 +158,8 @@ module.exports = {
         const writeStream = fs.createWriteStream(diffFile);
         result.getDiffImage().pack().pipe(writeStream);
         // eslint-disable-next-line func-names
-        writeStream.on('error', (err) => {
-          console.log('this is the writeStream error ', err);
+        writeStream.on("error", (err) => {
+          console.log("this is the writeStream error ", err);
         });
       }
     };
@@ -163,10 +181,11 @@ module.exports = {
 
       if (pass) {
         console.log(`image Match for ${filename} with ${value}% difference.`);
+        // eslint-disable-next-line wdio/no-pause
         await browser.pause(DELAY_1s);
       }
 
-      if (err === true && program.opts().updateBaselineImages) {
+      if (err === true && program.opts().updateBaselineImage) {
         console.log(
           `${this.message}   images at:\n` +
             `   Baseline: ${baselinePath}\n` +
@@ -175,9 +194,11 @@ module.exports = {
         );
         // eslint-disable-next-line no-shadow
         await fs.copy(resultPathNegative, baselinePath, (err) => {
-          console.log(` All Baseline images have now been updated from: ${resultPathNegative}`);
+          console.log(
+            ` All Baseline images have now been updated from: ${resultPathNegative}`
+          );
           if (err) {
-            log.error('The Baseline images were NOT updated: ', err.message);
+            log.error("The Baseline images were NOT updated: ", err.message);
             throw err;
           }
         });
@@ -188,7 +209,7 @@ module.exports = {
             `   Result: ${resultPathNegative}\n` +
             `   Diff: ${diffFile}\n` +
             `   Open ${diffFile} to see how the image has changed.\n` +
-            '   If the Resulting image is correct you can use it to update the Baseline image and re-run your test:\n' +
+            "   If the Resulting image is correct you can use it to update the Baseline image and re-run your test:\n" +
             `    cp ${resultPathNegative} ${baselinePath}`
         );
         // eslint-disable-next-line no-throw-literal

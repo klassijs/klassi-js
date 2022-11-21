@@ -20,73 +20,66 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-
 module.exports = {
-    /**
-     * this is for your environment setups
-     */
-    "environment": {
-        "dev": {
-            "envName": "DEVELOPMENT",
-            "web_url": "https://duckduckgo.com/",
-            "web_utam_url": "https://google.com/",
-            "api_base_url": "http://httpbin.org/get"
-        },
-
-        "test": {
-            "envName": "TEST",
-            "web_url" :"https://duckduckgo.com/",
-            "web_utam_url" :"https://google.com/",
-            "api_base_url": "http://httpbin.org/get"
-            // "api_base_url": "http://ip-api.com/json"
-        },
-
-        "uat": {
-            "envName": "UAT",
-            "web_url": ""
-        },
-
-        "android": {
-            "envName": "android",
-            "appName": "oxford.learners.bookshelf.canary",
-            "appPath": "https://olb-android-release.s3-accelerate.amazonaws.com/test/olb-5.9.3-canary.apk"
-        },
-
-        "ios": {
-            "envName": "ios",
-            "appName": "io.appium.TestApp",
-            "appPath": "http://appium.github.io/appium/assets/TestApp9.4.app.zip"
-        }
+  /**
+   * this is for your environment setups
+   */
+  environment: {
+    dev: {
+      envName: "DEVELOPMENT",
+      web_url: "https://duckduckgo.com/",
+      web_utam_url: "https://google.com/",
+      siteBaseUrl: "https://test.account.oup.com",
+      apiBaseUrl: "/api/",
+      api_base_url: "http://httpbin.org/get",
+      salesforceInstanceUrl:
+        "https://oxforduniversitypressespaa-dev-ed.my.salesforce.com",
+      mailinatorApiBaseUrl:
+        "https://mailinator.com/api/v2/domains/public/inboxes",
     },
 
-    "dataConfig": {
-        "projectName": "Klassi Automated Test",
-
-        "emailData": {
-            "nameList": 'QaAutoTest <test@test.com>',
-            "AccessibilityReport": "Yes"
-        },
-
-        /**
-         *  if you are using lambdatest
-         */
-        "ltlocal": {
-            "userName": "",
-            "accessKey": ""
-        },
-
-        /**
-         * if you are using AWS for storing and processing reports
-         * else this can be deleted
-         */
-        "awsConfig": {
-            "s3FolderName": "", // This must match your Github Repo Name exactly (minus the .git)
-            "ID": "",
-            "SECRET": "",
-            "REGION": "",
-            "BUCKET_NAME": "",
-            "DOMAIN_NAME": ""
-        },
-
+    test: {
+      envName: "TEST",
+      web_url: "https://duckduckgo.com/",
+      web_utam_url: "https://google.com/",
+      siteBaseUrl: "https://test.account.oup.com",
+      apiBaseUrl: "/api/",
+      api_base_url: "http://httpbin.org/get",
+      salesforceInstanceUrl:
+        "https://oxforduniversitypressespaa-dev-ed.my.salesforce.com",
+      mailinatorApiBaseUrl:
+        "https://mailinator.com/api/v2/domains/public/inboxes",
     },
-}
+
+    android: {
+      envName: "android",
+      appName: "oxford.learners.bookshelf.canary",
+      appPath:
+        "https://olb-android-release.s3-accelerate.amazonaws.com/test/olb-5.9.3-canary.apk",
+    },
+
+    ios: {
+      envName: "ios",
+      appName: "io.appium.TestApp",
+      appPath: "http://appium.github.io/appium/assets/TestApp9.4.app.zip",
+    },
+  },
+
+  dataConfig: {
+    projectName: "OAF",
+    s3FolderName: "OAF",
+
+    emailData: {
+      nameList: "QaAutoTest <qaautotest@klassi.co.uk>",
+      AccessibilityReport: "Yes",
+      SES_REGION: "eu-west-1",
+    },
+
+    s3Data: {
+      S3_BUCKET: "test-app-automated-reports",
+      S3_REGION: "eu-west-2",
+      S3_DOMAIN_NAME:
+        "http://test-app-automated-reports.s3.eu-west-2.amazonaws.com",
+    },
+  },
+};

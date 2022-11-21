@@ -26,7 +26,7 @@ module.exports = function getRemote(remoteService) {
   const remote = {};
 
   function noop() {
-    console.log('If you\'re seeing this, you\'re running a non-existent remoteService');
+    console.log('"If you\'re seeing this, you\'re running a non-existent remoteService"');
   }
   if (!remoteService) {
     remote.type = 'disabled';
