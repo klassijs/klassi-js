@@ -20,8 +20,12 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
+const axe = require('axe-core');
+
 let errorCount = 0;
 let totalErrorCout = 0;
+
+const envName = global.env.envName.toLowerCase();
 
 module.exports = {
   getAccessibilityError() {
@@ -43,7 +47,7 @@ module.exports = {
     await browser.execute(axeSource);
     const results = await browser.executeAsync((done) => {
       // run axe on our site
-      // eslint-disable-next-line func-names,no-shadow
+      // eslint-disable-next-line func-names,no-shadow,no-undef
       axe.run((err, results) => {
         if (err) done(err);
         done(results);
@@ -76,7 +80,7 @@ module.exports = {
     finalHtml = finalHtml.replace('XXX-PageName', Pagename);
 
     // take screen pics
-    const dirAcc = `${global.paths.reports}/${browserName}/accessibility`;
+    const dirAcc = `${global.paths.reports}/${browserName}/${envName}/accessibility`;
     if (!fs.existsSync(dirAcc)) {
       fs.ensureDirSync(dirAcc);
     }
@@ -121,7 +125,7 @@ module.exports = {
     let finalHtml = addDataInHtml.replace('XXX-AdditinalData', JSON.stringify(additionalData));
     finalHtml = finalHtml.replace('XXX-PageName', Pagename);
 
-    const dirAcc = `${global.paths.reports}/${browserName}/accessibility`;
+    const dirAcc = `${global.paths.reports}/${browserName}/${envName}/accessibility`;
     if (!fs.existsSync(dirAcc)) {
       fs.ensureDirSync(dirAcc);
     }
@@ -160,7 +164,7 @@ module.exports = {
     NewHtml = NewHtml.replace('XXX-Incomplete', incompleteHtml);
     NewHtml = NewHtml.replace('XXX-Passed', passedHtml);
     NewHtml = NewHtml.replace('XXX-Inapplicable', iapplicableHtml);
-    const dirAcc = `${global.paths.reports}/Accessibility`;
+    const dirAcc = `${global.paths.reports}/${envName}/Accessibility`;
     if (!fs.existsSync(dirAcc)) {
       fs.mkdirSync(dirAcc);
     }

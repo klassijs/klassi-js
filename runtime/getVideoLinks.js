@@ -22,42 +22,31 @@
  */
 const pactumJs = require('pactum');
 
-const spec = pactumJs.spec();
 /**
  * setting the envConfig variables for file list
  */
-let ltUsername;
-let ltKey;
+// eslint-disable-next-line no-undef
+const ltUrl = process.env.LAMBDATEST_API_URL;
+// eslint-disable-next-line no-undef
+const ltUsername = process.env.LAMBDATEST_USERNAME;
+// eslint-disable-next-line no-undef
+const ltKey = process.env.LAMBDATEST_ACCESS_KEY;
 
-// eslint-disable-next-line no-unused-expressions
-process.env.LAMBDATEST_USERNAME || ltsecrets.userName || dataconfig.ltlocal.userName;
-
-// eslint-disable-next-line no-unused-expressions
-process.env.LAMBDATEST_ACCESS_KEY || ltsecrets.accessKey || dataconfig.ltlocal.accessKey;
-
-const ltUrl = process.env.LAMBDATEST_API_URL || ltsecrets.crossBrowserUrl;
-
-// const method = 'GET';
 let res;
-let url;
 let videoID;
+let url;
 
 module.exports = {
-  /**
-   * making a call to the Api to get lambdatest video links
-   * @returns {Promise<*>}
-   */
-  getLtVideoLink: async () => {
+  getVideoList: async () => {
     const { sessionId } = browser;
     url = `https://${ltUrl}/sessions/${sessionId}/video`;
-    await spec.get(url).withAuth(ltUsername, ltKey).expectStatus(200);
-    res = await spec.toss();
-    // console.log('this is the res ', res.body);
+    res = await pactumJs.spec().get(url).withAuth(ltUsername, ltKey).expectStatus(200).toss();
     videoID = res.body.url;
     return videoID;
   },
 
-  getVideoId() {
+  getVideoId: async () => {
+    console.log('this is the video link ', videoID);
     return videoID;
   },
 };

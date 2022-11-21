@@ -1,5 +1,3 @@
-const { Before, After } = require('@cucumber/cucumber');
-
 Before(async () => {
   await helpers.installMobileApp(env.appName, env.appPath);
 });

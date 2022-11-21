@@ -1,0 +1,19 @@
+{
+  "postPayload": {
+    "firstName": "Space",
+    "lastName": "Ghost",
+    "email": "testaces12+SpaceG7@gmail.com",
+    "roleName": "LEARNER",
+    "platformCode": "ces"
+  },
+
+  "deletePayload": {
+    "userIdAndRoleNamePairs": [{ "userId": "userId", "roleName": "LEARNER" }],
+    "notifyUsers": false
+  },
+
+  "putPayload": {
+    "roleName": "TEACHER",
+    "notifyUsers": false
+  }
+}

@@ -20,37 +20,22 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const path = require('path');
-const fs = require('fs-extra');
-const AWS = require('aws-sdk');
+const path = require("path");
+const fs = require("fs-extra");
+const AWS = require("aws-sdk");
+const program = require("commander");
 
-let s3Bucket;
-let s3AccessKeyId;
-let s3SecretAccessKey;
-let domainName;
-
-// eslint-disable-next-line no-undef
-const awsData = dataconfig.awsConfig;
-
-if (s3Bucket) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.AWS_BUCKET_NAME || s3Data.BUCKET_NAME || awsData.BUCKET_NAME;
-}
-if (s3AccessKeyId) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.AWS_ID || s3Data.ID || awsData.ID;
-}
-if (s3SecretAccessKey) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.AWS_SECRET || s3Data.SECRET || awsData.SECRET;
-}
-if (domainName) {
-  // eslint-disable-next-line no-unused-expressions
-  process.env.AWS_DOMAIN_NAME || s3Data.DOMAIN_NAME || awsData.DOMAIN_NAME;
-}
+// const s3Bucket = s3Data.S3_BUCKET;
+const s3Bucket = "test-app-automated-reports";
+const s3AccessKeyId = process.env.S3_KEY;
+const s3SecretAccessKey = process.env.S3_SECRET;
+// const domainName = s3Data.S3_DOMAIN_NAME;
+const domainName =
+  "http://test-app-automated-reports.s3.eu-west-2.amazonaws.com";
 
 const s3 = new AWS.S3({
-  region: 'eu-west-1',
+  // region: s3Data.S3_REGION,
+  region: "eu-west-2",
   accessKeyId: s3AccessKeyId,
   secretAccessKey: s3SecretAccessKey,
 });
@@ -59,24 +44,41 @@ module.exports = {
   async s3Processor(projectName) {
     const date = this.formatDate();
     const folderName = date;
-    // eslint-disable-next-line no-param-reassign
-    projectName = s3Data.s3FolderName || awsData.s3FolderName;
-    console.log(`Starting Processing of Test Report for: ${date}/${projectName} ...`);
+    // eslint-disable-next-line no-param-reassign,no-undef
+    projectName = dataconfig.s3FolderName;
+    console.log(
+      `Starting Processing of Test Report for: ${date}/${projectName} ...`
+    );
     /**
      * This creates the test report from the sample template
      * @type {string}
      */
-    const tempFile = path.resolve(__dirname, './scripts/secrets/s3ReportSample');
-    const file = `../${projectName}/reports/testReport-${date}.html`;
+    const tempFile = path.resolve(__dirname, "./scripts/s3ReportSample");
+    let filePath;
+
+    if (program.opts().dlink) {
+      filePath = `../../${projectName}/test/reports/testReport-${date}.html`;
+    } else {
+      filePath = `../${projectName}/reports/testReport-${date}.html`;
+    }
+
+    const file = filePath;
     await fs.copySync(tempFile, file);
 
     /**
      * list of browsers test running on via lambdatest
      * @type {string[]}
      */
-    const browserName = ['chrome', 'firefox', 'edge', 'iexplorer', 'safari', 'tabletGalaxy', 'tabletiPad'];
+    const browserName = [
+      "chrome",
+      "firefox",
+      "edge",
+      "safari",
+      "tabletGalaxy",
+      "tabletiPad",
+    ];
     let dataList;
-    let dataNew = '';
+    let dataNew = "";
     let browsername;
     let dataOut = await helpers.readFromFile(tempFile);
 
@@ -89,7 +91,7 @@ module.exports = {
       },
       async (err, data) => {
         if (data.Contents) {
-          // eslint-disable-next-line no-plusplus
+          // // eslint-disable-next-line no-plusplus, no-plusplus
           for (let x = 0; x < browserName.length; x++) {
             browsername = browserName[x];
             const browserData = [];
@@ -98,31 +100,40 @@ module.exports = {
             for (let i = 0; i < data.Contents.length; i++) {
               const key = data.Contents[i].Key;
               if (key.substring(0, 10) === folderName) {
-                if (key.split('.')[1] === 'html') {
+                if (key.split(".")[1] === "html") {
                   dataList = `${domainName}/${key}`;
-
                   if (dataList.includes(browsername)) {
-                    // eslint-disable-next-line no-await-in-loop,no-unused-vars
-                    dataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\.html/, '');
-                    let dataFile = '';
-                    // browserData.push((dataFile = `${dataFile}<a> <a href="${dataList}">${dataNew}</a></a>`));
+                    const envDataNew = dataList
+                      .replace(/^.*reports\/\w+\//, "")
+                      .replace(/\/.*.html/, "");
+                    // console.log('this is the env Name from the s3reportProcessor ln 90 ====> ', envDataNew);
+                    dataNew = dataList
+                      .replace(/^.*reports\/\w+\//, "")
+                      .replace(`${envDataNew}/`, "")
+                      .replace(/\.html/, "");
+                    // console.log('this is the data new from the s3reportProcessor ln 92 ====> ', dataNew);
+                    const theNewData = `${dataNew} -- ${envDataNew}`;
+                    let dataFile = "";
                     browserData.push(
-                      (dataFile = `${dataFile}<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p><a href="${dataList}">${dataNew}</a></div>`)
+                      (dataFile = `${dataFile}<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p><a href="${dataList}">${theNewData}</a></div>`)
                     );
-                    // console.log('this is the browserData ', dataFile);
                   }
                 }
               }
             }
-            dataOut = dataOut.replace('<-- browser_test_output -->', browserData.join(' '));
-            // dataOut = dataOut.replace(`This is ${browsername}`, browserData.join(' '));
+            dataOut = dataOut.replace(
+              "<-- browser_test_output -->",
+              browserData.join(" ")
+            );
           }
         }
         await helpers.writeToTxtFile(file, dataOut);
         if (dataList === undefined) {
-          console.log('There is no Data for this Project / project does not exist ....', dataList);
+          console.error(
+            "There is no Data for this Project / project does not exist ...."
+          );
         } else if (dataList.length > 0) {
-          console.log('Test run completed and s3 report being sent .....');
+          console.log("Test run completed and s3 report being sent .....");
           await helpers.klassiEmail();
         }
       }
@@ -132,6 +143,7 @@ module.exports = {
     const $today = new Date();
     let $yesterday = new Date($today);
     $yesterday.setDate($today.getDate() - 1); // this cause the month to rollover.
+    // $yesterday.setDate($today.getDate()); // uncomment for testing sets the date to today.
     let $dd = $yesterday.getDate();
     let $mm = $yesterday.getMonth() + 1; // January is 0!
     const $yyyy = $yesterday.getFullYear();

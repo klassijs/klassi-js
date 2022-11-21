@@ -20,16 +20,22 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require('fs-extra');
-const path = require('path');
-const program = require('commander');
-const AWS = require('aws-sdk');
-const readdir = require('recursive-readdir');
-const async = require('async');
-const pactumJs = require('pactum');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { PNG } = require('pngjs');
-const pixelmatch = require('pixelmatch');
+const fs = require("fs-extra");
+const path = require("path");
+const AWS = require("aws-sdk");
+// const readdir = require('recursive-readdir');
+// const async = require('async');
+const { PNG } = require("pngjs");
+const pixelmatch = require("pixelmatch");
+const pactumJs = require("pactum");
+const XLSX = require("xlsx");
+
+const urlData = require("../shared-objects/urlData.json").URLs;
+const loadConfig = require("./configLoader");
+const verify = require("./imageCompare");
+const testData = require("../shared-objects/testdata.json");
+
+const envName = global.env.envName.toLowerCase();
 
 let elem;
 let getMethod;
@@ -45,7 +51,7 @@ module.exports = {
    * @example
    *      helpers.loadPage('http://www.duckduckgo.com', 5);
    */
-  async loadPage(url, seconds) {
+  loadPage: async (url, seconds) => {
     /**
      * Wait function - measured in seconds for pauses during tests to give time for processes such as
      * a page loading or the user to see what the test is doing
@@ -60,21 +66,22 @@ module.exports = {
       /**
        * now wait for the body element to be present
        */
-      browser.waitUntil(browser.$('body'), timeout);
+      browser.waitUntil(browser.$("body"), timeout);
     });
     /**
      * grab the userAgent details from the loaded url
      */
-    await this.getUserAgent();
+    await helpers.getUserAgent();
+    // eslint-disable-next-line no-undef
     cucumberThis.attach(`loaded url: ${url}`);
   },
 
   /**
    * @returns {Promise<void>}
    */
-  async getUserAgent() {
+  getUserAgent: async () => {
     const script = await browser.execute(() => window.navigator.userAgent);
-    const file = path.resolve('./shared-objects/docs/userAgent.txt');
+    const file = path.resolve("./shared-objects/docs/userAgent.txt");
     await helpers.writeToTxtFile(file, script);
     await browser.pause(DELAY_100ms);
   },
@@ -87,7 +94,8 @@ module.exports = {
   writeToTxtFile: async (filepath, output) => {
     try {
       await fs.truncate(filepath, 0);
-      await fs.writeFile(filepath, output);
+      await fs.writeFileSync(filepath, output);
+      // await fs.appendFile(filepath, output);
     } catch (err) {
       console.error(`Error in writing file ${err.message}`);
       throw err;
@@ -100,12 +108,61 @@ module.exports = {
    */
   readFromFile: (filepath) =>
     new Promise((resolve, reject) => {
-      fs.readFile(filepath, 'utf-8', (err, data) => {
+      fs.readFile(filepath, "utf-8", (err, data) => {
         // eslint-disable-next-line no-param-reassign
         data = data.toString();
         resolve(data);
       });
     }),
+
+  /**
+   * This is to read content from a Json file
+   * @param filename
+   * @returns {Promise<void>}
+   */
+  readFromJson: async (filename) => {
+    const fileContent = await fs.readJson(filename);
+    console.log("Success - the file content ", fileContent);
+    return fileContent;
+  },
+
+  /**
+   * This is to write content to a json file
+   * @param fileContent
+   * @param filePath
+   * @returns {Promise<void>}
+   */
+  write: async () => {
+    await module.exports.writeToJson(
+      "./shared-objects/testdata.json",
+      testData
+    );
+  },
+
+  writeToJson: async (filePath, fileContent) => {
+    try {
+      // await fs.writeJson(filePath, fileContent);
+      await fs.writeFile(filePath, JSON.stringify(fileContent, null, 4));
+      console.log("Success - the content: ", fileContent);
+    } catch (err) {
+      console.error("This Happened: ", err);
+    }
+  },
+
+  writeToUrlsData: async (data) => {
+    await module.exports.writeToJson("./shared-objects/urlData.json", data); // Need to check if it is pointing to the right file
+  },
+
+  /**
+   * This is to merge content of json files
+   * @param filePath
+   * @param file
+   * @returns {Promise<void>}
+   */
+  mergeJson: async (filePath, file) => {
+    const fileA = loadConfig(filePath);
+    return Object.assign(fileA, file);
+  },
 
   /**
    * Visual comparison function
@@ -114,7 +171,7 @@ module.exports = {
    */
   compareImage: async (fileName) => {
     // eslint-disable-next-line global-require
-    const verify = require('./imageCompare');
+    // const verify = require('./imageCompare');
     await verify.assertion(fileName);
     await verify.value();
     await verify.pass();
@@ -127,8 +184,8 @@ module.exports = {
    */
   takeImage: async (fileName, elementsToHide) => {
     // eslint-disable-next-line global-require
-    const verify = require('./imageCompare');
-    await verify.takeScreenshot(fileName, elementsToHide);
+    // const verify = require('./imageCompare');
+    await verify.takePageImage(fileName, elementsToHide);
   },
 
   /**
@@ -138,7 +195,7 @@ module.exports = {
   hideElements: async (selectors) => {
     // if arg is no array make it one
     // eslint-disable-next-line no-param-reassign
-    selectors = typeof selectors === 'string' ? [selectors] : selectors;
+    selectors = typeof selectors === "string" ? [selectors] : selectors;
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < selectors.length; i++) {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '0')`;
@@ -154,7 +211,7 @@ module.exports = {
   showElements: async (selectors) => {
     // if arg is no array make it one
     // eslint-disable-next-line no-param-reassign
-    selectors = typeof selectors === 'string' ? [selectors] : selectors;
+    selectors = typeof selectors === "string" ? [selectors] : selectors;
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < selectors.length; i++) {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '1')`;
@@ -171,14 +228,20 @@ module.exports = {
    */
   imagePixelMatch: async (fileName1, fileName2) => {
     const img1 = PNG.sync.read(
-      fs.readFileSync(`./artifacts/visual-regression/original/chrome/positive/${fileName1}.png`)
+      fs.readFileSync(
+        `./artifacts/visual-regression/original/${browserName}/positive/${fileName1}.png`
+      )
     );
     const img2 = PNG.sync.read(
-      fs.readFileSync(`./artifacts/visual-regression/original/chrome/positive/${fileName2}.png`)
+      fs.readFileSync(
+        `./artifacts/visual-regression/original/${browserName}/positive/${fileName2}.png`
+      )
     );
     const { width, height } = img1;
     const diff = new PNG({ width, height });
-    return pixelmatch(img1.data, img2.data, diff.data, width, height, { threshold: 0.1 });
+    return pixelmatch(img1.data, img2.data, diff.data, width, height, {
+      threshold: 0.1,
+    });
   },
 
   /**
@@ -208,6 +271,7 @@ module.exports = {
     let hours = today.getHours();
     let minutes = today.getMinutes();
     let seconds = today.getSeconds();
+    let milliseconds = today.getMilliseconds();
 
     if (dd < 10) {
       dd = `0${dd}`;
@@ -224,7 +288,10 @@ module.exports = {
     if (seconds < 10) {
       seconds = `0${seconds}`;
     }
-    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
+    if (milliseconds < 10) {
+      milliseconds = `0${milliseconds}`;
+    }
+    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
   },
 
   /**
@@ -265,28 +332,28 @@ module.exports = {
     return this.getCurrentDateTime();
   },
 
-  klassiReporter(err) {
-    // eslint-disable-next-line global-require
-    const reporter = require('./reporter/reporter').reporter();
-    if (err) {
+  klassiReporter() {
+    try {
+      // eslint-disable-next-line global-require
+      return require("./reporter/reporter").reporter();
+    } catch (err) {
       console.error(`There is a reporting system error: ${err.stack}`);
       throw err;
     }
-    return reporter;
   },
 
   /**
    * ========== EMAIL FUNCTIONALITY ==========
    *   Sends an Email to the concerned users with the log and the test report
    */
-  klassiEmail(err) {
-    // eslint-disable-next-line global-require
-    const mailer = require('./mailer').klassiSendMail();
-    if (err) {
+  klassiEmail() {
+    try {
+      // eslint-disable-next-line global-require
+      return require("./mailer").klassiSendMail();
+    } catch (err) {
       console.error(`This is a Email system error: ${err.stack}`);
       throw err;
     }
-    return mailer;
   },
 
   /**
@@ -298,18 +365,18 @@ module.exports = {
    * @param status
    * @returns {Promise<*>}
    */
-  apiCall: async (url, method, auth, body, status) => {
+  apiCall: async (url, method, auth, body) => {
     const options = {
       url,
       method,
       auth,
       headers: {
         Authorization: `Bearer ${auth}`,
-        'content-Type': 'application/json',
+        "content-Type": "application/json",
       },
       body,
     };
-    if (method === 'GET') {
+    if (method === "GET") {
       resp = await pactumJs
         .spec()
         .get(options.url)
@@ -320,7 +387,7 @@ module.exports = {
       getMethod = resp;
     }
 
-    if (method === 'PUT') {
+    if (method === "PUT") {
       resp = await pactumJs
         .spec()
         .put(options.url)
@@ -328,10 +395,9 @@ module.exports = {
         .withBody(options.body)
         .withRequestTimeout(DELAY_10s)
         .expectStatus(200);
-      status = resp.statusCode;
     }
 
-    if (method === 'POST') {
+    if (method === "POST") {
       resp = await pactumJs
         .spec()
         .post(options.url)
@@ -339,10 +405,9 @@ module.exports = {
         .withBody(options.body)
         .withRequestTimeout(DELAY_10s)
         .expectStatus(200);
-      status = resp.statusCode;
     }
 
-    if (method === 'DELETE') {
+    if (method === "DELETE") {
       resp = await pactumJs
         .spec()
         .post(options.url)
@@ -350,7 +415,6 @@ module.exports = {
         .withBody(options.body)
         .withRequestTimeout(DELAY_10s)
         .expectStatus(200);
-      status = resp.statusCode;
     }
   },
 
@@ -363,94 +427,12 @@ module.exports = {
   },
 
   /**
-   * function to upload the test report run folder to an s3 - AWS
-   */
-  s3Upload() {
-    const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
-    // eslint-disable-next-line no-undef
-    const s3Data = dataconfig.awsConfig;
-    // eslint-disable-next-line no-undef
-    const folderName = `/${date}/${dataconfig.s3FolderName}/reports`;
-    const BUCKET = s3Data.BUCKET_NAME + folderName;
-    const KEY = process.env.AWS_ID || s3Data.ID;
-    const SECRET = process.env.AWS_SECRET || s3Data.SECRET;
-    let cpPath;
-    if (program.opts().aces) {
-      cpPath = path.resolve('./test/reports');
-    } else {
-      cpPath = path.resolve('./reports');
-    }
-    const rootFolder = cpPath;
-    const uploadFolder = `./${browserName}`;
-    let data1;
-
-    const s3 = new AWS.S3({
-      signatureVersion: 'v4',
-      accessKeyId: KEY,
-      secretAccessKey: SECRET,
-    });
-
-    function getFiles(dirPath) {
-      return fs.existsSync(dirPath) ? readdir(dirPath) : [];
-    }
-
-    async function deploy(upload) {
-      const filesToUpload = await getFiles(path.resolve(rootFolder, upload));
-      return new Promise((resolve, reject) => {
-        async.eachOfLimit(
-          filesToUpload,
-          10,
-          async.asyncify(async (file) => {
-            const Key = file.replace(`${rootFolder}/`, '');
-            console.log(`uploading: [${Key}]`);
-            return new Promise((res, rej) => {
-              s3.upload(
-                {
-                  Key,
-                  Bucket: BUCKET,
-                  Body: fs.readFileSync(file),
-                  ContentType: 'text/html',
-                },
-                // eslint-disable-next-line consistent-return
-                async (err, data) => {
-                  if (err) {
-                    return rej(new Error(err));
-                  }
-                  res({ result: true });
-                  if (data) {
-                    data1 = await data;
-                  }
-                }
-              );
-            });
-          }),
-          // eslint-disable-next-line consistent-return
-          (err) => {
-            if (err) {
-              return reject(new Error(err));
-            }
-            resolve({ result: true });
-          }
-        );
-      });
-    }
-    deploy(uploadFolder)
-      .then(() => {
-        console.log('Files uploaded successfully, report folder pushed to s3');
-      })
-      .catch((err) => {
-        console.error(err.message);
-        process.exit(0);
-      });
-  },
-
-  /**
    * function for recording total errors from the Accessibility test run
    */
   accessibilityError() {
     const totalError = accessibilityLib.getAccessibilityTotalError();
     if (totalError > 0) {
-      cucumberThis.attach('The accessibility rule violation has been observed');
+      cucumberThis.attach("The accessibility rule violation has been observed");
       cucumberThis.attach(`Total accessibility error count :${totalError}`);
     } else if (totalError <= 0) {
       const violationcount = accessibilityLib.getAccessibilityError();
@@ -464,8 +446,8 @@ module.exports = {
    */
   ltVideo: async () => {
     // eslint-disable-next-line global-require
-    const page = require('./getVideoLinks');
-    await page.getLtVideoLink();
+    const page = require("./getVideoLinks");
+    await page.getVideoList();
   },
 
   /**
@@ -473,16 +455,15 @@ module.exports = {
    * @param selector
    * @returns {String|String[]|*|string}
    */
-  async getLink(selector) {
-    const elem = await browser.$(selector);
-    await elem.getAttribute('href');
+  getLink: async (selector) => {
+    elem = await browser.$(selector);
+    await elem.getAttribute("href");
   },
 
-  async waitAndClick(selector) {
+  waitAndClick: async (selector) => {
     try {
-      const elem = await browser.$(selector);
+      elem = await browser.$(selector);
       await elem.waitForDisplayed(DELAY_3s);
-      await elem.waitForEnabled(DELAY_1s);
       await elem.click();
       await browser.pause(DELAY_500ms);
     } catch (err) {
@@ -491,13 +472,12 @@ module.exports = {
     }
   },
 
-  async waitAndSetValue(selector, value) {
+  waitAndSetValue: async (selector, value) => {
     try {
-      const elem = await browser.$(selector);
-      await elem.waitForEnabled(DELAY_3s);
-      await elem.click();
+      elem = await browser.$(selector);
+      await elem.waitForExist({ timeout: DELAY_3s });
       await browser.pause(DELAY_500ms);
-      await elem.setValue(value);
+      await elem.addValue(value);
     } catch (err) {
       console.error(err.message);
       throw err;
@@ -509,7 +489,7 @@ module.exports = {
    * @param selector
    * @param expected
    */
-  async assertText(selector, expected) {
+  assertText: async (selector, expected) => {
     let actual = await browser.$(selector);
     await actual.getText();
     actual = actual.trim();
@@ -522,7 +502,7 @@ module.exports = {
    * @param selector
    * @param expectedText
    */
-  async expectToIncludeText(selector, expectedText) {
+  expectToIncludeText: async (selector, expectedText) => {
     const actual = await browser.$(selector);
     await actual.getText();
     expect(actual).to.include(expectedText);
@@ -535,7 +515,7 @@ module.exports = {
    * @param selector
    * @returns {Promise.<TResult>}
    */
-  async getElementFromFrame(frameName, selector) {
+  getElementFromFrame: async (frameName, selector) => {
     const frame = await browser.$(frameName);
     await browser.switchToFrame(frame.value);
     await browser.$(selector).getHTML();
@@ -545,7 +525,7 @@ module.exports = {
   /**
    * @param expected
    */
-  async assertUrl(expected) {
+  assertUrl: async (expected) => {
     const actual = await browser.getUrl();
     assert.equal(actual, expected);
   },
@@ -590,8 +570,9 @@ module.exports = {
       /**
        * workout which property to use to get inner text
        */
-      const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
+      const txtProp = "textContent" in document ? "textContent" : "innerText";
 
+      // eslint-disable-next-line no-plusplus
       for (let i = 0, l = elements.length; i < l; i++) {
         /**
          * If we have content, only click items matching the content
@@ -611,7 +592,11 @@ module.exports = {
     /**
      * grab the matching elements
      */
-    return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
+    return browser.$$(
+      selector,
+      clickElementInDom,
+      textToMatch.toLowerCase().trim
+    );
   },
 
   /**
@@ -620,14 +605,18 @@ module.exports = {
    */
   modHeaderElement: async (extName) => {
     await browser.pause();
-    await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
-    const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
+    await helpers.loadPage(
+      `https://chrome.google.com/webstore/search/${extName}`
+    );
+    const script = await browser.execute(
+      () => window.document.URL.indexOf("consent.google.com") !== -1
+    );
     if (script === true) {
       elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
       await elem[1].waitForExist();
       await elem[1].scrollIntoView();
       const elem1 = await elem[1].getText();
-      if (elem1 === 'I agree') {
+      if (elem1 === "I agree") {
         await elem[1].click();
         await browser.pause(DELAY_300ms);
       }
@@ -636,7 +625,7 @@ module.exports = {
     await elem.click();
     await browser.pause(DELAY_200ms);
     const str = await browser.getUrl();
-    const str2 = await str.split('/');
+    const str2 = await str.split("/");
     // eslint-disable-next-line prefer-destructuring
     modID = str2[6];
     return modID;
@@ -651,44 +640,98 @@ module.exports = {
    */
   modHeader: async (extName, username, password) => {
     await helpers.modHeaderElement(extName);
-    console.log('modID = ', modID);
-    await browser.pause();
-    await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
-    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
-    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
-    await helpers.waitAndClick('//button[@title="Lock to tab"]');
+    console.log("modID = ", modID);
+    await browser.pause(3000);
+    elem = await browser.$(
+      '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]'
+    );
+    await elem.isDisplayed();
+    await elem.click();
+    await browser.pause(2000);
+    // elem = await browser.getWindowHandles();
+    // console.log('This is the windows ===> ', elem);
+    elem = await browser.$('.//a[@href="#Add extension"]');
+    await elem.isExisting();
+    await elem.click();
+    // await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
+    // await browser.pause(5000);
+    // await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
+    // await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
+    // await helpers.waitAndClick('//button[@title="Lock to tab"]');
   },
 
   installMobileApp: async (appName, appPath) => {
-    if (env.envName === 'ANDROID' || env.envName === 'IOS') {
-      if (!browser.isAppInstalled(appName)) {
-        // if (!browser.getUrl(appName)) {
-        console.log('Installing application...');
+    if (env.envName === "android" || env.envName === "ios") {
+      if (!(await browser.isAppInstalled(appName))) {
+        console.log("Installing application...");
         await browser.installApp(appPath);
-        assert.isTrue(browser.isAppInstalled(appName), 'The app was not installed correctly.');
+        assert.isTrue(
+          await browser.isAppInstalled(appName),
+          "The app was not installed correctly."
+        );
       } else {
-        console.log(`The app ${appName} was already installed on the device, skipping installation...`);
+        console.log(
+          `The app ${appName} was already installed on the device, skipping installation...`
+        );
         await browser.terminateApp(appName);
       }
     }
   },
 
   uninstallMobileApp: async (appName, appPath) => {
-    if (env.envName === 'ANDROID' || env.envName === 'IOS') {
-      if (browser.isAppInstalled(appName)) {
+    if (env.envName === "android" || env.envName === "ios") {
+      if (await browser.isAppInstalled(appName)) {
         console.log(`Uninstalling application ${appName}...`);
         await browser.removeApp(appName);
-        assert.isNotTrue(browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
+        assert.isNotTrue(
+          await browser.isAppInstalled(appName),
+          "The app was not uninstalled correctly."
+        );
       } else {
-        console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
+        console.log(
+          `The app ${appName} was already uninstalled fron the device, skipping...`
+        );
       }
     }
   },
 
-  addImageToReport: async () => {
-    await browser.takeScreenshot().then((image) => {
-      // screenShot is a base-64 encoded PNG
-      cucumberThis.attach(image, 'image/png');
-    });
+  convertJsonToExcel: () => {
+    const arr = [];
+    for (dataObj of urlData) {
+      const key = Object.keys(dataObj)[0];
+      const { url } = dataObj[key];
+      const { refresh1 } = dataObj[key];
+      const { refresh2 } = dataObj[key];
+      const { average } = dataObj[key];
+
+      const obj = {
+        data: key,
+        url,
+        refresh1,
+        refresh2,
+        average,
+      };
+      arr.push(obj);
+    }
+
+    const workSheet = XLSX.utils.json_to_sheet(arr);
+    const workBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workBook, workSheet, "WayFlees");
+    // buffer is to handle large amount of data
+    XLSX.write(workBook, { bookType: "xlsx", type: "buffer" });
+    // convert workbook data into Binary string
+    XLSX.write(workBook, { bookType: "xlsx", type: "binary" });
+    // XLSX.writeFile(workBook, "./reports/${browserName}/urlData.xlsx");
+    XLSX.writeFile(
+      workBook,
+      path.resolve(`./reports/${browserName}/${envName}/urlData.xlsx`)
+    );
+  },
+
+  executeTime: async (endDate, startDate, message) => {
+    const seconds = (endDate.getTime() - startDate.getTime()) / 1000;
+    testData.executeTime.time = seconds.toString().replace("-", "");
+    await module.exports.write();
+    cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
   },
 };

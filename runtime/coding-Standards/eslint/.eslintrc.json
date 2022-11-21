@@ -1,0 +1,100 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaVersion":2017,
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "sourceType": "module"
+    },
+    "extends": [
+        "eslint:recommended",
+        "eslint-config-airbnb-base",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "prettier",
+        "plugin:wdio/recommended"
+    ],
+    "plugins": ["import", "prettier", "wdio", "istanbul"],
+    "rules": {
+        "istanbul/no-ignore-file": "error",
+        "istanbul/prefer-ignore-reason": "error",
+        "prettier/prettier": [
+            "warn",
+            {
+                "singleQuote": true,
+                "printWidth": 120
+            }
+        ],
+        "no-const-assign": "warn",
+        "no-this-before-super": "warn",
+        "no-undef": "warn",
+        "no-unreachable": "warn",
+        "no-unused-vars": "warn",
+        "constructor-super": "warn",
+        "valid-typeof": "warn",
+        "linebreak-style": [ "error", "unix" ],
+        "no-console": [ 0, "error" ],
+        "indent": [ "error", 2 ],
+        "semi": [ "error", "always" ],
+        "quotes":["error", "single"]
+    },
+    "globals": {
+        "When": "readonly",
+        "Then": "readonly",
+        "Before": "readonly",
+        "BeforeAll": "readonly",
+        "BeforeStep": "readonly",
+        "After": "readonly",
+        "AfterAll": "readonly",
+        "AfterStep": "readonly",
+        "And": "readonly",
+        "But": "readonly",
+        "helpers":"readonly",
+        "browser": "readonly",
+        "log": "readonly",
+        "env": "readonly",
+        "date": "readonly",
+        "dateTime": "readonly",
+        "startDateTime": "readonly",
+        "endDateTime": "readonly",
+        "browserName": false,
+        "BROWSER_NAME": false,
+        "reportName": "readonly",
+        "projectName": "readonly",
+        "settings": false,
+        "envConfig": "readonly",
+        "request": "readonly",
+        "assert": "readonly",
+        "expect": "readonly",
+        "shared": "readonly",
+        "DELAY_100ms": "readonly",
+        "DELAY_200ms": "readonly",
+        "DELAY_300ms": "readonly",
+        "DELAY_500ms": "readonly",
+        "DELAY_1s": "readonly",
+        "DELAY_2s": "readonly",
+        "DELAY_3s": "readonly",
+        "DELAY_5s": "readonly",
+        "DELAY_10s": "readonly",
+        "DELAY_15s": "readonly",
+        "DELAY_20s": "readonly",
+        "DELAY_30s": "readonly",
+        "noImplicitAny": "readonly",
+        "noImplicitThis": "readonly",
+        "strictNullChecks": "readonly",
+        "strictFunctionTypes": "readonly",
+        "noEmit": "readonly",
+        "forceConsistentCasingInFileNames": "readonly",
+        "confSettings": "readonly",
+        "sharedObjects": "readonly",
+        "pageObjects": "writable",
+        "utam": "readonly",
+        "s3Data": "readonly"
+    }
+}
