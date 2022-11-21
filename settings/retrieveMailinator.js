@@ -20,7 +20,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const got = require('got');
+const got = require("pactum");
 
 const options = {
   headers: {
@@ -34,7 +34,7 @@ const options = {
 
 const retrieveAllEmails = async (inbox) => {
   try {
-    console.log('Retrieving all emails...');
+    console.log("Retrieving all emails...");
     options.url = `${env.mailinatorApiBaseUrl}/${inbox}`;
     const response = await got.get(options).json();
 
@@ -63,9 +63,11 @@ const getVerificationCode = async (inbox) => {
   const verificationEmail = await got.get(options).json();
   const verificationEmailBody = verificationEmail.parts[0].body;
 
-  console.log('Email retrieved');
+  console.log("Email retrieved");
 
-  const verificationCode = verificationEmailBody.match(/Código de verificación: (\d+)/g)[0].match(/\d+/g)[0];
+  const verificationCode = verificationEmailBody
+    .match(/Código de verificación: (\d+)/g)[0]
+    .match(/\d+/g)[0];
   await got.delete(options);
   return verificationCode;
 };

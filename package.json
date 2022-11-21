@@ -98,15 +98,15 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "chromedriver": "^93.0.1",
-    "eslint": "^7.15.0",
-    "eslint-config-airbnb-base": "^14.2.0",
+    "chromedriver": "^107.0.3",
+    "eslint": "^8.28.0",
+    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-istanbul": "^0.1.2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-wdio": "^7.0.0",
-    "geckodriver": "^2.0.0",
+    "geckodriver": "^3.2.0",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1"
   }

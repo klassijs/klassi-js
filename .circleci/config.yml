@@ -59,11 +59,11 @@ jobs:
       - run:
           name: Checkout the Project Repos
           path: ~/klassi/projects
-          command: git clone git@github.com:OUP/elt_lti_management-js.git&& git clone git@github.com:OUP/elt_tao-js.git
+          command: git clone git@github.com:ORGName/projectName.git&& git clone git@github.com:ORGName/projectName.git
 
       - run:
           name: Generate dependency cache key
-          command: cat ~/klassi/klassi-js/package.json ~/klassi/projects/elt_lti_management-js/package.json ~/klassi/projects/elt_tao-js/package.json> CACHE_KEY
+          command: cat ~/klassi/klassi-js/package.json ~/klassi/projects/projectName/package.json ~/klassi/projects/projectName/package.json> CACHE_KEY
 
       - restore_cache:
           key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
@@ -124,7 +124,7 @@ jobs:
             done
             echo "$PORT" > /tmp/port
             echo $TUNNEL_NAME
-            ./LT --user QaAutoTest --key qLzlsFECIptQEriaahXlT8RYD09zf83zePxByro9OYMlv725hs --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME
+            ./LT --user QaAutoTest --key qLzlsFECIptQEriaahXlT8RYD09zf83zePxByro9OYMlv725hs --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME --load-balanced --verbose --mode ssh --maxSSHConnections 3 --retry-on-failure true
 
       - run:
           name: Wait for LambdaTest Tunnel
@@ -141,8 +141,8 @@ jobs:
           paths:
             - ~/.cache/yarn
             - ~/klassi/klassi-js/yarn.lock
-            - ~/klassi/projects/ProjectName/yarn.lock
-            - ~/klassi/projects/ProjectName/yarn.lock
+            - ~/klassi/projects/projectName/yarn.lock
+            - ~/klassi/projects/projectName/yarn.lock
           key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       #######################
@@ -194,8 +194,7 @@ jobs:
 
       - run:
           name: Checkout the klassi-js framework repo
-          command: git clone git@github.com:OUP/klassi-js.git
-      #          command: git clone https://qaautotest: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@github.com/OUP/klassi-js.git
+          command: git clone git@github.com:larryg01/klassi-js.git
 
       - run:
           name: Check out the working branch

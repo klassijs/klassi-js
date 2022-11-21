@@ -56,20 +56,20 @@ module.exports = {
    */
   reformatDateString(dateString) {
     const months = {
-      '01': 'January',
-      '02': 'February',
-      '03': 'March',
-      '04': 'April',
-      '05': 'May',
-      '06': 'June',
-      '07': 'July',
-      '08': 'August',
-      '09': 'September',
-      10: 'October',
-      11: 'November',
-      12: 'December',
+      "01": "January",
+      "02": "February",
+      "03": "March",
+      "04": "April",
+      "05": "May",
+      "06": "June",
+      "07": "July",
+      "08": "August",
+      "09": "September",
+      10: "October",
+      11: "November",
+      12: "December",
     };
-    const b = dateString.split('/');
+    const b = dateString.split("/");
     return `${b[0]} ${months[b[1]]} ${b[2]}`;
   },
 
@@ -80,16 +80,16 @@ module.exports = {
    */
   sortByDate(array) {
     array.sort((a, b) => {
-      const sentDateA = a.split('/');
+      const sentDateA = a.split("/");
       const c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
-      const sentDateB = b.split('/');
+      const sentDateB = b.split("/");
       const d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
       return d - c;
     });
     return array;
   },
 
-  async filterItem(selector, itemToFilter) {
+  filterItem: async (selector, itemToFilter) => {
     try {
       const elem = await browser.$(selector);
       await elem.waitForExist(DELAY_5s);
@@ -103,9 +103,9 @@ module.exports = {
     }
   },
 
-  async filterItemAndClick(selector) {
+  filterItemAndClick: async (selector) => {
     try {
-      await this.filterItem('itemToFilter');
+      await this.filterItem("itemToFilter");
       await browser.pause(DELAY_3s);
       const elem = await browser.$(selector);
       await elem.click();

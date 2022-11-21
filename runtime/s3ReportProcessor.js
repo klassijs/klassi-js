@@ -20,23 +20,22 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const path = require('path');
-const fs = require('fs-extra');
-const AWS = require('aws-sdk');
-const program = require('commander');
-
-const envName = global.env.envName.toLowerCase();
+const path = require("path");
+const fs = require("fs-extra");
+const AWS = require("aws-sdk");
+const program = require("commander");
 
 // const s3Bucket = s3Data.S3_BUCKET;
-const s3Bucket = 'test-app-automated-reports';
+const s3Bucket = "test-app-automated-reports";
 const s3AccessKeyId = process.env.S3_KEY;
 const s3SecretAccessKey = process.env.S3_SECRET;
 // const domainName = s3Data.S3_DOMAIN_NAME;
-const domainName = 'http://test-app-automated-reports.s3.eu-west-2.amazonaws.com';
+const domainName =
+  "http://test-app-automated-reports.s3.eu-west-2.amazonaws.com";
 
 const s3 = new AWS.S3({
   // region: s3Data.S3_REGION,
-  region: 'eu-west-2',
+  region: "eu-west-2",
   accessKeyId: s3AccessKeyId,
   secretAccessKey: s3SecretAccessKey,
 });
@@ -47,12 +46,14 @@ module.exports = {
     const folderName = date;
     // eslint-disable-next-line no-param-reassign,no-undef
     projectName = dataconfig.s3FolderName;
-    console.log(`Starting Processing of Test Report for: ${date}/${projectName} ...`);
+    console.log(
+      `Starting Processing of Test Report for: ${date}/${projectName} ...`
+    );
     /**
      * This creates the test report from the sample template
      * @type {string}
      */
-    const tempFile = path.resolve(__dirname, './scripts/s3ReportSample');
+    const tempFile = path.resolve(__dirname, "./scripts/s3ReportSample");
     let filePath;
 
     if (program.opts().dlink) {
@@ -69,19 +70,15 @@ module.exports = {
      * @type {string[]}
      */
     const browserName = [
-      'chrome',
-      'chromev81',
-      'chromeDE',
-      'firefox',
-      'edge',
-      'iexplorer',
-      'safari',
-      'tabletGalaxy',
-      'tabletiPad',
-      'tabletiPad12',
+      "chrome",
+      "firefox",
+      "edge",
+      "safari",
+      "tabletGalaxy",
+      "tabletiPad",
     ];
     let dataList;
-    let dataNew = '';
+    let dataNew = "";
     let browsername;
     let dataOut = await helpers.readFromFile(tempFile);
 
@@ -103,18 +100,20 @@ module.exports = {
             for (let i = 0; i < data.Contents.length; i++) {
               const key = data.Contents[i].Key;
               if (key.substring(0, 10) === folderName) {
-                if (key.split('.')[1] === 'html') {
+                if (key.split(".")[1] === "html") {
                   dataList = `${domainName}/${key}`;
                   if (dataList.includes(browsername)) {
-                    const envDataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\/.*.html/, '');
+                    const envDataNew = dataList
+                      .replace(/^.*reports\/\w+\//, "")
+                      .replace(/\/.*.html/, "");
                     // console.log('this is the env Name from the s3reportProcessor ln 90 ====> ', envDataNew);
                     dataNew = dataList
-                      .replace(/^.*reports\/\w+\//, '')
-                      .replace(`${envDataNew}/`, '')
-                      .replace(/\.html/, '');
+                      .replace(/^.*reports\/\w+\//, "")
+                      .replace(`${envDataNew}/`, "")
+                      .replace(/\.html/, "");
                     // console.log('this is the data new from the s3reportProcessor ln 92 ====> ', dataNew);
                     const theNewData = `${dataNew} -- ${envDataNew}`;
-                    let dataFile = '';
+                    let dataFile = "";
                     browserData.push(
                       (dataFile = `${dataFile}<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p><a href="${dataList}">${theNewData}</a></div>`)
                     );
@@ -122,58 +121,23 @@ module.exports = {
                 }
               }
             }
-            dataOut = dataOut.replace('<-- browser_test_output -->', browserData.join(' '));
+            dataOut = dataOut.replace(
+              "<-- browser_test_output -->",
+              browserData.join(" ")
+            );
           }
         }
         await helpers.writeToTxtFile(file, dataOut);
         if (dataList === undefined) {
-          console.error('There is no Data for this Project / project does not exist ....');
+          console.error(
+            "There is no Data for this Project / project does not exist ...."
+          );
         } else if (dataList.length > 0) {
-          console.log('Test run completed and s3 report being sent .....');
-          await helpers.oupEmail();
+          console.log("Test run completed and s3 report being sent .....");
+          await helpers.klassiEmail();
         }
       }
     );
-
-    if (projectName === 'oeuk-orb-test-suite') {
-      const tempReport = path.resolve(`../${projectName}/shared-objects/docs/reportData.json`);
-      filePath = path.resolve('./reports/reportData.json');
-      await helpers.readFromJson(tempReport);
-      // const reportData = await helpers.readFromJson(tempReport);
-
-      s3.getObject(
-        {
-          Bucket: s3Bucket,
-          Key: `${date}/${projectName}/reports/reportData.json`,
-        },
-        async (err, data) => {
-          if (err || data.Body === null) {
-            // throw err;
-            console.log('There is no data file for this project / reportData does not exist');
-          } else {
-            await fs.writeFileSync(filePath, data.Body);
-            console.log('report data file downloaded successfully');
-          }
-        }
-      );
-    }
-    if (projectName === 'journals_test_suite') {
-      filePath = path.resolve(`./reports/${browserName}/${envName}/urlData.xlsx`);
-
-      s3.getObject(
-        {
-          Bucket: s3Bucket,
-          Key: `${date}/${projectName}/reports/${browserName}/${envName}/urlData.xlsx`,
-        },
-        async (err) => {
-          if (err) {
-            console.log('There is no data file for this project / reportData does not exist');
-          } else {
-            console.log('report data file downloaded successfully');
-          }
-        }
-      );
-    }
   },
   formatDate() {
     const $today = new Date();

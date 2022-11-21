@@ -20,25 +20,25 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require('fs-extra');
-const chalk = require('chalk');
-const chai = require('chai');
-const program = require('commander');
-const merge = require('merge');
-const requireDir = require('require-dir');
+const fs = require("fs-extra");
+const chalk = require("chalk");
+const chai = require("chai");
+const program = require("commander");
+const merge = require("merge");
+const requireDir = require("require-dir");
 // let dir = require('node-dir');
 
-const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
-const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
-const { Given, When, Then } = require('@cucumber/cucumber');
-const s3Upload = require('./s3Upload');
-const getRemote = require('./getRemote');
+const { After, AfterAll, AfterStep, Status } = require("@cucumber/cucumber");
+const { Before, BeforeAll, BeforeStep } = require("@cucumber/cucumber");
+const { Given, When, Then } = require("@cucumber/cucumber");
+const s3Upload = require("./s3Upload");
+const getRemote = require("./getRemote");
 
 /**
  * all assertions for variable testing
  */
 const { assert, expect } = chai;
-const log = require('./logger').oupLog();
+const log = require("./logger").klassiLog();
 
 global.assert = assert;
 global.expect = expect;
@@ -48,23 +48,23 @@ global.log = log;
 /**
  * This is the Global date functionality
  */
-global.date = require('./helpers').currentDate();
+global.date = require("./helpers").currentDate();
 
 /**
  * for the Download of all file types
  */
-global.downloader = require('./downloader');
+global.downloader = require("./downloader");
 
 /**
  * Environment variables
  * @type {*|(function(): browser)}
  */
-const ChromeDriver = require('./chromeDriver');
-const FirefoxDriver = require('./firefoxDriver');
-const AndroidDriver = require('./androidDriver');
-const iOSDriver = require('./iosDriver');
+const ChromeDriver = require("./chromeDriver");
+const FirefoxDriver = require("./firefoxDriver");
+const AndroidDriver = require("./androidDriver");
+const iOSDriver = require("./iosDriver");
 
-const LambdaTestDriver = require('./lambdatestDriver');
+const LambdaTestDriver = require("./lambdatestDriver");
 
 const remoteService = getRemote(global.settings.remoteService);
 
@@ -77,37 +77,40 @@ let browser = {};
 async function getDriverInstance() {
   const browsers = global.settings.BROWSER_NAME;
   const options = {};
-  if (remoteService && remoteService.type === 'lambdatest') {
+  if (remoteService && remoteService.type === "lambdatest") {
     const configType = global.settings.remoteConfig;
-    assert.isString(configType, 'LambdaTest requires a config type e.g. chrome.json');
+    assert.isString(
+      configType,
+      "LambdaTest requires a config type e.g. chrome.json"
+    );
     browser = LambdaTestDriver(options, configType);
     return browser;
   }
-  assert.isNotEmpty(browsers, 'Browser must be defined');
+  assert.isNotEmpty(browsers, "Browser must be defined");
 
-  switch (browsers || '') {
-    case 'firefox':
-    {
-      browser = FirefoxDriver(options);
-    }
+  switch (browsers || "") {
+    case "firefox":
+      {
+        browser = FirefoxDriver(options);
+      }
       break;
 
-    case 'chrome':
-    {
-      browser = ChromeDriver(options);
-    }
+    case "chrome":
+      {
+        browser = ChromeDriver(options);
+      }
       break;
 
-    case 'android':
-    {
-      browser = AndroidDriver(options);
-    }
+    case "android":
+      {
+        browser = AndroidDriver(options);
+      }
       break;
 
-    case 'ios':
-    {
-      browser = iOSDriver(options);
-    }
+    case "ios":
+      {
+        browser = iOSDriver(options);
+      }
       break;
 
     default: {
@@ -249,7 +252,7 @@ this.World = World;
  * set the default timeout for all tests
  */
 // eslint-disable-next-line import/order,import/no-extraneous-dependencies
-const { setDefaultTimeout } = require('@cucumber/cucumber');
+const { setDefaultTimeout } = require("@cucumber/cucumber");
 
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);
@@ -258,7 +261,7 @@ global.timeout = globalTimeout;
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require('./helpers').getStartDateTime();
+global.startDateTime = require("./helpers").getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
@@ -280,7 +283,7 @@ global.status = 0;
 Before(async (scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  if (remoteService && remoteService.type === 'lambdatest') {
+  if (remoteService && remoteService.type === "lambdatest") {
     await browser.execute(`lambda-name=${scenario.pickle.name}`);
   }
 });
@@ -293,23 +296,27 @@ AfterAll(async () => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   // eslint-disable-next-line no-undef
-  await helpers.oupReporter();
+  await helpers.klassiReporter();
   try {
     browser.pause(DELAY_5s);
-    if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
+    if (
+      remoteService &&
+      remoteService.type === "lambdatest" &&
+      program.opts().email
+    ) {
       browser.pause(DELAY_5s).then(async () => {
         await s3Upload.s3Upload();
         browser.pause(DELAY_30s).then(() => {
           process.exit(global.status);
         });
       });
-    } else if (remoteService && remoteService.type === 'lambdatest') {
+    } else if (remoteService && remoteService.type === "lambdatest") {
       browser.pause(DELAY_5s).then(async () => {
         process.exit(global.status);
       });
     } else if (program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
-        await helpers.oupEmail();
+        await helpers.klassiEmail();
         browser.pause(DELAY_3s);
       });
     }
@@ -325,7 +332,11 @@ AfterAll(async () => {
  */
 After(async (scenario) => {
   // eslint-disable-next-line no-shadow
-  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
+  if (
+    scenario.result.status === Status.FAILED &&
+    remoteService &&
+    remoteService.type === "lambdatest"
+  ) {
     await helpers.ltVideo();
     // eslint-disable-next-line no-undef
     const vidLink = await videoLib.getVideoId();
@@ -345,7 +356,7 @@ this.closebrowser = function () {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   switch (global.closeBrowser) {
-    case 'no':
+    case "no":
       return Promise.resolve();
     default:
       if (browser) {
@@ -361,12 +372,15 @@ this.closebrowser = function () {
 After(async (scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
-    if (remoteService && remoteService.type === 'lambdatest') {
-      if (scenario.result.status === 'FAILED') {
-        await browser.execute('lambda-status=failed');
+  if (
+    scenario.result.status === Status.FAILED ||
+    scenario.result.status === Status.PASSED
+  ) {
+    if (remoteService && remoteService.type === "lambdatest") {
+      if (scenario.result.status === "FAILED") {
+        await browser.execute("lambda-status=failed");
       } else if (scenario.result.status === Status.PASSED) {
-        await browser.execute('lambda-status=passed');
+        await browser.execute("lambda-status=passed");
       }
       return this.closebrowser();
     }
@@ -386,7 +400,7 @@ After(function (scenario) {
     global.status = 1;
     return browser.takeScreenshot().then((screenShot) => {
       // screenShot is a base-64 encoded PNG
-      world.attach(screenShot, 'image/png');
+      world.attach(screenShot, "image/png");
     });
   }
 });
