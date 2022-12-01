@@ -37,7 +37,7 @@ module.exports = {
    * @returns {number}
    */
   randomNumberGenerator(length = 13) {
-    const baseNumber = Math.pow(10, length - 1);
+    const baseNumber = 10 ** (length - 1);
     let number = Math.floor(Math.random() * baseNumber);
     /**
      * Check if number have 0 as first digit
