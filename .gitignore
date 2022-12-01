@@ -5,7 +5,6 @@ coverage
 
 # exclude generated reports
 reports
-visual-regression-baseline
 
 # ignore dotenv files, except example
 .env
