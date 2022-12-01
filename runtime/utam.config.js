@@ -20,9 +20,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const { cosmiconfigSync } = require('cosmiconfig');
+const { cosmiconfigSync } = require("cosmiconfig");
 
-const moduleName = process.env.ENV_CONFIG || 'envConfig';
+const moduleName = process.env.ENV_CONFIG || "envConfig";
 const explorerSync = cosmiconfigSync(moduleName);
 const searchedFor = explorerSync.search();
 const envConfig = searchedFor.config;
@@ -31,12 +31,12 @@ const { dataConfig } = envConfig;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 
 module.exports = {
-  pageObjectsRootDir: projectName === 'OAF' ? '../' : '../../../',
-  pageObjectsFileMask: ['**/__utam__/**/*.utam.json'],
-  extensionsFileMask: ['**/__utam__/**/*.utam.json'],
-  pageObjectsOutputDir: 'page-objects/__utam__/compiledUTAM',
-  extensionsOutputDir: 'utils',
-  moduleTarget: 'commonjs',
+  pageObjectsRootDir: projectName === "klassi-js" ? "../" : "../../../",
+  pageObjectsFileMask: ["**/__utam__/**/*.utam.json"],
+  extensionsFileMask: ["**/__utam__/**/*.utam.json"],
+  pageObjectsOutputDir: "page-objects/__utam__/compiledUTAM",
+  extensionsOutputDir: "utils",
+  moduleTarget: "commonjs",
   skipCommonJs: false,
   implicitTimeout: 0,
   explicitTimeout: process.env.CUCUMBER_TIMEOUT || 180000,
