@@ -215,9 +215,9 @@ global.dateTime = require("./runtime/helpers").reportDate();
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (options.utam) {
   const filePath =
-    projectName === "OAF"
+    projectName === "klassi-js"
       ? "./runtime/utam.config.js"
-      : "./node_modules/OAF/runtime/utam.config.js";
+      : "./node_modules/klassi-js/runtime/utam.config.js";
 
   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);

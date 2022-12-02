@@ -1,6 +1,6 @@
 {
-    "projectName": "OAF",
-    "build": "OAF",
+    "projectName": "klassi-js",
+    "build": "klassi-js",
     "platform": "Windows 10",
     "browserName": "Chrome",
     "version": "104.0",

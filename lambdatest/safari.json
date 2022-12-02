@@ -1,5 +1,5 @@
 {
-  "build": "Klassi Automated Test",
+  "build": "Klassi-js",
   "platform" : "macOS Mojave",
   "browserName" : "Safari",
   "version" : "12.0",

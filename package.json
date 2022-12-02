@@ -43,7 +43,7 @@
     "ltlocal": "node --trace-warnings index.js --disableReport --utam --tags @search  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
-    "ciltoaf": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
+    "ciltklassi-js": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
     "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",

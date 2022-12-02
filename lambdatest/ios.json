@@ -1,6 +1,6 @@
 {
-    "build" : "OAF",
-    "name" : "OAF Mobile",
+    "build" : "klassi-js",
+    "name" : "klassi-js Mobile",
     "platformName" : "iOS",
     "browserName": "",
     "deviceName" : "iPhone 6s",

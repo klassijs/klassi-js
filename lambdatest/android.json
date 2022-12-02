@@ -1,6 +1,6 @@
 {
-    "projectName": "OAF",
-    "build": "OAF Mobile",
+    "projectName": "klassi-js",
+    "build": "klassi-js Mobile",
     "platformName" : "Android",
     "browserName": "",
     "deviceName" : "Galaxy Tab S7 Plus",

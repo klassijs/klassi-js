@@ -264,7 +264,7 @@ HTML and JSON reports will be automatically generated and stored in the default 
 
 Besides the ability to test web applications on mobile environments, the framework allows for the automation of native mobile applications running on Android or iOS in LambdaTest.
 
-OAF contains sample tests that can be run by executing the following commands:
+klassi-js contains sample tests that can be run by executing the following commands:
 ```
 yarn run android
 ```
@@ -302,7 +302,7 @@ As far as the mobile capabilities set on `./lambdatest/`, please use [LambdaTest
 
 As for properties that should be set to a specific option, please bear in mind the following considerations:
 
-* **build**: should be set to *"OAF Mobile"* so test executions for native mobile apps can be filtered easily from web app tests.
+* **build**: should be set to *"klassi-js Mobile"* so test executions for native mobile apps can be filtered easily from web app tests.
 * **browserName**: should be left empty so Lambdatest doesn't interpret that the intention is to test a web application.
 * **networkThrottling**: should be kept as *"Regular 4G"*, during development it was detected that element selection is flaky if the emulators do not keep a steady connection, achieved through this throttling option.
 
@@ -310,8 +310,8 @@ For instance:
 
 ```
 {
-    "projectName": "OAF",
-    "build": "OAF Mobile",
+    "projectName": "klassi-js",
+    "build": "klassi-js Mobile",
     "platformName" : "Android",
     "browserName": "",
     "deviceName" : "Galaxy Tab S7 Plus",
@@ -331,7 +331,7 @@ To learn about the APIs that can be used to interact with the mobile drivers, pl
 
 Please bear in mind that the page describing each function will contain information about how to invoke the function in different languages and compatibility with different drivers.
 
-For instance, the page for the [App installation functions](https://appium.io/docs/en/commands/device/app/install-app/) describes that when used in JavaScript (specifically using WebdriverIO), `driver.installApp('/path/to/APK')` is the code to use (bear in mind when referencing the documentation that OAF uses WDIO asynchronously and that driver = browser, so we would use `await browser.installApp('/path/to/APK')`).
+For instance, the page for the [App installation functions](https://appium.io/docs/en/commands/device/app/install-app/) describes that when used in JavaScript (specifically using WebdriverIO), `driver.installApp('/path/to/APK')` is the code to use (bear in mind when referencing the documentation that klassi-js uses WDIO asynchronously and that driver = browser, so we would use `await browser.installApp('/path/to/APK')`).
 
 ![JavaScript implementation of installApp](./runtime/img/javascript-code.jpg)
 
