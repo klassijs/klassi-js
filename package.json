@@ -8,7 +8,7 @@
     "twitter": "https://twitter.com/larryG_01",
     "gitter": "https://gitter.im/klassi-js/klassi-js",
     "url": "https://linkedin.com/in/larryg",
-    "youtube": "https://youtube.com/@larryg_01"
+    "youtube": "https://youtube.com/@LarryG_01"
   },
   "license": "MIT",
   "engines": {
@@ -22,6 +22,7 @@
     "cucumber-js",
     "javascript",
     "testing framework",
+    "test automation",
     "webdriverio"
   ],
   "repository": {
@@ -30,7 +31,7 @@
   },
   "browser": "index.js",
   "scripts": {
-    "pretests": "eslint --ignore-path .gitignore .",
+    "pretest": "eslint --ignore-path .gitignore .",
     "appium-start": "yarn run appium --log-level info",
     "android": "node index.js --disableReport --tags @android --remoteService lambdatest --env android --extraSettings android",
     "android-local": "node index.js --disableReport --tags @android --env android --browser android",
@@ -38,9 +39,9 @@
     "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
     "test": "node index.js --disableReport --tags",
     "dev": "yarn delete-dev && yarn dev1",
-    "delete-dev": "rm -rf ./reports ./artifacts ./log",
+    "delete-dev": "rm -rf ./reports ./artifacts ./visual-regression-baseline ./log",
     "dev1": "node index.js --disableReport --tags",
-    "ltlocal": "node --trace-warnings index.js --disableReport --utam --tags @search  --remoteService lambdatest --extraSettings",
+    "ltlocal": "node --trace-warnings index.js --disableReport --tags @search  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltklassi-js": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
@@ -68,46 +69,35 @@
     ]
   },
   "dependencies": {
-    "@aws-sdk/client-ses": "^3.188.0",
-    "@aws-sdk/credential-provider-node": "^3.188.0",
-    "@cucumber/cucumber": "^8.5.1",
+    "@aws-sdk/client-ses": "^3.226.0",
+    "@cucumber/cucumber": "^8.9.0",
     "@cucumber/pretty-formatter": "^1.0.0",
-    "@lambdatest/node-tunnel": "^3.0.1",
-    "appium": "^1.22.3",
-    "aws-sdk": "^2.865.0",
-    "axe-core": "^4.1.1",
-    "chai": "^4.2.0",
-    "commander": "8.2.0",
-    "cosmiconfig": "^7.1.0",
+    "async": "^3.2.4",
+    "aws-sdk": "^2.1272.0",
+    "axe-core": "^4.5.2",
+    "chai": "^4.3.7",
+    "commander": "^9.4.1",
+    "cosmiconfig": "^8.0.0",
     "cucumber-html-reporter": "^5.5.0",
     "cucumber-junit": "^1.7.1",
     "dotenv": "^16.0.3",
-    "fs-extra": "^10.1.0",
+    "fs-extra": "^11.1.0",
     "merge": "^2.1.1",
-    "nanoid": "^3.3.4",
+    "nanoid": "^4.0.0",
     "node-resemble-js": "^0.2.0",
-    "nodemailer": "^6.5.0",
-    "pactum": "^3.0.16",
+    "nodemailer": "^6.8.0",
+    "pactum": "^3.3.1",
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
-    "utam": "^1.0.2",
-    "wdio-utam-service": "^1.0.2",
-    "webdriverio": "^7.27.0",
-    "winston": "^3.3.3",
-    "xlsx": "^0.18.5"
+    "utam": "^1.2.1",
+    "wdio-utam-service": "^1.2.1",
+    "webdriverio": "^8.0.9"
   },
   "devDependencies": {
-    "chromedriver": "^107.0.3",
-    "eslint": "^8.28.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-import": "^2.3.0",
-    "eslint-plugin-istanbul": "^0.1.2",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-wdio": "^7.25.3",
-    "geckodriver": "^3.2.0",
-    "nyc": "^15.1.0",
-    "prettier": "^2.2.1"
+    "eslint": "^8.29.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.1"
   }
 }

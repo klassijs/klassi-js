@@ -20,20 +20,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require("fs-extra");
-const path = require("path");
-const AWS = require("aws-sdk");
+const fs = require('fs-extra');
+const path = require('path');
+// const AWS = require('aws-sdk');
 // const readdir = require('recursive-readdir');
 // const async = require('async');
-const { PNG } = require("pngjs");
-const pixelmatch = require("pixelmatch");
-const pactumJs = require("pactum");
-const XLSX = require("xlsx");
+// const { PNG } = require('pngjs');
+// const pixelmatch = require('pixelmatch');
+const pactumJs = require('pactum');
+// const XLSX = require('xlsx');
 
-const urlData = require("../shared-objects/urlData.json").URLs;
-const loadConfig = require("./configLoader");
-const verify = require("./imageCompare");
-const testData = require("../shared-objects/testdata.json");
+const urlData = require('../shared-objects/urlData.json').URLs;
+const loadConfig = require('./configLoader');
+const verify = require('./imageCompare');
+const testData = require('../shared-objects/testdata.json');
 
 const envName = global.env.envName.toLowerCase();
 
@@ -66,7 +66,7 @@ module.exports = {
       /**
        * now wait for the body element to be present
        */
-      browser.waitUntil(browser.$("body"), timeout);
+      browser.waitUntil(browser.$('body'), timeout);
     });
     /**
      * grab the userAgent details from the loaded url
@@ -81,7 +81,7 @@ module.exports = {
    */
   getUserAgent: async () => {
     const script = await browser.execute(() => window.navigator.userAgent);
-    const file = path.resolve("./shared-objects/docs/userAgent.txt");
+    const file = path.resolve('./shared-objects/docs/userAgent.txt');
     await helpers.writeToTxtFile(file, script);
     await browser.pause(DELAY_100ms);
   },
@@ -108,7 +108,7 @@ module.exports = {
    */
   readFromFile: (filepath) =>
     new Promise((resolve, reject) => {
-      fs.readFile(filepath, "utf-8", (err, data) => {
+      fs.readFile(filepath, 'utf-8', (err, data) => {
         // eslint-disable-next-line no-param-reassign
         data = data.toString();
         resolve(data);
@@ -122,7 +122,7 @@ module.exports = {
    */
   readFromJson: async (filename) => {
     const fileContent = await fs.readJson(filename);
-    console.log("Success - the file content ", fileContent);
+    console.log('Success - the file content ', fileContent);
     return fileContent;
   },
 
@@ -133,24 +133,21 @@ module.exports = {
    * @returns {Promise<void>}
    */
   write: async () => {
-    await module.exports.writeToJson(
-      "./shared-objects/testdata.json",
-      testData
-    );
+    await module.exports.writeToJson('./shared-objects/testdata.json', testData);
   },
 
   writeToJson: async (filePath, fileContent) => {
     try {
       // await fs.writeJson(filePath, fileContent);
       await fs.writeFile(filePath, JSON.stringify(fileContent, null, 4));
-      console.log("Success - the content: ", fileContent);
+      console.log('Success - the content: ', fileContent);
     } catch (err) {
-      console.error("This Happened: ", err);
+      console.error('This Happened: ', err);
     }
   },
 
   writeToUrlsData: async (data) => {
-    await module.exports.writeToJson("./shared-objects/urlData.json", data); // Need to check if it is pointing to the right file
+    await module.exports.writeToJson('./shared-objects/urlData.json', data); // Need to check if it is pointing to the right file
   },
 
   /**
@@ -195,7 +192,7 @@ module.exports = {
   hideElements: async (selectors) => {
     // if arg is no array make it one
     // eslint-disable-next-line no-param-reassign
-    selectors = typeof selectors === "string" ? [selectors] : selectors;
+    selectors = typeof selectors === 'string' ? [selectors] : selectors;
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < selectors.length; i++) {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '0')`;
@@ -211,7 +208,7 @@ module.exports = {
   showElements: async (selectors) => {
     // if arg is no array make it one
     // eslint-disable-next-line no-param-reassign
-    selectors = typeof selectors === "string" ? [selectors] : selectors;
+    selectors = typeof selectors === 'string' ? [selectors] : selectors;
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < selectors.length; i++) {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '1')`;
@@ -220,29 +217,25 @@ module.exports = {
     }
   },
 
-  /**
-   * Returns number of diff pixels between images
-   * @param {string} fileName1 - name of the file
-   * @param {string} fileName2 - name of the file
-   * @returns
-   */
-  imagePixelMatch: async (fileName1, fileName2) => {
-    const img1 = PNG.sync.read(
-      fs.readFileSync(
-        `./artifacts/visual-regression/original/${browserName}/positive/${fileName1}.png`
-      )
-    );
-    const img2 = PNG.sync.read(
-      fs.readFileSync(
-        `./artifacts/visual-regression/original/${browserName}/positive/${fileName2}.png`
-      )
-    );
-    const { width, height } = img1;
-    const diff = new PNG({ width, height });
-    return pixelmatch(img1.data, img2.data, diff.data, width, height, {
-      threshold: 0.1,
-    });
-  },
+  // /**
+  //  * Returns number of diff pixels between images
+  //  * @param {string} fileName1 - name of the file
+  //  * @param {string} fileName2 - name of the file
+  //  * @returns
+  //  */
+  // imagePixelMatch: async (fileName1, fileName2) => {
+  //   const img1 = PNG.sync.read(
+  //     fs.readFileSync(`./artifacts/visual-regression/original/${browserName}/positive/${fileName1}.png`)
+  //   );
+  //   const img2 = PNG.sync.read(
+  //     fs.readFileSync(`./artifacts/visual-regression/original/${browserName}/positive/${fileName2}.png`)
+  //   );
+  //   const { width, height } = img1;
+  //   const diff = new PNG({ width, height });
+  //   return pixelmatch(img1.data, img2.data, diff.data, width, height, {
+  //     threshold: 0.1,
+  //   });
+  // },
 
   /**
    * Get the current date dd-mm-yyyy
@@ -335,7 +328,7 @@ module.exports = {
   klassiReporter() {
     try {
       // eslint-disable-next-line global-require
-      return require("./reporter/reporter").reporter();
+      return require('./reporter/reporter').reporter();
     } catch (err) {
       console.error(`There is a reporting system error: ${err.stack}`);
       throw err;
@@ -349,7 +342,7 @@ module.exports = {
   klassiEmail() {
     try {
       // eslint-disable-next-line global-require
-      return require("./mailer").klassiSendMail();
+      return require('./mailer').klassiSendMail();
     } catch (err) {
       console.error(`This is a Email system error: ${err.stack}`);
       throw err;
@@ -372,11 +365,11 @@ module.exports = {
       auth,
       headers: {
         Authorization: `Bearer ${auth}`,
-        "content-Type": "application/json",
+        'content-Type': 'application/json',
       },
       body,
     };
-    if (method === "GET") {
+    if (method === 'GET') {
       resp = await pactumJs
         .spec()
         .get(options.url)
@@ -387,7 +380,7 @@ module.exports = {
       getMethod = resp;
     }
 
-    if (method === "PUT") {
+    if (method === 'PUT') {
       resp = await pactumJs
         .spec()
         .put(options.url)
@@ -397,7 +390,7 @@ module.exports = {
         .expectStatus(200);
     }
 
-    if (method === "POST") {
+    if (method === 'POST') {
       resp = await pactumJs
         .spec()
         .post(options.url)
@@ -407,7 +400,7 @@ module.exports = {
         .expectStatus(200);
     }
 
-    if (method === "DELETE") {
+    if (method === 'DELETE') {
       resp = await pactumJs
         .spec()
         .post(options.url)
@@ -432,7 +425,7 @@ module.exports = {
   accessibilityError() {
     const totalError = accessibilityLib.getAccessibilityTotalError();
     if (totalError > 0) {
-      cucumberThis.attach("The accessibility rule violation has been observed");
+      cucumberThis.attach('The accessibility rule violation has been observed');
       cucumberThis.attach(`Total accessibility error count :${totalError}`);
     } else if (totalError <= 0) {
       const violationcount = accessibilityLib.getAccessibilityError();
@@ -446,7 +439,7 @@ module.exports = {
    */
   ltVideo: async () => {
     // eslint-disable-next-line global-require
-    const page = require("./getVideoLinks");
+    const page = require('./getVideoLinks');
     await page.getVideoList();
   },
 
@@ -457,7 +450,7 @@ module.exports = {
    */
   getLink: async (selector) => {
     elem = await browser.$(selector);
-    await elem.getAttribute("href");
+    await elem.getAttribute('href');
   },
 
   waitAndClick: async (selector) => {
@@ -570,7 +563,7 @@ module.exports = {
       /**
        * workout which property to use to get inner text
        */
-      const txtProp = "textContent" in document ? "textContent" : "innerText";
+      const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
 
       // eslint-disable-next-line no-plusplus
       for (let i = 0, l = elements.length; i < l; i++) {
@@ -592,11 +585,7 @@ module.exports = {
     /**
      * grab the matching elements
      */
-    return browser.$$(
-      selector,
-      clickElementInDom,
-      textToMatch.toLowerCase().trim
-    );
+    return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
   },
 
   /**
@@ -605,18 +594,14 @@ module.exports = {
    */
   modHeaderElement: async (extName) => {
     await browser.pause();
-    await helpers.loadPage(
-      `https://chrome.google.com/webstore/search/${extName}`
-    );
-    const script = await browser.execute(
-      () => window.document.URL.indexOf("consent.google.com") !== -1
-    );
+    await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
+    const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
     if (script === true) {
       elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
       await elem[1].waitForExist();
       await elem[1].scrollIntoView();
       const elem1 = await elem[1].getText();
-      if (elem1 === "I agree") {
+      if (elem1 === 'I agree') {
         await elem[1].click();
         await browser.pause(DELAY_300ms);
       }
@@ -625,7 +610,7 @@ module.exports = {
     await elem.click();
     await browser.pause(DELAY_200ms);
     const str = await browser.getUrl();
-    const str2 = await str.split("/");
+    const str2 = await str.split('/');
     // eslint-disable-next-line prefer-destructuring
     modID = str2[6];
     return modID;
@@ -640,7 +625,7 @@ module.exports = {
    */
   modHeader: async (extName, username, password) => {
     await helpers.modHeaderElement(extName);
-    console.log("modID = ", modID);
+    console.log('modID = ', modID);
     await browser.pause(3000);
     elem = await browser.$(
       '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]'
@@ -661,36 +646,26 @@ module.exports = {
   },
 
   installMobileApp: async (appName, appPath) => {
-    if (env.envName === "android" || env.envName === "ios") {
+    if (env.envName === 'android' || env.envName === 'ios') {
       if (!(await browser.isAppInstalled(appName))) {
-        console.log("Installing application...");
+        console.log('Installing application...');
         await browser.installApp(appPath);
-        assert.isTrue(
-          await browser.isAppInstalled(appName),
-          "The app was not installed correctly."
-        );
+        assert.isTrue(await browser.isAppInstalled(appName), 'The app was not installed correctly.');
       } else {
-        console.log(
-          `The app ${appName} was already installed on the device, skipping installation...`
-        );
+        console.log(`The app ${appName} was already installed on the device, skipping installation...`);
         await browser.terminateApp(appName);
       }
     }
   },
 
   uninstallMobileApp: async (appName, appPath) => {
-    if (env.envName === "android" || env.envName === "ios") {
+    if (env.envName === 'android' || env.envName === 'ios') {
       if (await browser.isAppInstalled(appName)) {
         console.log(`Uninstalling application ${appName}...`);
         await browser.removeApp(appName);
-        assert.isNotTrue(
-          await browser.isAppInstalled(appName),
-          "The app was not uninstalled correctly."
-        );
+        assert.isNotTrue(await browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
       } else {
-        console.log(
-          `The app ${appName} was already uninstalled fron the device, skipping...`
-        );
+        console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
       }
     }
   },
@@ -716,21 +691,18 @@ module.exports = {
 
     const workSheet = XLSX.utils.json_to_sheet(arr);
     const workBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workBook, workSheet, "WayFlees");
+    XLSX.utils.book_append_sheet(workBook, workSheet, 'WayFlees');
     // buffer is to handle large amount of data
-    XLSX.write(workBook, { bookType: "xlsx", type: "buffer" });
+    XLSX.write(workBook, { bookType: 'xlsx', type: 'buffer' });
     // convert workbook data into Binary string
-    XLSX.write(workBook, { bookType: "xlsx", type: "binary" });
+    XLSX.write(workBook, { bookType: 'xlsx', type: 'binary' });
     // XLSX.writeFile(workBook, "./reports/${browserName}/urlData.xlsx");
-    XLSX.writeFile(
-      workBook,
-      path.resolve(`./reports/${browserName}/${envName}/urlData.xlsx`)
-    );
+    XLSX.writeFile(workBook, path.resolve(`./reports/${browserName}/${envName}/urlData.xlsx`));
   },
 
   executeTime: async (endDate, startDate, message) => {
     const seconds = (endDate.getTime() - startDate.getTime()) / 1000;
-    testData.executeTime.time = seconds.toString().replace("-", "");
+    testData.executeTime.time = seconds.toString().replace('-', '');
     await module.exports.write();
     cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
   },

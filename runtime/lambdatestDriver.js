@@ -22,12 +22,12 @@
  */
 const wdio = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
-const { UtamWdioService } = require('wdio-utam-service');
+// const { UtamWdioService } = require('wdio-utam-service');
 const fs = require('fs');
 const path = require('path');
 const loadConfig = require('./configLoader');
 const lambdatest = require('./remotes/lambdatest');
-const utamConfig = require('./utam.config');
+// const utamConfig = require('./utam.config');
 
 const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
@@ -41,12 +41,12 @@ const chExt = {
   },
 };
 
-let isUTAMTest;
+// let isUTAMTest;
 let config;
 
-Before((scenario) => {
-  isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
-});
+// Before((scenario) => {
+//   isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
+// });
 
 module.exports = async function lambdatestDriver(options, configType) {
   const browserCaps = loadConfig(`./lambdatest/${configType}.json`);
@@ -98,9 +98,9 @@ module.exports = async function lambdatestDriver(options, configType) {
     extendedOptions.logLevel = config.logLevel;
   }
   global.browser = await wdio.remote(extendedOptions);
-  if (isUTAMTest) {
-    const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities);
-  }
+  // if (isUTAMTest) {
+  //   const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
+  //   await utamInstance.before(extendedOptions.capabilities);
+  // }
   return browser;
 };

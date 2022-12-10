@@ -8,9 +8,9 @@ After(async () => {
 
 Given(/^The user launches the application$/, async () => {
   await browser.activateApp(env.appName);
-  if (global.settings.remoteService === "lambdatest") {
-    await browser.setOrientation("LANDSCAPE");
-    await browser.switchContext("NATIVE_APP");
+  if (global.settings.remoteService === 'lambdatest') {
+    await browser.setOrientation('LANDSCAPE');
+    await browser.switchContext('NATIVE_APP');
   }
 });
 
@@ -27,9 +27,7 @@ When(/^They click on Sign in$/, async () => {
 });
 
 When(/^They click on Free samples$/, async () => {
-  const freeSamplesBtn = await browser.$(
-    sharedObjects.android.elem.freeSamplesBtn
-  );
+  const freeSamplesBtn = await browser.$(sharedObjects.android.elem.freeSamplesBtn);
   await freeSamplesBtn.waitForDisplayed({ timeout: DELAY_10s });
   await freeSamplesBtn.click();
 });
@@ -41,12 +39,8 @@ When(/^They click on Register$/, async () => {
 });
 
 When(/^Enter the correct credentials$/, async () => {
-  const usernameInput = await browser.$(
-    sharedObjects.android.elem.usernameInput
-  );
-  const passwordInput = await browser.$(
-    sharedObjects.android.elem.passwordInput
-  );
+  const usernameInput = await browser.$(sharedObjects.android.elem.usernameInput);
+  const passwordInput = await browser.$(sharedObjects.android.elem.passwordInput);
   await usernameInput.waitForDisplayed({ timeout: DELAY_30s });
   await usernameInput.setValue(sharedObjects.android.credentials.email);
   await passwordInput.setValue(sharedObjects.android.credentials.password);
@@ -55,9 +49,7 @@ When(/^Enter the correct credentials$/, async () => {
 });
 
 Then(/^The user logs in correctly into the application$/, async () => {
-  const closeWelcomeModalBtn = await browser.$(
-    sharedObjects.android.elem.closeWelcomeModalBtn
-  );
+  const closeWelcomeModalBtn = await browser.$(sharedObjects.android.elem.closeWelcomeModalBtn);
   await browser.pause(DELAY_5s);
   await closeWelcomeModalBtn.waitForDisplayed({ timeout: DELAY_15s });
   await closeWelcomeModalBtn.click();
@@ -65,12 +57,7 @@ Then(/^The user logs in correctly into the application$/, async () => {
   await myBooksText.waitForDisplayed({ timeout: DELAY_10s });
 });
 
-Then(
-  /^The user navigates to the free samples screen when not logged in$/,
-  async () => {
-    const freeSamplesText = await browser.$(
-      sharedObjects.android.elem.freeSamplesText
-    );
-    await freeSamplesText.waitForDisplayed({ timeout: DELAY_15s });
-  }
-);
+Then(/^The user navigates to the free samples screen when not logged in$/, async () => {
+  const freeSamplesText = await browser.$(sharedObjects.android.elem.freeSamplesText);
+  await freeSamplesText.waitForDisplayed({ timeout: DELAY_15s });
+});

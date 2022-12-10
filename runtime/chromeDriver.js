@@ -22,7 +22,7 @@ const program = require('commander');
 const fs = require('fs');
 const path = require('path');
 const { Before } = require('@cucumber/cucumber');
-const { UtamWdioService } = require('wdio-utam-service');
+// const { UtamWdioService } = require("wdio-utam-service");
 const utamConfig = require('./utam.config');
 
 let defaults = {};
@@ -84,7 +84,7 @@ module.exports = async function chromeDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
+      httpProxy: '',
       proxyType: 'MANUAL',
       autodetect: false,
     };
@@ -92,10 +92,14 @@ module.exports = async function chromeDriver(options) {
 
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
-  if (isUTAMTest) {
-    const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities);
-  }
+  // if (isUTAMTest) {
+  //   const utamInstance = new UtamWdioService(
+  //     utamConfig,
+  //     extendedOptions.capabilities,
+  //     extendedOptions
+  //   );
+  //   await utamInstance.before(extendedOptions.capabilities);
+  // }
   await browser.setWindowSize(1280, 1024);
   return browser;
 };

@@ -20,51 +20,51 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require("fs-extra");
-const chalk = require("chalk");
-const chai = require("chai");
-const program = require("commander");
-const merge = require("merge");
-const requireDir = require("require-dir");
+const fs = require('fs-extra');
+// const chalk = require("chalk");
+const chai = require('chai');
+const program = require('commander');
+const merge = require('merge');
+const requireDir = require('require-dir');
 // let dir = require('node-dir');
 
-const { After, AfterAll, AfterStep, Status } = require("@cucumber/cucumber");
-const { Before, BeforeAll, BeforeStep } = require("@cucumber/cucumber");
-const { Given, When, Then } = require("@cucumber/cucumber");
-const s3Upload = require("./s3Upload");
-const getRemote = require("./getRemote");
+const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
+const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
+const { Given, When, Then } = require('@cucumber/cucumber');
+const s3Upload = require('./s3Upload');
+const getRemote = require('./getRemote');
 
 /**
  * all assertions for variable testing
  */
 const { assert, expect } = chai;
-const log = require("./logger").klassiLog();
+// const log = require("./logger").klassiLog();
 
 global.assert = assert;
 global.expect = expect;
 global.fs = fs;
-global.log = log;
+// global.log = log;
 
 /**
  * This is the Global date functionality
  */
-global.date = require("./helpers").currentDate();
+global.date = require('./helpers').currentDate();
 
 /**
  * for the Download of all file types
  */
-global.downloader = require("./downloader");
+global.downloader = require('./downloader');
 
 /**
  * Environment variables
  * @type {*|(function(): browser)}
  */
-const ChromeDriver = require("./chromeDriver");
-const FirefoxDriver = require("./firefoxDriver");
-const AndroidDriver = require("./androidDriver");
-const iOSDriver = require("./iosDriver");
+const ChromeDriver = require('./chromeDriver');
+const FirefoxDriver = require('./firefoxDriver');
+const AndroidDriver = require('./androidDriver');
+const iOSDriver = require('./iosDriver');
 
-const LambdaTestDriver = require("./lambdatestDriver");
+const LambdaTestDriver = require('./lambdatestDriver');
 
 const remoteService = getRemote(global.settings.remoteService);
 
@@ -77,37 +77,34 @@ let browser = {};
 async function getDriverInstance() {
   const browsers = global.settings.BROWSER_NAME;
   const options = {};
-  if (remoteService && remoteService.type === "lambdatest") {
+  if (remoteService && remoteService.type === 'lambdatest') {
     const configType = global.settings.remoteConfig;
-    assert.isString(
-      configType,
-      "LambdaTest requires a config type e.g. chrome.json"
-    );
+    assert.isString(configType, 'LambdaTest requires a config type e.g. chrome.json');
     browser = LambdaTestDriver(options, configType);
     return browser;
   }
-  assert.isNotEmpty(browsers, "Browser must be defined");
+  assert.isNotEmpty(browsers, 'Browser must be defined');
 
-  switch (browsers || "") {
-    case "firefox":
+  switch (browsers || '') {
+    case 'firefox':
       {
         browser = FirefoxDriver(options);
       }
       break;
 
-    case "chrome":
+    case 'chrome':
       {
         browser = ChromeDriver(options);
       }
       break;
 
-    case "android":
+    case 'android':
       {
         browser = AndroidDriver(options);
       }
       break;
 
-    case "ios":
+    case 'ios':
       {
         browser = iOSDriver(options);
       }
@@ -145,12 +142,12 @@ global.DELAY_2m = 120000; // 2 minutes delay
 global.DELAY_3m = 180000; // 3 minutes delay
 global.DELAY_5m = 300000; // 5 minutes delay
 
-function consoleInfo() {
-  // eslint-disable-next-line prefer-rest-params
-  const args = [].slice.call(arguments);
-  const output = chalk.bgBlue.white(`\n>>>>> \n${args}\n<<<<<\n`);
-  console.log(output);
-}
+// function consoleInfo() {
+//   // eslint-disable-next-line prefer-rest-params
+//   const args = [].slice.call(arguments);
+//   // const output = chalk.bgBlue.white(`\n>>>>> \n${args}\n<<<<<\n`);
+//   console.log(output);
+// }
 
 /**
  * All Cucumber Global variables
@@ -170,27 +167,16 @@ global.Status = Status;
 function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{date: (value?: string) => object, expect: *, shared: {}, trace: consoleInfo, log: log.RootLogger | log, assert: *, page: *[], gotApi: *, dir: {readFiles?: (function(String, Object, *=, *=): void)|{}, readFilesStream?: (function(String, Object, *=, *=): void)|{}}, fs: {rename(oldPath: PathLike, newPath: PathLike): Promise<void>, lchmod(path: PathLike, mode: Mode): Promise<void>, readdir: {(path: PathLike, options?: ((ObjectEncodingOptions & {withFileTypes?: false | undefined}) | BufferEncoding | null)): Promise<string[]>, (path: PathLike, options: ({encoding: "buffer", withFileTypes?: false | undefined} | "buffer")): Promise<Buffer[]>, (path: PathLike, options?: ((ObjectEncodingOptions & {withFileTypes?: false | undefined}) | BufferEncoding | null)): Promise<string[] | Buffer[]>, (path: PathLike, options: (ObjectEncodingOptions & {withFileTypes: true})): Promise<Dirent[]>}, realpath: {(path: PathLike, options?: (ObjectEncodingOptions | BufferEncoding | null)): Promise<string>, (path: PathLike, options: BufferEncodingOption): Promise<Buffer>, (path: PathLike, options?: (ObjectEncodingOptions | BufferEncoding | null)): Promise<string | Buffer>}, FileReadOptions: FileReadOptions, opendir(path: string, options?: OpenDirOptions): Promise<Dir>, symlink(target: PathLike, path: PathLike, type?: (string | null)): Promise<void>, link(existingPath: PathLike, newPath: PathLike): Promise<void>, lchown(path: PathLike, uid: number, gid: number): Promise<void>, open(path: PathLike, flags: (string | number), mode?: Mode): Promise<FileHandle>, chown(path: PathLike, uid: number, gid: number): Promise<void>, FileReadResult: FileReadResult, readFile: {(path: (PathLike | FileHandle), options?: (({encoding?: null | undefined, flag?: OpenMode | undefined} & Abortable) | null)): Promise<Buffer>, (path: (PathLike | FileHandle), options: (({encoding: BufferEncoding, flag?: OpenMode | undefined} & Abortable) | BufferEncoding)): Promise<string>, (path: (PathLike | FileHandle), options?: ((ObjectEncodingOptions & Abortable & {flag?: OpenMode | undefined}) | BufferEncoding | null)): Promise<string | Buffer>}, readlink: {(path: PathLike, options?: (ObjectEncodingOptions | BufferEncoding | null)): Promise<string>, (path: PathLike, options: BufferEncodingOption): Promise<Buffer>, (path: PathLike, options?: (ObjectEncodingOptions | string | null)): Promise<string | Buffer>}, utimes(path: PathLike, atime: (string | number | Date), mtime: (string | number | Date)): Promise<void>, mkdir: {(path: PathLike, options: (MakeDirectoryOptions & {recursive: true})): Promise<string | undefined>, (path: PathLike, options?: (Mode | (MakeDirectoryOptions & {recursive?: false | undefined}) | null)): Promise<void>, (path: PathLike, options?: (Mode | MakeDirectoryOptions | null)): Promise<string | undefined>}, watch: {(filename: PathLike, options: ((WatchOptions & {encoding: "buffer"}) | "buffer")): AsyncIterable<Buffer>, (filename: PathLike, options?: (WatchOptions | BufferEncoding)): AsyncIterable<string>, (filename: PathLike, options: (WatchOptions | string)): (AsyncIterable<string> | AsyncIterable<Buffer>)}, appendFile(path: (PathLike | FileHandle), data: (string | Uint8Array), options?: ((ObjectEncodingOptions & FlagAndOpenMode) | BufferEncoding | null)): Promise<void>, access(path: PathLike, mode?: number): Promise<void>, copyFile(src: PathLike, dest: PathLike, mode?: number): Promise<void>, lstat: {(path: PathLike, opts?: (StatOptions & {bigint?: false | undefined})): Promise<Stats>, (path: PathLike, opts: (StatOptions & {bigint: true})): Promise<BigIntStats>, (path: PathLike, opts?: StatOptions): Promise<Stats | BigIntStats>}, unlink(path: PathLike): Promise<void>, stat: {(path: PathLike, opts?: (StatOptions & {bigint?: false | undefined})): Promise<Stats>, (path: PathLike, opts: (StatOptions & {bigint: true})): Promise<BigIntStats>, (path: PathLike, opts?: StatOptions): Promise<Stats | BigIntStats>}, truncate(path: PathLike, len?: number): Promise<void>, writeFile(file: (PathLike | FileHandle), data: (string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Stream), options?: ((ObjectEncodingOptions & {mode?: Mode | undefined, flag?: OpenMode | undefined} & Abortable) | BufferEncoding | null)): Promise<void>, lutimes(path: PathLike, atime: (string | number | Date), mtime: (string | number | Date)): Promise<void>, rm(path: PathLike, options?: RmOptions): Promise<void>, FileHandle: FileHandle, mkdtemp: {(prefix: string, options?: (ObjectEncodingOptions | BufferEncoding | null)): Promise<string>, (prefix: string, options: BufferEncodingOption): Promise<Buffer>, (prefix: string, options?: (ObjectEncodingOptions | BufferEncoding | null)): Promise<string | Buffer>}, chmod(path: PathLike, mode: Mode): Promise<void>, FlagAndOpenMode: FlagAndOpenMode, rmdir(path: PathLike, options?: RmDirOptions): Promise<void>}, downloader: *}}
+   * @type {{date: (value?: string) => object, expect: *, shared: {}, log: log.RootLogger | log, assert: ((function(Philosophical, (String|Function), (String|Function), Comprehend.SentimentScore.Mixed, Comprehend.SentimentScore.Mixed, Boolean))|((value: unknown, message?: string) => asserts value)|((value: unknown, message?: string) => asserts value)|*), page: *[], fs: *}}
    */
   const runtime = {
     expect: global.expect, // expose chai expect to allow variable testing
     assert: global.assert, // expose chai assert to allow variable testing
     fs: global.fs, // expose fs (file system) for use globally
-    dir, // expose dir for getting an array of files, subdirectories or both
-    // eslint-disable-next-line max-len
-    trace: consoleInfo, // expose an info method to log output to the console in a readable/visible format
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
     log: global.log, // expose the log method for output to files for emailing
-    downloader: global.downloader, // exposes the downloader for global usage
-    gotApi: global.gotApi, // exposes GOT for API testing
     date: global.date, // expose the date method for logs and reports
-    // After: global.After,
-    // AfterAll: global.AfterAll,
-    // AfterStep: global.AfterStep,
-    // Before: global.Before,
-    // BeforeAll: global.BeforeAll,
-    // BeforeStep: global.BeforeStep,
   };
 
   /**
@@ -252,7 +238,7 @@ this.World = World;
  * set the default timeout for all tests
  */
 // eslint-disable-next-line import/order,import/no-extraneous-dependencies
-const { setDefaultTimeout } = require("@cucumber/cucumber");
+const { setDefaultTimeout } = require('@cucumber/cucumber');
 
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);
@@ -261,7 +247,7 @@ global.timeout = globalTimeout;
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require("./helpers").getStartDateTime();
+global.startDateTime = require('./helpers').getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
@@ -283,7 +269,7 @@ global.status = 0;
 Before(async (scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  if (remoteService && remoteService.type === "lambdatest") {
+  if (remoteService && remoteService.type === 'lambdatest') {
     await browser.execute(`lambda-name=${scenario.pickle.name}`);
   }
 });
@@ -299,18 +285,14 @@ AfterAll(async () => {
   await helpers.klassiReporter();
   try {
     browser.pause(DELAY_5s);
-    if (
-      remoteService &&
-      remoteService.type === "lambdatest" &&
-      program.opts().email
-    ) {
+    if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
         await s3Upload.s3Upload();
         browser.pause(DELAY_30s).then(() => {
           process.exit(global.status);
         });
       });
-    } else if (remoteService && remoteService.type === "lambdatest") {
+    } else if (remoteService && remoteService.type === 'lambdatest') {
       browser.pause(DELAY_5s).then(async () => {
         process.exit(global.status);
       });
@@ -332,11 +314,7 @@ AfterAll(async () => {
  */
 After(async (scenario) => {
   // eslint-disable-next-line no-shadow
-  if (
-    scenario.result.status === Status.FAILED &&
-    remoteService &&
-    remoteService.type === "lambdatest"
-  ) {
+  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
     await helpers.ltVideo();
     // eslint-disable-next-line no-undef
     const vidLink = await videoLib.getVideoId();
@@ -356,7 +334,7 @@ this.closebrowser = function () {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   switch (global.closeBrowser) {
-    case "no":
+    case 'no':
       return Promise.resolve();
     default:
       if (browser) {
@@ -372,15 +350,12 @@ this.closebrowser = function () {
 After(async (scenario) => {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  if (
-    scenario.result.status === Status.FAILED ||
-    scenario.result.status === Status.PASSED
-  ) {
-    if (remoteService && remoteService.type === "lambdatest") {
-      if (scenario.result.status === "FAILED") {
-        await browser.execute("lambda-status=failed");
+  if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
+    if (remoteService && remoteService.type === 'lambdatest') {
+      if (scenario.result.status === 'FAILED') {
+        await browser.execute('lambda-status=failed');
       } else if (scenario.result.status === Status.PASSED) {
-        await browser.execute("lambda-status=passed");
+        await browser.execute('lambda-status=passed');
       }
       return this.closebrowser();
     }
@@ -400,7 +375,7 @@ After(function (scenario) {
     global.status = 1;
     return browser.takeScreenshot().then((screenShot) => {
       // screenShot is a base-64 encoded PNG
-      world.attach(screenShot, "image/png");
+      world.attach(screenShot, 'image/png');
     });
   }
 });

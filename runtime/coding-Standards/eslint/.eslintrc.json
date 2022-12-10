@@ -12,18 +12,13 @@
         },
         "sourceType": "module"
     },
+    "plugins": ["import", "prettier"],
     "extends": [
         "eslint:recommended",
-        "eslint-config-airbnb-base",
         "plugin:import/errors",
-        "plugin:import/warnings",
-        "prettier",
-        "plugin:wdio/recommended"
+        "plugin:import/warnings"
     ],
-    "plugins": ["import", "prettier", "wdio", "istanbul"],
     "rules": {
-        "istanbul/no-ignore-file": "error",
-        "istanbul/prefer-ignore-reason": "error",
         "prettier/prettier": [
             "warn",
             {
