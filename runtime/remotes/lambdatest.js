@@ -46,7 +46,7 @@ function getCredentials() {
 
   return { user, key };
 }
-let uri;
+let url;
 let matchingBuilds;
 // let buildId;
 let sessionsBody;
@@ -57,8 +57,8 @@ async function submitResults() {
   const lambdatestApiKey = credentials.key;
   const apiCredentials = `${lambdatestUsername}:${lambdatestApiKey}`;
 
-  uri = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/builds`;
-  const buildsBody = await helpers.apiCall(uri, 'GET');
+  url = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/builds`;
+  const buildsBody = await helpers.apiCall(url, 'GET');
   matchingBuilds = buildsBody.body.data;
 
   let i;
@@ -74,8 +74,8 @@ async function submitResults() {
   }
   await matchingBuilds;
   // buildId = matchingBuilds;
-  uri = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions`;
-  sessionsBody = await helpers.apiCall(uri, 'GET');
+  url = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions`;
+  sessionsBody = await helpers.apiCall(url, 'GET');
 
   let x;
   const sessionData = sessionsBody.body.data;
@@ -93,7 +93,7 @@ async function submitResults() {
   // const { sessionId } = browser;
   // console.log('this is the session id ', sessionId);
   // console.log('this is the scenario result 2 ', scenarioResult.pickle.tags);
-  // console.log('This is the feature name ', scenarioResult.sourceLocation.uri);
+  // console.log('This is the feature name ', scenarioResult.sourceLocation.url);
   // console.log('this is the scenario name ', scenarioName);
   // console.log('this is the scenario steps ', scenarioResult.pickle.steps[0].text);
   // console.log('this is the scenario locations ', scenarioResult.pickle.locations);
@@ -117,7 +117,7 @@ async function submitResults() {
   //     console.log('this is the result of the test');
   //     await browser.executeScript('lambda-status=failed');
   //     explanations.push(`${scenarioName} failed:${scenarioResult.result.exception}`);
-  //     explanations.push(`${scenarioResult.sourceLocation.uri} (${scenarioResult.sourceLocation.line})`);
+  //     explanations.push(`${scenarioResult.sourceLocation.url} (${scenarioResult.sourceLocation.line})`);
   //   }
   //   return scenarioResult;
   // });
@@ -140,13 +140,13 @@ async function submitResults() {
   // if (scenarioResult.result.status === 'failed') {
   //   await browser.executeScript('lambda-status=failed');
   //   explanations.push(`${scenarioName} failed:${scenarioResult.result.exception}`);
-  //   explanations.push(`${scenarioResult.sourceLocation.uri} (${scenarioResult.sourceLocation.line})`);
+  //   explanations.push(`${scenarioResult.sourceLocation.url} (${scenarioResult.sourceLocation.line})`);
   // }
 
   // await gotApi({
-  // uri: `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions/${sessionId}`,
-  // uri = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions`;
-  // const stuff = await helpers.apiCall(uri, 'GET');
+  // url: `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions/${sessionId}`,
+  // url = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions`;
+  // const stuff = await helpers.apiCall(url, 'GET');
   // console.log('this is the get stuff ', stuff);
   // method: 'GET',
   // form: {
@@ -156,7 +156,7 @@ async function submitResults() {
   // });
 
   // const buildDetails = await gotApi({
-  //   uri: `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions/${sessionId}`,
+  //   url: `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions/${sessionId}`,
   //   method: 'GET',
   // });
   // const detailsToArray = buildDetails.split('"');
