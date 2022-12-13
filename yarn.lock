@@ -4528,10 +4528,9 @@ url@0.10.3:
     punycode "1.3.2"
     querystring "0.2.0"
 
-utam@1.2.2, utam@^1.2.1:
+utam@1.2.2, utam@larryg01/utam:
   version "1.2.2"
-  resolved "https://registry.yarnpkg.com/utam/-/utam-1.2.2.tgz#c45f7a76a0afb8b2f4a7ff60a2c067a753057904"
-  integrity sha512-wBtPU+64qJE6hvRK2pz2xX/6tSKe/GdqpxcDMKJaLSn9c4dHU0TRZ+T0QbPTfPOPvpS16IroIjZ1YL3XwqmmJw==
+  resolved "https://codeload.github.com/larryg01/utam/tar.gz/4a02bdbae62cf16b36433632e40c632996b4aa4d"
   dependencies:
     "@utam/compiler" "1.2.2"
     "@utam/core" "1.2.2"

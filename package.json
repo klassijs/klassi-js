@@ -90,7 +90,7 @@
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
-    "utam": "^1.2.1",
+    "utam": "larryg01/utam",
     "wdio-utam-service": "larryg01/wdio-utam-service",
     "webdriverio": "^8.0.9"
   },
