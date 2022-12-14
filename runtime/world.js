@@ -28,9 +28,9 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 // let dir = require('node-dir');
 
-const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
-const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
-const { Given, When, Then } = require('@cucumber/cucumber');
+// const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
+// const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
+// const { Given, When, Then } = require('@cucumber/cucumber');
 const s3Upload = require('./s3Upload');
 const getRemote = require('./getRemote');
 
@@ -117,30 +117,30 @@ async function getDriverInstance() {
   return browser;
 }
 
-/**
- * Global timeout
- * @type {number}
- */
-global.DELAY_100ms = 100; // 100 millisecond delay
-global.DELAY_200ms = 200; // 200 millisecond delay
-global.DELAY_300ms = 300; // 300 millisecond delay
-global.DELAY_500ms = 500; // 500 millisecond delay
-global.DELAY_7500ms = 7500; // 7500 milliseconds delay
-global.DELAY_1s = 1000; // 1 second delay
-global.DELAY_2s = 2000; // 2 second delay
-global.DELAY_3s = 3000; // 3 second delay
-global.DELAY_5s = 5000; // 5 second delay
-global.DELAY_7s = 7000; // 7 second delay
-global.DELAY_8s = 8000; // 8 seconds delay
-global.DELAY_10s = 10000; // 10 second delay
-global.DELAY_15s = 15000; // 15 second delay
-global.DELAY_20s = 20000; // 20 second delay
-global.DELAY_30s = 30000; // 30 second delay
-global.DELAY_40s = 40000; // 40 second delay
-global.DELAY_1m = 60000; // 1 minute delay
-global.DELAY_2m = 120000; // 2 minutes delay
-global.DELAY_3m = 180000; // 3 minutes delay
-global.DELAY_5m = 300000; // 5 minutes delay
+// /**
+//  * Global timeout
+//  * @type {number}
+//  */
+// global.DELAY_100ms = 100; // 100 millisecond delay
+// global.DELAY_200ms = 200; // 200 millisecond delay
+// global.DELAY_300ms = 300; // 300 millisecond delay
+// global.DELAY_500ms = 500; // 500 millisecond delay
+// global.DELAY_7500ms = 7500; // 7500 milliseconds delay
+// global.DELAY_1s = 1000; // 1 second delay
+// global.DELAY_2s = 2000; // 2 second delay
+// global.DELAY_3s = 3000; // 3 second delay
+// global.DELAY_5s = 5000; // 5 second delay
+// global.DELAY_7s = 7000; // 7 second delay
+// global.DELAY_8s = 8000; // 8 seconds delay
+// global.DELAY_10s = 10000; // 10 second delay
+// global.DELAY_15s = 15000; // 15 second delay
+// global.DELAY_20s = 20000; // 20 second delay
+// global.DELAY_30s = 30000; // 30 second delay
+// global.DELAY_40s = 40000; // 40 second delay
+// global.DELAY_1m = 60000; // 1 minute delay
+// global.DELAY_2m = 120000; // 2 minutes delay
+// global.DELAY_3m = 180000; // 3 minutes delay
+// global.DELAY_5m = 300000; // 5 minutes delay
 
 // function consoleInfo() {
 //   // eslint-disable-next-line prefer-rest-params
@@ -148,21 +148,21 @@ global.DELAY_5m = 300000; // 5 minutes delay
 //   // const output = chalk.bgBlue.white(`\n>>>>> \n${args}\n<<<<<\n`);
 //   console.log(output);
 // }
-
-/**
- * All Cucumber Global variables
- * @constructor
- */
-global.Given = Given;
-global.When = When;
-global.Then = Then;
-global.After = After;
-global.AfterAll = AfterAll;
-global.AfterStep = AfterStep;
-global.Before = Before;
-global.BeforeAll = BeforeAll;
-global.BeforeStep = BeforeStep;
-global.Status = Status;
+//
+// /**
+//  * All Cucumber Global variables
+//  * @constructor
+//  */
+// global.Given = Given;
+// global.When = When;
+// global.Then = Then;
+// global.After = After;
+// global.AfterAll = AfterAll;
+// global.AfterStep = AfterStep;
+// global.Before = Before;
+// global.BeforeAll = BeforeAll;
+// global.BeforeStep = BeforeStep;
+// global.Status = Status;
 
 function World() {
   /**
@@ -279,32 +279,34 @@ Before(async (scenario) => {
  * send email with the report to stakeholders after test run
  */
 AfterAll(async () => {
+  console.log('this is after all');
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   // eslint-disable-next-line no-undef
   await helpers.klassiReporter();
-  try {
-    browser.pause(DELAY_5s);
-    if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
-      browser.pause(DELAY_5s).then(async () => {
-        await s3Upload.s3Upload();
-        browser.pause(DELAY_30s).then(() => {
-          process.exit(global.status);
-        });
-      });
-    } else if (remoteService && remoteService.type === 'lambdatest') {
-      browser.pause(DELAY_5s).then(async () => {
-        process.exit(global.status);
-      });
-    } else if (program.opts().email) {
-      browser.pause(DELAY_5s).then(async () => {
-        await helpers.klassiEmail();
-        browser.pause(DELAY_3s);
-      });
-    }
-  } catch (err) {
-    console.log(err.message);
-  }
+  console.log('this is after all');
+  //   try {
+  //     browser.pause(DELAY_5s);
+  //     if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
+  //       browser.pause(DELAY_5s).then(async () => {
+  //         await s3Upload.s3Upload();
+  //         browser.pause(DELAY_30s).then(() => {
+  //           process.exit(global.status);
+  //         });
+  //       });
+  //     } else if (remoteService && remoteService.type === 'lambdatest') {
+  //       browser.pause(DELAY_5s).then(async () => {
+  //         process.exit(global.status);
+  //       });
+  //     } else if (program.opts().email) {
+  //       browser.pause(DELAY_5s).then(async () => {
+  //         await helpers.klassiEmail();
+  //         browser.pause(DELAY_3s);
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.log(err.message);
+  //   }
 });
 
 /**

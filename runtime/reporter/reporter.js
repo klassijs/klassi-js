@@ -76,6 +76,7 @@ module.exports = {
         // brandTitle: `${reportName} ${dateTime} ${env.envName}`,
         name: `${projectName} ${browserName}`,
       };
+      // eslint-disable-next-line wdio/no-pause
       // eslint-disable-next-line func-names,wdio/no-pause
       browser.pause(DELAY_3s).then(() => {
         reporter.generate(reportOptions);
