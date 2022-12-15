@@ -13,7 +13,6 @@ const options = {
         env.envName,
         `${reportName}-${dateTime}.json`
       )}`,
-      'html:',
     ],
     formatOptions: {
       colorsEnabled: true,
