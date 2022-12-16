@@ -46,25 +46,25 @@ const klassiCli = new (require('@cucumber/cucumber').Cli)({
 //   return success
 // }
 
-/** execute cucumber Cli */
-try {
-  klassiCli.run((succeeded) => {
-    if (!succeeded) {
-      process.exit(1);
-    }
-    if (process.stdout.write('')) {
-      process.exit();
-    } else {
-      // kernel buffer is not empty yet
-      process.stdout.on('drain', () => {
-        process.exit();
-      });
-    }
-  });
-} catch (err) {
-  console.log(`cucumber integration has failed ${err.message}`);
-  throw err;
-}
+// /** execute cucumber Cli */
+// try {
+//   klassiCli.run((succeeded) => {
+//     if (!succeeded) {
+//       process.exit(1);
+//     }
+//     if (process.stdout.write('')) {
+//       process.exit();
+//     } else {
+//       // kernel buffer is not empty yet
+//       process.stdout.on('drain', () => {
+//         process.exit();
+//       });
+//     }
+//   });
+// } catch (err) {
+//   console.log(`cucumber integration has failed ${err.message}`);
+//   throw err;
+// }
 
 const pjson = require('./package.json');
 
@@ -443,21 +443,21 @@ if (options.browsers) {
 // process.argv.push('-S');
 
 /** execute cucumber Cli */
-// try {
-//   klassiCli((succeeded) => {
-//     if (!succeeded) {
-//       process.exit(1);
-//     }
-//     if (process.stdout.write("")) {
-//       process.exit();
-//     } else {
-//       // kernel buffer is not empty yet
-//       process.stdout.on("drain", () => {
-//         process.exit();
-//       });
-//     }
-//   });
-// } catch (err) {
-//   console.log(`cucumber integration has failed ${err.message}`);
-//   throw err;
-// }
+try {
+  klassiCli.run((succeeded) => {
+    if (!succeeded) {
+      process.exit(1);
+    }
+    if (process.stdout.write('')) {
+      process.exit();
+    } else {
+      // kernel buffer is not empty yet
+      process.stdout.on('drain', () => {
+        process.exit();
+      });
+    }
+  });
+} catch (err) {
+  console.log(`cucumber integration has failed ${err.message}`);
+  throw err;
+}

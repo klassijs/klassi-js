@@ -78,7 +78,7 @@
     "chai": "^4.3.7",
     "commander": "^9.4.1",
     "cosmiconfig": "^8.0.0",
-    "cucumber-html-reporter": "^5.5.0",
+    "cucumber-html-reporter": "https://github.com/larryg01/cucumber-html-reporter#poc/upgrading",
     "cucumber-junit": "^1.7.1",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
