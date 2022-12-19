@@ -55,7 +55,7 @@ module.exports = {
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
-        theme: 'hierarchy',
+        theme: 'bootstrap',
         jsonFile,
         output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
