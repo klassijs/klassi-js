@@ -26,38 +26,41 @@ const program = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
-
+const chai = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { exec } = require('child_process');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
-const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
-const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
-const { Given, When, Then } = require('@cucumber/cucumber');
+const {
+  After,
+  AfterAll,
+  AfterStep,
+  Status,
+  Before,
+  BeforeAll,
+  BeforeStep,
+  Given,
+  When,
+  Then,
+} = require('@cucumber/cucumber');
+const pjson = require('./package.json');
 
-// const cucumberOptions = {
-//   default: {
-//     require: ['runtime/world.js', 'step_definitions/**/*.js'],
-//     tags: global.resultingString,
-//     format: [
-//       '@cucumber/pretty-formatter',
-//       `json:${path.resolve(__dirname, paths.reports, browserName, env.envName, `${reportName}-${dateTime}.json`)}`,
-//     ],
-//     formatOptions: {
-//       colorsEnabled: true,
-//     },
-//   },
-// };
 async function klassiCli() {
   const { runConfiguration } = await loadConfiguration();
   const { success } = await runCucumber(runConfiguration);
   return success;
 }
 
-const pjson = require('./package.json');
+/**
+ * all assertions for variable testing
+ */
+const { assert, expect } = chai;
+global.assert = assert;
+global.expect = expect;
+global.fs = fs;
 
 /**
- * Global timeout
+ * Global timeout to be used in test code
  * @type {number}
  */
 global.DELAY_100ms = 100; // 100 millisecond delay
@@ -84,6 +87,9 @@ global.DELAY_5m = 300000; // 5 minutes delay
 /**
  * All Cucumber Global variables
  * @constructor
+ */
+/**
+ * @type {(<WorldType=IWorld>(pattern: DefineStepPattern, code: TestStepFunction<WorldType>) => void) & (<WorldType=IWorld>(pattern: DefineStepPattern, options: IDefineStepOptions, code: TestStepFunction<WorldType>) => void)}
  */
 global.Given = Given;
 global.When = When;
@@ -133,7 +139,6 @@ program
   .option('--pageObjects <paths>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('--reports <paths>', 'output path to save reports. defaults to ./reports', 'reports')
   .option('--headless', 'whether to run browser in headless mode. defaults to false', false)
-  // .option('--devTools', 'auto-open a DevTools. if true headless mode is disabled.', true)
   .option('--coverage <paths>', 'output path to save nyc reports. defaults to ./coverage', 'coverage')
   .option('--steps <paths>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option(
@@ -274,25 +279,6 @@ fs.ensureDirSync(axereports, (err) => {
   }
 });
 
-// const cucumberOptions = {
-//   default: {
-//     require: ['runtime/world.js', 'step_definitions/**/getMethod-steps.js'],
-//     tags: global.resultingString,
-//     format: [
-//       '@cucumber/pretty-formatter',
-//       `json:${path.resolve(__dirname, paths.reports, browserName, env.envName, `${reportName}-${dateTime}.json`)}`,
-//     ],
-//     formatOptions: {
-//       colorsEnabled: true,
-//     },
-//   },
-// };
-// async function klassiCli() {
-//   const { runConfiguration } = await loadConfiguration({ provided: cucumberOptions });
-//   const { success } = await runCucumber(runConfiguration);
-//   return success;
-// }
-
 /** adding global helpers */
 global.helpers = require('./runtime/helpers');
 
@@ -304,7 +290,6 @@ if (fs.existsSync(accessibility_lib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.accessibilityLib = require(accessibility_lib);
   global.accessibilityReportList = rList;
-  // console.log('Accessibility library is available');
 } else console.error('No Accessibility Lib');
 
 /**
@@ -316,7 +301,6 @@ const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.videoLib = require(videoLib);
-  // console.log('Video library is available');
 } else {
   console.error('No Video Lib');
 }
@@ -326,7 +310,6 @@ const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
   const allDirs = {};
   const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
-
   merge(allDirs, dir);
   if (Object.keys(allDirs).length > 0) {
     global.sharedObjects = allDirs;
@@ -342,36 +325,15 @@ if (fs.existsSync(pageObjectPath)) {
   });
 }
 
-/** rewrite command line switches for cucumber */
-process.argv.splice(2, 100);
-
+// TODO : needs rewrite for internal usage
 /** specify the feature files folder (this must be the first argument for Cucumber)
  /* specify the feature files to be executed */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
-
   splitFeatureFiles.forEach((feature) => {
     process.argv.push(feature);
   });
 }
-
-/** add switch to tell cucumber to produce json report files */
-// const cpPath = '@cucumber/pretty-formatter';
-
-// process.argv.push(
-//   '-f',
-//   cpPath,
-//   '--format-options',
-//   '{"colorsEnabled": true}',
-//   '-f',
-//   `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`
-// );
-
-/** add cucumber world as first required script (this sets up the globals) */
-// process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
-
-/** add path to import step definitions */
-process.argv.push('-r', path.resolve(options.steps));
 
 /** Get tags from feature files
  * @returns {Array<string>} list of all tags found
@@ -479,6 +441,7 @@ if (options.tags.length > 0) {
   }
 }
 
+//TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
 /** Add split to run multiple browsers from the command line */
 if (options.browsers) {
   const splitBrowsers = options.browser.split(',');
@@ -487,29 +450,6 @@ if (options.browsers) {
   });
   process.argv.push('-b', options.browser);
 }
-
-/** add strict option (fail if there are any undefined or pending steps) */
-// process.argv.push('-S');
-
-// const cucumberOptions = {
-//   default: {
-//     require: ['runtime/world.js', 'step_definitions/**/*.js'],
-//     tags: global.resultingString,
-//     format: [
-//       // '@cucumber/pretty-formatter',
-//       //   `json:${path.resolve(
-//       //     __dirname,
-//       //     global.paths.reports,
-//       //     browserName,
-//       //     env.envName,
-//       //     `${reportName}-${dateTime}.json`
-//       //   )}`,
-//     ],
-//     formatOptions: {
-//       colorsEnabled: true,
-//     },
-//   },
-// };
 
 /** execute cucumber Cli */
 try {
@@ -531,5 +471,3 @@ try {
   console.log(`cucumber integration has failed ${err.message}`);
   throw err;
 }
-
-// module.exports = { getTagsFromFeatureFiles };

@@ -1,4 +1,4 @@
-@uattest
+@uattest @search
 Feature: Searching for apps with duckduckgo
   As an internet user
   In order to find out more about certain user apps
@@ -7,7 +7,7 @@ Feature: Searching for apps with duckduckgo
   Background:
 #    Given The user arrives on the duckduckgo search page
 
-  @search
+#  @search
   Scenario Outline: User inputs <searchword> and searches for data
     Given The user arrives on the duckduckgo search page
 #    Then Add modHeader <extName> <Username> <password>
@@ -20,3 +20,6 @@ Feature: Searching for apps with duckduckgo
       | mango | modHeader | username | password |
 #      | traffic | modHeader | username | password |
 
+  Scenario: Search for UTAM on Google
+    Given The user the navigates to Google
+    When They use the the engine to search for a word

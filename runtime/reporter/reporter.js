@@ -52,24 +52,6 @@ module.exports = {
   //   });
   // },
 
-  // myFunction: function () {
-  //   console.log('this is it ===> ', ndjsonToJson);
-  //   // exec('node ndjsonToJson \'../reports/AutomatedReport-16-12-2022-160344647.ndjson\' > \'samples.json\'');
-  //   // exec('yarn json');
-  //   // console.log('this is the file now ===> ', json);
-  //   // }
-  //   // .then((json) => {
-  //   // Use the JSON objects in your function
-  //   // For example, you could iterate over the array and use the values to set input values or verify element text:
-  //   // json.forEach((obj) => {
-  //   //   Object.entries(obj).forEach(([key, value]) => {
-  //   //     browser.setValue(`input[name=${key}]`, value);
-  //   //   });
-  //   // });
-  //   // })
-  //   // );
-  // },
-
   async reporter() {
     const envName = env.envName.toLowerCase();
     try {
@@ -81,17 +63,13 @@ module.exports = {
     }
 
     let jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
-    console.log('ln 92 in reporter.js');
-    // helpers.ndjsonPoc(
-    //   path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.ndjson`),
-    //   jsonFile
-    // );
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+      global.startDateTime = helpers.getStartDateTime();
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
-        theme: 'bootstrap',
+        theme: 'hierarchy',
         jsonFile,
         output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
@@ -99,7 +77,6 @@ module.exports = {
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
-          // eslint-disable-next-line no-undef
           Environment: env.envName,
           IpAddress: obj.query,
           Browser: browserName,
@@ -109,22 +86,18 @@ module.exports = {
           Executed: remoteService && remoteService.type === 'lambdatest' ? 'Remote' : 'Local',
         },
         brandTitle: `${reportName} ${dateTime}`,
-        // brandTitle: `${reportName} ${dateTime} ${env.envName}`,
-        name: `${projectName} ${browserName}`,
+        name: `${projectName} ${browserName} ${env.envName}`,
       };
-      // browser.pause(DELAY_3s).then(() => {
       await browser.pause(DELAY_3s);
-      console.log('this should generate the report');
-      reporter.generate(reportOptions);
+      await reporter.generate(reportOptions);
 
-      // grab the file data for xml creation
+      /** grab the file data for xml creation */
       const reportRaw = fs.readFileSync(jsonFile).toString().trim();
       const xmlReport = jUnit(reportRaw);
       const junitOutputPath = path.resolve(
         path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
       );
       fs.writeFileSync(junitOutputPath, xmlReport);
-      // });
     }
   },
 };

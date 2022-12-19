@@ -25,11 +25,8 @@ const pactumJs = require('pactum');
 /**
  * setting the envConfig variables for file list
  */
-// eslint-disable-next-line no-undef
 const ltUrl = process.env.LAMBDATEST_API_URL;
-// eslint-disable-next-line no-undef
 const ltUsername = process.env.LAMBDATEST_USERNAME;
-// eslint-disable-next-line no-undef
 const ltKey = process.env.LAMBDATEST_ACCESS_KEY;
 
 let res;

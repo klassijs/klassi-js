@@ -707,10 +707,4 @@ module.exports = {
     await module.exports.write();
     cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
   },
-
-  ndjsonPoc: function (filename, outputfile) {
-    const file = fs.readFileSync(filename);
-    let data = JSON.stringify(file.toString().trim().split('\n').map(JSON.parse));
-    fs.writeFileSync(outputfile, data, { spaces: 2 });
-  },
 };
