@@ -26,47 +26,81 @@ const program = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
-
+const chai = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { exec } = require('child_process');
-// const {runCucumber, loadConfiguration } = require("@cucumber/cucumber/api")
+const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
+const {
+  After,
+  AfterAll,
+  AfterStep,
+  Status,
+  Before,
+  BeforeAll,
+  BeforeStep,
+  Given,
+  When,
+  Then,
+} = require('@cucumber/cucumber');
+const pjson = require('./package.json');
 
-const klassiCli = new (require('@cucumber/cucumber').Cli)({
-  argv: process.argv,
-  cwd: process.cwd(),
-  stdout: process.stdout,
-  stderr: process.stderr,
-  env: process.env,
-});
-
-// async function klassiCli() {
-//   const { runConfiguration } = await loadConfiguration()
-//   const { success } = await runCucumber(runConfiguration, config)
-//   return success
-// }
-
-/** execute cucumber Cli */
-try {
-  klassiCli.run((succeeded) => {
-    if (!succeeded) {
-      process.exit(1);
-    }
-    if (process.stdout.write('')) {
-      process.exit();
-    } else {
-      // kernel buffer is not empty yet
-      process.stdout.on('drain', () => {
-        process.exit();
-      });
-    }
-  });
-} catch (err) {
-  console.log(`cucumber integration has failed ${err.message}`);
-  throw err;
+async function klassiCli() {
+  const { runConfiguration } = await loadConfiguration();
+  const { success } = await runCucumber(runConfiguration);
+  return success;
 }
 
-const pjson = require('./package.json');
+/**
+ * all assertions for variable testing
+ */
+const { assert, expect } = chai;
+global.assert = assert;
+global.expect = expect;
+global.fs = fs;
+
+/**
+ * Global timeout to be used in test code
+ * @type {number}
+ */
+global.DELAY_100ms = 100; // 100 millisecond delay
+global.DELAY_200ms = 200; // 200 millisecond delay
+global.DELAY_300ms = 300; // 300 millisecond delay
+global.DELAY_500ms = 500; // 500 millisecond delay
+global.DELAY_7500ms = 7500; // 7500 milliseconds delay
+global.DELAY_1s = 1000; // 1 second delay
+global.DELAY_2s = 2000; // 2 second delay
+global.DELAY_3s = 3000; // 3 second delay
+global.DELAY_5s = 5000; // 5 second delay
+global.DELAY_7s = 7000; // 7 second delay
+global.DELAY_8s = 8000; // 8 seconds delay
+global.DELAY_10s = 10000; // 10 second delay
+global.DELAY_15s = 15000; // 15 second delay
+global.DELAY_20s = 20000; // 20 second delay
+global.DELAY_30s = 30000; // 30 second delay
+global.DELAY_40s = 40000; // 40 second delay
+global.DELAY_1m = 60000; // 1 minute delay
+global.DELAY_2m = 120000; // 2 minutes delay
+global.DELAY_3m = 180000; // 3 minutes delay
+global.DELAY_5m = 300000; // 5 minutes delay
+
+/**
+ * All Cucumber Global variables
+ * @constructor
+ */
+/**
+ * @type {(<WorldType=IWorld>(pattern: DefineStepPattern, code: TestStepFunction<WorldType>) => void) & (<WorldType=IWorld>(pattern: DefineStepPattern, options: IDefineStepOptions, code: TestStepFunction<WorldType>) => void)}
+ */
+global.Given = Given;
+global.When = When;
+global.Then = Then;
+global.After = After;
+global.AfterAll = AfterAll;
+global.AfterStep = AfterStep;
+global.Before = Before;
+global.BeforeAll = BeforeAll;
+global.BeforeStep = BeforeStep;
+global.Status = Status;
 
 function collectPaths(value, paths) {
   paths.push(value);
@@ -105,7 +139,6 @@ program
   .option('--pageObjects <paths>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('--reports <paths>', 'output path to save reports. defaults to ./reports', 'reports')
   .option('--headless', 'whether to run browser in headless mode. defaults to false', false)
-  // .option('--devTools', 'auto-open a DevTools. if true headless mode is disabled.', true)
   .option('--coverage <paths>', 'output path to save nyc reports. defaults to ./coverage', 'coverage')
   .option('--steps <paths>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option(
@@ -257,7 +290,6 @@ if (fs.existsSync(accessibility_lib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.accessibilityLib = require(accessibility_lib);
   global.accessibilityReportList = rList;
-  // console.log('Accessibility library is available');
 } else console.error('No Accessibility Lib');
 
 /**
@@ -269,7 +301,6 @@ const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
   // eslint-disable-next-line global-require,import/no-dynamic-require
   global.videoLib = require(videoLib);
-  // console.log('Video library is available');
 } else {
   console.error('No Video Lib');
 }
@@ -279,7 +310,6 @@ const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
   const allDirs = {};
   const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
-
   merge(allDirs, dir);
   if (Object.keys(allDirs).length > 0) {
     global.sharedObjects = allDirs;
@@ -295,39 +325,17 @@ if (fs.existsSync(pageObjectPath)) {
   });
 }
 
-/** rewrite command line switches for cucumber */
-process.argv.splice(2, 100);
-
+// TODO : needs rewrite for internal usage
 /** specify the feature files folder (this must be the first argument for Cucumber)
  /* specify the feature files to be executed */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
-
   splitFeatureFiles.forEach((feature) => {
     process.argv.push(feature);
   });
 }
 
-/** add switch to tell cucumber to produce json report files */
-const cpPath = '@cucumber/pretty-formatter';
-
-process.argv.push(
-  '-f',
-  cpPath,
-  '--format-options',
-  '{"colorsEnabled": true}',
-  '-f',
-  `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`
-);
-
-/** add cucumber world as first required script (this sets up the globals) */
-process.argv.push('-r', path.resolve(__dirname, './runtime/world.js'));
-
-/** add path to import step definitions */
-process.argv.push('-r', path.resolve(options.steps));
-
-/**
- * Get tags from feature files
+/** Get tags from feature files
  * @returns {Array<string>} list of all tags found
  */
 function getTagsFromFeatureFiles() {
@@ -349,9 +357,11 @@ function getTagsFromFeatureFiles() {
 /**
  * verify the correct tags for scenarios to run
  */
+// console.log('these are the found tags 1 ', options.tags);
 if (options.tags.length > 0) {
   const tagsFound = getTagsFromFeatureFiles();
   // console.log('these are the found tags ', tagsFound);
+  // console.log('these are the found tags ', options.tags);
   const separateMultipleTags = options.tags[0].split(',');
   let separateExcludedTags;
 
@@ -388,26 +398,26 @@ if (options.tags.length > 0) {
     });
   }
 
-  process.argv.push('--tags');
+  // process.argv.push('--tags');.
 
   let resultingString;
 
   if (correctTags.length > 1) {
     const multipleTagsCommand = correctTags.reduce((acc, currentTag) => {
       resultingString = `${acc} or ${currentTag}`;
-      return resultingString;
+      // return resultingString;
     });
 
     if (correctExcludedTags.length >= 1) {
       const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
         resultingString = `${acc} and not ${currentTag}`;
-        return resultingString;
+        // return resultingString;
       });
 
       resultingString = `${multipleTagsCommand} and not ${excludedCommand}`;
     }
 
-    process.argv.push(resultingString);
+    global.resultingString = resultingString;
   } else {
     switch (correctExcludedTags.length) {
       case 0:
@@ -421,15 +431,17 @@ if (options.tags.length > 0) {
       default:
         const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
         resultingString = `${acc} and not ${currentTag}`;
-        return resultingString;
+        // return resultingString;
       });
         resultingString = `${correctTags[0]} and not ${excludedCommand}`;
         break;
     }
-    process.argv.push(resultingString);
+    global.resultingString = resultingString;
+    // console.log('tags in indexfile ==> ', resultingString);
   }
 }
 
+//TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
 /** Add split to run multiple browsers from the command line */
 if (options.browsers) {
   const splitBrowsers = options.browser.split(',');
@@ -439,25 +451,23 @@ if (options.browsers) {
   process.argv.push('-b', options.browser);
 }
 
-/** add strict option (fail if there are any undefined or pending steps) */
-// process.argv.push('-S');
-
 /** execute cucumber Cli */
-// try {
-//   klassiCli((succeeded) => {
-//     if (!succeeded) {
-//       process.exit(1);
-//     }
-//     if (process.stdout.write("")) {
-//       process.exit();
-//     } else {
-//       // kernel buffer is not empty yet
-//       process.stdout.on("drain", () => {
-//         process.exit();
-//       });
-//     }
-//   });
-// } catch (err) {
-//   console.log(`cucumber integration has failed ${err.message}`);
-//   throw err;
-// }
+try {
+  klassiCli().then(async (succeeded) => {
+    await helpers.klassiReporter();
+    if (!succeeded) {
+      process.exit(1);
+    }
+    if (process.stdout.write('')) {
+      process.exit();
+    } else {
+      // kernel buffer is not empty yet
+      process.stdout.on('drain', () => {
+        process.exit();
+      });
+    }
+  });
+} catch (err) {
+  console.log(`cucumber integration has failed ${err.message}`);
+  throw err;
+}

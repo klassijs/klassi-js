@@ -22,31 +22,31 @@
  */
 const wdio = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
-// const { UtamWdioService } = require('wdio-utam-service');
+const { UtamWdioService } = require('wdio-utam-service');
 const fs = require('fs');
 const path = require('path');
 const loadConfig = require('./configLoader');
 const lambdatest = require('./remotes/lambdatest');
-// const utamConfig = require('./utam.config');
+const utamConfig = require('./utam.config');
 
 const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
 });
+
 const chExt = {
   'LT:Options': {
     'goog:chromeOptions': {
-      // args: ['--no-sandbox', '--disable-gpu', '--disable-popup-blocking'],
       extensions: [modHeader],
     },
   },
 };
 
-// let isUTAMTest;
+let isUTAMTest;
 let config;
 
-// Before((scenario) => {
-//   isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
-// });
+Before((scenario) => {
+  isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
+});
 
 module.exports = async function lambdatestDriver(options, configType) {
   const browserCaps = loadConfig(`./lambdatest/${configType}.json`);
@@ -58,7 +58,7 @@ module.exports = async function lambdatestDriver(options, configType) {
   } else {
     config = browserCaps;
   }
-  // lambdatest will do this anyway, this is to make it explicit
+  /** lambdatest will do this anyway, this is to make it explicit */
   const buildNameFromConfig = configType.replace(/-/g, ' ');
 
   if (process.env.CI || process.env.CIRCLE_CI) {
@@ -66,7 +66,7 @@ module.exports = async function lambdatestDriver(options, configType) {
     const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
     config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
   } else {
-    // configs can define their own build name or it is inferred from the configType
+    /** configs can define their own build name or it is inferred from the configType */
     config.build = `${global.projectName}-${buildNameFromConfig}`;
     config.tunnelName = 'ouptunnel';
   }
@@ -98,9 +98,9 @@ module.exports = async function lambdatestDriver(options, configType) {
     extendedOptions.logLevel = config.logLevel;
   }
   global.browser = await wdio.remote(extendedOptions);
-  // if (isUTAMTest) {
-  //   const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-  //   await utamInstance.before(extendedOptions.capabilities);
-  // }
+  if (isUTAMTest) {
+    const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
+    await utamInstance.before(extendedOptions.capabilities);
+  }
   return browser;
 };

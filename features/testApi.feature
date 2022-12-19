@@ -3,7 +3,7 @@ Feature: The API feature/functionality
   Background: Then user login to the Site
     Given I am logged into the Site
 
-  @get
+
   Scenario:
     When I make a GET call to an endPoint and get a statusCode of 200
 

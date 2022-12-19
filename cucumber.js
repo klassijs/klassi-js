@@ -20,42 +20,25 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const { remote } = require('webdriverio');
+const path = require('path');
 
-let defaults = {};
-
-/**
- * create the web browser based on globals set in index.js
- * @returns {{}}
- */
-module.exports = async function iOSDriver(options) {
-  defaults = {
-    logLevel: 'error',
-    port: 4723,
-    path: '/wd/hub',
-    capabilities: {
-      platformName: 'iOS',
-      platformVersion: '15.2',
-      deviceName: 'iPhone 13',
-      noReset: true,
-      fullReset: false,
-      automationName: 'XCUITest',
-      console: true,
+const options = {
+  default: {
+    require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
+    tags: global.resultingString,
+    format: [
+      '@cucumber/pretty-formatter',
+      `json:${path.resolve(
+        __dirname,
+        global.paths.reports,
+        browserName,
+        env.envName,
+        `${reportName}-${dateTime}.json`
+      )}`,
+    ],
+    formatOptions: {
+      colorsEnabled: true,
     },
-  };
-
-  // Add proxy based on env var.
-  const useProxy = process.env.USE_PROXY || false;
-
-  if (useProxy) {
-    defaults.capabilities.proxy = {
-      httpProxy: '',
-      proxyType: 'MANUAL',
-      autodetect: false,
-    };
-  }
-
-  const extendedOptions = Object.assign(defaults, options);
-  global.browser = await remote(extendedOptions);
-  return browser;
+  },
 };
+module.exports = options;

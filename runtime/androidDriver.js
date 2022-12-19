@@ -47,7 +47,7 @@ module.exports = async function androidDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
+      httpProxy: '',
       proxyType: 'MANUAL',
       autodetect: false,
     };
