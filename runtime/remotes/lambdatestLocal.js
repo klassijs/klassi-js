@@ -31,7 +31,7 @@ const tunnelArguments = {
   user: process.env.LAMBDATEST_USERNAME,
   key: process.env.LAMBDATEST_ACCESS_KEY,
   infoAPIPort: 8000,
-  tunnelName: 'ouptunnel',
+  tunnelName: 'klassitunnel',
 };
 
 (async () => {

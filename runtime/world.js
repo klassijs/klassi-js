@@ -21,29 +21,11 @@
  SOFTWARE.
  */
 const fs = require('fs-extra');
-// const chalk = require("chalk");
-const chai = require('chai');
 const program = require('commander');
 const merge = require('merge');
 const requireDir = require('require-dir');
-// let dir = require('node-dir');
-
-const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
-const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
-const { Given, When, Then } = require('@cucumber/cucumber');
 const s3Upload = require('./s3Upload');
 const getRemote = require('./getRemote');
-
-/**
- * all assertions for variable testing
- */
-const { assert, expect } = chai;
-// const log = require("./logger").klassiLog();
-
-global.assert = assert;
-global.expect = expect;
-global.fs = fs;
-// global.log = log;
 
 /**
  * This is the Global date functionality
@@ -56,14 +38,13 @@ global.date = require('./helpers').currentDate();
 global.downloader = require('./downloader');
 
 /**
- * Environment variables
- * @type {*|(function(): browser)}
+ * Driver environment variables
+ * @type {function(*): {}}
  */
 const ChromeDriver = require('./chromeDriver');
 const FirefoxDriver = require('./firefoxDriver');
 const AndroidDriver = require('./androidDriver');
 const iOSDriver = require('./iosDriver');
-
 const LambdaTestDriver = require('./lambdatestDriver');
 
 const remoteService = getRemote(global.settings.remoteService);
@@ -117,65 +98,16 @@ async function getDriverInstance() {
   return browser;
 }
 
-/**
- * Global timeout
- * @type {number}
- */
-global.DELAY_100ms = 100; // 100 millisecond delay
-global.DELAY_200ms = 200; // 200 millisecond delay
-global.DELAY_300ms = 300; // 300 millisecond delay
-global.DELAY_500ms = 500; // 500 millisecond delay
-global.DELAY_7500ms = 7500; // 7500 milliseconds delay
-global.DELAY_1s = 1000; // 1 second delay
-global.DELAY_2s = 2000; // 2 second delay
-global.DELAY_3s = 3000; // 3 second delay
-global.DELAY_5s = 5000; // 5 second delay
-global.DELAY_7s = 7000; // 7 second delay
-global.DELAY_8s = 8000; // 8 seconds delay
-global.DELAY_10s = 10000; // 10 second delay
-global.DELAY_15s = 15000; // 15 second delay
-global.DELAY_20s = 20000; // 20 second delay
-global.DELAY_30s = 30000; // 30 second delay
-global.DELAY_40s = 40000; // 40 second delay
-global.DELAY_1m = 60000; // 1 minute delay
-global.DELAY_2m = 120000; // 2 minutes delay
-global.DELAY_3m = 180000; // 3 minutes delay
-global.DELAY_5m = 300000; // 5 minutes delay
-
-// function consoleInfo() {
-//   // eslint-disable-next-line prefer-rest-params
-//   const args = [].slice.call(arguments);
-//   // const output = chalk.bgBlue.white(`\n>>>>> \n${args}\n<<<<<\n`);
-//   console.log(output);
-// }
-
-/**
- * All Cucumber Global variables
- * @constructor
- */
-global.Given = Given;
-global.When = When;
-global.Then = Then;
-global.After = After;
-global.AfterAll = AfterAll;
-global.AfterStep = AfterStep;
-global.Before = Before;
-global.BeforeAll = BeforeAll;
-global.BeforeStep = BeforeStep;
-global.Status = Status;
-
 function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{date: (value?: string) => object, expect: *, shared: {}, log: log.RootLogger | log, assert: ((function(Philosophical, (String|Function), (String|Function), Comprehend.SentimentScore.Mixed, Comprehend.SentimentScore.Mixed, Boolean))|((value: unknown, message?: string) => asserts value)|((value: unknown, message?: string) => asserts value)|*), page: *[], fs: *}}
+   * @type {{date: (value?: string) => object, expect: *, shared: {}, assert: ((function(Philosophical, (String|Function), (String|Function), Comprehend.SentimentScore.Mixed, Comprehend.SentimentScore.Mixed, Boolean))|((value: unknown, message?: string) => asserts value)|((value: unknown, message?: string) => asserts value)|*), page: *[]}}
    */
   const runtime = {
     expect: global.expect, // expose chai expect to allow variable testing
     assert: global.assert, // expose chai assert to allow variable testing
-    fs: global.fs, // expose fs (file system) for use globally
     page: [], // empty page objects placeholder
     shared: {}, // empty shared objects placeholder
-    log: global.log, // expose the log method for output to files for emailing
     date: global.date, // expose the date method for logs and reports
   };
 
@@ -237,7 +169,6 @@ this.World = World;
 /**
  * set the default timeout for all tests
  */
-// eslint-disable-next-line import/order,import/no-extraneous-dependencies
 const { setDefaultTimeout } = require('@cucumber/cucumber');
 
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
@@ -254,7 +185,6 @@ global.startDateTime = require('./helpers').getStartDateTime();
  * also exposing the world object in global variable 'cucumberThis' so that
  * it can be used in arrow functions
  */
-// eslint-disable-next-line func-names
 Before(function () {
   global.cucumberThis = this;
   global.browser = getDriverInstance();
@@ -267,7 +197,6 @@ global.status = 0;
  * executed before each scenario
  */
 Before(async (scenario) => {
-  // eslint-disable-next-line no-shadow
   const { browser } = global;
   if (remoteService && remoteService.type === 'lambdatest') {
     await browser.execute(`lambda-name=${scenario.pickle.name}`);
@@ -279,10 +208,7 @@ Before(async (scenario) => {
  * send email with the report to stakeholders after test run
  */
 AfterAll(async () => {
-  // eslint-disable-next-line no-shadow
   const { browser } = global;
-  // eslint-disable-next-line no-undef
-  await helpers.klassiReporter();
   try {
     browser.pause(DELAY_5s);
     if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
@@ -313,7 +239,7 @@ AfterAll(async () => {
  * from lambdatest when it fails for the report
  */
 After(async (scenario) => {
-  // eslint-disable-next-line no-shadow
+  // eslint-disable-next-line no-undef
   if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
     await helpers.ltVideo();
     // eslint-disable-next-line no-undef
@@ -366,7 +292,6 @@ After(async (scenario) => {
 /**
  * get executed only if there is an error within a scenario
  */
-// eslint-disable-next-line consistent-return,func-names
 After(function (scenario) {
   // eslint-disable-next-line no-shadow
   const { browser } = global;

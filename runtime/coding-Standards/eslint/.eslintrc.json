@@ -40,9 +40,10 @@
         "quotes":["error", "single"]
     },
     "globals": {
-        "When": "readonly",
-        "Then": "readonly",
-        "Before": "readonly",
+        "Given": true,
+        "When": false,
+        "Then": false,
+        "Before": false,
         "BeforeAll": "readonly",
         "BeforeStep": "readonly",
         "After": "readonly",
@@ -90,6 +91,7 @@
         "sharedObjects": "readonly",
         "pageObjects": "writable",
         "utam": "readonly",
-        "s3Data": "readonly"
+        "s3Data": "readonly",
+        "emailData": true
     }
 }

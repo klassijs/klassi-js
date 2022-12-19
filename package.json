@@ -39,13 +39,15 @@
     "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
     "test": "node index.js --disableReport --tags",
     "dev": "yarn delete-dev && yarn dev1",
-    "delete-dev": "rm -rf ./reports ./artifacts ./visual-regression-baseline ./log",
-    "dev1": "node index.js --disableReport --tags",
-    "ltlocal": "node --trace-warnings index.js --disableReport --tags @search  --remoteService lambdatest --extraSettings",
+    "delete-dev": "rm -rf ./reports ./artifacts ./log",
+    "dev1": "node index.js --tags",
+    "dev2": "node index.js",
+    "ltlocal": "node --trace-warnings index.js --disableReport  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltklassi-js": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
-    "pkgcheck": "yarn install --check-files"
+    "pkgcheck": "yarn install --check-files",
+    "json": "yarn ndjson-to-json './reports/AutomatedReport-16-12-2022-160344647.ndjson' -o 'sample3.json'"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "bugs": {
@@ -90,8 +92,8 @@
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
-    "utam": "^1.2.1",
-    "wdio-utam-service": "^1.2.1",
+    "utam": "larryg01/utam",
+    "wdio-utam-service": "larryg01/wdio-utam-service",
     "webdriverio": "^8.0.9"
   },
   "devDependencies": {

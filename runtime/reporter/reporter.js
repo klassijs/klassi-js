@@ -40,6 +40,18 @@ module.exports = {
     await resp;
   },
 
+  /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
+  //   if (options.utam) {
+  //   const filePath =
+  //     projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  //
+  //   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+  //     if (err) console.error(err);
+  //     if (stderr) console.error(stderr);
+  //     console.log(stdout);
+  //   });
+  // },
+
   async reporter() {
     const envName = env.envName.toLowerCase();
     try {
@@ -49,13 +61,15 @@ module.exports = {
       obj = {};
       console.log('IpAddr func err: ', err.message);
     }
-    const jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
+
+    let jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+      global.startDateTime = helpers.getStartDateTime();
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
-        theme: 'bootstrap',
+        theme: 'hierarchy',
         jsonFile,
         output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
@@ -63,7 +77,6 @@ module.exports = {
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
-          // eslint-disable-next-line no-undef
           Environment: env.envName,
           IpAddress: obj.query,
           Browser: browserName,
@@ -73,21 +86,18 @@ module.exports = {
           Executed: remoteService && remoteService.type === 'lambdatest' ? 'Remote' : 'Local',
         },
         brandTitle: `${reportName} ${dateTime}`,
-        // brandTitle: `${reportName} ${dateTime} ${env.envName}`,
-        name: `${projectName} ${browserName}`,
+        name: `${projectName} ${browserName} ${env.envName}`,
       };
-      // eslint-disable-next-line func-names,wdio/no-pause
-      browser.pause(DELAY_3s).then(() => {
-        reporter.generate(reportOptions);
+      await browser.pause(DELAY_3s);
+      await reporter.generate(reportOptions);
 
-        // grab the file data for xml creation
-        const reportRaw = fs.readFileSync(jsonFile).toString().trim();
-        const xmlReport = jUnit(reportRaw);
-        const junitOutputPath = path.resolve(
-          path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
-        );
-        fs.writeFileSync(junitOutputPath, xmlReport);
-      });
+      /** grab the file data for xml creation */
+      const reportRaw = fs.readFileSync(jsonFile).toString().trim();
+      const xmlReport = jUnit(reportRaw);
+      const junitOutputPath = path.resolve(
+        path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
+      );
+      fs.writeFileSync(junitOutputPath, xmlReport);
     }
   },
 };
