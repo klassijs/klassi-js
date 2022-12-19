@@ -711,6 +711,6 @@ module.exports = {
   ndjsonPoc: function (filename, outputfile) {
     const file = fs.readFileSync(filename);
     let data = JSON.stringify(file.toString().trim().split('\n').map(JSON.parse));
-    fs.writeJsonSync(outputfile, data);
+    fs.writeFileSync(outputfile, data);
   },
 };
