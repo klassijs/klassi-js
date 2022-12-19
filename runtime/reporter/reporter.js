@@ -26,9 +26,6 @@ const reporter = require('cucumber-html-reporter');
 const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
 const getRemote = require('../getRemote');
-const { ndjsonToJson } = require('ndjson-to-json');
-const { exec } = require('child_process');
-// const ndjson = require('ndjson-to-json');
 
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
@@ -42,9 +39,6 @@ module.exports = {
     resp = await pactumJs.spec().get(endPoint).toss();
     await resp;
   },
-
-  // TODO: convert ndjson to json and pass it back to the reporter
-  // ndjsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.ndjson`);
 
   /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
   //   if (options.utam) {
@@ -88,17 +82,17 @@ module.exports = {
 
     let jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
     console.log('ln 92 in reporter.js');
-    helpers.ndjsonPoc(
-      path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.ndjson`),
-      jsonFile
-    );
+    // helpers.ndjsonPoc(
+    //   path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.ndjson`),
+    //   jsonFile
+    // );
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
         theme: 'bootstrap',
-        jsonFile: jsonFile,
+        jsonFile,
         output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,

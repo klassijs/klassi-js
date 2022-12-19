@@ -35,6 +35,19 @@ const { After, AfterAll, AfterStep, Status } = require('@cucumber/cucumber');
 const { Before, BeforeAll, BeforeStep } = require('@cucumber/cucumber');
 const { Given, When, Then } = require('@cucumber/cucumber');
 
+// const cucumberOptions = {
+//   default: {
+//     require: ['runtime/world.js', 'step_definitions/**/*.js'],
+//     tags: global.resultingString,
+//     format: [
+//       '@cucumber/pretty-formatter',
+//       `json:${path.resolve(__dirname, paths.reports, browserName, env.envName, `${reportName}-${dateTime}.json`)}`,
+//     ],
+//     formatOptions: {
+//       colorsEnabled: true,
+//     },
+//   },
+// };
 async function klassiCli() {
   const { runConfiguration } = await loadConfiguration();
   const { success } = await runCucumber(runConfiguration);
@@ -261,6 +274,25 @@ fs.ensureDirSync(axereports, (err) => {
   }
 });
 
+// const cucumberOptions = {
+//   default: {
+//     require: ['runtime/world.js', 'step_definitions/**/getMethod-steps.js'],
+//     tags: global.resultingString,
+//     format: [
+//       '@cucumber/pretty-formatter',
+//       `json:${path.resolve(__dirname, paths.reports, browserName, env.envName, `${reportName}-${dateTime}.json`)}`,
+//     ],
+//     formatOptions: {
+//       colorsEnabled: true,
+//     },
+//   },
+// };
+// async function klassiCli() {
+//   const { runConfiguration } = await loadConfiguration({ provided: cucumberOptions });
+//   const { success } = await runCucumber(runConfiguration);
+//   return success;
+// }
+
 /** adding global helpers */
 global.helpers = require('./runtime/helpers');
 
@@ -461,18 +493,28 @@ if (options.browsers) {
 
 // const cucumberOptions = {
 //   default: {
-//     paths: 'step_definitions/**/*.js',
-//     format: '@cucumber/pretty-formatter',
+//     require: ['runtime/world.js', 'step_definitions/**/*.js'],
+//     tags: global.resultingString,
+//     format: [
+//       // '@cucumber/pretty-formatter',
+//       //   `json:${path.resolve(
+//       //     __dirname,
+//       //     global.paths.reports,
+//       //     browserName,
+//       //     env.envName,
+//       //     `${reportName}-${dateTime}.json`
+//       //   )}`,
+//     ],
 //     formatOptions: {
 //       colorsEnabled: true,
 //     },
-//     // require: ['step_definitions/**/*.js'],
 //   },
 // };
 
 /** execute cucumber Cli */
 try {
-  klassiCli().then((succeeded) => {
+  klassiCli().then(async (succeeded) => {
+    await helpers.klassiReporter();
     if (!succeeded) {
       process.exit(1);
     }

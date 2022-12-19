@@ -6,12 +6,12 @@ const options = {
     tags: global.resultingString,
     format: [
       '@cucumber/pretty-formatter',
-      `message:${path.resolve(
+      `json:${path.resolve(
         __dirname,
         global.paths.reports,
         browserName,
         env.envName,
-        `${reportName}-${dateTime}.ndjson`
+        `${reportName}-${dateTime}.json`
       )}`,
     ],
     formatOptions: {

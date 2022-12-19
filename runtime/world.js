@@ -278,12 +278,13 @@ Before(async (scenario) => {
  * compile and generate a report at the END of the test run to be send by Email
  * send email with the report to stakeholders after test run
  */
+
 AfterAll(async () => {
   console.log('this is after all ln 282 world js');
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   // eslint-disable-next-line no-undef
-  await helpers.klassiReporter();
+  //   await helpers.klassiReporter();
   console.log('this is after all ln 287 world js');
   try {
     browser.pause(DELAY_5s);
