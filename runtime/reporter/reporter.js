@@ -26,6 +26,9 @@ const reporter = require('cucumber-html-reporter');
 const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
 const getRemote = require('../getRemote');
+const { ndjsonToJson } = require('ndjson-to-json');
+const { exec } = require('child_process');
+// const ndjson = require('ndjson-to-json');
 
 const remoteService = getRemote(global.settings.remoteService);
 const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
@@ -40,6 +43,39 @@ module.exports = {
     await resp;
   },
 
+  // TODO: convert ndjson to json and pass it back to the reporter
+  // ndjsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.ndjson`);
+
+  /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
+  //   if (options.utam) {
+  //   const filePath =
+  //     projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  //
+  //   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+  //     if (err) console.error(err);
+  //     if (stderr) console.error(stderr);
+  //     console.log(stdout);
+  //   });
+  // },
+
+  // myFunction: function () {
+  //   console.log('this is it ===> ', ndjsonToJson);
+  //   // exec('node ndjsonToJson \'../reports/AutomatedReport-16-12-2022-160344647.ndjson\' > \'samples.json\'');
+  //   // exec('yarn json');
+  //   // console.log('this is the file now ===> ', json);
+  //   // }
+  //   // .then((json) => {
+  //   // Use the JSON objects in your function
+  //   // For example, you could iterate over the array and use the values to set input values or verify element text:
+  //   // json.forEach((obj) => {
+  //   //   Object.entries(obj).forEach(([key, value]) => {
+  //   //     browser.setValue(`input[name=${key}]`, value);
+  //   //   });
+  //   // });
+  //   // })
+  //   // );
+  // },
+
   async reporter() {
     const envName = env.envName.toLowerCase();
     try {
@@ -49,14 +85,20 @@ module.exports = {
       obj = {};
       console.log('IpAddr func err: ', err.message);
     }
-    const jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
+
+    let jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
+    console.log('ln 92 in reporter.js');
+    helpers.ndjsonPoc(
+      path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.ndjson`),
+      jsonFile
+    );
 
     if (global.paths.reports && fs.existsSync(global.paths.reports)) {
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
         theme: 'bootstrap',
-        jsonFile,
+        jsonFile: jsonFile,
         output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
         launchReport: !global.settings.disableReport,
@@ -76,19 +118,19 @@ module.exports = {
         // brandTitle: `${reportName} ${dateTime} ${env.envName}`,
         name: `${projectName} ${browserName}`,
       };
-      // eslint-disable-next-line wdio/no-pause
-      // eslint-disable-next-line func-names,wdio/no-pause
-      browser.pause(DELAY_3s).then(() => {
-        reporter.generate(reportOptions);
+      // browser.pause(DELAY_3s).then(() => {
+      await browser.pause(DELAY_3s);
+      console.log('this should generate the report');
+      reporter.generate(reportOptions);
 
-        // grab the file data for xml creation
-        const reportRaw = fs.readFileSync(jsonFile).toString().trim();
-        const xmlReport = jUnit(reportRaw);
-        const junitOutputPath = path.resolve(
-          path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
-        );
-        fs.writeFileSync(junitOutputPath, xmlReport);
-      });
+      // grab the file data for xml creation
+      const reportRaw = fs.readFileSync(jsonFile).toString().trim();
+      const xmlReport = jUnit(reportRaw);
+      const junitOutputPath = path.resolve(
+        path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
+      );
+      fs.writeFileSync(junitOutputPath, xmlReport);
+      // });
     }
   },
 };

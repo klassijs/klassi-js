@@ -279,34 +279,34 @@ Before(async (scenario) => {
  * send email with the report to stakeholders after test run
  */
 AfterAll(async () => {
-  console.log('this is after all');
+  console.log('this is after all ln 282 world js');
   // eslint-disable-next-line no-shadow
   const { browser } = global;
   // eslint-disable-next-line no-undef
   await helpers.klassiReporter();
-  console.log('this is after all');
-  //   try {
-  //     browser.pause(DELAY_5s);
-  //     if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
-  //       browser.pause(DELAY_5s).then(async () => {
-  //         await s3Upload.s3Upload();
-  //         browser.pause(DELAY_30s).then(() => {
-  //           process.exit(global.status);
-  //         });
-  //       });
-  //     } else if (remoteService && remoteService.type === 'lambdatest') {
-  //       browser.pause(DELAY_5s).then(async () => {
-  //         process.exit(global.status);
-  //       });
-  //     } else if (program.opts().email) {
-  //       browser.pause(DELAY_5s).then(async () => {
-  //         await helpers.klassiEmail();
-  //         browser.pause(DELAY_3s);
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.log(err.message);
-  //   }
+  console.log('this is after all ln 287 world js');
+  try {
+    browser.pause(DELAY_5s);
+    if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
+      browser.pause(DELAY_5s).then(async () => {
+        await s3Upload.s3Upload();
+        browser.pause(DELAY_30s).then(() => {
+          process.exit(global.status);
+        });
+      });
+    } else if (remoteService && remoteService.type === 'lambdatest') {
+      browser.pause(DELAY_5s).then(async () => {
+        process.exit(global.status);
+      });
+    } else if (program.opts().email) {
+      browser.pause(DELAY_5s).then(async () => {
+        await helpers.klassiEmail();
+        browser.pause(DELAY_3s);
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
+  }
 });
 
 /**

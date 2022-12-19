@@ -29,6 +29,7 @@ const path = require('path');
 // const pixelmatch = require('pixelmatch');
 const pactumJs = require('pactum');
 // const XLSX = require('xlsx');
+// const ndjsonToJson = require('ndjson-to-json');
 
 const urlData = require('../shared-objects/urlData.json').URLs;
 const loadConfig = require('./configLoader');
@@ -705,5 +706,11 @@ module.exports = {
     testData.executeTime.time = seconds.toString().replace('-', '');
     await module.exports.write();
     cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
+  },
+
+  ndjsonPoc: function (filename, outputfile) {
+    const file = fs.readFileSync(filename);
+    let data = JSON.stringify(file.toString().trim().split('\n').map(JSON.parse));
+    fs.writeJsonSync(outputfile, data);
   },
 };
