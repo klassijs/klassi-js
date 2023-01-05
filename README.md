@@ -68,7 +68,8 @@ node ./node_modules/klassi-js/index.js
 --extraSettings <optional>          further piped configs split with pipes
 --updateBaselineImages              automatically update the baseline image after a failed comparison or new images
 --wdProtocol                        the switch to change the browser option from using devtools to webdriver
---closeBrowser <optional>           this closes the browser after each scenario, defaults to always, use 'no' if you want to want to keep the  browser open
+--browserOpen                       this keeps the browser open after each scenario. defaults to false', false
+--dryRun                            the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests
 ```
 ## Options Usage
 ```bash

@@ -155,15 +155,16 @@ program
   )
   .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison')
   .option('--remoteService <optional>', 'which remote browser service, if any, should be used e.g. lambdatest', '')
-  .option(
-    '--closeBrowser <optional>',
-    'close the browser after each scenario (always, no). defaults to always',
-    'always'
-  )
+  .option('--browserOpen', 'keep the browser open after each scenario. defaults to false', false)
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo')
   .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.')
+  .option(
+    '--dryRun',
+    'the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests',
+    false
+  )
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -177,7 +178,6 @@ const settings = {
   reportName: options.reportName,
   BROWSER_NAME: options.browser,
   disableReport: options.disableReport,
-  closeBrowser: options.closeBrowser,
   dlink: options.dlink,
   updateBaselineImage: options.updateBaselineImage,
   remoteService: options.remoteService,
@@ -201,7 +201,8 @@ global.emailData = dataConfig.emailData;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
-global.closeBrowser = settings.closeBrowser;
+global.browserOpen = options.browserOpen;
+global.dryRun = options.dryRun;
 
 global.date = require('./runtime/helpers').currentDate();
 global.dateTime = require('./runtime/helpers').reportDate();
@@ -325,16 +326,6 @@ if (fs.existsSync(pageObjectPath)) {
   });
 }
 
-// TODO : needs rewrite for internal usage
-/** specify the feature files folder (this must be the first argument for Cucumber)
- /* specify the feature files to be executed */
-if (options.featureFiles) {
-  const splitFeatureFiles = options.featureFiles.split(',');
-  splitFeatureFiles.forEach((feature) => {
-    process.argv.push(feature);
-  });
-}
-
 /** Get tags from feature files
  * @returns {Array<string>} list of all tags found
  */
@@ -356,12 +347,10 @@ function getTagsFromFeatureFiles() {
 
 /**
  * verify the correct tags for scenarios to run
+ * ignores non existing tags
  */
-// console.log('these are the found tags 1 ', options.tags);
 if (options.tags.length > 0) {
   const tagsFound = getTagsFromFeatureFiles();
-  // console.log('these are the found tags ', tagsFound);
-  // console.log('these are the found tags ', options.tags);
   const separateMultipleTags = options.tags[0].split(',');
   let separateExcludedTags;
 
@@ -372,46 +361,45 @@ if (options.tags.length > 0) {
   const correctTags = [];
   const correctExcludedTags = [];
 
-  separateMultipleTags.forEach((tag) => {
+  for (const tag of separateMultipleTags) {
     if (tag[0] !== '@') {
       console.error('tags must start with a @');
-      process.exit();
+      continue;
     }
     if (tagsFound.indexOf(tag) === -1) {
       console.error(`this tag ${tag} does not exist`);
-      process.exit();
+      continue;
     }
     correctTags.push(tag);
-  });
+  }
+  if (correctTags.length === 0) {
+    process.exit();
+  }
 
   if (separateExcludedTags && separateExcludedTags.length >= 1) {
-    separateExcludedTags.forEach((tag) => {
+    for (const tag of separateExcludedTags) {
       if (tag[0] !== '@') {
         console.error('tags must start with a @');
-        process.exit();
+        continue;
       }
       if (tagsFound.indexOf(tag) === -1) {
         console.error(`this tag ${tag} does not exist`);
-        process.exit();
+        continue;
       }
       correctExcludedTags.push(tag);
-    });
+    }
   }
-
-  // process.argv.push('--tags');.
 
   let resultingString;
 
   if (correctTags.length > 1) {
     const multipleTagsCommand = correctTags.reduce((acc, currentTag) => {
       resultingString = `${acc} or ${currentTag}`;
-      // return resultingString;
     });
 
     if (correctExcludedTags.length >= 1) {
-      const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
+      const excludedCommand = correctExcludedTags.reduce((acc, currentTag) => {
         resultingString = `${acc} and not ${currentTag}`;
-        // return resultingString;
       });
 
       resultingString = `${multipleTagsCommand} and not ${excludedCommand}`;
@@ -429,16 +417,24 @@ if (options.tags.length > 0) {
         break;
 
       default:
-        const excludedCommand = correctExcludedTags.reduce((acc, currentTag, currentIndex) => {
-        resultingString = `${acc} and not ${currentTag}`;
-        // return resultingString;
+        const excludedCommand = correctExcludedTags.reduce((acc, currentTag) => {
+          resultingString = `${acc} and not ${currentTag}`;
       });
         resultingString = `${correctTags[0]} and not ${excludedCommand}`;
         break;
     }
     global.resultingString = resultingString;
-    // console.log('tags in indexfile ==> ', resultingString);
   }
+}
+
+// TODO : needs rewrite for internal usage
+/** specify the feature files folder (this must be the first argument for Cucumber)
+ /* specify the feature files to be executed */
+if (options.featureFiles) {
+  const splitFeatureFiles = options.featureFiles.split(',');
+  splitFeatureFiles.forEach((feature) => {
+    process.argv.push(feature);
+  });
 }
 
 //TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
@@ -454,7 +450,9 @@ if (options.browsers) {
 /** execute cucumber Cli */
 try {
   klassiCli().then(async (succeeded) => {
-    await helpers.klassiReporter();
+    if (dryRun === false) {
+      await helpers.klassiReporter();
+    }
     if (!succeeded) {
       process.exit(1);
     }

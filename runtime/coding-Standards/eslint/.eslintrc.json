@@ -92,6 +92,7 @@
         "pageObjects": "writable",
         "utam": "readonly",
         "s3Data": "readonly",
-        "emailData": true
+        "emailData": true,
+        "dryRun": "readonly"
     }
 }

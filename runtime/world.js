@@ -256,17 +256,13 @@ After(async (scenario) => {
  * @returns {Promise<void|Request<LexRuntime.DeleteSessionResponse, AWSError>|Request<LexRuntimeV2.DeleteSessionResponse, AWSError>>}
  */
 // eslint-disable-next-line func-names
-this.closebrowser = function () {
+this.browserOpen = function () {
   // eslint-disable-next-line no-shadow
   const { browser } = global;
-  switch (global.closeBrowser) {
-    case 'no':
-      return Promise.resolve();
-    default:
-      if (browser) {
-        return browser.deleteSession();
-      }
-      return Promise.resolve();
+  if (global.browserOpen === false) {
+    return browser.deleteSession();
+  } else {
+    return Promise.resolve();
   }
 };
 
@@ -283,10 +279,10 @@ After(async (scenario) => {
       } else if (scenario.result.status === Status.PASSED) {
         await browser.execute('lambda-status=passed');
       }
-      return this.closebrowser();
+      return this.browserOpen();
     }
   }
-  return this.closebrowser();
+  return this.browserOpen();
 });
 
 /**

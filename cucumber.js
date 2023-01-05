@@ -24,6 +24,7 @@ const path = require('path');
 
 const options = {
   default: {
+    dryRun: global.dryRun,
     require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
     tags: global.resultingString,
     format: [
