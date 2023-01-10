@@ -20,9 +20,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const path = require("path");
-const fs = require("fs-extra");
-const winston = require("winston");
+const path = require('path');
+const fs = require('fs-extra');
+const winston = require('winston');
 
 module.exports = {
   klassiLog() {
@@ -31,15 +31,11 @@ module.exports = {
 
     MyDate.setDate(MyDate.getDate());
     // eslint-disable-next-line prefer-const,no-useless-concat
-    date = `${`${"-" + "0"}${MyDate.getDate()}`.slice(-2)}-${`0${
-      MyDate.getMonth() + 1
-    }`.slice(-2)}-${MyDate.getFullYear()}`;
-    const infoJsonFile = path
-      .join(`./log/infoLog/${reportName}-${date}.json`)
-      .replace(/ /gi, "");
-    const errorJsonFile = path
-      .join(`./log/errorLog/${reportName}-${date}.json`)
-      .replace(/ /gi, "");
+    date = `${`${'-' + '0'}${MyDate.getDate()}`.slice(-2)}-${`0${MyDate.getMonth() + 1}`.slice(
+      -2
+    )}-${MyDate.getFullYear()}`;
+    const infoJsonFile = path.join(`./log/infoLog/${reportName}-${date}.json`).replace(/ /gi, '');
+    const errorJsonFile = path.join(`./log/errorLog/${reportName}-${date}.json`).replace(/ /gi, '');
 
     fs.ensureFile(infoJsonFile, (err) => {
       if (err) {
@@ -57,24 +53,24 @@ module.exports = {
      * Log files are raised and sent to the relevant files
      */
     const logger = winston.createLogger({
-      level: "info",
+      level: 'info',
       format: winston.format.json(),
-      defaultMeta: { service: "user-service" },
+      defaultMeta: { service: 'user-service' },
       transports: [
         // new winston.transports.Console({}),
         new winston.transports.File({
-          name: "info-file",
+          name: 'info-file',
           filename: infoJsonFile,
-          level: "info",
+          level: 'info',
         }),
         new winston.transports.File({
-          name: "error-file",
+          name: 'error-file',
           filename: errorJsonFile,
-          level: "error",
+          level: 'error',
         }),
       ],
     });
-    if (process.env.NODE_ENV !== "prod") {
+    if (process.env.NODE_ENV !== 'prod') {
       logger.add(
         new winston.transports.Console({
           format: winston.format.simple(),

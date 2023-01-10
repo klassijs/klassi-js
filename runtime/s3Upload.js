@@ -20,11 +20,11 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const path = require("path");
-const AWS = require("aws-sdk");
-const fs = require("fs-extra");
-const readdir = require("recursive-readdir");
-const async = require("async");
+const path = require('path');
+const AWS = require('aws-sdk');
+const fs = require('fs-extra');
+const readdir = require('recursive-readdir');
+const async = require('async');
 
 /**
  * function to upload the test report run folder to an s3 - AWS
@@ -42,7 +42,7 @@ module.exports = {
     // let uploadFolder;
     // let uploadFile;
 
-    const rootFolder = path.resolve("./reports");
+    const rootFolder = path.resolve('./reports');
     const uploadFolder = `./${browserName}`;
     // if (projectName === 'OEUK ORB') {
     //   rootFolder = path.resolve('./reports');
@@ -53,7 +53,7 @@ module.exports = {
     // let data1;
 
     const s3 = new AWS.S3({
-      signatureVersion: "v4",
+      signatureVersion: 'v4',
       accessKeyId: KEY,
       secretAccessKey: SECRET,
     });
@@ -69,7 +69,7 @@ module.exports = {
           filesToUpload,
           30,
           async.asyncify(async (file) => {
-            const Key = file.replace(`${rootFolder}/`, "");
+            const Key = file.replace(`${rootFolder}/`, '');
             console.log(`uploading: [${Key}]`);
             return new Promise((res, rej) => {
               s3.upload(
@@ -77,7 +77,7 @@ module.exports = {
                   Key,
                   Bucket: BUCKET,
                   Body: fs.readFileSync(file),
-                  ContentType: "text/html",
+                  ContentType: 'text/html',
                 },
                 // eslint-disable-next-line consistent-return
                 async (err, data) => {
@@ -116,7 +116,7 @@ module.exports = {
     // {
     deploy(uploadFolder)
       .then(() => {
-        console.log("Files uploaded successfully, report folder pushed to s3");
+        console.log('Files uploaded successfully, report folder pushed to s3');
       })
       .catch((err) => {
         console.error(err.message);

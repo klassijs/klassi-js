@@ -6,7 +6,7 @@
         "node": true
     },
     "parserOptions": {
-        "ecmaVersion":2017,
+        "ecmaVersion":2021,
         "ecmaFeatures": {
             "jsx": true
         },
@@ -56,18 +56,18 @@
         "And": "readonly",
         "But": "readonly",
         "helpers":"readonly",
-        "browser": "readonly",
         "log": "readonly",
         "env": "readonly",
         "date": "readonly",
         "dateTime": "readonly",
         "startDateTime": "readonly",
         "endDateTime": "readonly",
-        "browserName": false,
-        "BROWSER_NAME": false,
+        "browserName": true,
+        "BROWSER_NAME": true,
         "reportName": "readonly",
         "projectName": "readonly",
-        "settings": false,
+        "pause": true,
+        "settings": true,
         "envConfig": "readonly",
         "request": "readonly",
         "assert": "readonly",
