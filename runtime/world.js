@@ -26,16 +26,12 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const s3Upload = require('./s3Upload');
 const getRemote = require('./getRemote');
+const data = require('./helpers');
 
 /**
  * This is the Global date functionality
  */
-global.date = require('./helpers').currentDate();
-
-/**
- * for the Download of all file types
- */
-global.downloader = require('./downloader');
+global.date = data.currentDate();
 
 /**
  * Driver environment variables
@@ -101,7 +97,7 @@ async function getDriverInstance() {
 function World() {
   /**
    * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{date: (value?: string) => object, expect: *, shared: {}, assert: ((function(Philosophical, (String|Function), (String|Function), Comprehend.SentimentScore.Mixed, Comprehend.SentimentScore.Mixed, Boolean))|((value: unknown, message?: string) => asserts value)|((value: unknown, message?: string) => asserts value)|*), page: *[]}}
+   * @type {{date: (value?: string) => object, expect: *, shared: {}, assert: ((function( (String|Function), (String|Function), Boolean))|((value: unknown, message?: string) => asserts value)|((value: unknown, message?: string) => asserts value)|*), page: *[]}}
    */
   const runtime = {
     expect: global.expect, // expose chai expect to allow variable testing
@@ -178,7 +174,7 @@ global.timeout = globalTimeout;
 /**
  * start recording of the Test run time
  */
-global.startDateTime = require('./helpers').getStartDateTime();
+global.startDateTime = data.getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
@@ -191,7 +187,7 @@ Before(function () {
   return browser;
 });
 
-global.status = 0;
+browser.status = 0;
 
 /**
  * executed before each scenario
@@ -215,12 +211,12 @@ AfterAll(async () => {
       browser.pause(DELAY_5s).then(async () => {
         await s3Upload.s3Upload();
         browser.pause(DELAY_30s).then(() => {
-          process.exit(global.status);
+          process.exit(browser.status);
         });
       });
     } else if (remoteService && remoteService.type === 'lambdatest') {
       browser.pause(DELAY_5s).then(async () => {
-        process.exit(global.status);
+        process.exit(browser.status);
       });
     } else if (program.opts().email) {
       browser.pause(DELAY_5s).then(async () => {
@@ -293,7 +289,7 @@ After(function (scenario) {
   const { browser } = global;
   const world = this;
   if (scenario.result.status === Status.FAILED) {
-    global.status = 1;
+    browser.status = 1;
     return browser.takeScreenshot().then((screenShot) => {
       // screenShot is a base-64 encoded PNG
       world.attach(screenShot, 'image/png');

@@ -23,7 +23,7 @@
 const wdio = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
 const { UtamWdioService } = require('wdio-utam-service');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const loadConfig = require('./configLoader');
 const lambdatest = require('./remotes/lambdatest');
@@ -100,7 +100,7 @@ module.exports = async function lambdatestDriver(options, configType) {
   global.browser = await wdio.remote(extendedOptions);
   if (isUTAMTest) {
     const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities);
+    await utamInstance.before(extendedOptions.capabilities, null, browser);
   }
   return browser;
 };

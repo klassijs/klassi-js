@@ -64,6 +64,7 @@
         "reportName": "readonly",
         "projectName": "readonly",
         "settings": false,
+        "Status": true,
         "envConfig": "readonly",
         "request": "readonly",
         "assert": "readonly",

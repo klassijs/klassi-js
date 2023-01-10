@@ -29,7 +29,7 @@ const requireDir = require('require-dir');
 const chai = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const {
   After,
@@ -212,8 +212,9 @@ global.dateTime = data.reportDate();
 if (options.utam) {
   const filePath =
     projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
-
-  exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
+  const utamConfig = require(path.resolve(__dirname, filePath));
+  fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
+  execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
     if (stderr) console.error(stderr);
     console.log(stdout);

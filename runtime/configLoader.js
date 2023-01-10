@@ -20,11 +20,12 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require('fs');
+const fs = require('fs-extra');
 
 module.exports = (configFilePath) => {
-  const json = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
-
-  // TODO: add validation if schema
-  return json;
+  return JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+  // const json = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+  //
+  // // TODO: add validation if schema
+  // return json;
 };

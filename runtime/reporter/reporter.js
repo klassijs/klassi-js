@@ -40,18 +40,6 @@ module.exports = {
     await resp;
   },
 
-  /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
-  //   if (options.utam) {
-  //   const filePath =
-  //     projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
-  //
-  //   exec(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
-  //     if (err) console.error(err);
-  //     if (stderr) console.error(stderr);
-  //     console.log(stdout);
-  //   });
-  // },
-
   async reporter() {
     const envName = env.envName.toLowerCase();
     try {

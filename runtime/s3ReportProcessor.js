@@ -122,6 +122,7 @@ module.exports = {
       }
     );
   },
+
   formatDate() {
     const $today = new Date();
     let $yesterday = new Date($today);

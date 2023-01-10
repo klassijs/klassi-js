@@ -1,18 +1,11 @@
-/* eslint-disable radix */
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable prettier/prettier */
-/* eslint-disable no-undef */
-/* eslint-disable prefer-template */
-/* eslint-disable prefer-const */
-
 const helpers = require('../runtime/helpers');
 
 /* eslint-disable global-require */
 const urls = [];
-// const Login = [];
 const refresh1 = [];
 const refresh2 = [];
 
+let startDate, endDate;
 Given('User launches url from {string}', async (data) => {
   const urlDataArr = require('../shared-objects/urlData.json').URLs;
   console.log('URLDATA ==> ', urlDataArr);
@@ -37,11 +30,7 @@ Then('User refreshes the page for 1st time', async () => {
   let seconds = (endDate.getTime() - startDate.getTime()) / 1000;
   let str = seconds.toString().replace('-', '') + 'sec';
   refresh1.push(str);
-  await helpers.executeTime(
-    startDate,
-    endDate,
-    'Total time taken for 1st Refresh: '
-  );
+  await helpers.executeTime(startDate, endDate, 'Total time taken for 1st Refresh: ');
 });
 
 Then('User refreshes the page for 2nd time', async () => {
@@ -51,11 +40,7 @@ Then('User refreshes the page for 2nd time', async () => {
   let seconds = (endDate.getTime() - startDate.getTime()) / 1000;
   let str = seconds.toString().replace('-', '') + 'sec';
   refresh2.push(str);
-  await helpers.executeTime(
-    startDate,
-    endDate,
-    'Total time taken for 2nd Refresh: '
-  );
+  await helpers.executeTime(startDate, endDate, 'Total time taken for 2nd Refresh: ');
 });
 
 Then('copy the Urls from testdata file to json file', async () => {

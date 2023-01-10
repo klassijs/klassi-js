@@ -82,7 +82,7 @@ module.exports = async function firefoxDriver(options) {
   global.browser = await wdio.remote(extendedOptions);
   if (isUTAMTest) {
     const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities);
+    await utamInstance.before(extendedOptions.capabilities, null, browser);
   }
   await browser.setWindowSize(1280, 800);
   return browser;

@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - "12.14.1"
+  - "18.4.0"
 yarn:
   - "1.21.1"
 

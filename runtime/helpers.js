@@ -22,15 +22,7 @@
  */
 const fs = require('fs-extra');
 const path = require('path');
-// const AWS = require('aws-sdk');
-// const readdir = require('recursive-readdir');
-// const async = require('async');
-// const { PNG } = require('pngjs');
-// const pixelmatch = require('pixelmatch');
 const pactumJs = require('pactum');
-// const XLSX = require('xlsx');
-// const ndjsonToJson = require('ndjson-to-json');
-
 const urlData = require('../shared-objects/urlData.json').URLs;
 const loadConfig = require('./configLoader');
 const verify = require('./imageCompare');
@@ -458,7 +450,7 @@ module.exports = {
   waitAndClick: async (selector) => {
     try {
       elem = await browser.$(selector);
-      await elem.waitForDisplayed(DELAY_3s);
+      await elem.isExisting(DELAY_3s);
       await elem.click();
       await browser.pause(DELAY_500ms);
     } catch (err) {
@@ -470,7 +462,7 @@ module.exports = {
   waitAndSetValue: async (selector, value) => {
     try {
       elem = await browser.$(selector);
-      await elem.waitForExist({ timeout: DELAY_3s });
+      await elem.isExisting({ timeout: DELAY_3s });
       await browser.pause(DELAY_500ms);
       await elem.addValue(value);
     } catch (err) {
@@ -600,7 +592,7 @@ module.exports = {
     const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
     if (script === true) {
       elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
-      await elem[1].waitForExist();
+      await elem[1].isExisting();
       await elem[1].scrollIntoView();
       const elem1 = await elem[1].getText();
       if (elem1 === 'I agree') {
@@ -632,7 +624,7 @@ module.exports = {
     elem = await browser.$(
       '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]'
     );
-    await elem.isDisplayed();
+    await elem.isExisting();
     await elem.click();
     await browser.pause(2000);
     // elem = await browser.getWindowHandles();
@@ -707,5 +699,100 @@ module.exports = {
     testData.executeTime.time = seconds.toString().replace('-', '');
     await module.exports.write();
     cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
+  },
+
+  /**
+   * drag the page into view
+   */
+  pageView: async (selector) => {
+    const elem = await browser.$(selector);
+    await elem.scrollIntoView();
+    await browser.pause(DELAY_200ms);
+    return this;
+  },
+
+  /**
+   * Generates a random 13 digit number
+   * @param length
+   * @returns {number}
+   */
+  randomNumberGenerator(length = 13) {
+    const baseNumber = 10 ** (length - 1);
+    let number = Math.floor(Math.random() * baseNumber);
+    /**
+     * Check if number have 0 as first digit
+     */
+    if (number < baseNumber) {
+      number += baseNumber;
+    }
+    console.log(`this is the number ${number}`);
+    return number;
+  },
+
+  /**
+   * Reformats date string into string
+   * @param dateString
+   * @returns {string}
+   */
+  reformatDateString(dateString) {
+    const months = {
+      '01': 'January',
+      '02': 'February',
+      '03': 'March',
+      '04': 'April',
+      '05': 'May',
+      '06': 'June',
+      '07': 'July',
+      '08': 'August',
+      '09': 'September',
+      10: 'October',
+      11: 'November',
+      12: 'December',
+    };
+    const b = dateString.split('/');
+    return `${b[0]} ${months[b[1]]} ${b[2]}`;
+  },
+
+  /**
+   * Sorts results by date
+   * @param array
+   * @returns {*}
+   */
+  sortByDate(array) {
+    array.sort((a, b) => {
+      const sentDateA = a.split('/');
+      const c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
+      const sentDateB = b.split('/');
+      const d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
+      return d - c;
+    });
+    return array;
+  },
+
+  filterItem: async (selector, itemToFilter) => {
+    try {
+      const elem = await browser.$(selector);
+      await elem.waitForExist(DELAY_5s);
+      await elem.waitForEnabled(DELAY_5s);
+      await browser.pause(DELAY_500ms);
+      await elem.click();
+      await browser.setValue(itemToFilter);
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  },
+
+  filterItemAndClick: async (selector) => {
+    try {
+      await this.filterItem('itemToFilter');
+      await browser.pause(DELAY_3s);
+      const elem = await browser.$(selector);
+      await elem.click();
+      await browser.pause(DELAY_3s);
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
   },
 };

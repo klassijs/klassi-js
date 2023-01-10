@@ -60,7 +60,6 @@ module.exports = {
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
     await browser.saveScreenshot(resultPathPositive, async (err) => {
-      // eslint-disable-next-line wdio/no-pause
       await browser.pause(DELAY_500ms);
       if (err) {
         log.error(err.message);
@@ -133,7 +132,6 @@ module.exports = {
       // eslint-disable-next-line no-shadow
       const resultPathPositive = `${resultDirPositive}${filename}`;
       while (typeof result === 'undefined') {
-        // eslint-disable-next-line no-await-in-loop,wdio/no-pause
         await browser.pause(DELAY_100ms);
       }
       const error = parseFloat(result.misMatchPercentage); // value this.pass is called with
@@ -181,7 +179,6 @@ module.exports = {
 
       if (pass) {
         console.log(`image Match for ${filename} with ${value}% difference.`);
-        // eslint-disable-next-line wdio/no-pause
         await browser.pause(DELAY_1s);
       }
 

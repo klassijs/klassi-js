@@ -48,7 +48,6 @@ function getCredentials() {
 }
 let url;
 let matchingBuilds;
-// let buildId;
 let sessionsBody;
 
 async function submitResults() {
@@ -58,7 +57,7 @@ async function submitResults() {
   const apiCredentials = `${lambdatestUsername}:${lambdatestApiKey}`;
 
   url = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/builds`;
-  const buildsBody = await helpers.apiCall(url, 'GET');
+  const buildsBody = await helpers.apiCall(url, 'GET', null, null);
   matchingBuilds = buildsBody.body.data;
 
   let i;
@@ -73,9 +72,8 @@ async function submitResults() {
     }
   }
   await matchingBuilds;
-  // buildId = matchingBuilds;
   url = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions`;
-  sessionsBody = await helpers.apiCall(url, 'GET');
+  sessionsBody = await helpers.apiCall(url, 'GET', null, null);
 
   let x;
   const sessionData = sessionsBody.body.data;
@@ -84,85 +82,7 @@ async function submitResults() {
     const sessionName = sessionData[x].build_name;
     // eslint-disable-next-line no-await-in-loop
     await sessionName;
-    // eslint-disable-next-line no-undef
-    // if (projectname === dataconfig.projectName) {
-    //   matchingBuilds = matchingBuilds[i].build_id;
-    // }
   }
-
-  // const { sessionId } = browser;
-  // console.log('this is the session id ', sessionId);
-  // console.log('this is the scenario result 2 ', scenarioResult.pickle.tags);
-  // console.log('This is the feature name ', scenarioResult.sourceLocation.url);
-  // console.log('this is the scenario name ', scenarioName);
-  // console.log('this is the scenario steps ', scenarioResult.pickle.steps[0].text);
-  // console.log('this is the scenario locations ', scenarioResult.pickle.locations);
-
-  // After(async(scenario) => {
-  //   const { browser } = global;
-  //   scenarioResult = scenario;
-  //   if (scenarioResult.result.status === 'passed') {
-  //     explanations.push(`${scenarioName} succeeded`);
-  //   }
-  //   if (scenarioResult.result.status === 'pending') {
-  //     explanations.push(`${scenarioName} is pending`);
-  //   }
-  //   if (scenarioResult.result.status === 'undefined') {
-  //     explanations.push(`${scenarioName} is undefined`);
-  //   }
-  //   if (scenarioResult.result.status === 'skipped') {
-  //     explanations.push(`${scenarioName} was skipped`);
-  //   }
-  //   if (scenarioResult.result.status === 'failed') {
-  //     console.log('this is the result of the test');
-  //     await browser.executeScript('lambda-status=failed');
-  //     explanations.push(`${scenarioName} failed:${scenarioResult.result.exception}`);
-  //     explanations.push(`${scenarioResult.sourceLocation.url} (${scenarioResult.sourceLocation.line})`);
-  //   }
-  //   return scenarioResult;
-  // });
-
-  // eslint-disable-next-line no-shadow
-  // const explanations = [];
-
-  // if (scenarioResult.result.status === 'passed') {
-  //   explanations.push(`${scenarioName} succeeded`);
-  // }
-  // if (scenarioResult.result.status === 'pending') {
-  //   explanations.push(`${scenarioName} is pending`);
-  // }
-  // if (scenarioResult.result.status === 'undefined') {
-  //   explanations.push(`${scenarioName} is undefined`);
-  // }
-  // if (scenarioResult.result.status === 'skipped') {
-  //   explanations.push(`${scenarioName} was skipped`);
-  // }
-  // if (scenarioResult.result.status === 'failed') {
-  //   await browser.executeScript('lambda-status=failed');
-  //   explanations.push(`${scenarioName} failed:${scenarioResult.result.exception}`);
-  //   explanations.push(`${scenarioResult.sourceLocation.url} (${scenarioResult.sourceLocation.line})`);
-  // }
-
-  // await gotApi({
-  // url: `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions/${sessionId}`,
-  // url = `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions`;
-  // const stuff = await helpers.apiCall(url, 'GET');
-  // console.log('this is the get stuff ', stuff);
-  // method: 'GET',
-  // form: {
-  //   status: '',
-  //   reason: explanations.join('; '),
-  // },
-  // });
-
-  // const buildDetails = await gotApi({
-  //   url: `https://${apiCredentials}@api.lambdatest.com/automation/api/v1/sessions/${sessionId}`,
-  //   method: 'GET',
-  // });
-  // const detailsToArray = buildDetails.split('"');
-  // const publicUrlPosition = detailsToArray.indexOf('public_url');
-  // console.log('build details ', buildDetails);
-  // console.log(`public_url: ${detailsToArray[publicUrlPosition + 2]}`);
 }
 
 module.exports = {
