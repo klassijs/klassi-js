@@ -2,6 +2,7 @@
 artifacts
 .nyc_output
 coverage
+visual-regression-baseline
 
 # exclude generated reports
 reports

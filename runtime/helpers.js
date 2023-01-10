@@ -184,6 +184,7 @@ module.exports = {
     // eslint-disable-next-line global-require
     // const verify = require('./imageCompare');
     await verify.takePageImage(fileName, elementsToHide);
+    await browser.pause(DELAY_500ms);
   },
 
   /**

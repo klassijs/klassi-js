@@ -88,9 +88,6 @@ global.DELAY_5m = 300000; // 5 minutes delay
  * All Cucumber Global variables
  * @constructor
  */
-/**
- * @type {(<WorldType=IWorld>(pattern: DefineStepPattern, code: TestStepFunction<WorldType>) => void) & (<WorldType=IWorld>(pattern: DefineStepPattern, options: IDefineStepOptions, code: TestStepFunction<WorldType>) => void)}
- */
 global.Given = Given;
 global.When = When;
 global.Then = Then;
@@ -129,7 +126,7 @@ program
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--email', 'email for sending reports to stakeholders')
   .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
-  .option('--reportName <optional>', 'basename for report files e.g. use report for report.json', global.reportName)
+  .option('--reportName <optional>', 'basename for report files e.g. use report for report.json'.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
   .option(
     '--sharedObjects <paths>',
@@ -181,6 +178,7 @@ const settings = {
   dlink: options.dlink,
   updateBaselineImage: options.updateBaselineImage,
   remoteService: options.remoteService,
+  extraSettings: options.extraSettings,
 };
 
 global.headless = options.headless;
@@ -204,8 +202,11 @@ global.env = process.env.ENVIRONMENT || environment[options.env];
 global.browserOpen = options.browserOpen;
 global.dryRun = options.dryRun;
 
-global.date = require('./runtime/helpers').currentDate();
-global.dateTime = require('./runtime/helpers').reportDate();
+/** adding global helpers */
+const data = require('./runtime/helpers');
+global.helpers = data;
+global.date = data.currentDate();
+global.dateTime = data.reportDate();
 
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (options.utam) {
@@ -255,7 +256,7 @@ global.fs = fs;
  * Adding Global browser folder
  * Adding Accessibility folder at project level
  */
-global.browserName = global.settings.remoteConfig || BROWSER_NAME;
+global.browserName = settings.remoteConfig || BROWSER_NAME;
 
 const envName = env.envName.toLowerCase();
 const reports = `./reports/${browserName}/${envName}`;
@@ -280,15 +281,10 @@ fs.ensureDirSync(axereports, (err) => {
   }
 });
 
-/** adding global helpers */
-global.helpers = require('./runtime/helpers');
-
 /** adding global accessibility library */
-// eslint-disable-next-line camelcase
 const accessibility_lib = path.resolve(__dirname, './runtime/accessibility/accessibilityLib.js');
 if (fs.existsSync(accessibility_lib)) {
   const rList = [];
-  // eslint-disable-next-line global-require,import/no-dynamic-require
   global.accessibilityLib = require(accessibility_lib);
   global.accessibilityReportList = rList;
 } else console.error('No Accessibility Lib');
@@ -297,10 +293,8 @@ if (fs.existsSync(accessibility_lib)) {
  * adding video link access
  * @type {string}
  */
-// eslint-disable-next-line camelcase
 const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
-  // eslint-disable-next-line global-require,import/no-dynamic-require
   global.videoLib = require(videoLib);
 } else {
   console.error('No Video Lib');
@@ -339,7 +333,7 @@ function getTagsFromFeatureFiles() {
   });
 
   Object.keys(featurefiles).forEach((key) => {
-    const content = String(featurefiles[key] || '');
+    const content = String(featurefiles[key] || '', ' ');
     result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
   });
   return result;
@@ -451,7 +445,7 @@ if (options.browsers) {
 try {
   klassiCli().then(async (succeeded) => {
     if (dryRun === false) {
-      await helpers.klassiReporter();
+      await data.klassiReporter();
     }
     if (!succeeded) {
       process.exit(1);
