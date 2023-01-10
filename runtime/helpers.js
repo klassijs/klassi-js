@@ -57,9 +57,11 @@ module.exports = {
      */
     await browser.url(url, async () => {
       /**
-       * now wait for the body element to be present
+       * now wait for the page to be in its completed state
        */
-      browser.waitUntil(browser.$('body'), timeout);
+      await browser.waitUntil(async () => await browser.execute(() => document.readyState === 'complete'), {
+        timeoutMsg: `The web page is still not loaded after ${timeout} seconds`,
+      });
     });
     /**
      * grab the userAgent details from the loaded url

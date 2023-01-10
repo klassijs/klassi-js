@@ -212,7 +212,7 @@ global.dateTime = data.reportDate();
 if (options.utam) {
   const filePath =
     projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
-  const utamConfig = require(path.resolve(__dirname, filePath));
+  const utamConfig = require(path.resolve(filePath));
   fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
   execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
     if (err) console.error(err);
@@ -436,10 +436,10 @@ if (options.featureFiles) {
 /** Add split to run multiple browsers from the command line */
 if (options.browsers) {
   const splitBrowsers = options.browser.split(',');
-  splitBrowsers.forEach((browserName) => {
-    process.argv.push('-b', options.browser);
+  splitBrowsers.forEach((browser) => {
+    process.argv.push('-b', browser);
   });
-  process.argv.push('-b', options.browser);
+  process.argv.push('-b', browser);
 }
 
 /** execute cucumber Cli */
