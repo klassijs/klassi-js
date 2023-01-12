@@ -21,6 +21,7 @@
  SOFTWARE.
  */
 const path = require('path');
+const envName = env.envName.toLowerCase();
 
 const options = {
   default: {
@@ -29,13 +30,7 @@ const options = {
     tags: global.resultingString,
     format: [
       '@cucumber/pretty-formatter',
-      `json:${path.resolve(
-        __dirname,
-        global.paths.reports,
-        browserName,
-        env.envName,
-        `${reportName}-${dateTime}.json`
-      )}`,
+      `json:${path.resolve(__dirname, global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,
     ],
     formatOptions: {
       colorsEnabled: true,
