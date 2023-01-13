@@ -75,7 +75,7 @@ module.exports = {
       fs.ensureDirSync(dirAcc);
     }
 
-    const curdatatime = module.exports.getCurrentDateTime();
+    const curdatatime = helpers.reportDate();
     const fileName = `AccessbilityReport_${Pagename}-${browserName}_${curdatatime}`;
 
     fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', (err) => {
@@ -116,7 +116,7 @@ module.exports = {
       fs.ensureDirSync(dirAcc);
     }
 
-    const curdatatime = module.exports.getCurrentDateTime();
+    const curdatatime = helpers.reportDate();
     const fileName = `AccessbilityReport_${Pagename}-${browserName}_${curdatatime}`;
 
     fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', (err) => {
@@ -135,30 +135,6 @@ module.exports = {
         if (err) throw err;
       }
     );
-  },
-
-  /** to get current data time */
-  getCurrentDateTime() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
-    let hours = today.getHours();
-    let minutes = today.getMinutes();
-
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    if (hours < 10) {
-      hours = `0${hours}`;
-    }
-    if (minutes < 10) {
-      minutes = `0${minutes}`;
-    }
-    return `${dd}/${mm}/${yyyy}-${hours}:${minutes}`.replace(/\//g, '').replace(/:/g, '').replace(' ', '');
   },
 
   htmlDataRender(data, y, type) {
