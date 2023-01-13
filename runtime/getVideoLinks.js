@@ -21,7 +21,6 @@
  SOFTWARE.
  */
 const pactumJs = require('pactum');
-
 /**
  * setting the envConfig variables for file list
  */

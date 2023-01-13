@@ -23,7 +23,6 @@
 const wdio = require('webdriverio');
 const lambdaTunnel = require('@lambdatest/node-tunnel');
 
-// eslint-disable-next-line new-cap
 const tunnelInstance = new lambdaTunnel();
 wdio.tunnelInstance = tunnelInstance;
 

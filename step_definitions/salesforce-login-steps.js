@@ -1,4 +1,3 @@
-/* eslint-disable global-require */
 // const { nanoid } = require('nanoid');
 
 let Salesforce;
@@ -9,6 +8,11 @@ try {
   AccountCreationForm = require('../page-objects/__utam__/compiledUTAM/accountCreationForm');
 } catch (err) {}
 const getVerificationCode = require('../settings/retrieveMailinator');
+
+Before({ tags: '@wip' }, () => {
+  cucumberThis.attach('This step is used to test the ability to skip tests automatically.');
+  return 'skipped';
+});
 
 Given(/^The user navigates to their Salesforce instance$/, async () => {
   await helpers.loadPage(env.salesforceInstanceUrl, 10);

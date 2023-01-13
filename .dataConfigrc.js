@@ -1,3 +1,7 @@
+/**
+ klassi-js
+ Copyright © 2016 - Larry Goddard
+ */
 module.exports = {
   dataConfig: {
     projectName: 'klassi-js',

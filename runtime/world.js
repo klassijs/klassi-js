@@ -21,10 +21,8 @@
  SOFTWARE.
  */
 const fs = require('fs-extra');
-const program = require('commander');
 const merge = require('merge');
 const requireDir = require('require-dir');
-const s3Upload = require('./s3Upload');
 const getRemote = require('./getRemote');
 const data = require('./helpers');
 
@@ -199,48 +197,15 @@ Before(async (scenario) => {
   }
 });
 
-// /**
-//  * compile and generate a report at the END of the test run to be send by Email
-//  * send email with the report to stakeholders after test run
-//  */
-// AfterAll(async () => {
-//   const { browser } = global;
-//   try {
-//     browser.pause(DELAY_5s);
-//     if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
-//       browser.pause(DELAY_5s).then(async () => {
-//         await s3Upload.s3Upload();
-//         browser.pause(DELAY_30s).then(() => {
-//           process.exit(browser.status);
-//         });
-//       });
-//     } else if (remoteService && remoteService.type === 'lambdatest') {
-//       browser.pause(DELAY_5s).then(async () => {
-//         process.exit(browser.status);
-//       });
-//     } else if (program.opts().email) {
-//       browser.pause(DELAY_5s).then(async () => {
-//         await helpers.klassiEmail();
-//         browser.pause(DELAY_3s);
-//       });
-//     }
-//   } catch (err) {
-//     console.log(err.message);
-//   }
-// });
-
 /**
  * LambdaTest Only
  * executed ONLY on failure of a scenario to get the video link
  * from lambdatest when it fails for the report
  */
 After(async (scenario) => {
-  // eslint-disable-next-line no-undef
   if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
     await helpers.ltVideo();
-    // eslint-disable-next-line no-undef
     const vidLink = await videoLib.getVideoId();
-    // eslint-disable-next-line no-undef
     cucumberThis.attach(
       `video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`
     );
@@ -251,9 +216,7 @@ After(async (scenario) => {
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void|Request<LexRuntime.DeleteSessionResponse, AWSError>|Request<LexRuntimeV2.DeleteSessionResponse, AWSError>>}
  */
-// eslint-disable-next-line func-names
 this.browserOpen = function () {
-  // eslint-disable-next-line no-shadow
   const { browser } = global;
   if (global.browserOpen === false) {
     return browser.deleteSession();
@@ -266,7 +229,6 @@ this.browserOpen = function () {
  * executed after each scenario - always closes the browser to ensure clean browser not cached)
  */
 After(async (scenario) => {
-  // eslint-disable-next-line no-shadow
   const { browser } = global;
   if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
     if (remoteService && remoteService.type === 'lambdatest') {
@@ -285,7 +247,6 @@ After(async (scenario) => {
  * get executed only if there is an error within a scenario
  */
 After(function (scenario) {
-  // eslint-disable-next-line no-shadow
   const { browser } = global;
   const world = this;
   if (scenario.result.status === Status.FAILED) {

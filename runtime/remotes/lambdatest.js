@@ -39,7 +39,6 @@ function getCredentials() {
   /** adding the ability to deep dive */
   const user = process.env.LAMBDATEST_USERNAME;
   const key = process.env.LAMBDATEST_ACCESS_KEY;
-  console.log('the result ===> ', user + key);
 
   assert.isNotEmpty(user, 'lambdatest requires a username');
   assert.isNotEmpty(key, 'lambdatest requires an access key');
@@ -61,12 +60,9 @@ async function submitResults() {
   matchingBuilds = buildsBody.body.data;
 
   let i;
-  // eslint-disable-next-line no-plusplus
   for (i = 0; i < matchingBuilds.length; i++) {
     const projectname = matchingBuilds[i].name;
-    // eslint-disable-next-line no-await-in-loop
     await projectname;
-    // eslint-disable-next-line no-undef
     if (projectname === dataconfig.projectName) {
       matchingBuilds = matchingBuilds[i].build_id;
     }
@@ -77,10 +73,8 @@ async function submitResults() {
 
   let x;
   const sessionData = sessionsBody.body.data;
-  // eslint-disable-next-line no-plusplus
   for (x = 0; x < sessionData.length; x++) {
     const sessionName = sessionData[x].build_name;
-    // eslint-disable-next-line no-await-in-loop
     await sessionName;
   }
 }

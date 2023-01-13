@@ -16,6 +16,6 @@ Feature: Searching for apps with duckduckgo
       | mango | modHeader | username | password |
       | traffic | modHeader | username | password |
 
-  Scenario: Search for UTAM on Google
-    Given The user the navigates to Google
-    When They use the the engine to search for a word
+  @skip
+  Scenario: Example for conditionally skipping tests
+    Given This step will always pass

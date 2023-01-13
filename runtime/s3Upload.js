@@ -90,7 +90,7 @@ module.exports = {
     }
     deploy(uploadFolder)
       .then(() => {
-        console.log('Files uploaded successfully, report folder pushed to s3');
+        console.log('Report files uploaded successfully and folder pushed to s3 bucket');
       })
       .catch((err) => {
         console.error(err.message);

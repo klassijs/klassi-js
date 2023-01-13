@@ -103,6 +103,7 @@ module.exports = {
                 }
               }
             }
+            /** this writes the content to the actual report per browser */
             dataOut = dataOut.replace('<-- browser_test_output -->', browserData.join(' '));
           }
         }
@@ -110,7 +111,7 @@ module.exports = {
         if (dataList === undefined) {
           console.error('There is no Data for this Project / project does not exist ....');
         } else if (dataList.length > 0) {
-          console.log('Test run completed and s3 report being sent .....');
+          console.log('Test report compiled and s3 report being sent .....');
           await helpers.klassiEmail();
         }
       }

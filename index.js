@@ -28,7 +28,7 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const chai = require('chai');
 const loadTextFile = require('text-files-loader');
-const { cosmiconfig, cosmiconfigSync } = require('cosmiconfig');
+const { cosmiconfigSync } = require('cosmiconfig');
 const { execSync } = require('child_process');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const {
@@ -113,11 +113,10 @@ function parseRemoteArguments(argumentString) {
   const argSplit = argumentString.split('/');
   const CONFIG = 0;
   const TAGS = 1;
-  const parsed = {
+  return {
     config: argSplit[CONFIG],
     tags: argSplit[TAGS],
   };
-  return parsed;
 }
 
 program
@@ -204,8 +203,7 @@ const explorerSync1 = cosmiconfigSync(dataModuleName);
 const searchedFor1 = explorerSync1.search();
 const dataconfig = searchedFor1.config;
 const { dataConfig } = dataconfig;
-// console.log('This is the result of search ====>', environment);
-// console.log('This is the result of search 1 ====>', dataConfig);
+// console.log('This is the result of search ====>', environment, dataConfig);
 
 global.dataconfig = dataConfig;
 global.s3Data = dataConfig.s3Data;

@@ -68,7 +68,7 @@ module.exports = async function lambdatestDriver(options, configType) {
   } else {
     /** configs can define their own build name or it is inferred from the configType */
     config.build = `${global.projectName}-${buildNameFromConfig}`;
-    config.tunnelName = 'ouptunnel';
+    config.tunnelName = 'klassitunnel';
   }
 
   const defaults = {

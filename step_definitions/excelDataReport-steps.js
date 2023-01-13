@@ -1,9 +1,9 @@
 const helpers = require('../runtime/helpers');
 
-/* eslint-disable global-require */
 const urls = [];
 const refresh1 = [];
 const refresh2 = [];
+let obj;
 
 let startDate, endDate;
 Given('User launches url from {string}', async (data) => {
@@ -23,7 +23,6 @@ Given('User launches url from {string}', async (data) => {
 // can be introduced login if needed here.
 
 Then('User refreshes the page for 1st time', async () => {
-  // Then('User refreshes the page for 1st time', async (data) => {
   startDate = new Date();
   await browser.refresh();
   endDate = new Date();

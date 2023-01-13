@@ -1,9 +1,7 @@
 let Google;
 
 try {
-  // eslint-disable-next-line global-require
   Google = require('../page-objects/__utam__/compiledUTAM/google');
-  // eslint-disable-next-line no-empty
 } catch (err) {}
 
 Given(/^The user navigates to Google$/, async () => {
