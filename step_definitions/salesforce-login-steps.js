@@ -10,6 +10,11 @@ try {
 } catch (err) {}
 const getVerificationCode = require('../settings/retrieveMailinator');
 
+Before({ tags: '@wip' }, () => {
+  cucumberThis.attach('This step is used to test the ability to skip tests automatically.');
+  return 'skipped';
+});
+
 Given(/^The user navigates to their Salesforce instance$/, async () => {
   await helpers.loadPage(env.salesforceInstanceUrl, 10);
   await utam.load(Salesforce);
