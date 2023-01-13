@@ -1636,9 +1636,9 @@ css-value@^0.0.1:
   resolved "https://registry.yarnpkg.com/css-value/-/css-value-0.0.1.tgz#5efd6c2eea5ea1fd6b6ac57ec0427b18452424ea"
   integrity sha512-FUV3xaJ63buRLgHrLQVlVgQnQdR4yqdLGaDu7g8CQcWjInDfM9plBTPI9FRfpahju1UBSaMckeb2/46ApS/V1Q==
 
-"cucumber-html-reporter@https://github.com/larryg01/cucumber-html-reporter#poc/upgradedFunctionality":
+"cucumber-html-reporter@https://github.com/larryg01/cucumber-html-reporter":
   version "5.2.0"
-  resolved "https://github.com/larryg01/cucumber-html-reporter#1b2b6d3b5c26049e2be7cb7b36c434c4144bc797"
+  resolved "https://github.com/larryg01/cucumber-html-reporter#46f18c611953cb393abeeee9706267344e897230"
   dependencies:
     chalk "4.1.2"
     find "^0.3.0"
