@@ -41,7 +41,7 @@
     "dev": "yarn delete-dev && yarn dev1",
     "delete-dev": "rm -rf ./reports ./artifacts ./log",
     "dev1": "node index.js --disableReport --tags",
-    "ltlocal": "node --trace-warnings index.js --disableReport  --remoteService lambdatest --extraSettings",
+    "ltlocal": "node index.js --disableReport  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltklassi": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",

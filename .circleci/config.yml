@@ -279,27 +279,27 @@ workflows:
   build_and_test:
     jobs:
       - dev_acceptance_test_firefox:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_integration_branches
 
       - acceptance_test_chrome:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - acceptance_test_firefox:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - acceptance_test_edge:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - acceptance_test_tabletiPad:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - dev_acceptance_test_chrome:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_integration_branches
 
 #  s3Report_run:
@@ -313,4 +313,4 @@ workflows:
 #
 #    jobs:
 #      - s3Report_chrome:
-#          context: klassi-js-framework
+#          context: klassi-framework
