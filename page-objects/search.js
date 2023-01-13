@@ -14,19 +14,15 @@ module.exports = {
     await helpers.compareImage(`${image}_1-0.png`);
     await elem.addValue(searchWord);
     /** Accessibility verification */
-    // eslint-disable-next-line no-undef
     await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
     await helpers.takeImage(`${image}_1-1.png`, sharedObjects.searchData.elem.leftBadge);
     const title = await browser.getTitle();
     console.log(`checking what title being returned:- ${title}`);
     await helpers.compareImage(`${image}_1-1.png`);
     await browser.keys('Enter');
-    // eslint-disable-next-line no-undef
     /** Accessibility verification */
-    // eslint-disable-next-line no-undef
     await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
     /** Accessibility Total error count/violations */
-    // eslint-disable-next-line no-undef
     cucumberThis.attach(`Accessibility Error Count : ${accessibilityLib.getAccessibilityTotalError()}`);
     return image;
   },

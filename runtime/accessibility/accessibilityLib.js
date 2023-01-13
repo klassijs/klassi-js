@@ -37,16 +37,11 @@ module.exports = {
   async getAccessibilityReport(PageName) {
     errorCount = 0;
     if (PageName == null) {
-      // eslint-disable-next-line no-param-reassign
       PageName = 'PageNameNotAvailable';
     }
-    // eslint-disable-next-line global-require
-    const axeSource = require('axe-core').source;
-
-    await browser.execute(axeSource);
+    await browser.execute(require('axe-core').source);
     const results = await browser.executeAsync((done) => {
-      // run axe on our site
-      // eslint-disable-next-line func-names,no-shadow,no-undef
+      /** run axe on our site */
       axe.run((err, results) => {
         if (err) done(err);
         done(results);

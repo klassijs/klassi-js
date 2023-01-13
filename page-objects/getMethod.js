@@ -6,7 +6,7 @@ module.exports = {
    */
   getCall: async () => {
     const url = env.api_base_url;
-    await helpers.apiCall(url, 'GET');
+    await helpers.apiCall(url, 'GET', null, null);
     resp = await helpers.getContent();
     // console.log('endPoint and statusCode ', `${url}:${resp.statusCode}`);
   },
