@@ -39,7 +39,7 @@
     "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
     "test": "node index.js --disableReport --tags",
     "dev": "yarn delete-dev && yarn dev1",
-    "delete-dev": "rm -rf ./reports ./artifacts ./log",
+    "delete-dev": "rm -rf ./reports ./artifacts ./visual-regression-baseline ./log",
     "dev1": "node index.js --disableReport --tags",
     "ltlocal": "node index.js --disableReport  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
