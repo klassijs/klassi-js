@@ -94,6 +94,11 @@
         "utam": "readonly",
         "s3Data": "readonly",
         "emailData": true,
-        "dryRun": "readonly"
+        "dryRun": "readonly",
+        "email": "readonly",
+        "s3Date": "readonly",
+        "cucumberThis": true,
+        "accessibilityLib": true,
+        "dataconfig": true
     }
 }

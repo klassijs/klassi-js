@@ -33,8 +33,8 @@ module.exports = {
   s3Upload() {
     const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
     const folderName = `/${date}/${dataconfig.s3FolderName}/reports`;
-    // const BUCKET = s3Data.S3_BUCKET + folderName;
-    const BUCKET = `test-app-automated-reports${folderName}`;
+    const BUCKET = s3Data.S3_BUCKET + folderName;
+    // const BUCKET = `test-app-automated-reports${folderName}`;
     const KEY = process.env.S3_KEY;
     const SECRET = process.env.S3_SECRET;
 

@@ -797,4 +797,29 @@ module.exports = {
       throw err;
     }
   },
+
+  /**
+   * This generates the Date for uploading and retrieving the reports from s3
+   * @returns {Date}
+   */
+  formatDate() {
+    const $today = new Date();
+    let $yesterday = new Date($today);
+    if (s3Date === true) {
+      $yesterday.setDate($today.getDate()); // for testing sending today's report.
+    } else {
+      $yesterday.setDate($today.getDate() - 1); // Also send last night reports, setDate also supports negative values, which cause the month to rollover.
+    }
+    let $dd = $yesterday.getDate();
+    let $mm = $yesterday.getMonth() + 1; // January is 0!
+    const $yyyy = $yesterday.getFullYear();
+    if ($dd < 10) {
+      $dd = `0${$dd}`;
+    }
+    if ($mm < 10) {
+      $mm = `0${$mm}`;
+    }
+    $yesterday = `${$dd}-${$mm}-${$yyyy}`;
+    return $yesterday;
+  },
 };

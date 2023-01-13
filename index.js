@@ -28,7 +28,7 @@ const merge = require('merge');
 const requireDir = require('require-dir');
 const chai = require('chai');
 const loadTextFile = require('text-files-loader');
-const { cosmiconfigSync } = require('cosmiconfig');
+const { cosmiconfig, cosmiconfigSync } = require('cosmiconfig');
 const { execSync } = require('child_process');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const {
@@ -43,6 +43,8 @@ const {
   When,
   Then,
 } = require('@cucumber/cucumber');
+
+const s3Upload = require('./runtime/s3Upload');
 const pjson = require('./package.json');
 
 async function klassiCli() {
@@ -124,7 +126,7 @@ program
   .option('--browser <name>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
-  .option('--email', 'email for sending reports to stakeholders')
+  .option('--email', 'email for sending reports to stakeholders', false)
   .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json'.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
@@ -156,10 +158,15 @@ program
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo')
-  .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.')
+  .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.', false)
   .option(
     '--dryRun',
     'the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests',
+    false
+  )
+  .option(
+    '--s3Date',
+    'this switches the s3 date to allow the downloading and emailing of reports from the latest test run and not last nights run',
     false
   )
   .parse(process.argv);
@@ -186,12 +193,19 @@ global.headless = options.headless;
  * Setting envConfig to be global, used within the world.js when building browser
  * @type {string}
  */
-const moduleName = process.env.ENV_CONFIG || 'envConfig'; // name of the rc.js file for global variables
-const explorerSync = cosmiconfigSync(moduleName);
+const envModuleName = process.env.ENV_CONFIG || 'envConfig'; // name of the env rc.js file for global variables
+const explorerSync = cosmiconfigSync(envModuleName);
 const searchedFor = explorerSync.search();
 const envConfig = searchedFor.config;
-const { dataConfig, environment } = envConfig;
-// console.log(searchedFor);
+const { environment } = envConfig;
+
+const dataModuleName = process.env.DATA_CONFIG || 'dataConfig'; // name of the data rc.js file for global variables
+const explorerSync1 = cosmiconfigSync(dataModuleName);
+const searchedFor1 = explorerSync1.search();
+const dataconfig = searchedFor1.config;
+const { dataConfig } = dataconfig;
+// console.log('This is the result of search ====>', environment);
+// console.log('This is the result of search 1 ====>', dataConfig);
 
 global.dataconfig = dataConfig;
 global.s3Data = dataConfig.s3Data;
@@ -201,6 +215,9 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 global.browserOpen = options.browserOpen;
 global.dryRun = options.dryRun;
+global.email = options.email;
+global.s3Date = options.s3Date;
+global.utam = options.utam;
 
 /** adding global helpers */
 const data = require('./runtime/helpers');
@@ -209,7 +226,7 @@ global.date = data.currentDate();
 global.dateTime = data.reportDate();
 
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
-if (options.utam) {
+if (utam) {
   const filePath =
     projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
   const utamConfig = require(path.resolve(filePath));
@@ -224,9 +241,6 @@ if (options.utam) {
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
   settings.remoteConfig = additionalSettings.config;
-  /* this approach supports a single string defining both the target config and tags
-   e.g. 'chrome/@tag1,@tag2'
-   */
   if (additionalSettings.tags) {
     if (options.tags.length !== 0) {
       throw new Error('Cannot sent two types of tags - either use --extraSettings or --tags');
@@ -447,17 +461,18 @@ try {
   klassiCli().then(async (succeeded) => {
     if (dryRun === false) {
       await data.klassiReporter();
+      /**
+       * compile and generate a report at the END of the test run to be send by Email
+       * send email with the report to stakeholders after test run
+       */
+      if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
+        await s3Upload.s3Upload();
+      } else if (email === true) {
+        await data.klassiEmail();
+      }
     }
     if (!succeeded) {
       process.exit(1);
-    }
-    if (process.stdout.write('')) {
-      process.exit();
-    } else {
-      // kernel buffer is not empty yet
-      process.stdout.on('drain', () => {
-        process.exit();
-      });
     }
   });
 } catch (err) {

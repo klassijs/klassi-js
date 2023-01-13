@@ -199,35 +199,35 @@ Before(async (scenario) => {
   }
 });
 
-/**
- * compile and generate a report at the END of the test run to be send by Email
- * send email with the report to stakeholders after test run
- */
-AfterAll(async () => {
-  const { browser } = global;
-  try {
-    browser.pause(DELAY_5s);
-    if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
-      browser.pause(DELAY_5s).then(async () => {
-        await s3Upload.s3Upload();
-        browser.pause(DELAY_30s).then(() => {
-          process.exit(browser.status);
-        });
-      });
-    } else if (remoteService && remoteService.type === 'lambdatest') {
-      browser.pause(DELAY_5s).then(async () => {
-        process.exit(browser.status);
-      });
-    } else if (program.opts().email) {
-      browser.pause(DELAY_5s).then(async () => {
-        await helpers.klassiEmail();
-        browser.pause(DELAY_3s);
-      });
-    }
-  } catch (err) {
-    console.log(err.message);
-  }
-});
+// /**
+//  * compile and generate a report at the END of the test run to be send by Email
+//  * send email with the report to stakeholders after test run
+//  */
+// AfterAll(async () => {
+//   const { browser } = global;
+//   try {
+//     browser.pause(DELAY_5s);
+//     if (remoteService && remoteService.type === 'lambdatest' && program.opts().email) {
+//       browser.pause(DELAY_5s).then(async () => {
+//         await s3Upload.s3Upload();
+//         browser.pause(DELAY_30s).then(() => {
+//           process.exit(browser.status);
+//         });
+//       });
+//     } else if (remoteService && remoteService.type === 'lambdatest') {
+//       browser.pause(DELAY_5s).then(async () => {
+//         process.exit(browser.status);
+//       });
+//     } else if (program.opts().email) {
+//       browser.pause(DELAY_5s).then(async () => {
+//         await helpers.klassiEmail();
+//         browser.pause(DELAY_3s);
+//       });
+//     }
+//   } catch (err) {
+//     console.log(err.message);
+//   }
+// });
 
 /**
  * LambdaTest Only

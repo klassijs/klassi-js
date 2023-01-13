@@ -25,25 +25,21 @@ const fs = require('fs-extra');
 const AWS = require('aws-sdk');
 const program = require('commander');
 
-// const s3Bucket = s3Data.S3_BUCKET;
-const s3Bucket = 'test-app-automated-reports';
+const s3Bucket = s3Data.S3_BUCKET;
 const s3AccessKeyId = process.env.S3_KEY;
 const s3SecretAccessKey = process.env.S3_SECRET;
-// const domainName = s3Data.S3_DOMAIN_NAME;
-const domainName = 'http://test-app-automated-reports.s3.eu-west-2.amazonaws.com';
+const domainName = s3Data.S3_DOMAIN_NAME;
 
 const s3 = new AWS.S3({
-  // region: s3Data.S3_REGION,
-  region: 'eu-west-2',
+  region: s3Data.S3_REGION,
   accessKeyId: s3AccessKeyId,
   secretAccessKey: s3SecretAccessKey,
 });
 
 module.exports = {
   async s3Processor(projectName) {
-    const date = this.formatDate();
+    const date = helpers.formatDate();
     const folderName = date;
-    // eslint-disable-next-line no-param-reassign,no-undef
     projectName = dataconfig.s3FolderName;
     console.log(`Starting Processing of Test Report for: ${date}/${projectName} ...`);
     /**
@@ -81,12 +77,10 @@ module.exports = {
       },
       async (err, data) => {
         if (data.Contents) {
-          // // eslint-disable-next-line no-plusplus, no-plusplus
           for (let x = 0; x < browserName.length; x++) {
             browsername = browserName[x];
             const browserData = [];
 
-            // eslint-disable-next-line no-plusplus
             for (let i = 0; i < data.Contents.length; i++) {
               const key = data.Contents[i].Key;
               if (key.substring(0, 10) === folderName) {
@@ -121,23 +115,5 @@ module.exports = {
         }
       }
     );
-  },
-
-  formatDate() {
-    const $today = new Date();
-    let $yesterday = new Date($today);
-    $yesterday.setDate($today.getDate() - 1); // this cause the month to rollover.
-    // $yesterday.setDate($today.getDate()); // uncomment for testing sets the date to today.
-    let $dd = $yesterday.getDate();
-    let $mm = $yesterday.getMonth() + 1; // January is 0!
-    const $yyyy = $yesterday.getFullYear();
-    if ($dd < 10) {
-      $dd = `0${$dd}`;
-    }
-    if ($mm < 10) {
-      $mm = `0${$mm}`;
-    }
-    $yesterday = `${$dd}-${$mm}-${$yyyy}`;
-    return $yesterday;
   },
 };

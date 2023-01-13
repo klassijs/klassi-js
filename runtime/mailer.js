@@ -23,7 +23,7 @@
 const path = require('path');
 const nodeMailer = require('nodemailer');
 const aws = require('@aws-sdk/client-ses');
-// const { defaultProvider } = require('@aws-sdk/credential-provider-node');
+const { defaultProvider } = require('@aws-sdk/credential-provider-node');
 const getRemote = require('./getRemote');
 
 const remoteService = getRemote(global.settings.remoteService);
@@ -34,19 +34,18 @@ process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.SES_SECRET;
 const ses = new aws.SES({
   apiVersion: '2010-12-01',
-  // region: emailData.SES_REGION,
-  region: 'eu-west-1',
-  // defaultProvider,
+  region: emailData.SES_REGION,
+  defaultProvider,
 });
 
 /** Functionality for sending test results via email
  * @type {exports|module.exports}
  */
 module.exports = {
-  klassiSendMail() {
+  klassiSendMail: async () => {
     /** To get all the files that need to be attached */
     let fileList;
-    const date = this.formatDate();
+    const date = helpers.formatDate();
     if (remoteService && remoteService.type === 'lambdatest') {
       fileList = [
         {
@@ -74,10 +73,9 @@ module.exports = {
       ];
     }
 
-    // eslint-disable-next-line no-undef
     const devTeam = emailData.nameList;
     /** Email AWS server connections */
-    const transporter = nodeMailer.createTransport({
+    const transporter = await nodeMailer.createTransport({
       SES: { ses, aws },
       Statement: [
         {
@@ -90,7 +88,7 @@ module.exports = {
 
     const mailOptions = {
       to: devTeam,
-      from: 'klassi-QATEST <QAAutoTest@klassitech.co.uk>',
+      from: 'klassi-QATEST <QAAutoTest@oup.com>',
       subject: `${projectName} ${global.reportName}-${dateTime}`,
       alternative: true,
       attachments: fileList,
@@ -98,7 +96,7 @@ module.exports = {
     };
     /** verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
-    transporter.verify((err, success) => {
+    await transporter.verify(async (err, success) => {
       if (err) {
         console.error('Server failed to Start', err.stack);
       } else {
@@ -106,44 +104,22 @@ module.exports = {
       }
       if (success) {
         try {
-          // eslint-disable-next-line no-shadow
-          transporter.sendMail(mailOptions, (err) => {
+          await transporter.sendMail(mailOptions, (err) => {
             if (err) {
               console.error(`Results Email CANNOT be sent: ${err.stack}`);
               throw err;
             } else {
               console.log('Results Email successfully sent');
-              // eslint-disable-next-line no-unused-vars
               browser.pause(DELAY_200ms).then(() => {
                 process.exit(0);
               });
             }
           });
-          // eslint-disable-next-line no-shadow
         } catch (err) {
           console.error('There is a system error: ', err.stack);
           throw err;
         }
       }
     });
-  },
-
-  /** @returns {string} */
-  formatDate() {
-    const $today = new Date();
-    let $yesterday = new Date($today);
-    $yesterday.setDate($today.getDate() - 1); // setDate also supports negative values, which cause the month to rollover.
-    // $yesterday.setDate($today.getDate()); // uncomment for testing sets the date to today.
-    let $dd = $yesterday.getDate();
-    let $mm = $yesterday.getMonth() + 1; // January is 0!
-    const $yyyy = $yesterday.getFullYear();
-    if ($dd < 10) {
-      $dd = `0${$dd}`;
-    }
-    if ($mm < 10) {
-      $mm = `0${$mm}`;
-    }
-    $yesterday = `${$dd}-${$mm}-${$yyyy}`;
-    return $yesterday;
   },
 };

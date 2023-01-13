@@ -22,11 +22,11 @@
  */
 const { cosmiconfigSync } = require('cosmiconfig');
 
-const moduleName = process.env.ENV_CONFIG || 'envConfig';
+const moduleName = process.env.DATA_CONFIG || 'dataConfig';
 const explorerSync = cosmiconfigSync(moduleName);
 const searchedFor = explorerSync.search();
-const envConfig = searchedFor.config;
-const { dataConfig } = envConfig;
+const dataconfig = searchedFor.config;
+const { dataConfig } = dataconfig;
 
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 

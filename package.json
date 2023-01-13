@@ -41,13 +41,11 @@
     "dev": "yarn delete-dev && yarn dev1",
     "delete-dev": "rm -rf ./reports ./artifacts ./log",
     "dev1": "node index.js --disableReport --tags",
-    "dev2": "node index.js --disableReport @rerun.txt",
     "ltlocal": "node --trace-warnings index.js --disableReport  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
-    "ciltklassi-js": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
-    "pkgcheck": "yarn install --check-files",
-    "json": "yarn ndjson-to-json './reports/AutomatedReport-16-12-2022-160344647.ndjson' -o 'sample3.json'"
+    "ciltklassi": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
+    "pkgcheck": "yarn install --check-files"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "bugs": {
@@ -72,6 +70,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.226.0",
+    "@aws-sdk/credential-provider-node": "^3.245.0",
     "@cucumber/cucumber": "^8.9.0",
     "@cucumber/pretty-formatter": "^1.0.0",
     "async": "^3.2.4",
