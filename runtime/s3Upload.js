@@ -30,7 +30,7 @@ const async = require('async');
  * function to upload the test report run folder to an s3 - AWS
  */
 module.exports = {
-  s3Upload() {
+  s3Upload: async () => {
     const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
     const folderName = `/${date}/${dataconfig.s3FolderName}/reports`;
     const BUCKET = s3Data.S3_BUCKET + folderName;
@@ -46,10 +46,21 @@ module.exports = {
       secretAccessKey: SECRET,
     });
 
+    function mybucketList() {
+      return new Promise((resolve, reject) => {
+        s3.listBuckets(function (err, data) {
+          if (err) {
+            console.log('Error', err);
+          } else {
+            let resp = data.Buckets;
+            resolve(resp);
+          }
+        });
+      });
+    }
     function getFiles(dirPath) {
       return fs.existsSync(dirPath) ? readdir(dirPath) : [];
     }
-
     async function deploy(upload) {
       const filesToUpload = await getFiles(path.resolve(rootFolder, upload));
       return new Promise((resolve, reject) => {
@@ -88,13 +99,19 @@ module.exports = {
         );
       });
     }
-    deploy(uploadFolder)
-      .then(() => {
-        console.log('Report files uploaded successfully and folder pushed to s3 bucket');
-      })
-      .catch((err) => {
-        console.error(err.message);
-        process.exit(0);
-      });
+    mybucketList().then((resp) => {
+      const bucketExists = resp.some((bucket) => bucket.Name === s3Data.S3_BUCKET);
+      if (!bucketExists) {
+        console.log('the bucket does not exist');
+        return;
+      }
+      deploy(uploadFolder)
+        .then(() => {
+          console.log('Files uploaded successfully, report folder pushed to s3');
+        })
+        .catch((err) => {
+          console.error(err.message);
+        });
+    });
   },
 };
