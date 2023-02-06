@@ -35,7 +35,7 @@ jobs:
   ###########################################
   s3_report_base: &s3_report_base
     docker:
-      - image: cimg/node:14.19.0-browsers
+      - image: cimg/node:18.12.1-browsers
     resource_class: small
     working_directory: ~/klassi
 
@@ -182,7 +182,7 @@ jobs:
   ###########################################
   acceptance_test_base: &acceptance_test_base
     docker:
-      - image: cimg/node:14.19.0-browsers
+      - image: cimg/node:18.12.1-browsers
     resource_class: small
     parallelism: 2
     working_directory: ~/klassi
@@ -302,15 +302,15 @@ workflows:
           context: klassi-js-framework
           <<: *filter_only_integration_branches
 
-  s3Report_run:
-    triggers:
-      - schedule:
-          cron: "00 04 * * *"
-          filters:
-            branches:
-              only:
-                - master
-
-    jobs:
-      - s3Report_chrome:
-          context: klassi-js-framework
+#  s3Report_run:
+#    triggers:
+#      - schedule:
+#          cron: "00 04 * * *"
+#          filters:
+#            branches:
+#              only:
+#                - master
+#
+#    jobs:
+#      - s3Report_chrome:
+#          context: klassi-js-framework
