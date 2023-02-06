@@ -112,7 +112,7 @@ jobs:
           name: Starting Lambdatest Tunnel for testing
           background: true
           command: |
-            if [ -z "qLzlsFECIptQEriaahXlT8RYD09zf83zePxByro9OYMlv725hs" ]; then
+            if [ -z $LAMBDATEST_ACCESS_KEY ]; then
               echo "Error: The parameter lambdatest_key is empty. Please ensure the environment variable LAMBDATEST_KEY has been added."
               exit 1
             fi
@@ -124,7 +124,7 @@ jobs:
             done
             echo "$PORT" > /tmp/port
             echo $TUNNEL_NAME
-            ./LT --user QaAutoTest --key qLzlsFECIptQEriaahXlT8RYD09zf83zePxByro9OYMlv725hs --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME --load-balanced --verbose --mode ssh --maxSSHConnections 3 --retry-on-failure true
+            ./LT --user $LAMBDATEST_USERNAME --key $LAMBDATEST_ACCESS_KEY --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME --load-balanced --verbose --mode ssh --maxSSHConnections 3 --retry-on-failure true
 
       - run:
           name: Wait for LambdaTest Tunnel
@@ -279,27 +279,27 @@ workflows:
   build_and_test:
     jobs:
       - dev_acceptance_test_firefox:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_integration_branches
 
       - acceptance_test_chrome:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - acceptance_test_firefox:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - acceptance_test_edge:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - acceptance_test_tabletiPad:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_releasable_branches
 
       - dev_acceptance_test_chrome:
-          context: klassi-js-framework
+          context: klassi-framework
           <<: *filter_only_integration_branches
 
 #  s3Report_run:
@@ -313,4 +313,4 @@ workflows:
 #
 #    jobs:
 #      - s3Report_chrome:
-#          context: klassi-js-framework
+#          context: klassi-framework
