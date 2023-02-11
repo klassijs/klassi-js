@@ -409,6 +409,38 @@ To demo the framework without installing it into your project use the following 
   node index.js --tags @search
 ```
 
+## Commit conventions
+
+To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
+
+Bear in mind that the `/.circleci/config.yml` file **in each project using Klassi JS as a dependency** needs to be modified to change from `yarn install` to `yarn install --network-concurrency 1`. This is to avoid race conditions in multiple calls to the registry during the installation process.
+
+### Commits
+After committing the staged code, the Husky scripts will enforce the implementation of the [**Conventional Commits specification**](https://www.conventionalcommits.org/en/v1.0.0/#summary).
+
+To summarize them, all commits should follow the following schema:
+
+```
+git commit -m "<type>: <subject>"
+```
+
+Where **type** is one of the following:
+
+- **fix**: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
+- **feat**: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
+- **BREAKING CHANGE**: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
+- Types other than **fix:** and **feat:** are allowed, for example @commitlint/Tconfig-conventional (based on the Angular convention) recommends **build:, chore:, ci:, docs:, style:, refactor:, perf:, test:**, and others.
+  footers other than **BREAKING CHANGE:** may be provided and follow a convention similar to git trailer format.
+
+Please keep in mind that the **subject** must be written in lowercase.
+
+### Branch naming
+
+The same script will also verify the naming convention. Please remember that we only allow for two possible branch prefixes:
+
+- **testfix/**
+- **automation/**
+
 ## Bugs
 
 Please raise bugs via the [klassi-js issue tracker](https://github.com/larryg01/klassi-js/issues), please provide enough information for bug reproduction.
