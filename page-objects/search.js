@@ -19,7 +19,7 @@ module.exports = {
     const title = await browser.getTitle();
     console.log(`checking what title being returned:- ${title}`);
     await helpers.compareImage(`${image}_1-1.png`);
-    await browser.keys('Enter');
+    await browser.keys('\uE007');
     /** Accessibility verification */
     await accessibilityLib.getAccessibilityReport(`SearchPage-${searchWord}`);
     /** Accessibility Total error count/violations */
