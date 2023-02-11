@@ -32,20 +32,22 @@
   "browser": "index.js",
   "scripts": {
     "pretest": "eslint --ignore-path .gitignore .",
+    "predev": "yarn run delete-dev",
     "appium-start": "yarn run appium --log-level info",
     "android": "node index.js --disableReport --tags @android --remoteService lambdatest --env android --extraSettings android",
     "android-local": "node index.js --disableReport --tags @android --env android --browser android",
     "ios-local": "node index.js --disableReport --tags @ios --env ios --browser ios",
     "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
     "test": "node index.js --disableReport --tags",
-    "dev": "yarn delete-dev && yarn dev1",
-    "delete-dev": "rm -rf ./reports ./artifacts ./visual-regression-baseline ./log",
-    "dev1": "node index.js --disableReport --tags",
+    "dev": "node index.js --disableReport --tags",
+    "delete-dev": "rm -rf ./reports ./artifacts ./log ./visual-regression-baseline",
     "ltlocal": "node index.js --disableReport  --remoteService lambdatest --extraSettings",
     "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
     "ciltklassi": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
-    "pkgcheck": "yarn install --check-files"
+    "pkgcheck": "yarn install --check-files",
+    "lint-branch-name": "yarn run branch-name-lint ./branchnamelinter.config.json",
+    "prepare": "is-ci || husky install"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "bugs": {
@@ -96,9 +98,23 @@
     "webdriverio": "^8.0.9"
   },
   "devDependencies": {
-    "eslint": "^8.29.0",
+    "@commitlint/cli": "^17.2.0",
+    "@commitlint/config-conventional": "^17.2.0",
+    "branch-name-lint": "^2.1.1",
+    "eslint": "^8.33.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.0",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^13.0.3",
     "prettier": "^2.8.1"
-  }
+  },
+  "lint-staged": {
+    "*.{js}": [
+      "eslint --quiet --fix"
+    ]
+  },
+  "eslintIgnore": [
+    "dist"
+  ]
 }
