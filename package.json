@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=18.4.0",
+    "node": ">=16.0.0",
     "yarn": ">=1.22.0"
   },
   "keywords": [
@@ -32,20 +32,27 @@
   "browser": "index.js",
   "scripts": {
     "pretest": "eslint --ignore-path .gitignore .",
+    "predev": "yarn run delete-dev",
+    "prepare": "is-ci || husky install",
+    "lint-branch-name": "yarn run branch-name-lint ./branchnamelinter.config.json",
+    "changelog": "standard-version --skip.commit --skip.tag",
+    "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
+    "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
+    "changelog:major": "standard-version --release-as major --skip.commit --skip.tag",
+    "pkgcheck": "yarn install --check-files",
     "appium-start": "yarn run appium --log-level info",
     "android": "node index.js --disableReport --tags @android --remoteService lambdatest --env android --extraSettings android",
     "android-local": "node index.js --disableReport --tags @android --env android --browser android",
     "ios-local": "node index.js --disableReport --tags @ios --env ios --browser ios",
     "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
     "test": "node index.js --disableReport --tags",
-    "dev": "yarn delete-dev && yarn dev1",
-    "delete-dev": "rm -rf ./reports ./artifacts ./visual-regression-baseline ./log",
-    "dev1": "node index.js --disableReport --tags",
-    "ltlocal": "node index.js --disableReport  --remoteService lambdatest --extraSettings",
-    "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
+    "dev": "node index.js --disableReport --tags",
+    "delete-dev": "rm -rf ./reports ./artifacts ./log ./visual-regression-baseline",
+    "ltlocal": "node --trace-warnings index.js --disableReport --remoteService lambdatest --extraSettings",
+    "ciltdev": "node index.js --disableReport --utam --email --tags @search --remoteService lambdatest --extraSettings",
     "ciltuat": "nyc node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
-    "ciltklassi": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
-    "pkgcheck": "yarn install --check-files"
+    "ciltoaf": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
+    "cilts3r": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings"
   },
   "homepage": "https://github.com/larryg01/klassi-js#readme",
   "bugs": {
@@ -74,17 +81,17 @@
     "@cucumber/cucumber": "^8.9.0",
     "@cucumber/pretty-formatter": "^1.0.0",
     "async": "^3.2.4",
-    "aws-sdk": "^2.1272.0",
+    "aws-sdk": "^2.1296.0",
     "axe-core": "^4.5.2",
     "chai": "^4.3.7",
-    "commander": "^9.4.1",
+    "commander": "^10.0.0",
     "cosmiconfig": "^8.0.0",
     "cucumber-html-reporter": "https://github.com/larryg01/cucumber-html-reporter",
     "cucumber-junit": "^1.7.1",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
+    "got": "^12.5.3",
     "merge": "^2.1.1",
-    "nanoid": "^4.0.0",
     "node-resemble-js": "^0.2.0",
     "nodemailer": "^6.8.0",
     "pactum": "^3.3.1",
@@ -96,9 +103,25 @@
     "webdriverio": "^8.0.9"
   },
   "devDependencies": {
-    "eslint": "^8.29.0",
+    "@commitlint/cli": "^17.2.0",
+    "@commitlint/config-conventional": "^17.2.0",
+    "branch-name-lint": "^2.1.1",
+    "eslint": "^8.33.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.1"
-  }
+    "husky": "^8.0.0",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.8.1",
+    "standard-version": "^9.5.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --quiet --fix"
+    ]
+  },
+  "eslintIgnore": [
+    "dist"
+  ]
 }
+

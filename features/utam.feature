@@ -1,4 +1,4 @@
-@utamv @uattest
+@utam
 Feature: UTAM test
 
     @google
@@ -7,7 +7,7 @@ Feature: UTAM test
         When They use the engine to search for a word
         Then The results are correct
 
-    @salesforce @wip
+    @salesforce
     Scenario: Log into Salesforce developer instance
         Given The user navigates to their Salesforce instance
         When They log into the instance

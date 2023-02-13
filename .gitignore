@@ -13,7 +13,9 @@ reports
 
 # exclude file
 shared-objects/docs/userAgent.txt
-process.yml
+visual-regression-baseline
+bashScript
+
 # Logs
 logs
 log

@@ -18,242 +18,73 @@
  SOFTWARE.
  */
 const axe = require('axe-core');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 
 let errorCount = 0;
 let totalErrorCount = 0;
 
-const envName = global.env.envName.toLowerCase();
+const envName = env.envName.toLowerCase();
 
 module.exports = {
+  /** main method to be called for accessibility report */
+  async getAccessibilityReport(pageName) {
+    errorCount = 0;
+    if (pageName == null) {
+      pageName = 'pageNameNotAvailable';
+    }
+    await browser.execute(require('axe-core').source);
+    let results = await browser.executeAsync((done, err) => {
+      if (err) {
+        done(err);
+      } else {
+        axe.configure({ reporter: 'v2', noHtml: true });
+        axe.run(document, (err, results) => {
+          if (err) done(err);
+          done(results);
+        });
+      }
+    });
+
+    const additionalData = await browser.capabilities;
+    const browserName = settings.remoteConfig || BROWSER_NAME;
+    console.log('Generating Axe Report........');
+    module.exports.generatelAccessibilityReport(results, additionalData, pageName, browserName);
+
+    errorCount = results.violations.length + results.incomplete.length;
+    totalErrorCount += errorCount;
+  },
+
   getAccessibilityError() {
     return errorCount;
   },
   getAccessibilityTotalError() {
     return totalErrorCount;
   },
-  /** main method to be called for accessibility report */
-  async getAccessibilityReport(PageName) {
-    errorCount = 0;
-    if (PageName == null) {
-      PageName = 'PageNameNotAvailable';
-    }
-    await browser.execute(require('axe-core').source);
-    const results = await browser.executeAsync((done) => {
-      /** run axe on our site */
-      axe.run((err, results) => {
-        if (err) done(err);
-        done(results);
-      });
-    });
 
-    const additionalData = await browser.capabilities;
-    const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
-    console.log('Generating Axe Report........');
-    const reportLiteType = emailData.AccessibilityLiteReport;
-    if (reportLiteType === 'Yes') {
-      await module.exports.GenerateFinalAccessibilityLiteReport(results, additionalData, PageName, browserName);
-    } else {
-      await module.exports.GenerateFinalAccessibilityReport(results, additionalData, PageName, browserName);
-    }
-
-    errorCount = results.violations.length + results.incomplete.length;
-    totalErrorCount += errorCount;
-  },
-
-  async GenerateFinalAccessibilityReport(fullData, additionalData, Pagename, browserName) {
+  generatelAccessibilityReport(fullData, additionalData, pageName, browserName) {
     const sample = fs.readFileSync(path.resolve(__dirname, './ReportSample'), 'utf-8');
-
     const addDataInHtml = sample.replace('XXX-DetailData', JSON.stringify(fullData));
-    let finalHtml = addDataInHtml.replace('XXX-AdditinalData', JSON.stringify(additionalData));
-    finalHtml = finalHtml.replace('XXX-PageName', Pagename);
-
-    // take screen pics
-    const dirAcc = `${global.paths.reports}/${browserName}/${envName}/accessibility`;
-    if (!fs.existsSync(dirAcc)) {
-      fs.ensureDirSync(dirAcc);
-    }
-
-    const curdatatime = helpers.reportDate();
-    const fileName = `AccessbilityReport_${Pagename}-${browserName}_${curdatatime}`;
-
-    fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', (err) => {
-      if (err) throw err;
-      else
-        accessibilityReportList.push({
-          filename: `${fileName}.html`,
-          path: `${dirAcc}/${fileName}.html`,
-        });
-    });
-    fs.writeFile(
-      `${dirAcc}/AccessbilityReport_${Pagename}-${browserName}_${curdatatime}.json`,
-      JSON.stringify(fullData, null, 4),
-      'utf-8',
-      (err) => {
-        if (err) throw err;
-      }
-    );
-  },
-
-  async GenerateFinalAccessibilityLiteReport(fullData, additionalData, Pagename, browserName) {
-    const sample = fs.readFileSync(path.resolve(__dirname, './ReportSample-lite'), 'utf-8');
-    const summaryViewInfo = await module.exports.htmlsummaryView(fullData);
-    const summaryViewData = await module.exports.htmlsummaryData(fullData.testEnvironment, fullData);
-    const violationdata = await module.exports.htmlDataRender(fullData.violations, 1000, 'Violation');
-    const incompletedata = await module.exports.htmlDataRender(fullData.incomplete, 2000, 'Incomplete');
-
-    let addDataInHtml = sample.replace('XXXNoViolationRuleXXX', violationdata);
-    addDataInHtml = addDataInHtml.replace('XXXNoIncompleteRuleXXX', incompletedata);
-    addDataInHtml = addDataInHtml.replace('XXsystemDetailsXX', summaryViewData);
-    addDataInHtml = addDataInHtml.replace('XXX-DetailCount', JSON.stringify(summaryViewInfo));
 
     let finalHtml = addDataInHtml.replace('XXX-AdditinalData', JSON.stringify(additionalData));
-    finalHtml = finalHtml.replace('XXX-PageName', Pagename);
+    finalHtml = finalHtml.replace('XXX-PageName', pageName);
 
-    const dirAcc = `${global.paths.reports}/${browserName}/${envName}/accessibility`;
+    const dirAcc = `${paths.reports}/${browserName}/${envName}/accessibilityReport`;
+    const datatime = helpers.reportDateTime();
+    const fileName = `${pageName}-${browserName}_${datatime}`;
+
     if (!fs.existsSync(dirAcc)) {
-      fs.ensureDirSync(dirAcc);
+      fs.mkdirSync(dirAcc);
     }
-
-    const curdatatime = helpers.reportDate();
-    const fileName = `AccessbilityReport_${Pagename}-${browserName}_${curdatatime}`;
-
-    fs.writeFile(`${dirAcc}/${fileName}.html`, finalHtml, 'utf-8', (err) => {
-      if (err) throw err;
-      else
-        accessibilityReportList.push({
-          filename: `${fileName}.html`,
-          path: `${dirAcc}/${fileName}.html`,
-        });
-    });
-    fs.writeFile(
-      `${dirAcc}/AccessbilityReport_${Pagename}-${browserName}_${curdatatime}.json`,
-      JSON.stringify(fullData, null, 4),
+    fs.writeFileSync(dirAcc + '/' + fileName + '.json', JSON.stringify(fullData, null, 4));
+    fs.writeFileSync(
+      dirAcc + '/' + fileName + '.html',
+      finalHtml,
       'utf-8',
-      (err) => {
-        if (err) throw err;
-      }
+      accessibilityReportList.push({
+        filename: `${fileName}.html`,
+        path: `${dirAcc}/${fileName}.html`,
+      })
     );
-  },
-
-  htmlDataRender(data, y, type) {
-    let panColor = '#F9E79F';
-    let changeColor = false;
-    if (type === 'Violation' || type === 'Incomplete') {
-      changeColor = true;
-    }
-    let txt = '';
-    let z = 0;
-    // eslint-disable-next-line guard-for-in,no-restricted-syntax
-    for (const x in data) {
-      let ImpactMessage = '';
-
-      if (data[x].impact != null && (type === 'Violation' || type === 'Incomplete')) {
-        ImpactMessage = data[x].impact;
-
-        if (changeColor) {
-          if (data[x].impact === 'serious') {
-            panColor = '#F78C75';
-          }
-
-          if (data[x].impact === 'critical') {
-            panColor = '#F7994B';
-          }
-          if (data[x].impact === 'moderate') {
-            panColor = '#F7CD4B';
-          }
-        }
-      } else if (type === 'Passed') {
-        panColor = '#A0F9AC';
-      }
-
-      // eslint-disable-next-line no-param-reassign
-      y += 1;
-      z += 1;
-
-      txt += '<div class="panel panel-default">';
-      txt += `<div class="panel-heading" style="background-color:${panColor}"`;
-      txt += '>';
-      txt += '<h4 class="panel-title">';
-
-      txt += '<a data-toggle="collapse" data-parent="#accordion" href="#collapse';
-      txt += y;
-      txt += '">';
-      txt += `${z}. ${data[x].help.replace(/(<([^>]+)>)/gi, '')}`;
-      // txt+= z+": "+(data[x].help).replace( /<>/ig, '');
-      txt += '</a>';
-
-      txt += '<div style="float: right">';
-      txt += ImpactMessage;
-      txt += '</div>';
-      txt += '</h4>';
-      txt += '</div>';
-      txt += '<div id="collapse';
-      txt += y;
-      txt += '" class="panel-collapse collapse">';
-      txt += '<div class="panel-body" style="background-color: #F3EBD0">';
-      txt += '<a href=';
-      txt += data[x].helpUrl;
-      txt += ' target="_blank">';
-
-      txt += `<xmp>${data[x].help}</xmp>`;
-      txt += '</a>';
-      txt += '<div>';
-      txt += `<xmp>${data[x].description}</xmp>`;
-      txt += '</div>';
-      txt += '<div>';
-      txt += data[x].impact;
-      txt += '</div>';
-      txt += '<div style="overflow:auto">';
-      txt += '<xmp>';
-      txt += JSON.stringify(data[x].nodes, undefined, 2);
-      txt += '</xmp>';
-      txt += '</div>';
-      txt += '</div>';
-
-      txt += '</div>';
-
-      txt += '</div>';
-
-      panColor = '#F9E79F';
-    }
-    return txt;
-  },
-
-  htmlsummaryView(data) {
-    const countData = {
-      ViolatedRuleCount: 0,
-      IncompleteRuleCount: 0,
-      PassesRuleCount: 0,
-    };
-    if (data.violations.length === undefined) {
-      countData.ViolatedRuleCount = 0;
-    } else {
-      countData.ViolatedRuleCount = data.violations.length;
-    }
-    if (data.incomplete.length === undefined) {
-      countData.IncompleteRuleCount = '0';
-    } else {
-      countData.IncompleteRuleCount = data.incomplete.length;
-    }
-
-    if (data.passes.length === undefined) {
-      countData.PassesRuleCount = '0';
-    } else {
-      countData.PassesRuleCount = data.passes.length;
-    }
-    return countData;
-  },
-
-  htmlsummaryData(jsonObject, jsonDetail) {
-    let txthtml = '';
-    txthtml += `<p>URL :${jsonDetail.url}</p>`;
-    txthtml += `<p>DateTime :${jsonDetail.timestamp}</p>`;
-    // eslint-disable-next-line guard-for-in,no-restricted-syntax
-    for (const key in jsonObject) {
-      txthtml += `<p>${key} : ${jsonObject[key]}</p>`;
-    }
-    return txthtml;
   },
 };

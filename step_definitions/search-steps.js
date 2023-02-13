@@ -1,23 +1,3 @@
-Before({ tags: '@skip' }, async () => {
-  try {
-    await helpers.apiCall('http://www.randomnumberapi.com/api/v1.0/random', 'GET', null, null);
-    const resp = await helpers.getContent();
-
-    if (resp.body[0] % 2 !== 0) {
-      cucumberThis.attach(
-        'The preliminary condition for this test failed. This test is programmed to skip if the ' +
-          'random number retrieved from an API is odd, and the number was ' +
-          resp.body[0] +
-          '.'
-      );
-      return 'skipped';
-    }
-  } catch (e) {
-    cucumberThis.attach('The preliminary condition for this test failed: Random number API could not be reached.');
-    return 'skipped';
-  }
-});
-
 Given(/^The user arrives on the duckduckgo search page$/, async () => {
   await helpers.loadPage(env.web_url, 10);
 });

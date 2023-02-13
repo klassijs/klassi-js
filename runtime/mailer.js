@@ -26,8 +26,8 @@ const aws = require('@aws-sdk/client-ses');
 const { defaultProvider } = require('@aws-sdk/credential-provider-node');
 const getRemote = require('./getRemote');
 
-const remoteService = getRemote(global.settings.remoteService);
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const remoteService = getRemote(settings.remoteService);
+const browserName = settings.remoteConfig || BROWSER_NAME;
 const envName = global.env.envName.toLowerCase();
 
 process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
@@ -89,7 +89,7 @@ module.exports = {
     const mailOptions = {
       to: devTeam,
       from: 'klassi-QATEST <QAAutoTest@oup.com>',
-      subject: `${projectName} ${global.reportName}-${dateTime}`,
+      subject: `${projectName} ${reportName}-${dateTime}`,
       alternative: true,
       attachments: fileList,
       html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,

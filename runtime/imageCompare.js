@@ -41,13 +41,13 @@ module.exports = {
    */
   takePageImage: async (filename, elementsToHide) => {
     const getRemote = require('./getRemote');
-    const remoteService = getRemote(global.settings.remoteService);
+    const remoteService = getRemote(settings.remoteService);
 
     if (remoteService && remoteService.type === 'lambdatest') {
-      browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+      browserName = settings.remoteConfig || BROWSER_NAME;
       await browserName;
     } else {
-      browserName = global.remoteConfig || program.opts().browser;
+      browserName = settings.remoteConfig || program.opts().browser;
     }
 
     const resultDir = `./artifacts/visual-regression/original/${browserName}/${envName}/`;
@@ -61,7 +61,7 @@ module.exports = {
     await browser.saveScreenshot(resultPathPositive, async (err) => {
       await browser.pause(DELAY_500ms);
       if (err) {
-        log.error(err.message);
+        console.error(err.message);
       }
     });
 
@@ -181,7 +181,7 @@ module.exports = {
         await fs.copy(resultPathNegative, baselinePath, (err) => {
           console.log(` All Baseline images have now been updated from: ${resultPathNegative}`);
           if (err) {
-            log.error('The Baseline images were NOT updated: ', err.message);
+            console.error('The Baseline images were NOT updated: ', err.message);
             throw err;
           }
         });

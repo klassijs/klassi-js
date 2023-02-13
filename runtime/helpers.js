@@ -28,7 +28,7 @@ const loadConfig = require('./configLoader');
 const verify = require('./imageCompare');
 const testData = require('../shared-objects/testdata.json');
 
-const envName = global.env.envName.toLowerCase();
+const envName = env.envName.toLowerCase();
 
 let elem;
 let getMethod;
@@ -57,7 +57,7 @@ module.exports = {
      */
     await browser.url(url, async () => {
       /**
-       * now wait for the page to be in its completed state
+       * now wait for the body element to be present
        */
       await browser.waitUntil(async () => await browser.execute(() => document.readyState === 'complete'), {
         timeoutMsg: `The web page is still not loaded after ${timeout} seconds`,
@@ -67,7 +67,6 @@ module.exports = {
      * grab the userAgent details from the loaded url
      */
     await helpers.getUserAgent();
-    // eslint-disable-next-line no-undef
     cucumberThis.attach(`loaded url: ${url}`);
   },
 
@@ -90,7 +89,6 @@ module.exports = {
     try {
       await fs.truncate(filepath, 0);
       await fs.writeFileSync(filepath, output);
-      // await fs.appendFile(filepath, output);
     } catch (err) {
       console.error(`Error in writing file ${err.message}`);
       throw err;
@@ -104,7 +102,6 @@ module.exports = {
   readFromFile: (filepath) =>
     new Promise((resolve, reject) => {
       fs.readFile(filepath, 'utf-8', (err, data) => {
-        // eslint-disable-next-line no-param-reassign
         data = data.toString();
         resolve(data);
       });
@@ -123,14 +120,18 @@ module.exports = {
 
   /**
    * This is to write content to a json file
-   * @param fileContent
-   * @param filePath
    * @returns {Promise<void>}
    */
   write: async () => {
     await module.exports.writeToJson('./shared-objects/testdata.json', testData);
   },
 
+  /**
+   * This is to write values into a JSON file
+   * @param filePath
+   * @param fileContent
+   * @returns {Promise<void>}
+   */
   writeToJson: async (filePath, fileContent) => {
     try {
       // await fs.writeJson(filePath, fileContent);
@@ -162,8 +163,6 @@ module.exports = {
    * @returns {Promise<void>}
    */
   compareImage: async (fileName) => {
-    // eslint-disable-next-line global-require
-    // const verify = require('./imageCompare');
     await verify.assertion(fileName);
     await verify.value();
     await verify.pass();
@@ -175,8 +174,6 @@ module.exports = {
    * @returns {Promise<void>}
    */
   takeImage: async (fileName, elementsToHide) => {
-    // eslint-disable-next-line global-require
-    // const verify = require('./imageCompare');
     await verify.takePageImage(fileName, elementsToHide);
     await browser.pause(DELAY_500ms);
   },
@@ -187,12 +184,9 @@ module.exports = {
    */
   hideElements: async (selectors) => {
     // if arg is no array make it one
-    // eslint-disable-next-line no-param-reassign
     selectors = typeof selectors === 'string' ? [selectors] : selectors;
-    // eslint-disable-next-line no-plusplus
     for (let i = 0; i < selectors.length; i++) {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '0')`;
-      // eslint-disable-next-line no-await-in-loop
       await browser.execute(script);
     }
   },
@@ -203,35 +197,12 @@ module.exports = {
    */
   showElements: async (selectors) => {
     // if arg is no array make it one
-    // eslint-disable-next-line no-param-reassign
     selectors = typeof selectors === 'string' ? [selectors] : selectors;
-    // eslint-disable-next-line no-plusplus
     for (let i = 0; i < selectors.length; i++) {
       const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '1')`;
-      // eslint-disable-next-line no-await-in-loop
       await browser.execute(script);
     }
   },
-
-  // /**
-  //  * Returns number of diff pixels between images
-  //  * @param {string} fileName1 - name of the file
-  //  * @param {string} fileName2 - name of the file
-  //  * @returns
-  //  */
-  // imagePixelMatch: async (fileName1, fileName2) => {
-  //   const img1 = PNG.sync.read(
-  //     fs.readFileSync(`./artifacts/visual-regression/original/${browserName}/positive/${fileName1}.png`)
-  //   );
-  //   const img2 = PNG.sync.read(
-  //     fs.readFileSync(`./artifacts/visual-regression/original/${browserName}/positive/${fileName2}.png`)
-  //   );
-  //   const { width, height } = img1;
-  //   const diff = new PNG({ width, height });
-  //   return pixelmatch(img1.data, img2.data, diff.data, width, height, {
-  //     threshold: 0.1,
-  //   });
-  // },
 
   /**
    * Get the current date dd-mm-yyyy
@@ -252,7 +223,26 @@ module.exports = {
     return `${dd}-${mm}-${yyyy}`;
   },
 
-  reportDate() {
+  /**
+   * Get the current date yyyy-mm-dd for the s3 bucket folder
+   * @returns {string|*}
+   */
+  s3BucketCurrentDate() {
+    const today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; // January is 0!
+    const yyyy = today.getFullYear();
+
+    if (dd < 10) {
+      dd = `0${dd}`;
+    }
+    if (mm < 10) {
+      mm = `0${mm}`;
+    }
+    return `${yyyy}-${mm}-${dd}`;
+  },
+
+  reportDateTime() {
     const today = new Date();
     let dd = today.getDate();
     let mm = today.getMonth() + 1; // January is 0!
@@ -323,7 +313,6 @@ module.exports = {
 
   klassiReporter() {
     try {
-      // eslint-disable-next-line global-require
       return require('./reporter/reporter').reporter();
     } catch (err) {
       console.error(`There is a reporting system error: ${err.stack}`);
@@ -337,7 +326,6 @@ module.exports = {
    */
   klassiEmail() {
     try {
-      // eslint-disable-next-line global-require
       return require('./mailer').klassiSendMail();
     } catch (err) {
       console.error(`This is a Email system error: ${err.stack}`);
@@ -366,13 +354,7 @@ module.exports = {
       body,
     };
     if (method === 'GET') {
-      resp = await pactumJs
-        .spec()
-        .get(options.url)
-        // .withHeaders(options.headers)
-        .withRequestTimeout(DELAY_10s)
-        .expectStatus(200)
-        .toss();
+      resp = await pactumJs.spec().get(options.url).withRequestTimeout(DELAY_10s).expectStatus(200).toss();
       getMethod = resp;
     }
 
@@ -417,12 +399,28 @@ module.exports = {
 
   /**
    * function for recording total errors from the Accessibility test run
+   * @param pageName
+   * @param count
+   * @returns {Promise<void>}
    */
-  accessibilityError() {
+  accessibilityReport: async (pageName, count = false) => {
+    await browser.pause(DELAY_1s).then(() => {
+      return accessibilityLib.getAccessibilityReport(pageName);
+    });
+    await module.exports.accessibilityError(count);
+  },
+  /**
+   * function for recording total errors from the Accessibility test run
+   */
+  accessibilityError(count) {
     const totalError = accessibilityLib.getAccessibilityTotalError();
+    const etotalError = accessibilityLib.getAccessibilityError();
     if (totalError > 0) {
       cucumberThis.attach('The accessibility rule violation has been observed');
-      cucumberThis.attach(`Total accessibility error count :${totalError}`);
+      cucumberThis.attach(`accessibility error count per page : ${etotalError}`);
+      if (count) {
+        cucumberThis.attach(`Total accessibility error count : ${totalError}`);
+      }
     } else if (totalError <= 0) {
       const violationcount = accessibilityLib.getAccessibilityError();
       assert.equal(violationcount, 0);
@@ -434,7 +432,6 @@ module.exports = {
    * @returns {Promise<void>}
    */
   ltVideo: async () => {
-    // eslint-disable-next-line global-require
     const page = require('./getVideoLinks');
     await page.getVideoList();
   },
@@ -452,7 +449,7 @@ module.exports = {
   waitAndClick: async (selector) => {
     try {
       elem = await browser.$(selector);
-      await elem.isExisting(DELAY_3s);
+      await elem.isExisting();
       await elem.click();
       await browser.pause(DELAY_500ms);
     } catch (err) {
@@ -464,7 +461,7 @@ module.exports = {
   waitAndSetValue: async (selector, value) => {
     try {
       elem = await browser.$(selector);
-      await elem.isExisting({ timeout: DELAY_3s });
+      await elem.isExisting();
       await browser.pause(DELAY_500ms);
       await elem.addValue(value);
     } catch (err) {
@@ -546,8 +543,10 @@ module.exports = {
    * @param {string} text to match inner content (if present)
    * @example
    *    helpers.clickHiddenElement('nav[role='navigation'] ul li a','School Shoes');
+   *    @deprecated
    */
   clickHiddenElement(selector, textToMatch) {
+    // TODO: Find a better way to do this
     /**
      * method to execute within the DOM to find elements containing text
      */
@@ -561,7 +560,6 @@ module.exports = {
        */
       const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
 
-      // eslint-disable-next-line no-plusplus
       for (let i = 0, l = elements.length; i < l; i++) {
         /**
          * If we have content, only click items matching the content
@@ -578,6 +576,7 @@ module.exports = {
         }
       }
     }
+
     /**
      * grab the matching elements
      */
@@ -585,10 +584,11 @@ module.exports = {
   },
 
   /**
+   * this adds extensions to Chrome Only
    * @param extName
    * @returns {Promise<*>}
    */
-  modHeaderElement: async (extName) => {
+  chromeExtension: async (extName) => {
     await browser.pause();
     await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
     const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
@@ -607,7 +607,6 @@ module.exports = {
     await browser.pause(DELAY_200ms);
     const str = await browser.getUrl();
     const str2 = await str.split('/');
-    // eslint-disable-next-line prefer-destructuring
     modID = str2[6];
     return modID;
   },
@@ -620,7 +619,7 @@ module.exports = {
    * @returns {Promise<void>}
    */
   modHeader: async (extName, username, password) => {
-    await helpers.modHeaderElement(extName);
+    await helpers.chromeExtension(extName);
     console.log('modID = ', modID);
     await browser.pause(3000);
     elem = await browser.$(
@@ -629,8 +628,6 @@ module.exports = {
     await elem.isExisting();
     await elem.click();
     await browser.pause(2000);
-    // elem = await browser.getWindowHandles();
-    // console.log('This is the windows ===> ', elem);
     elem = await browser.$('.//a[@href="#Add extension"]');
     await elem.isExisting();
     await elem.click();
@@ -666,6 +663,7 @@ module.exports = {
     }
   },
 
+  // TODO: make this more generic
   convertJsonToExcel: () => {
     const arr = [];
     for (dataObj of urlData) {
@@ -819,7 +817,20 @@ module.exports = {
     if ($mm < 10) {
       $mm = `0${$mm}`;
     }
-    $yesterday = `${$dd}-${$mm}-${$yyyy}`;
+    $yesterday = `${$yyyy}-${$mm}-${$dd}`;
     return $yesterday;
+  },
+
+  /**
+   * this uploads a file from local system or project folder
+   * @param selector
+   * @param filePath
+   * @returns {Promise<void>}
+   */
+  fileUpload: async (selector, filePath) => {
+    elem = await browser.$(selector);
+    await elem.isExisting();
+    const remoteFilePath = await browser.uploadFile(filePath);
+    await elem.addValue(remoteFilePath);
   },
 };

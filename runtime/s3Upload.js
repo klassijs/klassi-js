@@ -27,16 +27,16 @@ const readdir = require('recursive-readdir');
 const async = require('async');
 
 /**
- * function to upload the test report run folder to an s3 - AWS
+ * function to upload the test report folder to an s3 Bucket - AWS
  */
 module.exports = {
   s3Upload: async () => {
-    const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+    let date = require('./helpers').s3BucketCurrentDate();
+    const browserName = settings.remoteConfig || BROWSER_NAME;
     const folderName = `/${date}/${dataconfig.s3FolderName}/reports`;
     const BUCKET = s3Data.S3_BUCKET + folderName;
     const KEY = process.env.S3_KEY;
     const SECRET = process.env.S3_SECRET;
-
     const rootFolder = path.resolve('./reports');
     const uploadFolder = `./${browserName}`;
 
@@ -45,7 +45,6 @@ module.exports = {
       accessKeyId: KEY,
       secretAccessKey: SECRET,
     });
-
     function mybucketList() {
       return new Promise((resolve, reject) => {
         s3.listBuckets(function (err, data) {
@@ -102,7 +101,7 @@ module.exports = {
     mybucketList().then((resp) => {
       const bucketExists = resp.some((bucket) => bucket.Name === s3Data.S3_BUCKET);
       if (!bucketExists) {
-        console.log('the bucket does not exist');
+        console.log('The s3 bucket does not exist');
         return;
       }
       deploy(uploadFolder)

@@ -56,7 +56,7 @@ async function klassiCli() {
 /**
  * all assertions for variable testing
  */
-const { assert, expect } = chai;
+let { assert, expect } = chai;
 global.assert = assert;
 global.expect = expect;
 global.fs = fs;
@@ -155,8 +155,8 @@ program
   .option('--remoteService <optional>', 'which remote browser service, if any, should be used e.g. lambdatest', '')
   .option('--browserOpen', 'keep the browser open after each scenario. defaults to false', false)
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
-  .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver')
-  .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo')
+  .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver', false)
+  .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo', false)
   .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.', false)
   .option(
     '--dryRun',
@@ -168,6 +168,8 @@ program
     'this switches the s3 date to allow the downloading and emailing of reports from the latest test run and not last nights run',
     false
   )
+  .option('--useProxy', 'This is in-case you need to use the proxy server while testing', false)
+  .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -179,30 +181,30 @@ const options = program.opts();
 const settings = {
   projectRoot: options.context,
   reportName: options.reportName,
-  BROWSER_NAME: options.browser,
   disableReport: options.disableReport,
-  dlink: options.dlink,
   updateBaselineImage: options.updateBaselineImage,
   remoteService: options.remoteService,
   extraSettings: options.extraSettings,
 };
 
+global.settings = settings;
+global.BROWSER_NAME = options.browser;
 global.headless = options.headless;
+global.browserOpen = options.browserOpen;
+global.dryRun = options.dryRun;
+global.email = options.email;
+global.s3Date = options.s3Date;
+global.utam = options.utam;
+global.useProxy = options.useProxy;
+global.skipTag = options.skipTag;
+
 /**
- * Setting envConfig to be global, used within the world.js when building browser
+ * Setting envConfig and dataConfig to be global, used within the world.js when building browser
  * @type {string}
  */
-const envModuleName = process.env.ENV_CONFIG || 'envConfig'; // name of the env rc.js file for global variables
-const explorerSync = cosmiconfigSync(envModuleName);
-const searchedFor = explorerSync.search();
-const envConfig = searchedFor.config;
-const { environment } = envConfig;
-
-const dataModuleName = process.env.DATA_CONFIG || 'dataConfig'; // name of the data rc.js file for global variables
-const explorerSync1 = cosmiconfigSync(dataModuleName);
-const searchedFor1 = explorerSync1.search();
-const dataconfig = searchedFor1.config;
-const { dataConfig } = dataconfig;
+const getConfig = (configName) => cosmiconfigSync(configName).search().config;
+const { environment } = getConfig('envConfig');
+const { dataConfig } = getConfig('dataConfig');
 // console.log('This is the result of search ====>', environment, dataConfig);
 
 global.dataconfig = dataConfig;
@@ -211,22 +213,17 @@ global.emailData = dataConfig.emailData;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
-global.browserOpen = options.browserOpen;
-global.dryRun = options.dryRun;
-global.email = options.email;
-global.s3Date = options.s3Date;
-global.utam = options.utam;
 
 /** adding global helpers */
 const data = require('./runtime/helpers');
 global.helpers = data;
+
 global.date = data.currentDate();
-global.dateTime = data.reportDate();
+global.dateTime = data.reportDateTime();
 
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (utam) {
-  const filePath =
-    projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath = projectName === 'OAF' ? './runtime/utam.config.js' : './node_modules/OAF/runtime/utam.config.js';
   const utamConfig = require(path.resolve(filePath));
   fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
   execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
@@ -260,10 +257,7 @@ const paths = {
 };
 
 /** expose settings and paths for global use */
-global.BROWSER_NAME = options.browser;
-global.settings = settings;
 global.paths = paths;
-global.fs = fs;
 
 /**
  * Adding Global browser folder
@@ -273,7 +267,6 @@ global.browserName = settings.remoteConfig || BROWSER_NAME;
 
 const envName = env.envName.toLowerCase();
 const reports = `./reports/${browserName}/${envName}`;
-const axereports = `./reports/${browserName}/${envName}/accessibility`;
 
 /** file creation for userAgent globally */
 const file = './shared-objects/docs/userAgent.txt';
@@ -286,11 +279,6 @@ fs.ensureFileSync(file, (err) => {
 fs.ensureDirSync(reports, (err) => {
   if (err) {
     console.error(`The Reports Folder has NOT been created: ${err.stack}`);
-  }
-});
-fs.ensureDirSync(axereports, (err) => {
-  if (err) {
-    console.error(`The Accessibility Reports Folder has NOT been created: ${err.stack}`);
   }
 });
 
@@ -313,7 +301,10 @@ if (fs.existsSync(videoLib)) {
   console.error('No Video Lib');
 }
 
-/** add path to import shared objects */
+/**
+ * add path to import shared objects
+ * @type {string}
+ */
 const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
   const allDirs = {};
@@ -324,7 +315,10 @@ if (fs.existsSync(sharedObjectsPath)) {
   }
 }
 
-/** add path to import page objects */
+/**
+ * add path to import page objects
+ * @type {string}
+ */
 const pageObjectPath = path.resolve(paths.pageObjects);
 if (fs.existsSync(pageObjectPath)) {
   global.pageObjects = requireDir(pageObjectPath, {
@@ -382,7 +376,6 @@ if (options.tags.length > 0) {
   if (correctTags.length === 0) {
     process.exit();
   }
-
   if (separateExcludedTags && separateExcludedTags.length >= 1) {
     for (const tag of separateExcludedTags) {
       if (tag[0] !== '@') {
@@ -415,28 +408,27 @@ if (options.tags.length > 0) {
     global.resultingString = resultingString;
   } else {
     switch (correctExcludedTags.length) {
-      case 0:
-        resultingString = correctTags[0];
-        break;
+    case 0:
+      resultingString = correctTags[0];
+      break;
 
-      case 1:
-        resultingString = `${correctTags[0]} and not ${correctExcludedTags[0]}`;
-        break;
+    case 1:
+      resultingString = `${correctTags[0]} and not ${correctExcludedTags[0]}`;
+      break;
 
-      default:
-        const excludedCommand = correctExcludedTags.reduce((acc, currentTag) => {
-          resultingString = `${acc} and not ${currentTag}`;
+    default:
+      const excludedCommand = correctExcludedTags.reduce((acc, currentTag) => {
+        resultingString = `${acc} and not ${currentTag}`;
       });
-        resultingString = `${correctTags[0]} and not ${excludedCommand}`;
-        break;
+      resultingString = `${correctTags[0]} and not ${excludedCommand}`;
+      break;
     }
     global.resultingString = resultingString;
   }
 }
 
-// TODO : needs rewrite for internal usage
 /** specify the feature files folder (this must be the first argument for Cucumber)
- /* specify the feature files to be executed */
+ specify the feature files to be executed */
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
   splitFeatureFiles.forEach((feature) => {
@@ -444,36 +436,66 @@ if (options.featureFiles) {
   });
 }
 
-//TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
+// TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
 /** Add split to run multiple browsers from the command line */
 if (options.browsers) {
   const splitBrowsers = options.browser.split(',');
   splitBrowsers.forEach((browser) => {
-    process.argv.push('-b', browser);
+    process.argv.push('--browser', browser);
   });
-  process.argv.push('-b', browser);
+  process.argv.push('--browser', browser);
 }
 
 /** execute cucumber Cli */
-try {
-  klassiCli().then(async (succeeded) => {
-    if (dryRun === false) {
-      await data.klassiReporter();
-      /**
-       * compile and generate a report at the END of the test run to be send by Email
-       * send email with the report to stakeholders after test run
-       */
-      if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-        await s3Upload.s3Upload();
-      } else if (email === true) {
-        await data.klassiEmail();
-      }
-    }
+klassiCli().then(async (succeeded) => {
+  if (dryRun === false) {
     if (!succeeded) {
-      process.exit(1);
+      await data
+        .klassiReporter()
+        .then(async () => {
+          await browser.pause(DELAY_5s);
+          /**
+           * compile and generate a report at the END of the test run to be send by Email
+           * send email with the report to stakeholders after test run
+           */
+          if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
+            await browser.pause(DELAY_3s).then(async () => {
+              await s3Upload.s3Upload();
+              await browser.pause(DELAY_30s);
+            });
+          } else if (email === true) {
+            await browser.pause(DELAY_5s).then(async () => {
+              await data.klassiEmail();
+              await browser.pause(DELAY_3s);
+            });
+          }
+        })
+        .then(async () => {
+          await process.exit(3);
+        });
+    } else {
+      await data.klassiReporter().then(async () => {
+        await browser.pause(DELAY_5s);
+        /**
+         * compile and generate a report at the END of the test run to be send by Email
+         * send email with the report to stakeholders after test run
+         */
+        if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
+          await browser.pause(DELAY_3s).then(async () => {
+            await s3Upload.s3Upload();
+            await browser.pause(DELAY_30s);
+          });
+        } else if (email === true) {
+          await browser.pause(DELAY_5s).then(async () => {
+            await data.klassiEmail();
+            await browser.pause(DELAY_3s);
+          });
+        }
+      });
     }
-  });
-} catch (err) {
-  console.log(`cucumber integration has failed ${err.message}`);
-  throw err;
-}
+  }
+});
+
+global.getTagsFromFeatureFiles = getTagsFromFeatureFiles();
+
+module.exports = getTagsFromFeatureFiles();

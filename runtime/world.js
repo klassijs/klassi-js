@@ -35,11 +35,11 @@ global.date = data.currentDate();
  * Driver environment variables
  * @type {function(*): {}}
  */
-const ChromeDriver = require('./chromeDriver');
-const FirefoxDriver = require('./firefoxDriver');
-const AndroidDriver = require('./androidDriver');
-const iOSDriver = require('./iosDriver');
-const LambdaTestDriver = require('./lambdatestDriver');
+const ChromeDriver = require('./drivers/chromeDriver');
+const FirefoxDriver = require('./drivers/firefoxDriver');
+const AndroidDriver = require('./drivers/androidDriver');
+const iOSDriver = require('./drivers/iosDriver');
+const LambdaTestDriver = require('./drivers/lambdatestDriver');
 
 const remoteService = getRemote(global.settings.remoteService);
 
@@ -50,7 +50,8 @@ let browser = {};
  * @returns {{}}
  */
 async function getDriverInstance() {
-  const browsers = global.settings.BROWSER_NAME;
+  // const browsers = global.settings.BROWSER_NAME;
+  const browsers = BROWSER_NAME;
   const options = {};
   if (remoteService && remoteService.type === 'lambdatest') {
     const configType = global.settings.remoteConfig;
@@ -61,33 +62,33 @@ async function getDriverInstance() {
   assert.isNotEmpty(browsers, 'Browser must be defined');
 
   switch (browsers || '') {
-    case 'firefox':
+  case 'firefox':
       {
-        browser = FirefoxDriver(options);
+      browser = FirefoxDriver(options);
       }
-      break;
+    break;
 
-    case 'chrome':
+  case 'chrome':
       {
-        browser = ChromeDriver(options);
-      }
-      break;
-
-    case 'android':
-      {
-        browser = AndroidDriver(options);
-      }
-      break;
-
-    case 'ios':
-      {
-        browser = iOSDriver(options);
-      }
-      break;
-
-    default: {
       browser = ChromeDriver(options);
     }
+    break;
+
+  case 'android':
+    {
+      browser = AndroidDriver(options);
+      }
+    break;
+
+  case 'ios':
+      {
+      browser = iOSDriver(options);
+    }
+    break;
+
+  default: {
+    browser = ChromeDriver(options);
+  }
   }
   return browser;
 }
@@ -185,7 +186,7 @@ Before(function () {
   return browser;
 });
 
-browser.status = 0;
+global.status = 0;
 
 /**
  * executed before each scenario
@@ -194,6 +195,26 @@ Before(async (scenario) => {
   const { browser } = global;
   if (remoteService && remoteService.type === 'lambdatest') {
     await browser.execute(`lambda-name=${scenario.pickle.name}`);
+  }
+});
+
+/**
+ * This verifies that the current scenario to be run includes the @wip or @skip tags
+ * and skips the test if that's the case.
+ */
+Before((scenario) => {
+  const correctMultipleTags = module.exports.skipTagValidation();
+  for (const tag of scenario.pickle.tags) {
+    if (
+      tag.name === '@wip' ||
+      tag.name === '@skip' ||
+      (correctMultipleTags && correctMultipleTags.includes(tag.name))
+    ) {
+      cucumberThis.attach(
+        `This scenario was skipped automatically by using the @wip, @skip or a custom tag "${tag.name}" provided at runtime.`
+      );
+      return 'skipped';
+    }
   }
 });
 
@@ -214,7 +235,7 @@ After(async (scenario) => {
 
 /**
  * This is to control closing the browser or keeping it open after each scenario
- * @returns {Promise<void|Request<LexRuntime.DeleteSessionResponse, AWSError>|Request<LexRuntimeV2.DeleteSessionResponse, AWSError>>}
+ * @returns {Promise<void>|*}
  */
 this.browserOpen = function () {
   const { browser } = global;
@@ -230,12 +251,18 @@ this.browserOpen = function () {
  */
 After(async (scenario) => {
   const { browser } = global;
-  if (scenario.result.status === Status.FAILED || scenario.result.status === Status.PASSED) {
+  if (
+    scenario.result.status === Status.FAILED ||
+    scenario.result.status === Status.PASSED ||
+    scenario.result.status === Status.SKIPPED
+  ) {
     if (remoteService && remoteService.type === 'lambdatest') {
       if (scenario.result.status === 'FAILED') {
         await browser.execute('lambda-status=failed');
       } else if (scenario.result.status === Status.PASSED) {
         await browser.execute('lambda-status=passed');
+      } else if (scenario.result.status === Status.SKIPPED) {
+        await browser.execute('lambda-status=skipped');
       }
       return this.browserOpen();
     }
@@ -250,10 +277,43 @@ After(function (scenario) {
   const { browser } = global;
   const world = this;
   if (scenario.result.status === Status.FAILED) {
-    browser.status = 1;
+    // global.status = 1;
     return browser.takeScreenshot().then((screenShot) => {
       // screenShot is a base-64 encoded PNG
       world.attach(screenShot, 'image/png');
     });
   }
 });
+
+/**
+ * this allows for the skipping of scenarios based on tags
+ * @returns {*|null}
+ */
+function skipTagValidation() {
+  let multipleTags;
+  if (!skipTag || skipTag.length === 0) {
+    return null;
+  }
+  // eslint-disable-next-line no-undef
+  const correctFeatureTags = getTagsFromFeatureFiles;
+  multipleTags = skipTag.split(',');
+  console.log('this split tags ===> ', multipleTags);
+  const correctTags = [];
+  for (const tag of multipleTags) {
+    if (!tag || tag.length === 0) {
+      continue;
+    }
+    if (tag[0] !== '@') {
+      console.error(`Error: the tag should start with an @ symbol. The skipTag provided was "${tag}". `);
+      continue;
+    }
+    if (!correctFeatureTags.includes(tag)) {
+      console.error('Error: the requested tag does not exist ===> ', tag);
+      continue;
+    }
+    correctTags.push(tag);
+  }
+  return correctTags.length !== 0 ? correctTags : null;
+}
+
+module.exports = { skipTagValidation };

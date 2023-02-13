@@ -3,12 +3,11 @@ const helpers = require('../runtime/helpers');
 const urls = [];
 const refresh1 = [];
 const refresh2 = [];
-let obj;
 
 let startDate, endDate;
+let obj;
 Given('User launches url from {string}', async (data) => {
   const urlDataArr = require('../shared-objects/urlData.json').URLs;
-  console.log('URLDATA ==> ', urlDataArr);
   console.log(typeof urlDataArr);
   let url;
   for (obj of urlDataArr) {
@@ -16,11 +15,8 @@ Given('User launches url from {string}', async (data) => {
     if (keys[0] === data) url = obj[data].url;
   }
   urls.push(url);
-  console.log('this is the requested url ===> ', url);
   await helpers.loadPage(url, 10);
 });
-
-// can be introduced login if needed here.
 
 Then('User refreshes the page for 1st time', async () => {
   startDate = new Date();

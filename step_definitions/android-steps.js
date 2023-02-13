@@ -8,7 +8,7 @@ After(async () => {
 
 Given(/^The user launches the application$/, async () => {
   await browser.activateApp(env.appName);
-  if (global.settings.remoteService === 'lambdatest') {
+  if (settings.remoteService === 'lambdatest') {
     await browser.setOrientation('LANDSCAPE');
     await browser.switchContext('NATIVE_APP');
   }

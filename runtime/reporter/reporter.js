@@ -20,15 +20,15 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
 const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
 const getRemote = require('../getRemote');
 
-const remoteService = getRemote(global.settings.remoteService);
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const remoteService = getRemote(settings.remoteService);
+const browserName = settings.remoteConfig || BROWSER_NAME;
 
 let resp;
 let obj;
@@ -50,18 +50,18 @@ module.exports = {
       console.log('IpAddr func err: ', err.message);
     }
 
-    let jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
+    let jsonFile = path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
 
-    if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+    if (paths.reports && fs.existsSync(paths.reports)) {
       global.startDateTime = helpers.getStartDateTime();
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
         theme: 'hierarchy',
         jsonFile,
-        output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
+        output: path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
-        launchReport: !global.settings.disableReport,
+        launchReport: !settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
@@ -83,7 +83,7 @@ module.exports = {
       const reportRaw = fs.readFileSync(jsonFile).toString().trim();
       const xmlReport = jUnit(reportRaw);
       const junitOutputPath = path.resolve(
-        path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
+        path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
       );
       fs.writeFileSync(junitOutputPath, xmlReport);
     }

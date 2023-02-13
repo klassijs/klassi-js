@@ -7,12 +7,12 @@ const envName = env.envName.toLowerCase();
 
 const options = {
   default: {
-    dryRun: global.dryRun,
+    dryRun: dryRun,
     require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
-    tags: global.resultingString,
+    tags: resultingString,
     format: [
       '@cucumber/pretty-formatter',
-      `json:${path.resolve(__dirname, global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,
+      `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,
     ],
     formatOptions: {
       colorsEnabled: true,

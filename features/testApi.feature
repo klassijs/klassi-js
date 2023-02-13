@@ -1,6 +1,5 @@
 @tapi
 Feature: The API feature/functionality
-
   Background: Then user login to the Site
     Given I am logged into the Site
 

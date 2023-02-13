@@ -31,7 +31,7 @@ Before(async (scenario) => {
 });
 
 After(async (scenario) => {
-  scenarioResult = scenario;
+  scenarioResult = scenario.result;
   return scenarioResult;
 });
 
