@@ -16,7 +16,7 @@ const { dataConfig } = dataconfig;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 
 module.exports = {
-  pageObjectsRootDir: projectName === 'OAF' ? '../' : '../../../',
+  pageObjectsRootDir: projectName === 'klassi-js' ? '../' : '../../../',
   pageObjectsFileMask: ['**/__utam__/**/*.utam.json'],
   extensionsFileMask: ['**/__utam__/**/*.utam.json'],
   pageObjectsOutputDir: 'page-objects/__utam__/compiledUTAM',

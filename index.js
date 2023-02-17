@@ -208,7 +208,8 @@ global.dateTime = data.reportDateTime();
 
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (utam) {
-  const filePath = projectName === 'OAF' ? './runtime/utam.config.js' : './node_modules/OAF/runtime/utam.config.js';
+  const filePath =
+    projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
   const utamConfig = require(path.resolve(filePath));
   fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
   execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {

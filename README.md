@@ -1,6 +1,6 @@
 <p align="center">
     <h1 align="center" font-size: 2.5em > klassi-js <br>
-    <a href="https://github.com/larryg01/klassi-js/">
+    <a href="https://github.com/klassijs/klassi-js/">
         <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
     </a> </h1> </p>
 
@@ -82,7 +82,7 @@ node ./node_modules/klassi-js/index.js
 ```
 
 ## Directory Structure
-You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/larryg01/klassi-test-suite)
+You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassi-test-suite)
 
 ```bash
 .
@@ -248,7 +248,7 @@ By default, the test run using Google Chrome/devtools protocol, to run tests usi
 | Chrome | `--wdProtocol --browser chrome` |
 | Firefox | `--wdProtocol --browser firefox` |
 
-All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest)
+All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest | sauceLabs)
 
 Selenium Standalone Server installation
 ```bash
@@ -464,7 +464,7 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 To demo the framework without installing it into your project use the following commands:
 ```js
  # download this example code
-  git clone https://github.com/larryg01/klassi-js.git
+  git clone https://github.com/klassi/klassi-js.git
 
  # browser to the new directory
   cd klassi-js
@@ -507,7 +507,7 @@ The same script will also verify the naming convention. Please remember that we 
 
 ## Bugs
 
-Please raise bugs via the [klassi-js issue tracker](https://github.com/larryg01/klassi-js/issues), please provide enough information for bug reproduction.
+Please raise bugs via the [klassi-js issue tracker](https://github.com/klassi/klassi-js/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 

@@ -12,7 +12,7 @@ const options = {
   default: {
     dryRun: dryRun,
     paths: featureFiles,
-    require: ['runtime/world.js', 'node_modules/OAF/runtime/world.js', 'step_definitions/**/*.js'],
+    require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
     tags: global.resultingString,
     format: [
       '@cucumber/pretty-formatter',
