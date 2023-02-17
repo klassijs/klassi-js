@@ -1,24 +1,9 @@
 /**
- klassi-js
- Copyright © 2016 - Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
 const path = require('path');
 const fs = require('fs-extra');
@@ -38,17 +23,17 @@ const s3 = new AWS.S3({
 
 module.exports = {
   async s3Processor(projectName) {
-    const date = helpers.formatDate();
-    const folderName = date;
+    const s3date = helpers.formatDate();
+    const folderName = s3date;
     projectName = dataconfig.s3FolderName;
-    console.log(`Starting Processing of Test Report for: ${date}/${projectName} ...`);
+    console.log(`Starting Processing of Test Report for: ${s3date}/${projectName} ...`);
     /**
      * This creates the test report from the sample template
      * @type {string}
      */
     const tempFile = path.resolve(__dirname, './scripts/s3ReportSample');
     let filePath;
-
+    let date = helpers.currentDate();
     if (program.opts().dlink) {
       filePath = `../../${projectName}/test/reports/testReport-${date}.html`;
     } else {
@@ -72,7 +57,7 @@ module.exports = {
       {
         Bucket: s3Bucket,
         Marker: folderName,
-        Prefix: `${date}/${projectName}`,
+        Prefix: `${s3date}/${projectName}`,
         MaxKeys: 1000,
       },
       async (err, data) => {
@@ -88,7 +73,6 @@ module.exports = {
                   dataList = `${domainName}/${key}`;
                   if (dataList.includes(browsername)) {
                     const envDataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\/.*.html/, '');
-                    // console.log('this is the env Name from the s3reportProcessor ln 90 ====> ', envDataNew);
                     dataNew = dataList
                       .replace(/^.*reports\/\w+\//, '')
                       .replace(`${envDataNew}/`, '')
@@ -103,7 +87,6 @@ module.exports = {
                 }
               }
             }
-            /** this writes the content to the actual report per browser */
             dataOut = dataOut.replace('<-- browser_test_output -->', browserData.join(' '));
           }
         }
@@ -111,8 +94,8 @@ module.exports = {
         if (dataList === undefined) {
           console.error('There is no Data for this Project / project does not exist ....');
         } else if (dataList.length > 0) {
-          console.log('Test report compiled and s3 report being sent .....');
-          await helpers.klassiEmail();
+          console.log('Test run completed and s3 report being sent .....');
+          await helpers.oupEmail();
         }
       }
     );

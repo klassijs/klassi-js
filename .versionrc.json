@@ -41,6 +41,6 @@
       "hidden": true
     }
   ],
-  "commitUrlFormat": "https://github.com/larryg01/klassi-js/commit/{{hash}}",
-  "compareUrlFormat": "https://github.com/larryg01/klassi-js/compare/{{previousTag}}...{{currentTag}}"
+  "commitUrlFormat": "https://github.com/OUP/OAF/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/OUP/OAF/compare/{{previousTag}}...{{currentTag}}"
 }

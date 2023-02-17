@@ -8,7 +8,6 @@ let startDate, endDate;
 let obj;
 Given('User launches url from {string}', async (data) => {
   const urlDataArr = require('../shared-objects/urlData.json').URLs;
-  console.log(typeof urlDataArr);
   let url;
   for (obj of urlDataArr) {
     let keys = Object.keys(obj);

@@ -77,7 +77,6 @@ module.exports = {
     for (links of apiPostEndPoints) {
       const url = `${env.siteBaseUrl + env.apiBaseUrl}edu/org/${orgID}/${links}`;
       resp = await helpers.apiCall(url, 'POST', auth, body);
-      console.log('this is the result ', resp);
       const userID = resp.body.userId;
       const userId = { userId: userID };
       const comboFile = await helpers.mergeJson(filePath, userId);

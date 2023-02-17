@@ -10,8 +10,8 @@ When(/^they use (.*)$/, async (searchWord) => {
   await pageObjects.search.performWebSearch(searchWord);
 });
 
-Then(/^they should see some results$/, async () => {
-  await pageObjects.search.searchResult();
+Then(/^they should see some results (.*)$/, async (searchWord) => {
+  await pageObjects.search.searchResult(searchWord);
 });
 
 Then(/^Add modHeader (.*) (.*) (.*)$/, async (extName, username, password) => {

@@ -35,7 +35,7 @@
         "valid-typeof": "warn",
         "linebreak-style": [ "error", "unix" ],
         "no-console": [ 0, "error" ],
-        "indent": [ "error", 2 ],
+        "indent": [ "error", 2, { "SwitchCase": 1 }  ],
         "semi": [ "error", "always" ],
         "quotes":["error", "single"]
     },

@@ -1,4 +1,4 @@
-@utam
+@utam @uattest
 Feature: UTAM test
 
     @google
