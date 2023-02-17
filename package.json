@@ -48,8 +48,8 @@
     "dev": "node index.js --disableReport --tags",
     "delete-dev": "rm -rf ./reports ./artifacts ./log ./visual-regression-baseline",
     "ltlocal": "node --trace-warnings index.js --disableReport --remoteService lambdatest --extraSettings",
-    "ciltdev": "node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
-    "ciltuat": "node index.js --disableReport --utam --email --tags @uattest --remoteService lambdatest --extraSettings",
+    "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
+    "ciltuat": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
     "cilts3r": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings"
   },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
