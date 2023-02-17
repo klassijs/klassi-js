@@ -95,7 +95,7 @@ module.exports = {
           console.error('There is no Data for this Project / project does not exist ....');
         } else if (dataList.length > 0) {
           console.log('Test run completed and s3 report being sent .....');
-          await helpers.oupEmail();
+          await helpers.klassiEmail();
         }
       }
     );

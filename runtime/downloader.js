@@ -6,7 +6,6 @@
  furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
 const fs = require('fs');
-const request = require('got');
 
 module.exports = {
   /**
@@ -15,9 +14,9 @@ module.exports = {
    * @param dest
    * @param cb
    */
-  fileDownload(url, dest, cb) {
+  fileDownload: async (url, dest, cb) => {
     const file = fs.createWriteStream(dest);
-    const sendReq = request.get(url);
+    const sendReq = await helpers.apiCall(url, 'GET', null, null);
     /**
      * verify response code
      */

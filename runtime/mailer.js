@@ -41,30 +41,6 @@ module.exports = {
         //   path: path.resolve(`${paths.coverage}/index.html`),
         // },
       ];
-      if (remoteService && remoteService.type === 'lambdatest' && projectName === 'OEUK ORB') {
-        fileList = [
-          {
-            filename: `testReport-${date}.html`,
-            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
-          },
-          {
-            filename: 'reportData.json',
-            path: path.resolve(`${paths.reports}/reportData.json`),
-          },
-        ];
-      }
-      if (remoteService && remoteService.type === 'lambdatest' && projectName === 'OUP JOURNALS') {
-        fileList = [
-          {
-            filename: `testReport-${date}.html`,
-            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
-          },
-          {
-            filename: 'urlData.xlsx',
-            path: path.resolve(`${paths.reports}/${browserName}/${envName}/urlData.xlsx`),
-          },
-        ];
-      }
       if (emailData.AccessibilityReport === 'Yes') {
         fileList = fileList.concat(accessibilityReportList);
       }
@@ -79,30 +55,6 @@ module.exports = {
         //   path: path.resolve(`${paths.coverage}/index.html`),
         // },
       ];
-      if (projectName === 'OEUK ORB') {
-        fileList = [
-          {
-            filename: `${reportName}-${dateTime}.html`,
-            path: path.resolve(paths.reports, browserName, `${reportName}-${dateTime}.html`),
-          },
-          {
-            filename: 'reportData.json',
-            path: path.resolve(`${paths.reports}/reportData.json`),
-          },
-        ];
-      }
-      if (projectName === 'OUP JOURNALS') {
-        fileList = [
-          {
-            filename: `testReport-${date}.html`,
-            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
-          },
-          {
-            filename: 'urlData.xlsx',
-            path: path.resolve(`${paths.reports}/${browserName}/${envName}/urlData.xlsx`),
-          },
-        ];
-      }
     }
 
     const devTeam = emailData.nameList;

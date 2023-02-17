@@ -55,7 +55,7 @@ module.exports = async function firefoxDriver(options) {
   }
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
+      httpProxy: '',
       proxyType: 'MANUAL',
       autodetect: false,
     };

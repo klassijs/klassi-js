@@ -202,6 +202,9 @@ jobs:
             done
             exit $exitCode
 
+      ###############################################
+      ##            Lambdatest shutdown            ##
+      ###############################################
       - run:
           name: Close LambdaTest Tunnel
           command: |

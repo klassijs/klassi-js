@@ -19,7 +19,7 @@ module.exports = {
     await helpers.takeImage(`${image}_1-1.png`, sharedObjects.searchData.elem.leftBadge);
     const title = await browser.getTitle();
     console.log('checking what title being returned:- ', title);
-    // await helpers.compareImage(`${image}_1-1.png`);
+    await helpers.compareImage(`${image}_1-1.png`);
     await browser.keys('\uE007');
     /** Accessibility verification */
     await helpers.accessibilityReport(`SearchPage2-${searchWord}`);
