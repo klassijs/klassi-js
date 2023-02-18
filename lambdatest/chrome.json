@@ -3,12 +3,12 @@
     "build": "klassi-js",
     "platform": "Windows 10",
     "browserName": "Chrome",
-    "version": "104.0",
+    "version": "106.0",
     "resolution": "1280x1024",
-    "selenium_version": "3.13.0",
+    "selenium_version": "4.0.0",
     "console": true,
     "network": true,
     "visual": true,
     "terminal": true,
-    "chrome.driver": "106.0"
+    "chrome.driver": "108.0"
 }

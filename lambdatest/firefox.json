@@ -3,9 +3,9 @@
   "build": "klassi-js",
   "platform" : "Windows 10",
   "browserName" : "Firefox",
-  "version" : "84.0",
+  "version" : "106.0",
   "resolution" : "1280x1024",
   "selenium_version" : "3.13.0",
   "visual" : true,
-  "firefox.driver" : "v0.27.0"
+  "firefox.driver" : "v0.31.0"
 }

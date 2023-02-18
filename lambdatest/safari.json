@@ -1,11 +1,11 @@
 {
-  "build": "Klassi-js",
-  "platform" : "macOS Mojave",
+  "projectName": "klassi-js",
+  "build": "klassi-js",
+  "platformName": "MacOS Big sur",
   "browserName" : "Safari",
-  "version" : "12.0",
+  "version" : "14.0",
   "resolution" : "1280x1024",
-  "selenium_version" : "3.141.59",
-  "console" : true,
-  "network" : true,
+  "selenium_version": "3.141.59",
+  "driver_version": "3.141.59",
   "visual" : true
 }

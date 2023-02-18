@@ -1,6 +1,6 @@
 <p align="center">
     <h1 align="center" font-size: 2.5em > klassi-js <br>
-    <a href="https://github.com/larryg01/klassi-js/">
+    <a href="https://github.com/klassijs/klassi-js/">
         <img alt="Klassi-Js" src="./runtime/img/klassiLogo.png">
     </a> </h1> </p>
 
@@ -68,17 +68,21 @@ node ./node_modules/klassi-js/index.js
 --extraSettings <optional>          further piped configs split with pipes
 --updateBaselineImages              automatically update the baseline image after a failed comparison or new images
 --wdProtocol                        the switch to change the browser option from using devtools to webdriver
---closeBrowser <optional>           this closes the browser after each scenario, defaults to always, use 'no' if you want to want to keep the  browser open
+--browserOpen                       this leaves the browser open after the session completes, useful when debugging test. defaults to false', false
+--dlink                             the switch for projects with their test suite, within a Test folder of the repo
+--dryRun                            the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests
+--utam                              this launches the compiler for salesforce scripts
+--useProxy                          this is in-case you need to use the proxy server while testing'
+--skipTag <@tagName>                provide a tag and all tests marked with it will be skipped automatically.
 ```
 ## Options Usage
 ```bash
-  --closeBrowser no || this leaves the browser open after the session completes, useful when debugging test
   --tags @get,@put || will execute the scenarios tagged with the values provided. If multiple are necessary, separate them with a comma (no blank space in between).
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
 ```
 
 ## Directory Structure
-You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/larryg01/klassi-test-suite)
+You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassi-test-suite)
 
 ```bash
 .
@@ -94,7 +98,10 @@ You can use the framework without any command line arguments if your application
     └── chrome
         ├── reportName-01-01-1900-235959.html
         └── reportName-01-01-1900-235959.json
-.envConfigrc.js # this file will contain all your environment variables #projectName, emailAddresses, environments, browserstack/lambdatest config
+.envConfigrc.js # this file will contain all your environment variables #environment configs
+.dataConfigrc.js # this file will contain all your project variables #projectName, emailAddresses, lambdatest config
+.env # this file contains all config username and passcode and should stay listed in the gitignore file
+cucumber.js # the cucumber configuration file
 ```
 
 ## Step definitions
@@ -110,7 +117,6 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `expect`     | instance of [chai expect](https://www.chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
 | `assert`     | instance of [chai assert](https://www.chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |
-| `got`    | exposes the GOT subroutine for API testing | ```use for making API calls``` |
 
 
 ## Helpers
@@ -138,34 +144,100 @@ await helpers.readFromFile(filepath);
 await helpers.currentDate();
 
 // get current date and time (dd-mm-yyyy-00:00:00)
-await helpers.getCurrentDateTime()
+await helpers.getCurrentDateTime();
 
 // clicks an element (or multiple if present) that is not visible, useful in situations where a menu needs a hover before a child link appears
-await helpers.clickHiddenElement(selector, textToMatch)
+await helpers.clickHiddenElement(selector, textToMatch);
 
 // This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
-await helpers.getRandomIntegerExcludeFirst(range)
+await helpers.getRandomIntegerExcludeFirst(range);
 
 // Get the href link from an element
-await helpers.getLink(selector)
+await helpers.getLink(selector);
 
 //wait until and element is visible and click it
-await helpers.waitAndClick(selector)
+await helpers.waitAndClick(selector);
 
 // wait until element to be in focus and set the value
-await helpers.waitAndSetValue(selector, value)
+await helpers.waitAndSetValue(selector, value);
 
 // function to get element from frame or frameset
-await helpers.getElementFromFrame(frameName, selector)
+await helpers.getElementFromFrame(frameName, selector);
 
 // This will assert 'equal' text being returned
-await helpers.assertText(selector, expected)
+await helpers.assertText(selector, expected);
 
 // This will assert text being returned includes
-await helpers.expectToIncludeText(selector, expectedText)
+await helpers.expectToIncludeText(selector, expectedText);
 
 // this asserts that the returned url is the correct one
-await helpers.assertUrl(expected)
+await helpers.assertUrl(expected);
+
+// this is the generating accessibility reports per page
+await helpers.accessibilityReport: async (pageName, count = false || true);
+
+//reading from a json file
+await helpers.readFromJson();
+
+//writing data to testData json file in shared objects folder
+await helpers.write();
+
+//writing data to a json file 
+await helpers.writeToJson();
+
+//writing json data from above to UrlData json file
+await helpers.writeToUrlsData();
+
+//merging json files
+await helpers.mergeJson();
+
+//hide elements
+await helpers.hideElements();
+
+//show elements
+await helpers.showElements();
+
+//reporting the current date and time
+await helpers.reportDateTime();
+
+//API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
+await helpers.apiCall();
+
+//function for recording Accessibility logs from the test run
+await helpers.accessibilityReport();
+
+//function for recording total errors from the Accessibility test run
+await helpers.accessibilityError();
+
+//Get the href link from an element
+await helpers.getLink();
+
+//function to get element from frame or frameset
+await helpers.getElementFromFrame();
+
+//Generate random integer from a given range
+await helpers.generateRandomInteger();
+
+//this generates the full execution time for a full scenario run
+await helpers.executeTime();
+
+//Generates a random 13 digit number
+await helpers.randomNumberGenerator();
+
+//Reformats date string into string
+await helpers.reformatDateString();
+
+//Sorts results by date
+await helpers.sortByDate();
+
+//this filters an item from a list of items
+await helpers.filterItem();
+
+//this filters an item from a list of items and clicks on it
+await helpers.filterItemAndClick();
+
+//this uploads a file from local system or project folder. Helpful to automate uploading a file when there are system dialogues exist.
+await helpers.fileUpload();
 ```
 
 ## Browser usage
@@ -176,7 +248,7 @@ By default, the test run using Google Chrome/devtools protocol, to run tests usi
 | Chrome | `--wdProtocol --browser chrome` |
 | Firefox | `--wdProtocol --browser firefox` |
 
-All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest)
+All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest | sauceLabs)
 
 Selenium Standalone Server installation
 ```bash
@@ -235,14 +307,8 @@ All the accessibility fuctions can be accessed through the global variable ``` a
 ```js
 // usage within page-object file:
 When('I run the accesibility analysis for {string}', async function (PageName) {
-  // After navigating to a particular page, just call the function to generate the accessibility report
-  await accessibilityLib.getAccessibilityReport(PageName);
-});
-
-Then('there should not be any violation in the accessibility report', function () {
-// This will return the total accessibility error count for a particular page.
-let violationcount=accessibilityLib.getAccessibilityError();
-assert.equal(violationcount, 0);
+  // After navigating to a particular page, just call the function to generate the accessibility report and the total error count for the page
+  await helpers.accessibilityReport: async (pageName, count = false || true)
 });
 ```
 
@@ -398,7 +464,7 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 To demo the framework without installing it into your project use the following commands:
 ```js
  # download this example code
-  git clone https://github.com/larryg01/klassi-js.git
+  git clone https://github.com/klassi/klassi-js.git
 
  # browser to the new directory
   cd klassi-js
@@ -407,10 +473,41 @@ To demo the framework without installing it into your project use the following 
   yarn install
   node index.js --tags @search
 ```
+## Commit conventions
+
+To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
+
+Bear in mind that the `/.circleci/config.yml` file **in each project using OAF as a dependency** needs to be modified to change from `yarn install` to `yarn install --network-concurrency 1`. This is to avoid race conditions in multiple calls to the registry during the installation process.
+
+### Commits
+After committing the staged code, the Husky scripts will enforce the implementation of the [**Conventional Commits specification**](https://www.conventionalcommits.org/en/v1.0.0/#summary).
+
+To summarize them, all commits should follow the following schema:
+
+```
+git commit -m "<type>: <subject>"
+```
+
+Where **type** is one of the following:
+
+- **fix**: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
+- **feat**: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
+- **BREAKING CHANGE**: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
+- Types other than **fix:** and **feat:** are allowed, for example @commitlint/Tconfig-conventional (based on the Angular convention) recommends **build:, chore:, ci:, docs:, style:, refactor:, perf:, test:**, and others.
+  footers other than **BREAKING CHANGE:** may be provided and follow a convention similar to git trailer format.
+
+Please keep in mind that the **subject** must be written in lowercase.
+
+### Branch naming
+
+The same script will also verify the naming convention. Please remember that we only allow for two possible branch prefixes:
+
+- **testfix/**
+- **automation/**
 
 ## Bugs
 
-Please raise bugs via the [klassi-js issue tracker](https://github.com/larryg01/klassi-js/issues), please provide enough information for bug reproduction.
+Please raise bugs via the [klassi-js issue tracker](https://github.com/klassi/klassi-js/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 

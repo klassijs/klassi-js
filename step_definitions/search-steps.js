@@ -10,13 +10,8 @@ When(/^they use (.*)$/, async (searchWord) => {
   await pageObjects.search.performWebSearch(searchWord);
 });
 
-Then(/^they should see some results$/, async () => {
-  await pageObjects.search.searchResult();
-});
-
-When(/^The screenshots should differ with the filenames "([^"]*)" & "([^"]*)"$/, async (fileName1, fileName2) => {
-  const numDiffPixels = await helpers.imagePixelMatch(fileName1, fileName2);
-  assert.isAbove(numDiffPixels, 0, 'Num of pixels should be greater than 0');
+Then(/^they should see some results (.*)$/, async (searchWord) => {
+  await pageObjects.search.searchResult(searchWord);
 });
 
 Then(/^Add modHeader (.*) (.*) (.*)$/, async (extName, username, password) => {
@@ -26,4 +21,8 @@ Then(/^Add modHeader (.*) (.*) (.*)$/, async (extName, username, password) => {
     await helpers.loadPage(env.web_url, 10);
     console.log('Chrome extension added successfully');
   }
+});
+
+Given(/^This step will always pass$/, async () => {
+  expect(true).to.be.true;
 });

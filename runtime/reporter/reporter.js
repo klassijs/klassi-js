@@ -1,34 +1,19 @@
 /**
- klassi-js
- Copyright © 2016 - Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 const reporter = require('cucumber-html-reporter');
 const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
 const getRemote = require('../getRemote');
 
-const remoteService = getRemote(global.settings.remoteService);
-const browserName = global.settings.remoteConfig || global.BROWSER_NAME;
+const remoteService = getRemote(settings.remoteService);
+const browserName = settings.remoteConfig || BROWSER_NAME;
 
 let resp;
 let obj;
@@ -49,21 +34,22 @@ module.exports = {
       obj = {};
       console.log('IpAddr func err: ', err.message);
     }
-    const jsonFile = path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
 
-    if (global.paths.reports && fs.existsSync(global.paths.reports)) {
+    let jsonFile = path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
+
+    if (paths.reports && fs.existsSync(paths.reports)) {
+      global.startDateTime = helpers.getStartDateTime();
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
-        theme: 'bootstrap',
+        theme: 'hierarchy',
         jsonFile,
-        output: path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
+        output: path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.html`),
         reportSuiteAsScenarios: true,
-        launchReport: !global.settings.disableReport,
+        launchReport: !settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
           'Test Started': startDateTime,
-          // eslint-disable-next-line no-undef
           Environment: env.envName,
           IpAddress: obj.query,
           Browser: browserName,
@@ -73,21 +59,18 @@ module.exports = {
           Executed: remoteService && remoteService.type === 'lambdatest' ? 'Remote' : 'Local',
         },
         brandTitle: `${reportName} ${dateTime}`,
-        // brandTitle: `${reportName} ${dateTime} ${env.envName}`,
-        name: `${projectName} ${browserName}`,
+        name: `${projectName} ${browserName} ${env.envName}`,
       };
-      // eslint-disable-next-line func-names,wdio/no-pause
-      browser.pause(DELAY_3s).then(() => {
-        reporter.generate(reportOptions);
+      await browser.pause(DELAY_3s);
+      await reporter.generate(reportOptions);
 
-        // grab the file data for xml creation
-        const reportRaw = fs.readFileSync(jsonFile).toString().trim();
-        const xmlReport = jUnit(reportRaw);
-        const junitOutputPath = path.resolve(
-          path.resolve(global.paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
-        );
-        fs.writeFileSync(junitOutputPath, xmlReport);
-      });
+      /** grab the file data for xml creation */
+      const reportRaw = fs.readFileSync(jsonFile).toString().trim();
+      const xmlReport = jUnit(reportRaw);
+      const junitOutputPath = path.resolve(
+        path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)
+      );
+      fs.writeFileSync(junitOutputPath, xmlReport);
     }
   },
 };

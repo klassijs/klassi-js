@@ -6,24 +6,19 @@
         "node": true
     },
     "parserOptions": {
-        "ecmaVersion":2021,
+        "ecmaVersion":2017,
         "ecmaFeatures": {
             "jsx": true
         },
         "sourceType": "module"
     },
+    "plugins": ["import", "prettier"],
     "extends": [
         "eslint:recommended",
-        "eslint-config-airbnb-base",
         "plugin:import/errors",
-        "plugin:import/warnings",
-        "prettier",
-        "plugin:wdio/recommended"
+        "plugin:import/warnings"
     ],
-    "plugins": ["import", "prettier", "wdio", "istanbul"],
     "rules": {
-        "istanbul/no-ignore-file": "error",
-        "istanbul/prefer-ignore-reason": "error",
         "prettier/prettier": [
             "warn",
             {
@@ -40,39 +35,36 @@
         "valid-typeof": "warn",
         "linebreak-style": [ "error", "unix" ],
         "no-console": [ 0, "error" ],
-        "indent": [ "error", 2 ],
+        "indent": [ "error", 2, { "SwitchCase": 1 }  ],
         "semi": [ "error", "always" ],
         "quotes":["error", "single"]
     },
     "globals": {
-        "When": "readonly",
-        "Then": "readonly",
-        "Before": "readonly",
+        "Given": false,
+        "When": false,
+        "Then": false,
+        "Before": false,
         "BeforeAll": "readonly",
         "BeforeStep": "readonly",
         "After": "readonly",
         "AfterAll": "readonly",
         "AfterStep": "readonly",
-        "And": "readonly",
-        "But": "readonly",
         "helpers":"readonly",
-        "log": "readonly",
+        "browser": "readonly",
         "env": "readonly",
         "date": "readonly",
         "dateTime": "readonly",
         "startDateTime": "readonly",
         "endDateTime": "readonly",
-        "browserName": true,
+        "browserName": false,
         "BROWSER_NAME": true,
         "reportName": "readonly",
         "projectName": "readonly",
-        "pause": true,
-        "settings": true,
+        "settings": "readonly",
+        "Status": true,
         "envConfig": "readonly",
-        "request": "readonly",
         "assert": "readonly",
         "expect": "readonly",
-        "shared": "readonly",
         "DELAY_100ms": "readonly",
         "DELAY_200ms": "readonly",
         "DELAY_300ms": "readonly",
@@ -91,10 +83,20 @@
         "strictFunctionTypes": "readonly",
         "noEmit": "readonly",
         "forceConsistentCasingInFileNames": "readonly",
-        "confSettings": "readonly",
         "sharedObjects": "readonly",
         "pageObjects": "writable",
-        "utam": "readonly",
-        "s3Data": "readonly"
+        "resultingString": "writable",
+        "skipTag": false,
+        "paths": false,
+        "utam": false,
+        "s3Data": false,
+        "emailData": false,
+        "dryRun": false,
+        "email": false,
+        "s3Date": false,
+        "useProxy": false,
+        "cucumberThis": false,
+        "accessibilityLib": false,
+        "dataconfig": false
     }
 }

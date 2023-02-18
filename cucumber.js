@@ -5,24 +5,22 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
-const lambdatest = require('./remotes/lambdatest');
+const path = require('path');
+const envName = env.envName.toLowerCase();
 
-module.exports = function getRemote(remoteService) {
-  const remote = {};
-
-  function noop() {
-    console.log('"If you\'re seeing this, you\'re running a non-existent remoteService"');
-  }
-  if (!remoteService) {
-    remote.type = 'disabled';
-    remote.after = noop;
-  } else if (remoteService === 'lambdatest') {
-    remote.type = 'lambdatest';
-    remote.after = lambdatest.submitResults;
-  } else {
-    console.log(`Unknown remote service ${remoteService}`);
-    remote.type = 'unknown';
-    remote.after = noop;
-  }
-  return remote;
+const options = {
+  default: {
+    dryRun: dryRun,
+    paths: featureFiles,
+    require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
+    tags: global.resultingString,
+    format: [
+      '@cucumber/pretty-formatter',
+      `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,
+    ],
+    formatOptions: {
+      colorsEnabled: true,
+    },
+  },
 };
+module.exports = options;
