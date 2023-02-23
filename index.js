@@ -11,7 +11,7 @@ const program = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
-const chai = require('chai');
+const { assert, expect } = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { execSync } = require('child_process');
@@ -41,7 +41,6 @@ async function klassiCli() {
 /**
  * all assertions for variable testing
  */
-let { assert, expect } = chai;
 global.assert = assert;
 global.expect = expect;
 global.fs = fs;
@@ -158,7 +157,7 @@ program
   .parse(process.argv);
 
 program.on('--help', () => {
-  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
+  console.log('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
 });
 
 const options = program.opts();
@@ -332,12 +331,14 @@ function getTagsFromFeatureFiles() {
   return result;
 }
 
+global.getTagsFromFeatureFiles = getTagsFromFeatureFiles();
+
 /**
  * verify the correct tags for scenarios to run
  * ignores non existing tags
  */
 if (options.tags.length > 0) {
-  const tagsFound = getTagsFromFeatureFiles();
+  const tagsFound = global.getTagsFromFeatureFiles;
   const separateMultipleTags = options.tags[0].split(',');
   let separateExcludedTags;
 
@@ -437,52 +438,34 @@ if (options.browsers) {
 klassiCli().then(async (succeeded) => {
   if (dryRun === false) {
     if (!succeeded) {
-      await data
-        .klassiReporter()
-        .then(async () => {
-          await browser.pause(DELAY_5s);
-          /**
-           * compile and generate a report at the END of the test run to be send by Email
-           * send email with the report to stakeholders after test run
-           */
-          if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-            await browser.pause(DELAY_3s).then(async () => {
-              await s3Upload.s3Upload();
-              await browser.pause(DELAY_30s);
-            });
-          } else if (email === true) {
-            await browser.pause(DELAY_5s).then(async () => {
-              await data.klassiEmail();
-              await browser.pause(DELAY_3s);
-            });
-          }
-        })
-        .then(async () => {
-          await process.exit(3);
-        });
-    } else {
-      await data.klassiReporter().then(async () => {
-        await browser.pause(DELAY_5s);
-        /**
-         * compile and generate a report at the END of the test run to be send by Email
-         * send email with the report to stakeholders after test run
-         */
-        if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-          await browser.pause(DELAY_3s).then(async () => {
-            await s3Upload.s3Upload();
-            await browser.pause(DELAY_30s);
-          });
-        } else if (email === true) {
-          await browser.pause(DELAY_5s).then(async () => {
-            await data.klassiEmail();
-            await browser.pause(DELAY_3s);
-          });
-        }
+      await module.exports.klassiOptions().then(async () => {
+        await process.exit(3);
       });
+    } else {
+      await module.exports.klassiOptions();
     }
   }
 });
 
-global.getTagsFromFeatureFiles = getTagsFromFeatureFiles();
+async function klassiOptions() {
+  await data.klassiReporter().then(async () => {
+    await browser.pause(DELAY_5s);
+    /**
+     * compile and generate a report at the END of the test run to be send by Email
+     * send email with the report to stakeholders after test run
+     */
+    if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
+      await browser.pause(DELAY_3s).then(async () => {
+        await s3Upload.s3Upload();
+        await browser.pause(DELAY_30s);
+      });
+    } else if (email === true) {
+      await browser.pause(DELAY_5s).then(async () => {
+        await data.klassiEmail();
+        await browser.pause(DELAY_3s);
+      });
+    }
+  });
+}
 
-module.exports = getTagsFromFeatureFiles();
+module.exports = { klassiOptions };

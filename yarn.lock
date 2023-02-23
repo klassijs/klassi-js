@@ -2204,9 +2204,9 @@ css-value@^0.0.1:
   resolved "https://registry.yarnpkg.com/css-value/-/css-value-0.0.1.tgz#5efd6c2eea5ea1fd6b6ac57ec0427b18452424ea"
   integrity sha512-FUV3xaJ63buRLgHrLQVlVgQnQdR4yqdLGaDu7g8CQcWjInDfM9plBTPI9FRfpahju1UBSaMckeb2/46ApS/V1Q==
 
-"cucumber-html-reporter@https://github.com/larryg01/cucumber-html-reporter":
+"cucumber-html-reporter@https://github.com/klassijs/cucumber-html-reporter":
   version "5.2.0"
-  resolved "https://github.com/larryg01/cucumber-html-reporter#46f18c611953cb393abeeee9706267344e897230"
+  resolved "https://github.com/klassijs/cucumber-html-reporter#46f18c611953cb393abeeee9706267344e897230"
   dependencies:
     chalk "4.1.2"
     find "^0.3.0"
@@ -5737,9 +5737,9 @@ url@0.10.3:
     punycode "1.3.2"
     querystring "0.2.0"
 
-utam@1.2.2, "utam@https://github.com/larryg01/utam":
+utam@1.2.2, "utam@https://github.com/klassijs/utam":
   version "1.2.2"
-  resolved "https://github.com/larryg01/utam#4a02bdbae62cf16b36433632e40c632996b4aa4d"
+  resolved "https://github.com/klassijs/utam#4a02bdbae62cf16b36433632e40c632996b4aa4d"
   dependencies:
     "@utam/compiler" "1.2.2"
     "@utam/core" "1.2.2"
@@ -5807,9 +5807,9 @@ verror@^1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-"wdio-utam-service@https://github.com/larryg01/wdio-utam-service":
+"wdio-utam-service@https://github.com/klassijs/wdio-utam-service":
   version "1.2.2"
-  resolved "https://github.com/larryg01/wdio-utam-service#cedeb189e0911a8f4316d4ef6b4d1bcb70df0372"
+  resolved "https://github.com/klassijs/wdio-utam-service#cedeb189e0911a8f4316d4ef6b4d1bcb70df0372"
   dependencies:
     utam "1.2.2"
 
