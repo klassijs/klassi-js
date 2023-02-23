@@ -12,6 +12,7 @@ references:
           - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
           - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
           - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
+          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
 
   filter_only_integration_branches: &filter_only_integration_branches
     filters:

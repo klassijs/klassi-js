@@ -8,8 +8,8 @@
     <a href="https://github.com/klassijs/klassi-js/blob/master/LICENSE">
     <img alt="License" src="https://img.shields.io/github/license/klassijs/klassi-js">
     </a> 
-    <a href="https://gitter.im/klassi-js/klassi-js">
-    <img alt="Gitter" src="https://badges.gitter.im/klassi-js/klassi-js.svg">
+    <a href="https://gitter.im/klassijs/klassi-js">
+    <img alt="Gitter" src="https://badges.gitter.im/klassijs/klassi-js.svg">
     </a>
     <a href="https://webdriver.io/">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
