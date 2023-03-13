@@ -73,7 +73,6 @@
       "text-summary"
     ]
   },
-
   "dependencies": {
     "@aws-sdk/client-s3": "^3.271.0",
     "@aws-sdk/client-ses": "^3.226.0",

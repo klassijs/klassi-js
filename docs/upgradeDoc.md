@@ -42,7 +42,7 @@ Steps taken to upgrade all projects that's using klassi-js as a dependency:
       "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
       "changelog:major": "standard-version --release-as major --skip.commit --skip.tag"
     ```
-      - Change s3report script name to \`cilts3r\`
+      - Change s3report script name to `cilts3r`
    
 - Change 
   - .circleci/config.yml:
