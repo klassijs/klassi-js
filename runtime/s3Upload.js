@@ -6,10 +6,10 @@
  furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
 const path = require('path');
-const AWS = require('aws-sdk');
 const fs = require('fs-extra');
 const readdir = require('recursive-readdir');
 const async = require('async');
+const { S3Client, ListBucketsCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 /**
  * function to upload the test report folder to an s3 Bucket - AWS
@@ -18,84 +18,60 @@ module.exports = {
   s3Upload: async () => {
     let date = require('./helpers').s3BucketCurrentDate();
     const browserName = settings.remoteConfig || BROWSER_NAME;
-    const folderName = `/${date}/${dataconfig.s3FolderName}/reports`;
-    const BUCKET = s3Data.S3_BUCKET + folderName;
-    const KEY = process.env.S3_KEY;
-    const SECRET = process.env.S3_SECRET;
+    const folderName = `${date}/${dataconfig.s3FolderName}/reports/`;
+    const BUCKET = s3Data.S3_BUCKET;
+    const S3_KEY = process.env.S3_KEY;
+    const S3_SECRET = process.env.S3_SECRET;
     const rootFolder = path.resolve('./reports');
-    const uploadFolder = `./${browserName}`;
+    const uploadFolder = `./${browserName}/`;
 
-    const s3 = new AWS.S3({
-      signatureVersion: 'v4',
-      accessKeyId: KEY,
-      secretAccessKey: SECRET,
+    const s3Client = new S3Client({
+      region: s3Data.S3_REGION,
+      credentials: {
+        accessKeyId: S3_KEY,
+        secretAccessKey: S3_SECRET,
+      },
     });
-    function mybucketList() {
-      return new Promise((resolve, reject) => {
-        s3.listBuckets(function (err, data) {
-          if (err) {
-            console.log('Error', err);
-          } else {
-            let resp = data.Buckets;
-            resolve(resp);
-          }
-        });
-      });
+    async function mybucketList() {
+      try {
+        const data = await s3Client.send(new ListBucketsCommand({}));
+        return data.Buckets; // For unit tests.
+      } catch (err) {
+        console.error('Error ', err.message);
+      }
     }
     function getFiles(dirPath) {
       return fs.existsSync(dirPath) ? readdir(dirPath) : [];
     }
     async function deploy(upload) {
       const filesToUpload = await getFiles(path.resolve(rootFolder, upload));
-      return new Promise((resolve, reject) => {
-        async.eachOfLimit(
-          filesToUpload,
-          30,
-          async.asyncify(async (file) => {
-            const Key = file.replace(`${rootFolder}/`, '');
-            console.log(`uploading: [${Key}]`);
-            return new Promise((res, rej) => {
-              s3.upload(
-                {
-                  Key,
-                  Bucket: BUCKET,
-                  Body: fs.readFileSync(file),
-                  ContentType: 'text/html',
-                },
-                async (err, data) => {
-                  if (err) {
-                    return rej(new Error(err));
-                  }
-                  res({ result: true });
-                  if (data) {
-                    const data1 = await data;
-                  }
-                }
-              );
-            });
-          }),
-          (err) => {
-            if (err) {
-              return reject(new Error(err));
-            }
-            resolve({ result: true });
-          }
-        );
+      await async.eachOfLimit(filesToUpload, 20, async (file) => {
+        const Key = await file.replace(`${rootFolder}/`, '');
+        console.log(`uploading: [${Key}]`);
+        const uploadParams = {
+          Bucket: BUCKET,
+          Key: folderName + Key,
+          Body: fs.readFileSync(file),
+        };
+        try {
+          await s3Client.send(new PutObjectCommand(uploadParams));
+        } catch (err) {
+          console.error('Error', err.message);
+        }
       });
     }
-    mybucketList().then((resp) => {
-      const bucketExists = resp.some((bucket) => bucket.Name === s3Data.S3_BUCKET);
-      if (!bucketExists) {
-        console.log('The s3 bucket does not exist');
-        return;
-      }
-      deploy(uploadFolder)
-        .then(() => {
-          console.log('Files uploaded successfully, report folder pushed to s3');
-        })
-        .catch((err) => {
-          console.error(err.message);
-        });
-    });
+    const mybucket = await mybucketList();
+    const bucketExists = mybucket.some((bucket) => bucket.Name === s3Data.S3_BUCKET);
+    if (!bucketExists) {
+      console.log('The s3 bucket does not exist');
+      return;
+    }
+    deploy(uploadFolder)
+      .then(() => {
+        console.log('Files uploaded successfully, report folder pushed to s3');
+      })
+      .catch((err) => {
+        console.error(err.message);
+      });
   },
 };

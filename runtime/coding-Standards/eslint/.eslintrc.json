@@ -23,7 +23,8 @@
             "warn",
             {
                 "singleQuote": true,
-                "printWidth": 120
+                "printWidth": 120,
+                "endOfLine":"auto"
             }
         ],
         "no-const-assign": "warn",
@@ -33,15 +34,15 @@
         "no-unused-vars": "warn",
         "constructor-super": "warn",
         "valid-typeof": "warn",
-        "linebreak-style": [ "error", "unix" ],
+        "linebreak-style": [ 0, "warn"],
         "no-console": [ 0, "error" ],
         "indent": [ "error", 2, { "SwitchCase": 1 }  ],
         "semi": [ "error", "always" ],
         "quotes":["error", "single"]
     },
     "globals": {
-        "Given": "readonly",
-        "When": "readonly",
+        "Given": "writable",
+        "When": "writable",
         "Then": "readonly",
         "Before": "readonly",
         "BeforeAll": "readonly",
@@ -63,8 +64,8 @@
         "settings": "readonly",
         "Status": "writable",
         "envConfig": "readonly",
-        "assert": "writable",
-        "expect": "writable",
+        "assert": "readonly",
+        "expect": "readonly",
         "DELAY_100ms": "readonly",
         "DELAY_200ms": "readonly",
         "DELAY_300ms": "readonly",
@@ -87,7 +88,6 @@
         "getTagsFromFeatureFiles": "readonly",
         "sharedObjects": "readonly",
         "pageObjects": "writable",
-        "featureFiles": "readonly",
         "resultingString": "readonly",
         "skipTag": "writable",
         "paths": "writable",

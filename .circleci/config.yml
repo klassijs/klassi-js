@@ -26,6 +26,7 @@ references:
       branches:
         only:
           - master # git flow master branch
+          - main # git flow main branch
           - /hotfix\/.*/ # git flow hotfix branches
           - /release\/.*/ # git flow release branches
 
@@ -45,6 +46,7 @@ jobs:
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
       - run:
+          name: Create projects directory
           command: mkdir ~/klassi/projects
 
       - run:
@@ -191,7 +193,9 @@ jobs:
             read -r header
             while IFS=, read -r name branch folder; do
               cd $name
-                echo "The $name Project folder "
+                echo "################################# "
+                echo "#   The $name Project folder    # "
+                echo "################################# "
               if test "$folder"; then
                 cd $folder
                   yarn cilts3r chrome || exitCode=1
@@ -274,7 +278,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - ~/klassi/klassi-js/yarn.lock
           key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:
@@ -320,9 +323,9 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-#      - dev_acceptance_test_firefox:
-#          context: klassi-framework
-#          <<: *filter_only_integration_branches
+      - dev_acceptance_test_firefox:
+          context: klassi-framework
+          <<: *filter_only_integration_branches
 
       - acceptance_test_chrome:
           context: klassi-framework

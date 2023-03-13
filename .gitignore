@@ -2,7 +2,6 @@
 artifacts
 .nyc_output
 coverage
-visual-regression-baseline
 
 # exclude generated reports
 reports
@@ -14,7 +13,6 @@ reports
 
 # exclude file
 shared-objects/docs/userAgent.txt
-visual-regression-baseline
 bashScript
 
 # Logs

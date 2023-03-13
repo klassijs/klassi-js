@@ -157,7 +157,7 @@ program
   .parse(process.argv);
 
 program.on('--help', () => {
-  console.log('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
+  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
 });
 
 const options = program.opts();
@@ -199,16 +199,15 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 
 /** adding global helpers */
-const data = require('./runtime/helpers');
-global.helpers = data;
+const helpers = require('./runtime/helpers');
+global.helpers = helpers;
 
-global.date = data.currentDate();
-global.dateTime = data.reportDateTime();
+global.date = helpers.currentDate();
+global.dateTime = helpers.reportDateTime();
 
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (utam) {
-  const filePath =
-    projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath = projectName === 'OAF' ? './runtime/utam.config.js' : './node_modules/OAF/runtime/utam.config.js';
   const utamConfig = require(path.resolve(filePath));
   fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
   execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
@@ -438,17 +437,17 @@ if (options.browsers) {
 klassiCli().then(async (succeeded) => {
   if (dryRun === false) {
     if (!succeeded) {
-      await module.exports.klassiOptions().then(async () => {
+      await module.exports.cucumberCli().then(async () => {
         await process.exit(3);
       });
     } else {
-      await module.exports.klassiOptions();
+      await module.exports.cucumberCli();
     }
   }
 });
 
-async function klassiOptions() {
-  await data.klassiReporter().then(async () => {
+async function cucumberCli() {
+  await helpers.klassiReporter().then(async () => {
     await browser.pause(DELAY_5s);
     /**
      * compile and generate a report at the END of the test run to be send by Email
@@ -461,11 +460,11 @@ async function klassiOptions() {
       });
     } else if (email === true) {
       await browser.pause(DELAY_5s).then(async () => {
-        await data.klassiEmail();
+        await helpers.klassiEmail();
         await browser.pause(DELAY_3s);
       });
     }
   });
 }
 
-module.exports = { klassiOptions };
+module.exports = { cucumberCli };
