@@ -73,6 +73,7 @@
       "text-summary"
     ]
   },
+
   "dependencies": {
     "@aws-sdk/client-ses": "^3.226.0",
     "@aws-sdk/credential-provider-node": "^3.245.0",
