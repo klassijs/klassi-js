@@ -37,6 +37,8 @@ yarn add klassi-js
  
 npm install klassi-js
 ```
+## Upgrade to klassi-js v5
+To upgrade existing projects for use with klassi-js v5, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Usage
 
