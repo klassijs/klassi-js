@@ -10,7 +10,7 @@ Steps taken to upgrade all projects that's using klassi-js as a dependency:
     - delete the  details from the .envConfigrc.js thats in the .dataConfigrc.js file
   <br><br>
 - Changes to the package.json:
-     - install these nodes in the devDependies: 
+     - install these nodes as devDependencies: 
     ```json
       "devDependencies": {
           "@commitlint/cli": "^17.2.0",
