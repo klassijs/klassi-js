@@ -1,5 +1,5 @@
 @android
-Feature: Oxford Learner's Bookshelf
+Feature: Android test
 
     Scenario: Access free samples
         Given The user launches the application
