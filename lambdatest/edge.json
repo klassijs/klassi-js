@@ -3,9 +3,9 @@
   "build": "klassi-js",
   "platform" : "Windows 10",
   "browserName" : "MicrosoftEdge",
-  "version" : "86.0",
+  "version" : "106.0",
   "resolution" : "1280x1024",
   "selenium_version" : "3.13.0",
   "visual" : true,
-  "edge.driver" : "86.0"
+  "edge.driver" : "106.0"
 }

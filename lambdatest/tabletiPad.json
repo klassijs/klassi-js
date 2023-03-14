@@ -2,10 +2,11 @@
   "projectName": "klassi-js",
   "build": "klassi-js",
   "platform": "iOS",
-  "deviceName": "iPhone 12",
-  "platformVersion" : "14.4",
+  "deviceName": "iPad 10.2 (2020)",
+  "platformVersion" : "14",
   "appiumVersion" : "1.19.1",
+  "isRealMobile": true,
   "visual": true,
-  "deviceOrientation": "LANDSCAPE"
+  "deviceOrientation": "landscape"
 }
 

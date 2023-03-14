@@ -1,11 +1,13 @@
 {
     "build" : "klassi-js",
     "name" : "klassi-js Mobile",
-    "platformName" : "iOS",
-    "browserName": "",
-    "deviceName" : "iPhone 6s",
-    "platformVersion" : "12.0",
+    "platformName" : "ios",
+    "deviceName": "iPhone 12",
+    "platformVersion" : "15",
+    "appiumVersion" : "1.19.1",
     "automationName": "xcuitest",
     "console" : "true",
     "network" : true
 }
+
+

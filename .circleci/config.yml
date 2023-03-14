@@ -1,6 +1,5 @@
 #    klassi-js
 #    Copyright © 2016 - Larry Goddard
-#
 #    Javascript Node CircleCI 2.1 configuration file
 #    Check https://circleci.com/docs/2.0/language-javascript/ for more details
 version: 2.1
@@ -13,6 +12,7 @@ references:
           - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
           - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
           - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
+          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
 
   filter_only_integration_branches: &filter_only_integration_branches
     filters:
@@ -26,12 +26,13 @@ references:
       branches:
         only:
           - master # git flow master branch
+          - main # git flow main branch
           - /hotfix\/.*/ # git flow hotfix branches
           - /release\/.*/ # git flow release branches
 
 jobs:
   ###########################################
-  # s3 Report base configuration            #
+  ##     s3 Report base configuration      ##
   ###########################################
   s3_report_base: &s3_report_base
     docker:
@@ -45,51 +46,90 @@ jobs:
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
       - run:
+          name: Create projects directory
           command: mkdir ~/klassi/projects
 
       - run:
           name: Checkout the klassi-js framework repo
-          command: git clone git@github.com:larryg01/klassi-js.git
+          command: git clone -b master git@github.com:klassijs/klassi-js.git
 
       - run:
           name: Check out the working branch
           path: ~/klassi/klassi-js
           command: git checkout ${CIRCLE_BRANCH}
 
+      #####################################################
+      ##          Checkout Project Repos                 ##
+      #####################################################
       - run:
           name: Checkout the Project Repos
           path: ~/klassi/projects
-          command: git clone git@github.com:ORGName/projectName.git&& git clone git@github.com:ORGName/projectName.git
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=, read -r name branch folder; do
+              if test "$branch"; then
+                git clone -b $branch git@github.com:klassijs/$name.git || true
+              else
+                git clone git@github.com:klassijs/$name.git || true
+              fi
+            done
 
+      #####################################################
+      ##         Generate dependency cache key           ##
+      #####################################################
       - run:
           name: Generate dependency cache key
-          command: cat ~/klassi/klassi-js/package.json ~/klassi/projects/projectName/package.json ~/klassi/projects/projectName/package.json> CACHE_KEY
+          path: ~/klassi/projects
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=, read -r name branch folder; do
+              if test "$folder"; then
+                cd $name/test
+                cat yarn.lock> CACHE_KEY
+                cd ../../
+              else
+                cat $name/yarn.lock> CACHE_KEY
+              fi
+            done
+            cat ~/klassi/klassi-js/yarn.lock> CACHE_KEY
 
       - restore_cache:
-          key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
+          key: klassi-js-yarn-cache-{{ checksum "./projects/CACHE_KEY" }}
 
-      #################################
-      ## Install Project dependencies #
-      #################################
       - run:
           name: Force git to use ssh instead of https
           path: ~/klassi/
           command: git config --global url."git@github.com:".insteadOf "https://github.com/"
 
       - run:
-          name: Install the klassi-js framework dependencies
+          name: Install the Klassi-js framework dependencies
           path: ~/klassi/klassi-js
           command: yarn install
 
+      #####################################################
+      ##          Install all Project dependencies       ##
+      #####################################################
       - run:
-          name: Install the ProjectName Project Dependencies
-          path: ~/klassi/projects/ProjectName
-          command: yarn install
-
-      - run:
-          name: Install the ProjectName Project Dependencies
-          path: ~/klassi/projects/ProjectName
-          command: yarn install
+          name: Install all their Dependencies
+          path: ~/klassi/projects
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=, read -r name branch folder; do
+              cd $name
+                  echo "The $name Project folder "
+                  echo "Installing $name Project Dependencies......"
+                if test "$folder"; then
+                  cd test
+                  yarn install || true
+                  cd ../
+                else
+                yarn install || true
+                fi
+                  cd ../
+            done
 
       ###############################################
       # Lambdatest setup for execution and shutdown #
@@ -124,7 +164,7 @@ jobs:
             done
             echo "$PORT" > /tmp/port
             echo $TUNNEL_NAME
-            ./LT --user $LAMBDATEST_USERNAME --key $LAMBDATEST_ACCESS_KEY --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME --load-balanced --verbose --mode ssh --maxSSHConnections 3 --retry-on-failure true
+            ./LT --user $LAMBDATEST_USERNAME --key $LAMBDATEST_ACCESS_KEY --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME
 
       - run:
           name: Wait for LambdaTest Tunnel
@@ -140,29 +180,36 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - ~/klassi/klassi-js/yarn.lock
-            - ~/klassi/projects/projectName/yarn.lock
-            - ~/klassi/projects/projectName/yarn.lock
-          key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
+          key: klassi-js-yarn-cache-{{ checksum "./projects/CACHE_KEY" }}
 
-      #######################
-      ##   run s3 report   ##
-      #######################
+      #########################
+      ## s3 report Execution ##
+      #########################
       - run:
-          name: ProjectName s3 Report Processing and Email
-          path: ~/klassi/projects/ProjectName
-          command: yarn run ciltProjectName $BROWSER
+          name: Executing the s3 Report
+          path: ~/klassi/projects
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=, read -r name branch folder; do
+              cd $name
+                echo "################################# "
+                echo "#   The $name Project folder    # "
+                echo "################################# "
+              if test "$folder"; then
+                cd $folder
+                  yarn cilts3r chrome || exitCode=1
+                  cd ../../
+              else
+                yarn cilts3r chrome || exitCode=1
+                cd ../
+              fi
+            done
+            exit $exitCode
 
-      - run:
-          name: klassi-js s3 Report Processing and Email
-          path: ~/klassi/klassi-js
-          command: yarn run ciltklassi $BROWSER
-
-      - run:
-          name: ProjectName s3 Report Processing and Email
-          path: ~/klassi/projects/ProjectName
-          command: yarn run ciltProjectName $BROWSER
-
+      ###############################################
+      ##            Lambdatest shutdown            ##
+      ###############################################
       - run:
           name: Close LambdaTest Tunnel
           command: |
@@ -175,7 +222,6 @@ jobs:
 
   s3Report_chrome:
     <<: *s3_report_base
-    environment: { BROWSER: 'chrome'}
 
   ###########################################
   #   Acceptance test base configuration    #
@@ -194,7 +240,7 @@ jobs:
 
       - run:
           name: Checkout the klassi-js framework repo
-          command: git clone git@github.com:larryg01/klassi-js.git
+          command: git clone git@github.com:klassijs/klassi-js.git
 
       - run:
           name: Check out the working branch
@@ -232,7 +278,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.cache/yarn
-            - ~/klassi/klassi-js/yarn.lock
           key: klassi-js-yarn-cache-{{ checksum "CACHE_KEY" }}
 
       - run:

@@ -100,22 +100,22 @@
 
 <script>
 
-var data= XXX-DetailData
+let data= XXX-DetailData
 
-var browserData= XXX-AdditinalData
+let browserData= XXX-AdditinalData
 
 function testdata(data,y,type){
-var panColor="#F9E79F";
-var changeColor=false;
+let panColor="#F9E79F";
+let changeColor=false;
 if(type=="Violation"|| type=="Incomplete"){
 changeColor=true;
 }
-var txt ="";
-//var y=0;
-var z=0;
+let txt ="";
+//let y=0;
+let z=0;
 for (x in data) {
  
-var ImpactMessage="";
+let ImpactMessage="";
 
 if(data[x].impact!=null && (type=='Violation' || type =='Incomplete')){
 
@@ -191,12 +191,12 @@ panColor="#F9E79F";
 return txt;
 }
 		function summaryView(data){
-			if( data.violations.length ===undefined){
+			if( data.violations.length === undefined){
 			document.getElementById("ViolatedRuleCount").innerHTML = "0";
 			}else{
 			document.getElementById("ViolatedRuleCount").innerHTML=data.violations.length;
 				}
-			if( data.incomplete.length ===undefined){
+			if( data.incomplete.length === undefined){
 			document.getElementById("IncompleteRuleCount").innerHTML = "0";
 			}else{
 			document.getElementById("IncompleteRuleCount").innerHTML=data.incomplete.length;
@@ -211,10 +211,10 @@ return txt;
 		}
 		
 		function summaryData(jsonObject,jsonDetail){
-			var txthtml="";
-			txthtml+='<p>URL :'+jsonDetail.url+'</p>'
-			txthtml+='<p>DateTime :'+jsonDetail.timestamp+'</p>'
-		for (var key in jsonObject) {
+			let txthtml="";
+			txthtml+='<p>URL : '+jsonDetail.url+'</p>'
+			txthtml+='<p>DateTime : '+jsonDetail.timestamp+'</p>'
+		for (let key in jsonObject) {
 				console.log(key, jsonObject[key]);
 				txthtml+='<p>'+ key +" : "+ jsonObject[key] + '</p>'
 							}
@@ -224,10 +224,10 @@ return txt;
 		}
 		
 	function browserInfo(jsonObject){
-			var txthtml="";
-			var bVersion="";
-			var plName="";
-			var plVersion="";
+			let txthtml="";
+			let bVersion="";
+			let plName="";
+			let plVersion="";
 			if(jsonObject.browserVersion==null){
 				bVersion=jsonObject.version;
 			}else bVersion=jsonObject.browserVersion;
@@ -236,19 +236,17 @@ return txt;
 				plName=jsonObject.platform;
 			}else plName=jsonObject.platformName;
 
-			txthtml+='<p>Browser Name:'+jsonObject.browserName+'</p>'
-			txthtml+='<p>Browser Version :'+bVersion+'</p>'
-			txthtml+='<p>Platform Used :'+plName+'</p>'
+			txthtml+='<p>Browser Name: '+jsonObject.browserName+'</p>'
+			txthtml+='<p>Browser Version : '+bVersion+'</p>'
+			txthtml+='<p>Platform Used : '+plName+'</p>'
 			
 
 			if(jsonObject.platformVersion==null){
 				plVersion="";
 			}else {plVersion=jsonObject.platformVersion;
-				txthtml+='<p>Platform Version :'+plVersion+'</p>'
+				txthtml+='<p>Platform Version : '+plVersion+'</p>'
 			}
 
-			
-		
 		document.getElementById("browserDetails").innerHTML=txthtml;
 		}
 		

@@ -1,41 +1,26 @@
 /**
- klassi-js
- Copyright © 2016 - Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
 const wdio = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
 const { UtamWdioService } = require('wdio-utam-service');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
-const loadConfig = require('./configLoader');
-const lambdatest = require('./remotes/lambdatest');
-const utamConfig = require('./utam.config');
+const loadConfig = require('../configLoader');
+const lambdatest = require('../remotes/lambdatest');
+const utamConfig = require('../utam.config');
 
-const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
+const modHeader = fs.readFileSync(path.resolve(__dirname, '../scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
 });
+
 const chExt = {
   'LT:Options': {
     'goog:chromeOptions': {
-      // args: ['--no-sandbox', '--disable-gpu', '--disable-popup-blocking'],
       extensions: [modHeader],
     },
   },
@@ -58,7 +43,7 @@ module.exports = async function lambdatestDriver(options, configType) {
   } else {
     config = browserCaps;
   }
-  // lambdatest will do this anyway, this is to make it explicit
+  /** lambdatest will do this anyway, this is to make it explicit */
   const buildNameFromConfig = configType.replace(/-/g, ' ');
 
   if (process.env.CI || process.env.CIRCLE_CI) {
@@ -66,9 +51,9 @@ module.exports = async function lambdatestDriver(options, configType) {
     const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
     config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
   } else {
-    // configs can define their own build name or it is inferred from the configType
-    config.build = `${global.projectName}-${buildNameFromConfig}`;
-    config.tunnelName = 'ouptunnel';
+    /** configs can define their own build name or it is inferred from the configType */
+    config.build = `${projectName}-${buildNameFromConfig}`;
+    config.tunnelName = 'klassitunnel';
   }
 
   const defaults = {
@@ -100,7 +85,7 @@ module.exports = async function lambdatestDriver(options, configType) {
   global.browser = await wdio.remote(extendedOptions);
   if (isUTAMTest) {
     const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities);
+    await utamInstance.before(extendedOptions.capabilities, null, browser);
   }
   return browser;
 };

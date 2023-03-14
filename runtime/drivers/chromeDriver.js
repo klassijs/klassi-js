@@ -1,21 +1,9 @@
 /**
- klassi-js
- Copyright © 2016 - Larry Goddard
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
 const { remote } = require('webdriverio');
 const program = require('commander');
@@ -23,11 +11,11 @@ const fs = require('fs');
 const path = require('path');
 const { Before } = require('@cucumber/cucumber');
 const { UtamWdioService } = require('wdio-utam-service');
-const utamConfig = require('./utam.config');
+const utamConfig = require('../utam.config');
 
 let defaults = {};
 
-const modHeader = fs.readFileSync(path.resolve(__dirname, './scripts/extensions/modHeader_3_1_22_0.crx'), {
+const modHeader = fs.readFileSync(path.resolve(__dirname, '../scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
 });
 
@@ -78,13 +66,9 @@ module.exports = async function chromeDriver(options) {
       },
     };
   }
-
-  // Add proxy based on env var.
-  const useProxy = process.env.USE_PROXY || false;
-
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
+      httpProxy: '',
       proxyType: 'MANUAL',
       autodetect: false,
     };
@@ -94,7 +78,7 @@ module.exports = async function chromeDriver(options) {
   global.browser = await remote(extendedOptions);
   if (isUTAMTest) {
     const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities);
+    await utamInstance.before(extendedOptions.capabilities, null, browser);
   }
   await browser.setWindowSize(1280, 1024);
   return browser;

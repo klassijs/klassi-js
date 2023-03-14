@@ -1,22 +1,26 @@
 @api @uattest
 Feature: The API feature/functionality
-@get
-  Scenario: Recording API response time, status and content
+  Recording API response time, status and content
+
+  Background: Making a call to the API endPoint
     Given That I make a GET call to an endPoint
-    Then I expect status code of '200'
+
+  @get
+  Scenario: The response of a GET call
+    When I expect status code of '200'
     Then I return the content of the API
-@put
-  Scenario: Recording API response time, status and content
-    Given That I make a GET call to an endPoint
-    Then I expect status code of '200'
+
+  @put
+  Scenario: The response of a PUT call
+    When I expect status code of '200'
     Then I return the content of the API
-@post
-  Scenario: Recording API response time, status and content
-    Given That I make a GET call to an endPoint
-    Then I expect status code of '200'
+
+  @post
+  Scenario: The response of a POST call
+    When I expect status code of '200'
     Then I return the content of the API
-@delete
-  Scenario: Recording API response time, status and content
-    Given That I make a GET call to an endPoint
-    Then I expect status code of '200'
+
+  @delete
+  Scenario: The response of a DELETE call
+    Then I expect status code of '201'
     Then I return the content of the API

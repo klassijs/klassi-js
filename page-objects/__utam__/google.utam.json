@@ -15,7 +15,7 @@
     {
       "name": "searchInput",
       "selector": {
-        "css": "input[class='gLFyf gsfi']"
+        "css": "input[class='gLFyf']"
       },
       "type": "editable",
       "public": true
