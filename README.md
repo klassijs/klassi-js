@@ -5,14 +5,11 @@
     </a> </h1> </p>
 
 <p align="center">
-    <a href ="https://travis-ci.org/larryg01/klassi-js">
-    <img alt="Build Status" src="https://travis-ci.org/larryg01/klassi-js.svg?branch=master">
+    <a href="https://github.com/klassijs/klassi-js/blob/master/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassi-js">
     </a> 
-    <a href="https://github.com/larryg01/klassi-js/blob/master/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/larryg01/klassi-js">
-    </a> 
-    <a href="https://gitter.im/klassi-js/klassi-js">
-    <img alt="Gitter" src="https://badges.gitter.im/klassi-js/klassi-js.svg">
+    <a href="https://gitter.im/klassijs/klassi-js">
+    <img alt="Gitter" src="https://badges.gitter.im/klassijs/klassi-js.svg">
     </a>
     <a href="https://webdriver.io/">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
@@ -40,6 +37,8 @@ yarn add klassi-js
  
 npm install klassi-js
 ```
+## Upgrade to klassi-js v5
+To upgrade existing projects for use with klassi-js v5, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Usage
 
@@ -460,19 +459,7 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
        done(); // <<- let cucumber know you're done
   });
 ```
-## Demo
-To demo the framework without installing it into your project use the following commands:
-```js
- # download this example code
-  git clone https://github.com/klassi/klassi-js.git
 
- # browser to the new directory
-  cd klassi-js
-
- # run the search feature
-  yarn install
-  node index.js --tags @search
-```
 ## Commit conventions
 
 To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
@@ -505,9 +492,23 @@ The same script will also verify the naming convention. Please remember that we 
 - **testfix/**
 - **automation/**
 
+## Demo
+To demo the framework without installing it into your project use the following commands:
+```js
+ # download this example code
+  git clone https://github.com/klassijs/klassi-js.git
+
+ # browser to the new directory
+  cd klassi-js
+
+ # run the search feature
+  yarn install
+  node index.js --tags @search
+```
+
 ## Bugs
 
-Please raise bugs via the [klassi-js issue tracker](https://github.com/klassi/klassi-js/issues), please provide enough information for bug reproduction.
+Please raise bugs via the [klassi-js issue tracker](https://github.com/klassijs/klassi-js/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 

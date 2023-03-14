@@ -72,7 +72,7 @@ module.exports = {
     });
     const mailOptions = {
       to: devTeam,
-      from: 'klassi-QATEST <QAAutoTest@oup.com>',
+      from: 'klassi-QATEST <QAAutoTest@klassi.co.uk>',
       subject: `${projectName} ${reportName}-${dateTime}`,
       alternative: true,
       attachments: fileList,

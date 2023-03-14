@@ -7,7 +7,7 @@
  */
 const path = require('path');
 const fs = require('fs-extra');
-const AWS = require('aws-sdk');
+const { S3Client, ListObjectsCommand } = require('@aws-sdk/client-s3');
 const program = require('commander');
 
 const s3Bucket = s3Data.S3_BUCKET;
@@ -15,16 +15,18 @@ const s3AccessKeyId = process.env.S3_KEY;
 const s3SecretAccessKey = process.env.S3_SECRET;
 const domainName = s3Data.S3_DOMAIN_NAME;
 
-const s3 = new AWS.S3({
+const s3Client = new S3Client({
   region: s3Data.S3_REGION,
-  accessKeyId: s3AccessKeyId,
-  secretAccessKey: s3SecretAccessKey,
+  credentials: {
+    accessKeyId: s3AccessKeyId,
+    secretAccessKey: s3SecretAccessKey,
+  },
 });
 
 module.exports = {
   async s3Processor(projectName) {
     const s3date = helpers.formatDate();
-    const folderName = s3date;
+    const folderName = helpers.formatDate();
     projectName = dataconfig.s3FolderName;
     console.log(`Starting Processing of Test Report for: ${s3date}/${projectName} ...`);
     /**
@@ -53,51 +55,54 @@ module.exports = {
     let browsername;
     let dataOut = await helpers.readFromFile(tempFile);
 
-    s3.listObjects(
-      {
-        Bucket: s3Bucket,
-        Marker: folderName,
-        Prefix: `${s3date}/${projectName}`,
-        MaxKeys: 1000,
-      },
-      async (err, data) => {
-        if (data.Contents) {
-          for (let x = 0; x < browserName.length; x++) {
-            browsername = browserName[x];
-            const browserData = [];
+    const bucketParams = {
+      Bucket: s3Bucket,
+      Marker: folderName,
+      Prefix: `${s3date}/${projectName}`,
+      MaxKeys: 1000,
+    };
 
-            for (let i = 0; i < data.Contents.length; i++) {
-              const key = data.Contents[i].Key;
-              if (key.substring(0, 10) === folderName) {
-                if (key.split('.')[1] === 'html') {
-                  dataList = `${domainName}/${key}`;
-                  if (dataList.includes(browsername)) {
-                    const envDataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\/.*.html/, '');
-                    dataNew = dataList
-                      .replace(/^.*reports\/\w+\//, '')
-                      .replace(`${envDataNew}/`, '')
-                      .replace(/\.html/, '');
-                    // console.log('this is the data new from the s3reportProcessor ln 92 ====> ', dataNew);
-                    const theNewData = `${dataNew} -- ${envDataNew}`;
-                    let dataFile = '';
-                    browserData.push(
-                      (dataFile = `${dataFile}<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p><a href="${dataList}">${theNewData}</a></div>`)
-                    );
-                  }
-                }
+    const data = await s3Client.send(new ListObjectsCommand(bucketParams));
+    if (data.Contents) {
+      for (let x = 0; x < browserName.length; x++) {
+        browsername = browserName[x];
+        const linkList = [];
+
+        for (let i = 0; i < data.Contents.length; i++) {
+          const key = data.Contents[i].Key;
+          if (key.substring(0, 10) === folderName) {
+            if (key.split('.')[1] === 'html') {
+              dataList = `${domainName}/${key}`;
+              if (dataList.includes(browsername)) {
+                const envDataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\/.*.html/, '');
+                dataNew = dataList
+                  .replace(/^.*reports\/\w+\//, '')
+                  .replace(`${envDataNew}/`, '')
+                  .replace(/\.html/, '');
+                // console.log('this is the data new from the s3reportProcessor ln 92 ====> ', dataNew);
+                const theNewData = `${dataNew} -- ${envDataNew}`;
+                let dataFile = '';
+                linkList.push((dataFile = `${dataFile}<a href="${dataList}">${theNewData}</a>`));
               }
             }
-            dataOut = dataOut.replace('<-- browser_test_output -->', browserData.join(' '));
           }
         }
-        await helpers.writeToTxtFile(file, dataOut);
-        if (dataList === undefined) {
-          console.error('There is no Data for this Project / project does not exist ....');
-        } else if (dataList.length > 0) {
-          console.log('Test run completed and s3 report being sent .....');
-          await helpers.klassiEmail();
+        if (linkList.length > 0) {
+          const browserData = `<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p>${linkList.join(
+            ' '
+          )}</div>`;
+          dataOut = dataOut.replace('<-- browser_test_output -->', browserData);
+        } else {
+          dataOut = dataOut.replace('<-- browser_test_output -->', ' ');
         }
       }
-    );
+    }
+    await helpers.writeToTxtFile(file, dataOut);
+    if (dataList === undefined) {
+      console.error('There is no Data for this Project / project does not exist ....');
+    } else if (dataList.length > 0) {
+      console.log('Test run completed and s3 report being sent .....');
+      await helpers.klassiEmail();
+    }
   },
 };

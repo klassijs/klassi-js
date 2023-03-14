@@ -13,7 +13,7 @@ const options = {
     dryRun: dryRun,
     paths: featureFiles,
     require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
-    tags: global.resultingString,
+    tags: resultingString,
     format: [
       '@cucumber/pretty-formatter',
       `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,

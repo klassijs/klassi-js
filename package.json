@@ -74,17 +74,17 @@
     ]
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.271.0",
     "@aws-sdk/client-ses": "^3.226.0",
     "@aws-sdk/credential-provider-node": "^3.245.0",
     "@cucumber/cucumber": "^8.9.0",
     "@cucumber/pretty-formatter": "^1.0.0",
     "async": "^3.2.4",
-    "aws-sdk": "^2.1296.0",
     "axe-core": "^4.5.2",
     "chai": "^4.3.7",
     "commander": "^10.0.0",
     "cosmiconfig": "^8.0.0",
-    "cucumber-html-reporter": "https://github.com/larryg01/cucumber-html-reporter",
+    "cucumber-html-reporter": "https://github.com/klassijs/cucumber-html-reporter",
     "cucumber-junit": "^1.7.1",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
@@ -95,8 +95,8 @@
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
-    "utam": "https://github.com/larryg01/utam",
-    "wdio-utam-service": "https://github.com/larryg01/wdio-utam-service",
+    "utam": "https://github.com/klassijs/utam",
+    "wdio-utam-service": "https://github.com/klassijs/wdio-utam-service",
     "webdriverio": "^8.0.9"
   },
   "devDependencies": {
@@ -110,7 +110,7 @@
     "is-ci": "^3.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.8.1",
-    "standard-version": "^9.5.0"
+    "standard-version": "https://github.com/klassijs/standard-version"
   },
   "lint-staged": {
     "*.js": [

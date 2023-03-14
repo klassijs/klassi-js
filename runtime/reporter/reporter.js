@@ -20,7 +20,7 @@ let obj;
 
 module.exports = {
   ipAddr: async () => {
-    const endPoint = 'http://ip-api.com/json';
+    const endPoint = 'http://ip-api.com/json/';
     resp = await pactumJs.spec().get(endPoint).toss();
     await resp;
   },

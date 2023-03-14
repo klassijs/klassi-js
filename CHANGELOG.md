@@ -2,10 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## 5.0.0 (2023-02-15)
+## 5.0.0 (2023-03-13)
 
 ### Features
 
+* **Automatic changelog:** changelog creation automated using standard-version
+* **AWS v3 upgrade:** upgrading s3upload and s3reportProcessor
 * bumped the Node version requirements to v18.12.1
 * upgraded to WebdriverIO v8
 * upgraded to Cucumber v8
@@ -18,6 +20,11 @@ without actually asserting the business logic
 
 ### Bug Fixes
 
+
+* **Automatic Changelog:** updated the commit url in the versionrc
+* **Feature files:** fixed implementation of --featureFiles using cucumber.js file
+* Changed the package URLs to make them compatible with Windows (whether SSH or HTTPS)
+* Added two Windows-specific rules to ESLint config
 * fixed the accessibility report implementation
 * closeBrowser option changed to browserOpen 
 

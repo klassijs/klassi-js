@@ -11,7 +11,7 @@ const program = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
-const chai = require('chai');
+const { assert, expect } = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { execSync } = require('child_process');
@@ -41,7 +41,6 @@ async function klassiCli() {
 /**
  * all assertions for variable testing
  */
-let { assert, expect } = chai;
 global.assert = assert;
 global.expect = expect;
 global.fs = fs;
@@ -200,16 +199,15 @@ global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
 
 /** adding global helpers */
-const data = require('./runtime/helpers');
-global.helpers = data;
+const helpers = require('./runtime/helpers');
+global.helpers = helpers;
 
-global.date = data.currentDate();
-global.dateTime = data.reportDateTime();
+global.date = helpers.currentDate();
+global.dateTime = helpers.reportDateTime();
 
 /** Use the --utam config to compile the UTAM test files and generate the .JS files. */
 if (utam) {
-  const filePath =
-    projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
+  const filePath = projectName === 'OAF' ? './runtime/utam.config.js' : './node_modules/OAF/runtime/utam.config.js';
   const utamConfig = require(path.resolve(filePath));
   fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
   execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
@@ -332,12 +330,14 @@ function getTagsFromFeatureFiles() {
   return result;
 }
 
+global.getTagsFromFeatureFiles = getTagsFromFeatureFiles();
+
 /**
  * verify the correct tags for scenarios to run
  * ignores non existing tags
  */
 if (options.tags.length > 0) {
-  const tagsFound = getTagsFromFeatureFiles();
+  const tagsFound = global.getTagsFromFeatureFiles;
   const separateMultipleTags = options.tags[0].split(',');
   let separateExcludedTags;
 
@@ -437,52 +437,34 @@ if (options.browsers) {
 klassiCli().then(async (succeeded) => {
   if (dryRun === false) {
     if (!succeeded) {
-      await data
-        .klassiReporter()
-        .then(async () => {
-          await browser.pause(DELAY_5s);
-          /**
-           * compile and generate a report at the END of the test run to be send by Email
-           * send email with the report to stakeholders after test run
-           */
-          if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-            await browser.pause(DELAY_3s).then(async () => {
-              await s3Upload.s3Upload();
-              await browser.pause(DELAY_30s);
-            });
-          } else if (email === true) {
-            await browser.pause(DELAY_5s).then(async () => {
-              await data.klassiEmail();
-              await browser.pause(DELAY_3s);
-            });
-          }
-        })
-        .then(async () => {
-          await process.exit(3);
-        });
-    } else {
-      await data.klassiReporter().then(async () => {
-        await browser.pause(DELAY_5s);
-        /**
-         * compile and generate a report at the END of the test run to be send by Email
-         * send email with the report to stakeholders after test run
-         */
-        if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-          await browser.pause(DELAY_3s).then(async () => {
-            await s3Upload.s3Upload();
-            await browser.pause(DELAY_30s);
-          });
-        } else if (email === true) {
-          await browser.pause(DELAY_5s).then(async () => {
-            await data.klassiEmail();
-            await browser.pause(DELAY_3s);
-          });
-        }
+      await module.exports.cucumberCli().then(async () => {
+        await process.exit(3);
       });
+    } else {
+      await module.exports.cucumberCli();
     }
   }
 });
 
-global.getTagsFromFeatureFiles = getTagsFromFeatureFiles();
+async function cucumberCli() {
+  await helpers.klassiReporter().then(async () => {
+    await browser.pause(DELAY_5s);
+    /**
+     * compile and generate a report at the END of the test run to be send by Email
+     * send email with the report to stakeholders after test run
+     */
+    if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
+      await browser.pause(DELAY_3s).then(async () => {
+        await s3Upload.s3Upload();
+        await browser.pause(DELAY_30s);
+      });
+    } else if (email === true) {
+      await browser.pause(DELAY_5s).then(async () => {
+        await helpers.klassiEmail();
+        await browser.pause(DELAY_3s);
+      });
+    }
+  });
+}
 
-module.exports = getTagsFromFeatureFiles();
+module.exports = { cucumberCli };

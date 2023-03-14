@@ -9,12 +9,12 @@ const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
 const getRemote = require('./getRemote');
-const data = require('./helpers');
+// const helpers = require('./helpers');
 
 /**
  * This is the Global date functionality
  */
-global.date = data.currentDate();
+global.date = helpers.currentDate();
 
 /**
  * Driver environment variables
@@ -117,8 +117,8 @@ function World() {
    */
   if (
     global.paths.sharedObjects &&
-    Array.isArray(global.paths.sharedObjects) &&
-    global.paths.sharedObjects.length > 0
+      Array.isArray(global.paths.sharedObjects) &&
+      global.paths.sharedObjects.length > 0
   ) {
     const allDirs = {};
     /**
@@ -158,7 +158,7 @@ global.timeout = globalTimeout;
 /**
  * start recording of the Test run time
  */
-global.startDateTime = data.getStartDateTime();
+global.startDateTime = helpers.getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
@@ -192,8 +192,8 @@ Before((scenario) => {
   for (const tag of scenario.pickle.tags) {
     if (
       tag.name === '@wip' ||
-      tag.name === '@skip' ||
-      (correctMultipleTags && correctMultipleTags.includes(tag.name))
+        tag.name === '@skip' ||
+        (correctMultipleTags && correctMultipleTags.includes(tag.name))
     ) {
       cucumberThis.attach(
         `This scenario was skipped automatically by using the @wip, @skip or a custom tag "${tag.name}" provided at runtime.`
@@ -238,8 +238,8 @@ After(async (scenario) => {
   const { browser } = global;
   if (
     scenario.result.status === Status.FAILED ||
-    scenario.result.status === Status.PASSED ||
-    scenario.result.status === Status.SKIPPED
+      scenario.result.status === Status.PASSED ||
+      scenario.result.status === Status.SKIPPED
   ) {
     if (remoteService && remoteService.type === 'lambdatest') {
       if (scenario.result.status === 'FAILED') {
