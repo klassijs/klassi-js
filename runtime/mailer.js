@@ -19,7 +19,7 @@ process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.SES_SECRET;
 const ses = new aws.SES({
   apiVersion: '2010-12-01',
-  region: emailData.SES_REGION,
+  region: emailData.SES_REGION || ' ',
   defaultProvider,
 });
 /** Functionality for sending test results via email

@@ -456,12 +456,12 @@ async function cucumberCli() {
      */
     if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
       await browser.pause(DELAY_3s).then(async () => {
-        // await s3Upload.s3Upload();
+        await s3Upload.s3Upload();
         await browser.pause(DELAY_30s);
       });
     } else if (email === true) {
       await browser.pause(DELAY_5s).then(async () => {
-        // await helpers.klassiEmail();
+        await helpers.klassiEmail();
         await browser.pause(DELAY_3s);
       });
     }

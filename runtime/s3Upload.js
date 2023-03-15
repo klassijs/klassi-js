@@ -26,7 +26,7 @@ module.exports = {
     const uploadFolder = `./${browserName}/`;
 
     const s3Client = new S3Client({
-      region: s3Data.S3_REGION,
+      region: s3Data.S3_REGION || ' ',
       credentials: {
         accessKeyId: S3_KEY,
         secretAccessKey: S3_SECRET,
