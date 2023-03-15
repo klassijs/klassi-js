@@ -32,7 +32,7 @@
   "browser": "index.js",
   "scripts": {
     "pretest": "eslint --ignore-path .gitignore .",
-    "predev": "yarn run delete-dev",
+
     "prepare": "is-ci || husky install",
     "lint-branch-name": "yarn run branch-name-lint ./branchnamelinter.config.json",
     "changelog": "standard-version --skip.commit --skip.tag",
@@ -41,16 +41,13 @@
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag",
     "pkgcheck": "yarn install --check-files",
     "appium-start": "yarn run appium --log-level info",
-    "android": "node index.js --disableReport --tags @android --remoteService lambdatest --env android --extraSettings android",
-    "android-local": "node index.js --disableReport --tags @android --env android --browser android",
-    "ios-local": "node index.js --disableReport --tags @ios --env ios --browser ios",
-    "ios": "node index.js --disableReport --tags @ios --remoteService lambdatest --env ios --extraSettings ios",
+
+    "android-local": "node index.js --disableReport --tags @tagName --env android --browser android",
+    "ios-local": "node index.js --disableReport --tags @tagName --env ios --browser ios",
+
     "dev": "node index.js --disableReport --tags",
-    "delete-dev": "rm -rf ./reports ./artifacts ./log ./visual-regression-baseline",
-    "ltlocal": "node --trace-warnings index.js --disableReport --remoteService lambdatest --extraSettings",
-    "ciltdev": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
-    "ciltuat": "node index.js --disableReport --utam --tags @uattest --remoteService lambdatest --extraSettings",
-    "cilts3r": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings"
+
+    "ltlocal": "node --trace-warnings index.js --disableReport --remoteService (SaaS service) --extraSettings",
   },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
   "bugs": {

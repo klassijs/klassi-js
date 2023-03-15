@@ -8,18 +8,18 @@
 module.exports = {
   dataConfig: {
     projectName: 'klassi-js',
-    s3FolderName: 'klassi-js',
+    s3FolderName: 'github repo name',
 
     emailData: {
-      nameList: 'QaAutoTest <qaautotest@klassi.co.uk>',
+      nameList: 'userName <user@email.com>',
       AccessibilityReport: 'Yes',
-      SES_REGION: 'eu-west-1',
+      SES_REGION: 'eu-xxx',
     },
 
     s3Data: {
-      S3_BUCKET: 'test-app-automated-reports',
-      S3_REGION: 'eu-west-2',
-      S3_DOMAIN_NAME: 'http://test-app-automated-reports.s3.eu-west-2.amazonaws.com',
+      S3_BUCKET: 'BucketName',
+      S3_REGION: 'eu-xxx',
+      S3_DOMAIN_NAME: 'http://DOMAIN-NAME.amazonaws.com',
     },
   },
 };
