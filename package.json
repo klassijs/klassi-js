@@ -41,12 +41,9 @@
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag",
     "pkgcheck": "yarn install --check-files",
     "appium-start": "yarn run appium --log-level info",
-
     "android-local": "node index.js --disableReport --tags @tagName --env android --browser android",
     "ios-local": "node index.js --disableReport --tags @tagName --env ios --browser ios",
-
     "dev": "node index.js --disableReport --tags",
-
     "ltlocal": "node --trace-warnings index.js --disableReport --remoteService (SaaS service) --extraSettings"
   },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
