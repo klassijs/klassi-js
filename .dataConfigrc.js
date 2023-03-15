@@ -11,9 +11,12 @@ module.exports = {
     s3FolderName: 'klassi-js',
 
     emailData: {
-      nameList: 'QaAutoTest <qaautotest@klassi.co.uk>',
+      nameList: 'QaAutoTest <larryg@klassitech.co.uk>',
       AccessibilityReport: 'Yes',
+      // for AWS host
       SES_REGION: 'eu-west-1',
+      // for SMTP host
+      SMTP_HOST: '82.165.98.54',
     },
 
     s3Data: {

@@ -154,6 +154,7 @@ program
   )
   .option('--useProxy', 'This is in-case you need to use the proxy server while testing', false)
   .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
+  .option('--emailMethod <EXPRESSION>', 'use for email provision SMTP or AWS', 'smtp')
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -181,7 +182,7 @@ global.s3Date = options.s3Date;
 global.utam = options.utam;
 global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
-
+global.emailMethod = options.emailMethod;
 /**
  * Setting envConfig and dataConfig to be global, used within the world.js when building browser
  * @type {string}
