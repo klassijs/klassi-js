@@ -47,7 +47,7 @@
 
     "dev": "node index.js --disableReport --tags",
 
-    "ltlocal": "node --trace-warnings index.js --disableReport --remoteService (SaaS service) --extraSettings",
+    "ltlocal": "node --trace-warnings index.js --disableReport --remoteService (SaaS service) --extraSettings"
   },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
   "bugs": {
