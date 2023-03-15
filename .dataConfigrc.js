@@ -13,12 +13,12 @@ module.exports = {
     emailData: {
       nameList: 'userName <user@email.com>',
       AccessibilityReport: 'Yes',
-      SES_REGION: 'eu-xxx',
+      SES_REGION: 'eu-west-1',
     },
 
     s3Data: {
       S3_BUCKET: 'BucketName',
-      S3_REGION: 'eu-xxx',
+      S3_REGION: 'eu-west-2',
       S3_DOMAIN_NAME: 'http://DOMAIN-NAME.amazonaws.com',
     },
   },
