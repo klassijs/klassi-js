@@ -77,7 +77,7 @@
     "chai": "^4.3.7",
     "commander": "^10.0.0",
     "cosmiconfig": "^8.0.0",
-    "cucumber-html-reporter": "https://github.com/klassijs/cucumber-html-reporter",
+    "cucumber-html-reporter": "https://github.com/klassijs/klassijs-cucumber-html-reporter",
     "cucumber-junit": "^1.7.1",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
@@ -88,7 +88,6 @@
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
-    "typescript": "^4.9.5",
     "utam": "https://github.com/klassijs/utam",
     "wdio-utam-service": "https://github.com/klassijs/wdio-utam-service",
     "webdriverio": "^8.0.9"
