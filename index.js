@@ -158,7 +158,7 @@ program
   .parse(process.argv);
 
 program.on('--help', () => {
-  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
+  console.log('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
 });
 
 const options = program.opts();
@@ -421,8 +421,8 @@ if (options.tags.length > 0) {
 /** specify the feature files folder (this must be the first argument for Cucumber)
  specify the feature files to be executed */
 if (options.featureFiles) {
-  const splitFeatureFiles = options.featureFiles.split(',');
-  global.featureFiles = splitFeatureFiles;
+  global.featureFiles = options.featureFiles.split(',');
+  console.log('this is the feature files ==============> ', global.featureFiles);
 }
 
 // TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox

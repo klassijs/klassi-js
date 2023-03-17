@@ -32,7 +32,6 @@
   "browser": "index.js",
   "scripts": {
     "pretest": "eslint --ignore-path .gitignore .",
-
     "prepare": "is-ci || husky install",
     "lint-branch-name": "yarn run branch-name-lint ./branchnamelinter.config.json",
     "changelog": "standard-version --skip.commit --skip.tag",
@@ -89,6 +88,7 @@
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
     "text-files-loader": "^1.0.5",
+    "typescript": "^4.9.5",
     "utam": "https://github.com/klassijs/utam",
     "wdio-utam-service": "https://github.com/klassijs/wdio-utam-service",
     "webdriverio": "^8.0.9"
