@@ -4,7 +4,6 @@ artifacts
 coverage
 
 ##Project structure folders
-.circleci
 
 
 # exclude generated reports
