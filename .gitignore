@@ -4,7 +4,12 @@ artifacts
 coverage
 
 ##Project structure folders
-
+.circleci
+features
+lambdatest
+page-objects
+shared-objects
+step_definitions
 
 # exclude generated reports
 reports
