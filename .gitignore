@@ -3,7 +3,7 @@ artifacts
 .nyc_output
 coverage
 
-##Project structure folders
+##Project structure folders excluded
 .circleci
 features
 lambdatest
@@ -22,7 +22,7 @@ reports
 # exclude file
 shared-objects/docs/userAgent.txt
 bashScript
-shared-objects/APKs
+
 
 # Logs
 logs
