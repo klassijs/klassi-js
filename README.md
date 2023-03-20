@@ -416,7 +416,7 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
 
 ### Commits
-After committing the staged code, the Husky scripts will enforce the implementation of the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/#summary).
+After committing the staged code, the Husky scripts will enforce the implementation of the [**Conventional Commits specification**](https://www.conventionalcommits.org/en/v1.0.0/#summary).
 
 To summarize them, all commits should follow the following schema:
 

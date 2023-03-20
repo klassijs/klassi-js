@@ -90,7 +90,7 @@
     "text-files-loader": "^1.0.5",
     "utam": "https://github.com/klassijs/utam",
     "wdio-utam-service": "https://github.com/klassijs/wdio-utam-service",
-    "webdriverio": "^8.0.9"
+    "webdriverio": "^8.6.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.2.0",
