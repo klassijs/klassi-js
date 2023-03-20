@@ -1,6 +1,6 @@
 Steps taken to upgrade all projects that's using klassi-js as a dependency:
 
-- Copy and Add these base files from [klassi-example-test-suite](https://github.com/klassijs/klassi-example-test-suite):
+- Unzip and Add these base files from [klassijs-baseFiles](baseFiles.zip):
     - cucumber.js
     - .dataConfigrc.js /// update the project details from the .envConfigrc.js
     - branchnamelinter.config.json
