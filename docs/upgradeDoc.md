@@ -1,13 +1,13 @@
 Steps taken to upgrade all projects that's using klassi-js as a dependency:
 
-- Copy and Add these base files from [klassi-example-test-suite](https://github.com/klassijs/klassi-example-test-suite):
+- Unzip and Add these files [**klassijs-baseFiles**](baseFiles.zip) to the base of your repository:
     - cucumber.js
     - .dataConfigrc.js /// update the project details from the .envConfigrc.js
     - branchnamelinter.config.json
     - commitlint.config.js
     - .husky folder
-    - .versionrc.json file /// change the project name in the url at the bottom of the file
-    - delete the  details from the .envConfigrc.js thats in the .dataConfigrc.js file
+    - .versionrc.json file /// change the project name in the url at the bottom of this file
+- delete the  details from the .envConfigrc.js thats in the .dataConfigrc.js file
   <br><br>
 - Changes to the package.json:
      - install these nodes as devDependencies: 
@@ -25,7 +25,8 @@ Steps taken to upgrade all projects that's using klassi-js as a dependency:
           "standard-version": "^https://github.com/klassijs/standard-version"
       }
     ```
-      - Add to package.json below devDependencies 
+      - Copy and Add this to package.json below devDependencies
+
     ```json
       "lint-staged": {
         "*.js": [
@@ -33,7 +34,7 @@ Steps taken to upgrade all projects that's using klassi-js as a dependency:
         ]
       }
     ```
-      - Add to scripts 
+      - Copy and Add these scripts to the scripts section of the package.json 
     ```json
       "prepare": "is-ci || husky install",
       "lint-branch-name": "yarn run branch-name-lint ./branchnamelinter.config.json",
@@ -44,7 +45,7 @@ Steps taken to upgrade all projects that's using klassi-js as a dependency:
     ```
       - Change s3report script name to `cilts3r`
    
-- Change 
+- Change these to lines in: 
   - .circleci/config.yml:
       - yarn install --network-concurrency 1
       - Docker image: cimg/node:18.12.1-browsers
