@@ -16,7 +16,7 @@ const s3SecretAccessKey = process.env.S3_SECRET;
 const domainName = s3Data.S3_DOMAIN_NAME;
 
 const s3Client = new S3Client({
-  region: s3Data.S3_REGION,
+  region: s3Data.S3_REGION || ' ',
   credentials: {
     accessKeyId: s3AccessKeyId,
     secretAccessKey: s3SecretAccessKey,

@@ -3,6 +3,14 @@ artifacts
 .nyc_output
 coverage
 
+##Project structure folders excluded
+.circleci
+features
+lambdatest
+page-objects
+shared-objects
+step_definitions
+
 # exclude generated reports
 reports
 
@@ -14,7 +22,7 @@ reports
 # exclude file
 shared-objects/docs/userAgent.txt
 bashScript
-shared-objects/APKs
+
 
 # Logs
 logs

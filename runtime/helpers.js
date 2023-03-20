@@ -8,10 +8,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const pactumJs = require('pactum');
-const urlData = require('../shared-objects/urlData.json').URLs;
 const loadConfig = require('./configLoader');
 const verify = require('./imageCompare');
-const testData = require('../shared-objects/testdata.json');
 
 const envName = env.envName.toLowerCase();
 
@@ -104,14 +102,6 @@ module.exports = {
   },
 
   /**
-   * This is to write content to a json file
-   * @returns {Promise<void>}
-   */
-  write: async () => {
-    await module.exports.writeToJson('./shared-objects/testdata.json', testData);
-  },
-
-  /**
    * This is to write values into a JSON file
    * @param filePath
    * @param fileContent
@@ -125,10 +115,6 @@ module.exports = {
     } catch (err) {
       console.error('This Happened: ', err);
     }
-  },
-
-  writeToUrlsData: async (data) => {
-    await module.exports.writeToJson('./shared-objects/urlData.json', data); // Need to check if it is pointing to the right file
   },
 
   /**
@@ -646,44 +632,6 @@ module.exports = {
         console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
       }
     }
-  },
-
-  // TODO: make this more generic
-  convertJsonToExcel: () => {
-    const arr = [];
-    for (dataObj of urlData) {
-      const key = Object.keys(dataObj)[0];
-      const { url } = dataObj[key];
-      const { refresh1 } = dataObj[key];
-      const { refresh2 } = dataObj[key];
-      const { average } = dataObj[key];
-
-      const obj = {
-        data: key,
-        url,
-        refresh1,
-        refresh2,
-        average,
-      };
-      arr.push(obj);
-    }
-
-    const workSheet = XLSX.utils.json_to_sheet(arr);
-    const workBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workBook, workSheet, 'WayFlees');
-    // buffer is to handle large amount of data
-    XLSX.write(workBook, { bookType: 'xlsx', type: 'buffer' });
-    // convert workbook data into Binary string
-    XLSX.write(workBook, { bookType: 'xlsx', type: 'binary' });
-    // XLSX.writeFile(workBook, "./reports/${browserName}/urlData.xlsx");
-    XLSX.writeFile(workBook, path.resolve(`./reports/${browserName}/${envName}/urlData.xlsx`));
-  },
-
-  executeTime: async (endDate, startDate, message) => {
-    const seconds = (endDate.getTime() - startDate.getTime()) / 1000;
-    testData.executeTime.time = seconds.toString().replace('-', '');
-    await module.exports.write();
-    cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
   },
 
   /**

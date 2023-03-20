@@ -154,10 +154,11 @@ program
   )
   .option('--useProxy', 'This is in-case you need to use the proxy server while testing', false)
   .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
+  .option('--emailMethod <EXPRESSION>', 'use for email provision SMTP or AWS', 'smtp')
   .parse(process.argv);
 
 program.on('--help', () => {
-  console.log('For more details please visit https://github.com/larryg01/klassi-js#readme\n');
+  console.log('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
 });
 
 const options = program.opts();
@@ -181,7 +182,7 @@ global.s3Date = options.s3Date;
 global.utam = options.utam;
 global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
-
+global.emailMethod = options.emailMethod;
 /**
  * Setting envConfig and dataConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -420,8 +421,8 @@ if (options.tags.length > 0) {
 /** specify the feature files folder (this must be the first argument for Cucumber)
  specify the feature files to be executed */
 if (options.featureFiles) {
-  const splitFeatureFiles = options.featureFiles.split(',');
-  global.featureFiles = splitFeatureFiles;
+  global.featureFiles = options.featureFiles.split(',');
+  console.log('this is the feature files ==============> ', global.featureFiles);
 }
 
 // TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox

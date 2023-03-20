@@ -10,33 +10,11 @@ module.exports = {
    * this is for your environment setups
    */
   environment: {
-    dev: {
-      envName: "DEVELOPMENT",
-      web_url: "https://duckduckgo.com/",
-      web_utam_url: "https://google.com/",
-      apiBaseUrl: "/api/",
-      api_base_url: "http://httpbin.org/get",
-    },
-
     test: {
       envName: "TEST",
       web_url: "https://duckduckgo.com/",
       web_utam_url: "https://google.com/",
-      apiBaseUrl: "/api/",
       api_base_url: "http://httpbin.org/get",
     },
-
-    android: {
-      envName: "android",
-      appName: "app.canary",
-      appPath:
-        "https://xxx.apk",
-    },
-
-    ios: {
-      envName: "ios",
-      appName: "io.appium.TestApp",
-      appPath: "http://appium.github.io/appium/assets/xxx.zip",
-    },
-  },
+  }
 };
