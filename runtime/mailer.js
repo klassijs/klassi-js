@@ -14,12 +14,17 @@ const getRemote = require('./getRemote');
 const remoteService = getRemote(settings.remoteService);
 const browserName = settings.remoteConfig || BROWSER_NAME;
 const envName = env.envName.toLowerCase();
+const emailMethod = global.emailMethod.toLowerCase();
 
 process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.SES_SECRET;
+
+let transporter;
+let transporterObject;
+
 const ses = new aws.SES({
   apiVersion: '2010-12-01',
-  region: emailData.SES_REGION,
+  region: emailData.SES_REGION || ' ',
   defaultProvider,
 });
 /** Functionality for sending test results via email
@@ -59,20 +64,45 @@ module.exports = {
 
     const devTeam = emailData.nameList;
 
-    /** Email AWS server connections */
-    const transporter = await nodeMailer.createTransport({
-      SES: { ses, aws },
-      Statement: [
-        {
-          Effect: 'Allow',
-          Action: 'ses:SendRawEmail',
-          Resource: '*',
+    if (emailMethod === 'smtp') {
+      /** SMTP Email server connection */
+      transporterObject = {
+        host: emailData.SMTP_HOST,
+        port: 465,
+        secure: true, // use TLS
+        auth: {
+          user: process.env.SMTP_USERNAME,
+          pass: process.env.SMTP_PASSWORD,
         },
-      ],
-    });
+        tls: {
+          // do not fail on invalid certs
+          rejectUnauthorized: false,
+        },
+      };
+    }
+    if (emailMethod === 'aws') {
+      /** Email AWS server connections */
+      transporterObject = {
+        SES: { ses, aws },
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'ses:SendRawEmail',
+            Resource: '*',
+          },
+        ],
+      };
+    }
+
+    try {
+      transporter = await nodeMailer.createTransport(transporterObject);
+    } catch (err) {
+      if (!transporterObject) console.error('incorrect email method was provided', err);
+    }
+
     const mailOptions = {
       to: devTeam,
-      from: 'klassi-QATEST <QAAutoTest@klassi.co.uk>',
+      from: 'klassi-QATEST <QaAutoTest@klassitech.co.uk>',
       subject: `${projectName} ${reportName}-${dateTime}`,
       alternative: true,
       attachments: fileList,

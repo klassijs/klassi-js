@@ -21,15 +21,6 @@
 </p>
  
 
-## Pre Installation
-
-<a>Please check that you have these applications installed on your PC/Mac:
-<li><a href="https://nodejs.org/">NodeJs</a></li>
-<li><a href="http://java.sun.com/javase/downloads/index.jsp">Java JDK</a></li>
-<li><a href="https://Atlassian.com/git/tutorials/install-git">Git</a> – You need to have an account on GitHub first</li> 
-<li><a href="https://yarnpkg.com">Yarn</a></li></p>
-If not, download and install them with just the default configuration, it is enough for framework usages.
-
 ## Installation
 
 ```bash
@@ -37,8 +28,6 @@ yarn add klassi-js
  
 npm install klassi-js
 ```
-## Upgrade to klassi-js v5
-To upgrade existing projects for use with klassi-js v5, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Usage
 
@@ -79,9 +68,11 @@ node ./node_modules/klassi-js/index.js
   --tags @get,@put || will execute the scenarios tagged with the values provided. If multiple are necessary, separate them with a comma (no blank space in between).
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
 ```
+## Upgrading to klassi-js v5
+To upgrade existing projects for use with klassi-js v5, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Directory Structure
-You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassi-test-suite)
+You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage.
 
 ```bash
 .
@@ -93,13 +84,13 @@ You can use the framework without any command line arguments if your application
     └── searchData.js
 └── step_definitions
     └── search-steps.js
-└── reports  # folder and content gets created automatically on test run
+└── reports  # folder and content gets created automatically at runtime
     └── chrome
         ├── reportName-01-01-1900-235959.html
         └── reportName-01-01-1900-235959.json
-.envConfigrc.js # this file will contain all your environment variables #environment configs
-.dataConfigrc.js # this file will contain all your project variables #projectName, emailAddresses, lambdatest config
-.env # this file contains all config username and passcode and should stay listed in the gitignore file
+.envConfigrc.js # this file will contain all your environment variables (i.e. dev, test, prod etc.,)
+.dataConfigrc.js # this file will contain all your project variables #projectName, emailAddresses
+.env # this file contains all config username and passcode and should be listed in the gitignore file
 cucumber.js # the cucumber configuration file
 ```
 
@@ -390,46 +381,6 @@ For instance:
 }
 ```
 
-### Appium documentation
-
-To learn about the APIs that can be used to interact with the mobile drivers, please refer to the [Appium documentation](https://appium.io/docs/en/about-appium/intro/). Find the specific functions by clicking on *Commands* and navigating to the specific section.
-
-Please bear in mind that the page describing each function will contain information about how to invoke the function in different languages and compatibility with different drivers.
-
-For instance, the page for the [App installation functions](https://appium.io/docs/en/commands/device/app/install-app/) describes that when used in JavaScript (specifically using WebdriverIO), `driver.installApp('/path/to/APK')` is the code to use (bear in mind when referencing the documentation that klassi-js uses WDIO asynchronously and that driver = browser, so we would use `await browser.installApp('/path/to/APK')`).
-
-![JavaScript implementation of installApp](./runtime/img/javascript-code.jpg)
-
-It also tells us that the function is compatible with XCUITest and UiAutomator2, so we can use it for our tests.
-
-![Install App support](./runtime/img/installapp-support.jpg)
-
-### Mobile selectors
-
-As it is described in [WebDriverIO's website](https://webdriver.io/docs/selectors/#mobile-selectors), native app element selection can be achieved through different methods, though they are handled the same way at the framework level (i.e., `const elementName = await browser.$(selector);` or `const elementName = await browser.$$(selector);` for all elements that match the selectors).
-
-**Pre-considerations for local environment**: the Appium server (included as a dependency of the project) should be running for the tests to be executed locally, which should should only be done for debugging or creating the tests, by running the `yarn run appium-start` command.
-
-On Windows, both processes can be run concurrently using `start yarn appium-start & yarn android-local` or `start yarn appium-start & yarn ios-local`.
-
-On iOS, the equivalent commands would be `yarn appium-start & yarn android-local` and `yarn appium-start & yarn ios-local`.
-
-To verify that a local emulator or simulator is working correctly, use `adb devices` (Android) and `xcrun simctl list | grep Booted` (iOS).
-
-**For Android testing,** it is recommended to use [UISelector class of the UI Automator API](https://developer.android.com/reference/android/support/test/uiautomator/UiSelector), passing the Java code to the selector method.
-
-For instance:
-```
-const navbarBtn = await browser.$(android=new UiSelector().text("Toggle navigation").className("android.widget.Button"));
-```
-
-Please remember that this example should actually be implemented setting the selector in its own shared objects script (e.g., `browser.$(sharedObjects.android.elem.navbarBtn);`).
-
-To retrieve the attributes that will be used in the selector, the [Appium Inspector desktop application](https://github.com/appium/appium-inspector) is recommended.
-
-**For iOS testing,** it is recommended to use [Apple's UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) to find elements and [Apple's API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771).
-
-
 ## Event handlers
 
 You can register event handlers for the following events within the cucumber lifecycle.
@@ -464,8 +415,6 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 
 To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
 
-Bear in mind that the `/.circleci/config.yml` file **in each project using OAF as a dependency** needs to be modified to change from `yarn install` to `yarn install --network-concurrency 1`. This is to avoid race conditions in multiple calls to the registry during the installation process.
-
 ### Commits
 After committing the staged code, the Husky scripts will enforce the implementation of the [**Conventional Commits specification**](https://www.conventionalcommits.org/en/v1.0.0/#summary).
 
@@ -475,36 +424,10 @@ To summarize them, all commits should follow the following schema:
 git commit -m "<type>: <subject>"
 ```
 
-Where **type** is one of the following:
-
-- **fix**: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
-- **feat**: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
-- **BREAKING CHANGE**: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
-- Types other than **fix:** and **feat:** are allowed, for example @commitlint/Tconfig-conventional (based on the Angular convention) recommends **build:, chore:, ci:, docs:, style:, refactor:, perf:, test:**, and others.
-  footers other than **BREAKING CHANGE:** may be provided and follow a convention similar to git trailer format.
-
 Please keep in mind that the **subject** must be written in lowercase.
 
-### Branch naming
-
-The same script will also verify the naming convention. Please remember that we only allow for two possible branch prefixes:
-
-- **testfix/**
-- **automation/**
-
 ## Demo
-To demo the framework without installing it into your project use the following commands:
-```js
- # download this example code
-  git clone https://github.com/klassijs/klassi-js.git
-
- # browser to the new directory
-  cd klassi-js
-
- # run the search feature
-  yarn install
-  node index.js --tags @search
-```
+To see a demo of the framework without installing it, use this link [HERE]
 
 ## Bugs
 
