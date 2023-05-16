@@ -245,6 +245,35 @@ module.exports = {
     return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
   },
 
+  emailReportDateTime() {
+    const $today = new Date();
+    const $yesterday = $today;
+    $yesterday.setDate($today.getDate() - 1);
+    let dd = $yesterday.getDate();
+    let mm = $yesterday.getMonth() + 1; // January is 0!
+    const yyyy = $yesterday.getFullYear();
+    let hours = $yesterday.getHours();
+    let minutes = $yesterday.getMinutes();
+    let seconds = $yesterday.getSeconds();
+
+    if (dd < 10) {
+      dd = `0${dd}`;
+    }
+    if (mm < 10) {
+      mm = `0${mm}`;
+    }
+    if (hours < 10) {
+      hours = `0${hours}`;
+    }
+    if (minutes < 10) {
+      minutes = `0${minutes}`;
+    }
+    if (seconds < 10) {
+      seconds = `0${seconds}`;
+    }
+    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
+  },
+
   /**
    * Get current date and time dd-mm-yyyy 00:00:00
    */

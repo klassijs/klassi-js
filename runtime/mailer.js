@@ -15,6 +15,7 @@ const remoteService = getRemote(settings.remoteService);
 const browserName = settings.remoteConfig || BROWSER_NAME;
 const envName = env.envName.toLowerCase();
 const emailMethod = global.emailMethod.toLowerCase();
+const emailDateTime = helpers.emailReportDateTime();
 
 process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.SES_SECRET;
@@ -103,10 +104,10 @@ module.exports = {
     const mailOptions = {
       to: devTeam,
       from: 'klassi-QATEST <QaAutoTest@klassitech.co.uk>',
-      subject: `${projectName} ${reportName}-${dateTime}`,
+      subject: `${projectName} ${reportName}-${emailDateTime}`,
       alternative: true,
       attachments: fileList,
-      html: `<b>Please find attached the automated test results for test run on - </b> ${dateTime}`,
+      html: `<b>Please find attached the automated test results for test run on - </b> ${emailDateTime}`,
     };
     /** verify the connection and sends the message and get a callback with an error or details of the message that was sent
      */
