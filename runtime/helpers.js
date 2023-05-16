@@ -10,6 +10,7 @@ const path = require('path');
 const pactumJs = require('pactum');
 const loadConfig = require('./configLoader');
 const verify = require('./imageCompare');
+const { createWorker } = require('tesseract.js');
 
 const envName = env.envName.toLowerCase();
 
@@ -765,5 +766,17 @@ module.exports = {
     await elem.isExisting();
     const remoteFilePath = await browser.uploadFile(filePath);
     await elem.addValue(remoteFilePath);
+  },
+
+  readFromImage: async (visualBaseline) => {
+    let worker = await createWorker();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    const imagePath = './artifacts/visual-regression/original/chrome/test/positive/';
+    const {
+      data: { text },
+    } = await worker.recognize(imagePath + visualBaseline);
+    console.log(text);
+    await worker.terminate();
   },
 };

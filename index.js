@@ -155,10 +155,11 @@ program
   .option('--useProxy', 'This is in-case you need to use the proxy server while testing', false)
   .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
   .option('--emailMethod <EXPRESSION>', 'use for email provision SMTP or AWS', 'smtp')
+  .option('--isCI', 'This is to stop the html from being created while running in the CI', false)
   .parse(process.argv);
 
 program.on('--help', () => {
-  console.log('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
+  console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
 });
 
 const options = program.opts();
@@ -183,6 +184,7 @@ global.utam = options.utam;
 global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
 global.emailMethod = options.emailMethod;
+global.isCI = options.isCI;
 /**
  * Setting envConfig and dataConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -265,6 +267,11 @@ fs.ensureFileSync(file, (err) => {
 fs.ensureDirSync(reports, (err) => {
   if (err) {
     console.error(`The Reports Folder has NOT been created: ${err.stack}`);
+  }
+});
+fs.ensureDirSync(reports + 'Combine', (err) => {
+  if (err) {
+    console.error(`The Reports Combine Folder has NOT been created: ${err.stack}`);
   }
 });
 
@@ -421,8 +428,8 @@ if (options.tags.length > 0) {
 /** specify the feature files folder (this must be the first argument for Cucumber)
  specify the feature files to be executed */
 if (options.featureFiles) {
-  global.featureFiles = options.featureFiles.split(',');
-  console.log('this is the feature files ==============> ', global.featureFiles);
+  const splitFeatureFiles = options.featureFiles.split(',');
+  global.featureFiles = splitFeatureFiles;
 }
 
 // TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
@@ -449,24 +456,28 @@ klassiCli().then(async (succeeded) => {
 });
 
 async function cucumberCli() {
-  await helpers.klassiReporter().then(async () => {
-    await browser.pause(DELAY_5s);
-    /**
-     * compile and generate a report at the END of the test run to be send by Email
-     * send email with the report to stakeholders after test run
-     */
-    if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-      await browser.pause(DELAY_3s).then(async () => {
-        await s3Upload.s3Upload();
-        await browser.pause(DELAY_30s);
-      });
-    } else if (email === true) {
-      await browser.pause(DELAY_5s).then(async () => {
-        await helpers.klassiEmail();
-        await browser.pause(DELAY_3s);
-      });
-    }
-  });
+  if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
+    await helpers.klassiReporter();
+  } else if (resultingString !== '@s3load') {
+    await helpers.klassiReporter();
+  }
+
+  await browser.pause(DELAY_5s);
+  /**
+   * compile and generate a report at the END of the test run to be send by Email
+   * send email with the report to stakeholders after test run
+   */
+  if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
+    await browser.pause(DELAY_3s).then(async () => {
+      await s3Upload.s3Upload();
+      await browser.pause(DELAY_20s);
+    });
+  } else if (email === true) {
+    await browser.pause(DELAY_5s).then(async () => {
+      await helpers.klassiEmail();
+      await browser.pause(DELAY_3s);
+    });
+  }
 }
 
 module.exports = { cucumberCli };

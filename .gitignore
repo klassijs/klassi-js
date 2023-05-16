@@ -46,3 +46,6 @@ gen
 
 # UTAM
 page-objects/__utam__/compiledUTAM
+
+#tesseract
+eng.traineddata
