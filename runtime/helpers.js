@@ -593,21 +593,24 @@ module.exports = {
   modHeader: async (extName, username, password) => {
     await helpers.chromeExtension(extName);
     console.log('modID = ', modID);
+    // eslint-disable-next-line ui-testing/no-hard-wait
     await browser.pause(3000);
     elem = await browser.$(
       '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]'
     );
     await elem.isExisting();
     await elem.click();
+    // eslint-disable-next-line ui-testing/no-hard-wait
     await browser.pause(2000);
     elem = await browser.$('.//a[@href="#Add extension"]');
     await elem.isExisting();
     await elem.click();
-    // await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
-    // await browser.pause(5000);
-    // await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
-    // await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
-    // await helpers.waitAndClick('//button[@title="Lock to tab"]');
+    await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
+    // eslint-disable-next-line ui-testing/no-hard-wait
+    await browser.pause(5000);
+    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
+    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
+    await helpers.waitAndClick('//button[@title="Lock to tab"]');
   },
 
   installMobileApp: async (appName, appPath) => {
