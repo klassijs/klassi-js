@@ -7,12 +7,13 @@
  */
 const wdio = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
-const { UtamWdioService } = require('wdio-utam-service');
+// const { UtamWdioService } = require('wdio-utam-service');
 const fs = require('fs-extra');
 const path = require('path');
 const loadConfig = require('../configLoader');
 const lambdatest = require('../remotes/lambdatest');
-const utamConfig = require('../utam.config');
+const { filterQuietTags } = require('../.././cucumber.js');
+// const utamConfig = require('../utam.config');
 
 const modHeader = fs.readFileSync(path.resolve(__dirname, '../scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
@@ -26,12 +27,20 @@ const chExt = {
   },
 };
 
-let isUTAMTest;
+// let isUTAMTest;
+// eslint-disable-next-line no-unused-vars
+let isApiTest;
 let config;
 
-Before((scenario) => {
-  isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
+Before(async (scenario) => {
+  // let result = await helpers.filterQuietTags();
+  let result = await filterQuietTags();
+  const taglist = resultingString.split(',');
+  isApiTest = taglist.some((tag) => result.includes(tag));
 });
+// Before((scenario) => {
+//   isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
+// });
 
 module.exports = async function lambdatestDriver(options, configType) {
   const browserCaps = loadConfig(`./lambdatest/${configType}.json`);

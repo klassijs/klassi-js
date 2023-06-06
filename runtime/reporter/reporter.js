@@ -49,7 +49,7 @@ module.exports = {
         launchReport: !settings.disableReport,
         ignoreBadJsonFile: true,
         metadata: {
-          'Test Started': startDateTime,
+          // 'Test Started': startDateTime,
           Environment: env.envName,
           IpAddress: obj.query,
           Browser: browserName,
@@ -65,9 +65,24 @@ module.exports = {
       // eslint-disable-next-line no-undef
       if (!isCI) {
         await fs.copySync(jsonDir, jsonComDir);
-        await browser.pause(DELAY_1s);
-        await reporter.generate(reportOptions);
+        let jsonfile = path.resolve(paths.reports, browserName, envName + 'Combine', `${reportName}-${dateTime}.json`);
+        await browser.pause(DELAY_300ms);
+        if (resultingString === '@s3load') {
+          fs.remove(jsonfile, (err) => {
+            if (err) return console.error(err);
+          });
+          await browser.pause(DELAY_500ms);
+          await reporter.generate(reportOptions);
+          await browser.pause(DELAY_3s).then(async () => {
+            await s3Upload.s3Upload();
+            await browser.pause(DELAY_5s);
+          });
+        } else {
+          await browser.pause(DELAY_500ms);
+          await reporter.generate(reportOptions);
+        }
       }
+
       /** grab the file data for xml creation */
       let jsonFile = path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
       const reportRaw = fs.readFileSync(jsonFile).toString().trim();

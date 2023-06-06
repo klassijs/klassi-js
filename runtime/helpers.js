@@ -10,6 +10,7 @@ const path = require('path');
 const pactumJs = require('pactum');
 const loadConfig = require('./configLoader');
 const verify = require('./imageCompare');
+const testData = require('../shared-objects/testdata.json');
 const { createWorker } = require('tesseract.js');
 
 const envName = env.envName.toLowerCase();
@@ -88,6 +89,7 @@ module.exports = {
       fs.readFile(filepath, 'utf-8', (err, data) => {
         data = data.toString();
         resolve(data);
+        // console.log('Success - the file content ', data);
       });
     }),
 
@@ -98,8 +100,16 @@ module.exports = {
    */
   readFromJson: async (filename) => {
     const fileContent = await fs.readJson(filename);
-    console.log('Success - the file content ', fileContent);
+    // console.log('Success - the file content ', fileContent);
     return fileContent;
+  },
+
+  /**
+   * This is to write content to a json file
+   * @returns {Promise<void>}
+   */
+  write: async () => {
+    await module.exports.writeToJson('./shared-objects/testdata.json', testData);
   },
 
   /**
@@ -110,7 +120,6 @@ module.exports = {
    */
   writeToJson: async (filePath, fileContent) => {
     try {
-      // await fs.writeJson(filePath, fileContent);
       await fs.writeFile(filePath, JSON.stringify(fileContent, null, 4));
       console.log('Success - the content: ', fileContent);
     } catch (err) {
@@ -141,12 +150,16 @@ module.exports = {
   },
 
   /**
+   * This take an image of a page or an element on a page
+   * fileName only = a whole page image
+   * fileName + elementSnapshot = take an image of an element on the page
    * @param fileName
    * @param elementsToHide
+   * @param elementSnapshot,
    * @returns {Promise<void>}
    */
-  takeImage: async (fileName, elementsToHide) => {
-    await verify.takePageImage(fileName, elementsToHide);
+  takeImage: async (fileName, elementSnapshot, elementsToHide) => {
+    await verify.takePageImage(fileName, elementSnapshot, elementsToHide);
     await browser.pause(DELAY_500ms);
   },
 
@@ -405,9 +418,21 @@ module.exports = {
    * @returns {Promise<void>}
    */
   accessibilityReport: async (pageName, count = false) => {
+    const datatime = helpers.reportDateTime();
     await browser.pause(DELAY_1s).then(() => {
-      return accessibilityLib.getAccessibilityReport(pageName);
+      accessibilityLib.getAccessibilityReport(pageName);
+      console.log(
+        'this is a place holder for html links ============ ',
+        path.resolve(
+          paths.reports,
+          browserName,
+          envName,
+          'accessibilityReport',
+          `${pageName}-${browserName}_${datatime}.html`
+        )
+      );
     });
+
     await module.exports.accessibilityError(count);
   },
   /**
@@ -800,11 +825,11 @@ module.exports = {
     await elem.addValue(remoteFilePath);
   },
 
-  readFromImage: async (visualBaseline) => {
+  readTextFromImage: async (visualBaseline) => {
     let worker = await createWorker();
     await worker.loadLanguage('eng');
     await worker.initialize('eng');
-    const imagePath = './artifacts/visual-regression/original/chrome/test/positive/';
+    const imagePath = 'artifacts/visual-regression/original/' + browserName + '/' + envName + '/positive/';
     const {
       data: { text },
     } = await worker.recognize(imagePath + visualBaseline);

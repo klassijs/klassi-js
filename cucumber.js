@@ -23,5 +23,19 @@ const options = {
       colorsEnabled: true,
     },
   },
+  /**
+   * This is to allow tests tagged as APIs to run headless and NOT take a screenshot on error
+   * @returns {Promise<*[]>}
+   */
+  filterQuietTags: async () => {
+    let filepath =
+      projectName === 'klassi-js'
+        ? path.resolve('./runtime/scripts/tagList.json')
+        : path.resolve('./node_modules/klassi-js/runtime/scripts/tagList.json');
+    let filePath = path.resolve(filepath);
+    let filelist = await helpers.readFromJson(filePath);
+    return [...filelist.tagNames, ...tagNames];
+  },
 };
+
 module.exports = options;

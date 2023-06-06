@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/klassijs/klassi-js/compare/v5.0.0...v5.2.0) (2023-06-06)
+
+
+### Features
+
+* added new features and refactor s3Upload ([c53736d](https://github.com/klassijs/klassi-js/commit/c53736d5d9ae1c805cc9b985a9eb6657bf762fa5))
+* added new features and refactor s3Upload ([5aaa175](https://github.com/klassijs/klassi-js/commit/5aaa1750e2f6cb605914f78d269e58e429f10815))
+
+
+### Bug Fixes
+
+* added the necessary files needed for the upgrade ([97226b7](https://github.com/klassijs/klassi-js/commit/97226b79526fdf47994943926842aa0c17d806e0))
+* minor refactoring remove test folders ([38facee](https://github.com/klassijs/klassi-js/commit/38facee9f8e84ba1ced55bf12aa01c61ace4dcb0))
+* updated helper and mailer files ([0ea021b](https://github.com/klassijs/klassi-js/commit/0ea021b854e5ce0d5979f9dac5e371a25e02dcf0))
+
 ## 5.0.0 (2023-03-13)
 
 ### Features

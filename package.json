@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "5.0.0",
+  "version": "5.2.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
@@ -56,7 +56,7 @@
     "ciltdev": "node index.js --disableReport --utam --isCI --tags @integration --remoteService lambdatest --extraSettings",
     "ciltuat": "node index.js --disableReport --utam --isCI --tags @regression --remoteService lambdatest --extraSettings",
     "cilts3r": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
-    "cilts3load": "node index.js --disableReport --email --tags @s3load --remoteService lambdatest --extraSettings"
+    "cilts3load": "node index.js --disableReport --tags @s3load --remoteService lambdatest --extraSettings"
   },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
   "bugs": {
@@ -114,8 +114,6 @@
     "standard-version": "https://github.com/klassijs/standard-version",
     "tesseract.js": "^4.0.5",
     "text-files-loader": "^1.0.5",
-    "utam": "https://github.com/klassijs/utam",
-    "wdio-utam-service": "https://github.com/klassijs/wdio-utam-service",
     "webdriverio": "^8.10.2"
   },
   "lint-staged": {

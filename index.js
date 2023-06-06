@@ -14,7 +14,6 @@ const requireDir = require('require-dir');
 const { assert, expect } = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
-const { execSync } = require('child_process');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const {
   After,
@@ -29,7 +28,6 @@ const {
   Then,
 } = require('@cucumber/cucumber');
 
-const s3Upload = require('./runtime/s3Upload');
 const pjson = require('./package.json');
 
 async function klassiCli() {
@@ -141,7 +139,7 @@ program
   .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver', false)
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo', false)
-  .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.', false)
+  // .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.', false)
   .option(
     '--dryRun',
     'the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests',
@@ -200,6 +198,7 @@ global.emailData = dataConfig.emailData;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
+global.tagNames = dataConfig.tagNames;
 
 /** adding global helpers */
 const helpers = require('./runtime/helpers');
@@ -207,19 +206,6 @@ global.helpers = helpers;
 
 global.date = helpers.currentDate();
 global.dateTime = helpers.reportDateTime();
-
-/** Use the --utam config to compile the UTAM test files and generate the .JS files. */
-if (utam) {
-  const filePath =
-    projectName === 'klassi-js' ? './runtime/utam.config.js' : './node_modules/klassi-js/runtime/utam.config.js';
-  const utamConfig = require(path.resolve(filePath));
-  fs.rmSync(path.resolve(__dirname, utamConfig.pageObjectsOutputDir), { recursive: true, force: true });
-  execSync(`yarn run utam -c ${filePath}`, (err, stdout, stderr) => {
-    if (err) console.error(err);
-    if (stderr) console.error(stderr);
-    console.log(stdout);
-  });
-}
 
 if (options.remoteService && options.extraSettings) {
   const additionalSettings = parseRemoteArguments(options.extraSettings);
@@ -248,7 +234,7 @@ const paths = {
 global.paths = paths;
 
 /**
- * Adding Global browser folder
+ * Adding Global browser
  * Adding Accessibility folder at project level
  */
 global.browserName = settings.remoteConfig || BROWSER_NAME;
@@ -302,10 +288,8 @@ const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
   const allDirs = {};
   const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
-  merge(allDirs, dir);
-  if (Object.keys(allDirs).length > 0) {
-    global.sharedObjects = allDirs;
-  }
+  sharedObjects = merge(allDirs, dir);
+  global.sharedObjects = sharedObjects;
 }
 
 /**
@@ -434,12 +418,11 @@ if (options.featureFiles) {
 
 // TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
 /** Add split to run multiple browsers from the command line */
-if (options.browsers) {
+if (options.browser) {
   const splitBrowsers = options.browser.split(',');
   splitBrowsers.forEach((browser) => {
     process.argv.push('--browser', browser);
   });
-  process.argv.push('--browser', browser);
 }
 
 /** execute cucumber Cli */
@@ -447,7 +430,7 @@ klassiCli().then(async (succeeded) => {
   if (dryRun === false) {
     if (!succeeded) {
       await module.exports.cucumberCli().then(async () => {
-        await process.exit(3);
+        await process.exit(1);
       });
     } else {
       await module.exports.cucumberCli();
@@ -457,23 +440,20 @@ klassiCli().then(async (succeeded) => {
 
 async function cucumberCli() {
   if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
-    await helpers.klassiReporter();
+    await browser.pause(DELAY_2s).then(async () => {
+      await helpers.klassiReporter();
+    });
   } else if (resultingString !== '@s3load') {
-    await helpers.klassiReporter();
+    await browser.pause(DELAY_2s).then(async () => {
+      await helpers.klassiReporter();
+    });
   }
-
   await browser.pause(DELAY_5s);
   /**
-   * compile and generate a report at the END of the test run to be send by Email
    * send email with the report to stakeholders after test run
    */
-  if (options.remoteService && options.remoteService === 'lambdatest' && email === true) {
-    await browser.pause(DELAY_3s).then(async () => {
-      await s3Upload.s3Upload();
-      await browser.pause(DELAY_20s);
-    });
-  } else if (email === true) {
-    await browser.pause(DELAY_5s).then(async () => {
+  if (email === true) {
+    await browser.pause(DELAY_2s).then(async () => {
       await helpers.klassiEmail();
       await browser.pause(DELAY_3s);
     });
