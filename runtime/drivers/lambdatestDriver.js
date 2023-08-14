@@ -7,13 +7,11 @@
  */
 const wdio = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
-// const { UtamWdioService } = require('wdio-utam-service');
 const fs = require('fs-extra');
 const path = require('path');
 const loadConfig = require('../configLoader');
 const lambdatest = require('../remotes/lambdatest');
-const { filterQuietTags } = require('../.././cucumber.js');
-// const utamConfig = require('../utam.config');
+const { filterQuietTags } = require('../../cucumber.js');
 
 const modHeader = fs.readFileSync(path.resolve(__dirname, '../scripts/extensions/modHeader_3_1_22_0.crx'), {
   encoding: 'base64',
@@ -27,13 +25,10 @@ const chExt = {
   },
 };
 
-// let isUTAMTest;
-// eslint-disable-next-line no-unused-vars
 let isApiTest;
 let config;
 
 Before(async (scenario) => {
-  // let result = await helpers.filterQuietTags();
   let result = await filterQuietTags();
   const taglist = resultingString.split(',');
   isApiTest = taglist.some((tag) => result.includes(tag));

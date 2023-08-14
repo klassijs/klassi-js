@@ -83,6 +83,8 @@ global.BeforeAll = BeforeAll;
 global.BeforeStep = BeforeStep;
 global.Status = Status;
 
+global.projectRootPath = __dirname;
+
 function collectPaths(value, paths) {
   paths.push(value);
   return paths;

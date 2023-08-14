@@ -7,7 +7,7 @@
  */
 const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
 const getRemote = require('./getRemote');
-const { filterQuietTags } = require('.././cucumber.js');
+const { filterQuietTags } = require('../cucumber');
 
 /**
  * This is the Global date functionality

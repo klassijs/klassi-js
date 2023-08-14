@@ -28,11 +28,7 @@ const options = {
    * @returns {Promise<*[]>}
    */
   filterQuietTags: async () => {
-    let filepath =
-      projectName === 'klassi-js'
-        ? path.resolve('./runtime/scripts/tagList.json')
-        : path.resolve('./node_modules/klassi-js/runtime/scripts/tagList.json');
-    let filePath = path.resolve(filepath);
+    let filePath = path.resolve(global.projectRootPath, './runtime/scripts/tagList.json');
     let filelist = await helpers.readFromJson(filePath);
     return [...filelist.tagNames, ...tagNames];
   },

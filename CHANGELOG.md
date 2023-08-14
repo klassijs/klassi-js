@@ -6,8 +6,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 
 ### Features
-
-* added new features and refactor s3Upload ([c53736d](https://github.com/klassijs/klassi-js/commit/c53736d5d9ae1c805cc9b985a9eb6657bf762fa5))
 * added new features and refactor s3Upload ([5aaa175](https://github.com/klassijs/klassi-js/commit/5aaa1750e2f6cb605914f78d269e58e429f10815))
 
 

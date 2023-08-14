@@ -10,7 +10,7 @@ const program = require('commander');
 const fs = require('fs');
 const path = require('path');
 const { Before } = require('@cucumber/cucumber');
-const { filterQuietTags } = require('../.././cucumber.js');
+const { filterQuietTags } = require('../../cucumber.js');
 
 let defaults = {};
 
@@ -26,10 +26,6 @@ Before(async (scenario) => {
   isApiTest = taglist.some((tag) => result.includes(tag));
 });
 
-// Before((scenario) => {
-//   isApiTest = scenario.pickle.tags.some((tag) => apiTagKeywords.some((word) => tag.name.includes(word)));
-//   isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
-// });
 /**
  * create the web browser based on globals set in index.js
  * @returns {{}}
@@ -79,10 +75,6 @@ module.exports = async function chromeDriver(options) {
 
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
-  // if (isUTAMTest) {
-  //   const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-  //   await utamInstance.before(extendedOptions.capabilities, null, browser);
-  // }
   await browser.setWindowSize(1280, 1024);
   return browser;
 };
