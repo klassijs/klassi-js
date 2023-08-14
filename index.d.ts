@@ -24,14 +24,7 @@ export declare const BeforeAll: ((code: Function) => void) & ((options: import("
 // @ts-ignore
 export declare const BeforeStep: (<WorldType = import("./support_code_library_builder/world").IWorld<any>>(code: import("./support_code_library_builder/types").TestStepHookFunction<WorldType>) => void) & (<WorldType_1 = import("./support_code_library_builder/world").IWorld<any>>(tags: string, code: import("./support_code_library_builder/types").TestStepHookFunction<WorldType_1>) => void) & (<WorldType_2 = import("./support_code_library_builder/world").IWorld<any>>(options: import("./support_code_library_builder/types").IDefineTestStepHookOptions, code: import("./support_code_library_builder/types").TestStepHookFunction<WorldType_2>) => void);
 // @ts-ignore
-export declare const defineParameterType: (options: import("./support_code_library_builder/types").IParameterTypeDefinition<any>) => void;
-// @ts-ignore
 export declare const Given: import("./support_code_library_builder/types").IDefineStep;
-export declare const setDefaultTimeout: (milliseconds: number) => void;
-export declare const setDefinitionFunctionWrapper: (fn: Function) => void;
-export declare const setWorldConstructor: (fn: any) => void;
-// @ts-ignore
-export declare const setParallelCanAssign: (fn: import("./support_code_library_builder/types").ParallelAssignmentValidator) => void;
 // @ts-ignore
 export declare const Then: import("./support_code_library_builder/types").IDefineStep;
 // @ts-ignore
@@ -44,6 +37,5 @@ export { ITestCaseHookParameter, ITestStepHookParameter, } from './support_code_
 export declare const Status: typeof messages.TestStepResultStatus;
 // @ts-ignore
 export { wrapPromiseWithTimeout } from './time';
-export declare const Runtime: typeof _Runtime;
 // @ts-ignore
 export { INewRuntimeOptions, IRuntimeOptions } from './runtime';

@@ -10,7 +10,6 @@ const path = require('path');
 const pactumJs = require('pactum');
 const loadConfig = require('./configLoader');
 const verify = require('./imageCompare');
-const testData = require('../shared-objects/testdata.json');
 const { createWorker } = require('tesseract.js');
 
 const envName = env.envName.toLowerCase();
@@ -102,14 +101,6 @@ module.exports = {
     const fileContent = await fs.readJson(filename);
     // console.log('Success - the file content ', fileContent);
     return fileContent;
-  },
-
-  /**
-   * This is to write content to a json file
-   * @returns {Promise<void>}
-   */
-  write: async () => {
-    await module.exports.writeToJson('./shared-objects/testdata.json', testData);
   },
 
   /**
