@@ -1648,40 +1648,6 @@
     "@typescript-eslint/types" "5.59.6"
     eslint-visitor-keys "^3.3.0"
 
-"@utam/compiler@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@utam/compiler/-/compiler-1.2.2.tgz#780062e1a6d707e2fea489fc91e3d5bdd2964553"
-  integrity sha512-I+CXk3defXyA4AvFolSGnXBSE5JVqlQQmn+bfcns4xpYYM02eDcXi4ouBTT7E6Z63y6N9PYK1aitkacExDgnUQ==
-  dependencies:
-    "@utam/diagnostics" "1.2.2"
-    jsonc-parser "^3.0.0"
-
-"@utam/core@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@utam/core/-/core-1.2.2.tgz#ad66b1a34e50bc2ba5c9e915856343d743338738"
-  integrity sha512-ShwyIZu/r72I4ZaTMg5MZrH7CgA0od0avjtLJIXrtmsBKg5umBtNFWB8wL5SGRHjQhT6Zw8mFyRVAg5A1VtM1Q==
-
-"@utam/diagnostics@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@utam/diagnostics/-/diagnostics-1.2.2.tgz#01205afa8f5bddbc8b287e1ed3e7141fcbb80b6f"
-  integrity sha512-zN65ewK/2/4j5PvS56mSrsk0ep8JWWcY0Dir2gp2BODKuhh7xCqnoU79Q2wMSAEdoX0xoeLlK8VVXdVjlNXe2A==
-
-"@utam/generator@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@utam/generator/-/generator-1.2.2.tgz#76b377afd51e92d11e68ff31ccc73f675cb24df0"
-  integrity sha512-MsOegObwh8LQpxCYYnPCfa6UuSvHObnzTLWpRo73BehxUWpI6Wrf2RL47TOfmgOENuebrNjXuR/49pW4ye265Q==
-  dependencies:
-    fast-glob "^3.2.11"
-    parse5 "^6.0.1"
-    prettier "2.7.1"
-
-"@utam/loader@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@utam/loader/-/loader-1.2.2.tgz#7e43992e4ceedcc0f5d0de6533e6a44dd57a78da"
-  integrity sha512-nPT+QpEzBezDNaMO+kkGkSw70CRqNqtrbvOppJyMS9TlV9ZyAGAYYzLZ7XXz2CX57UMpccSuImFkqeYbX5v1Og==
-  dependencies:
-    "@utam/core" "1.2.2"
-
 "@wdio/config@8.10.2":
   version "8.10.2"
   resolved "https://registry.yarnpkg.com/@wdio/config/-/config-8.10.2.tgz#dcd2de1180ccd8970b19acb9e52d8da1f79ad1df"
@@ -3189,7 +3155,7 @@ fast-diff@^1.1.2:
   resolved "https://registry.yarnpkg.com/fast-diff/-/fast-diff-1.2.0.tgz#73ee11982d86caaf7959828d519cfe927fac5f03"
   integrity sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==
 
-fast-glob@^3.2.11, fast-glob@^3.2.9:
+fast-glob@^3.2.9:
   version "3.2.12"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.12.tgz#7f39ec99c2e6ab030337142da9e0c18f37afae80"
   integrity sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==
@@ -3387,11 +3353,6 @@ fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
-
-fsevents@~2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
-  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
 
 function-bind@^1.1.1:
   version "1.1.1"
@@ -4162,11 +4123,6 @@ json5@^1.0.2:
   integrity sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==
   dependencies:
     minimist "^1.2.0"
-
-jsonc-parser@^3.0.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.2.0.tgz#31ff3f4c2b9793f89c67212627c51c6394f88e76"
-  integrity sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==
 
 jsonfile@^6.0.1, jsonfile@^6.1.0:
   version "6.1.0"
@@ -5081,11 +5037,6 @@ parse-json@^5.0.0, parse-json@^5.2.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
-parse5@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/parse5/-/parse5-6.0.1.tgz#e1a1c085c569b3dc08321184f19a39cc27f7c30b"
-  integrity sha512-Ofn/CTFzRGTTxwpNEs9PP93gXShHcTq255nzRYSKe8AkVpZY7e1fpmTfOyoIvjP5HG7Z2ZM7VS9PPhQGW2pOpw==
-
 path-exists@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-2.1.0.tgz#0feb6c64f0fc518d9a754dd5efb62c7022761f4b"
@@ -5230,11 +5181,6 @@ prettier-linter-helpers@^1.0.0:
   integrity sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
   dependencies:
     fast-diff "^1.1.2"
-
-prettier@2.7.1:
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.7.1.tgz#e235806850d057f97bb08368a4f7d899f7760c64"
-  integrity sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==
 
 prettier@^2.8.1:
   version "2.8.5"
@@ -5574,13 +5520,6 @@ rimraf@^3.0.0, rimraf@^3.0.2:
   integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
   dependencies:
     glob "^7.1.3"
-
-rollup@^2.77.0:
-  version "2.79.1"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.79.1.tgz#bedee8faef7c9f93a2647ac0108748f497f081c7"
-  integrity sha512-uKxbd0IhMZOhjAiD5oAFp7BqvkA4Dv47qpOCtaNvng4HBwdbWtdOh8f5nZNuk2rp51PMGk3bzfWu5oayNEuYnw==
-  optionalDependencies:
-    fsevents "~2.3.2"
 
 run-parallel@^1.1.9:
   version "1.2.0"
@@ -6271,18 +6210,6 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-utam@1.2.2, "utam@https://github.com/klassijs/utam":
-  version "1.2.2"
-  resolved "https://github.com/klassijs/utam#4a02bdbae62cf16b36433632e40c632996b4aa4d"
-  dependencies:
-    "@utam/compiler" "1.2.2"
-    "@utam/core" "1.2.2"
-    "@utam/generator" "1.2.2"
-    "@utam/loader" "1.2.2"
-    fast-glob "^3.2.11"
-    rollup "^2.77.0"
-    yargs "^17.5.1"
-
 util-arity@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/util-arity/-/util-arity-1.1.0.tgz#59d01af1fdb3fede0ac4e632b0ab5f6ce97c9330"
@@ -6329,12 +6256,6 @@ wasm-feature-detect@^1.2.11:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/wasm-feature-detect/-/wasm-feature-detect-1.5.1.tgz#0db57a7d7f8c26b743dde85386215ae2b135e78a"
   integrity sha512-GHr23qmuehNXHY4902/hJ6EV5sUANIJC3R/yMfQ7hWDg3nfhlcJfnIL96R2ohpIwa62araN6aN4bLzzzq5GXkg==
-
-"wdio-utam-service@https://github.com/klassijs/wdio-utam-service":
-  version "1.2.2"
-  resolved "https://github.com/klassijs/wdio-utam-service#cedeb189e0911a8f4316d4ef6b4d1bcb70df0372"
-  dependencies:
-    utam "1.2.2"
 
 webdriver@8.10.2:
   version "8.10.2"
@@ -6539,15 +6460,10 @@ yallist@^4.0.0:
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
 
-yaml@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.2.1.tgz#3014bf0482dcd15147aa8e56109ce8632cd60ce4"
-  integrity sha512-e0WHiYql7+9wr4cWMx3TVQrNwejKaEe7/rHNmQmqRjazfOP5W8PB6Jpebb5o6fIapbz9o9+2ipcaTM2ZwDI6lw==
-
-yaml@^2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.2.2.tgz#ec551ef37326e6d42872dad1970300f8eb83a073"
-  integrity sha512-CBKFWExMn46Foo4cldiChEzn7S7SRV+wqiluAb6xmueD/fGyRHIhX8m14vVGgeFWjN540nKCNVj6P21eQjgTuA==
+yaml@^2.2.1, yaml@^2.2.2:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.3.1.tgz#02fe0975d23cd441242aa7204e09fc28ac2ac33b"
+  integrity sha512-2eHWfjaoXgTBC2jNM1LRef62VQa0umtvRiDSk6HSzW7RvS5YtkabJrwYLLEKWBc8a5U2PTSCs+dJjUTJdlHsWQ==
 
 yargs-parser@^20.2.2, yargs-parser@^20.2.3:
   version "20.2.9"
@@ -6567,7 +6483,7 @@ yargs-parser@^3.2.0:
     camelcase "^3.0.0"
     lodash.assign "^4.1.0"
 
-yargs@17.7.1, yargs@^17.0.0, yargs@^17.5.1:
+yargs@17.7.1, yargs@^17.0.0:
   version "17.7.1"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-17.7.1.tgz#34a77645201d1a8fc5213ace787c220eabbd0967"
   integrity sha512-cwiTb08Xuv5fqF4AovYacTFNxk62th7LKJ6BL9IGUpTJrWoU7/7WdQGTP2SjKf1dUNBGzDd28p/Yfs/GI6JrLw==
