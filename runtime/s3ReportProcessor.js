@@ -79,7 +79,6 @@ module.exports = {
                   .replace(/^.*reports\/\w+\//, '')
                   .replace(`${envDataNew}/`, '')
                   .replace(/\.html/, '');
-                // console.log('this is the data new from the s3reportProcessor ln 92 ====> ', dataNew);
                 const theNewData = `${dataNew} -- ${envDataNew}`;
                 let dataFile = '';
                 linkList.push((dataFile = `${dataFile}<a href="${dataList}">${theNewData}</a>`));
@@ -99,9 +98,9 @@ module.exports = {
     }
     await helpers.writeToTxtFile(file, dataOut);
     if (dataList === undefined) {
-      console.error('There is no Data for this Project / project does not exist ....');
+      console.error('There is no reporting Data for this Project....');
     } else if (dataList.length > 0) {
-      console.log('Test run completed and s3 report being sent .....');
+      console.log('Test run completed and s3 report sent.');
       await helpers.klassiEmail();
     }
   },

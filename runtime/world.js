@@ -5,11 +5,9 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  */
-const fs = require('fs-extra');
-const merge = require('merge');
-const requireDir = require('require-dir');
+const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
 const getRemote = require('./getRemote');
-// const helpers = require('./helpers');
+const { filterQuietTags } = require('../cucumber');
 
 /**
  * This is the Global date functionality
@@ -35,8 +33,7 @@ let browser = {};
  * @returns {{}}
  */
 async function getDriverInstance() {
-  // const browsers = global.settings.BROWSER_NAME;
-  const browsers = BROWSER_NAME;
+  let browsers = BROWSER_NAME;
   const options = {};
   if (remoteService && remoteService.type === 'lambdatest') {
     const configType = global.settings.remoteConfig;
@@ -46,119 +43,23 @@ async function getDriverInstance() {
   }
   assert.isNotEmpty(browsers, 'Browser must be defined');
 
-  switch (browsers || '') {
-    case 'firefox':
-      {
-        browser = FirefoxDriver(options);
-      }
-      break;
-
-    case 'chrome':
-      {
-        browser = ChromeDriver(options);
-      }
-      break;
-
-    case 'android':
-      {
-        browser = AndroidDriver(options);
-      }
-      break;
-
-    case 'ios':
-      {
-        browser = iOSDriver(options);
-      }
-      break;
-
-    default: {
-      browser = ChromeDriver(options);
-    }
-  }
+  const getBrowser = {
+    firefox: () => (browser = FirefoxDriver(options)),
+    android: () => (browser = AndroidDriver(options)),
+    ios: () => (browser = iOSDriver(options)),
+    chrome: () => (browser = ChromeDriver(options)),
+    default: () => (browser = ChromeDriver(options)),
+  };
+  (getBrowser[browsers] || getBrowser['default'])();
   return browser;
 }
-
-function World() {
-  /**
-   * create a list of variables to expose globally and therefore accessible within each step definition
-   * @type {{date: (value?: string) => object, expect: *, shared: {}, assert: ((function( (String|Function), (String|Function), Boolean))|((value: unknown, message?: string) => asserts value)|((value: unknown, message?: string) => asserts value)|*), page: *[]}}
-   */
-  const runtime = {
-    expect: global.expect, // expose chai expect to allow variable testing
-    assert: global.assert, // expose chai assert to allow variable testing
-    page: [], // empty page objects placeholder
-    shared: {}, // empty shared objects placeholder
-    date: global.date, // expose the date method for logs and reports
-  };
-
-  /**
-   *  expose properties to step definition methods via global variables
-   */
-  Object.keys(runtime).forEach((key) => {
-    /** make property/method available as a global (no this. prefix required)
-     */
-    global[key] = runtime[key];
-  });
-  /**
-   * import page objects (after global lets have been created)
-   */
-  if (global.paths.pageObjects && fs.existsSync(global.paths.pageObjects)) {
-    /** require all page objects using camelcase as object names
-     */
-    runtime.page = requireDir(global.paths.pageObjects, { camelcase: true });
-    /**
-     * expose globally
-     * @type {{}}
-     */
-    global.page = runtime.page;
-  }
-  /**
-   * import shared objects from multiple paths (after global lets have been created)
-   */
-  if (
-    global.paths.sharedObjects &&
-      Array.isArray(global.paths.sharedObjects) &&
-      global.paths.sharedObjects.length > 0
-  ) {
-    const allDirs = {};
-    /**
-     * first require directories into objects by directory
-     */
-    global.paths.sharedObjects.forEach((itemPath) => {
-      if (fs.existsSync(itemPath)) {
-        const dir = requireDir(itemPath, { camelcase: true });
-        merge(allDirs, dir);
-      }
-    });
-    /** if we managed to import some directories, expose them
-     */
-    if (Object.keys(allDirs).length > 0) {
-      /** expose globally
-       * @type {{}}
-       */
-      global.shared = allDirs;
-    }
-  }
-}
-
-/**
- * export the 'World' required by cucumber to allow it to expose methods within step def's
- */
-this.World = World;
 
 /**
  * set the default timeout for all tests
  */
-const { setDefaultTimeout } = require('@cucumber/cucumber');
-
 const globalTimeout = process.env.CUCUMBER_TIMEOUT || 180000;
 setDefaultTimeout(globalTimeout);
 global.timeout = globalTimeout;
-
-/**
- * start recording of the Test run time
- */
-global.startDateTime = helpers.getStartDateTime();
 
 /**
  * create the browser before scenario if it's not instantiated and
@@ -171,7 +72,10 @@ Before(function () {
   return browser;
 });
 
-global.status = 0;
+/**
+ * start recording of the Test run time
+ */
+global.startDateTime = helpers.getStartDateTime();
 
 /**
  * executed before each scenario
@@ -192,8 +96,8 @@ Before((scenario) => {
   for (const tag of scenario.pickle.tags) {
     if (
       tag.name === '@wip' ||
-        tag.name === '@skip' ||
-        (correctMultipleTags && correctMultipleTags.includes(tag.name))
+      tag.name === '@skip' ||
+      (correctMultipleTags && correctMultipleTags.includes(tag.name))
     ) {
       cucumberThis.attach(
         `This scenario was skipped automatically by using the @wip, @skip or a custom tag "${tag.name}" provided at runtime.`
@@ -211,6 +115,7 @@ Before((scenario) => {
 After(async (scenario) => {
   if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
     await helpers.ltVideo();
+    // eslint-disable-next-line no-undef
     const vidLink = await videoLib.getVideoId();
     cucumberThis.attach(
       `video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`
@@ -238,8 +143,12 @@ After(async (scenario) => {
   const { browser } = global;
   if (
     scenario.result.status === Status.FAILED ||
-      scenario.result.status === Status.PASSED ||
-      scenario.result.status === Status.SKIPPED
+    scenario.result.status === Status.PASSED ||
+    scenario.result.status === Status.SKIPPED ||
+    scenario.result.status === Status.UNKNOWN ||
+    scenario.result.status === Status.AMBIGUOUS ||
+    scenario.result.status === Status.UNDEFINED ||
+    scenario.result.status === Status.PENDING
   ) {
     if (remoteService && remoteService.type === 'lambdatest') {
       if (scenario.result.status === 'FAILED') {
@@ -247,6 +156,14 @@ After(async (scenario) => {
       } else if (scenario.result.status === Status.PASSED) {
         await browser.execute('lambda-status=passed');
       } else if (scenario.result.status === Status.SKIPPED) {
+        await browser.execute('lambda-status=skipped');
+      } else if (scenario.result.status === Status.UNKNOWN) {
+        await browser.execute('lambda-status=unknown');
+      } else if (scenario.result.status === Status.AMBIGUOUS) {
+        await browser.execute('lambda-status=ignored');
+      } else if (scenario.result.status === Status.UNDEFINED) {
+        await browser.execute('lambda-status=error');
+      } else if (scenario.result.status === Status.PENDING) {
         await browser.execute('lambda-status=skipped');
       }
       return this.browserOpen();
@@ -257,12 +174,14 @@ After(async (scenario) => {
 
 /**
  * get executed only if there is an error within a scenario
+ * will not take an image if it's an API test
  */
-After(function (scenario) {
+After(async function (scenario) {
   const { browser } = global;
   const world = this;
-  if (scenario.result.status === Status.FAILED) {
-    // global.status = 1;
+  let result = await filterQuietTags();
+  const taglist = resultingString.split(',');
+  if (!taglist.some((tag) => result.includes(tag)) && scenario.result.status === Status.FAILED) {
     return browser.takeScreenshot().then((screenShot) => {
       // screenShot is a base-64 encoded PNG
       world.attach(screenShot, 'image/png');

@@ -13,7 +13,12 @@ module.exports = {
     test: {
       envName: "TEST",
       web_url: "https://duckduckgo.com/",
-      web_utam_url: "https://google.com/",
+      api_base_url: "http://httpbin.org/get",
+    },
+
+    dev: {
+      envName: "DEVELOPMENT",
+      web_url: "https://duckduckgo.com/",
       api_base_url: "http://httpbin.org/get",
     },
   }

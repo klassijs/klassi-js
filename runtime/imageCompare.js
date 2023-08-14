@@ -22,9 +22,10 @@ module.exports = {
    * @param {string} filename The complete path to the file name where the image should be saved.
    * @param elementsToHide
    * @param filename
+   * @param elementSnapshot
    * @returns {Promise<void>}
    */
-  takePageImage: async (filename, elementsToHide) => {
+  takePageImage: async (filename, elementSnapshot, elementsToHide) => {
     const getRemote = require('./getRemote');
     const remoteService = getRemote(settings.remoteService);
 
@@ -41,19 +42,33 @@ module.exports = {
     if (elementsToHide) {
       await helpers.hideElements(elementsToHide);
     }
+
     fs.ensureDirSync(resultDirPositive); // Make sure destination folder exists, if not, create it
     const resultPathPositive = `${resultDirPositive}${filename}`;
-    await browser.saveScreenshot(resultPathPositive, async (err) => {
-      await browser.pause(DELAY_500ms);
-      if (err) {
-        console.error(err.message);
-      }
-    });
+
+    /** Logic to take an image of a whole page or an element image on a page */
+    if (elementSnapshot) {
+      let elem = await browser.$(elementSnapshot);
+      await elem.saveScreenshot(resultPathPositive, async (err) => {
+        await module.exports.timeoutErrormsg(err);
+      });
+    } else {
+      await browser.saveScreenshot(resultPathPositive, async (err) => {
+        await module.exports.timeoutErrormsg(err);
+      });
+    }
 
     if (elementsToHide) {
       await helpers.showElements(elementsToHide);
     }
     console.log(`\t images saved to: ${resultPathPositive}`);
+  },
+
+  timeoutErrormsg: async (err) => {
+    await browser.pause(DELAY_500ms);
+    if (err) {
+      console.error(err.message);
+    }
   },
 
   /**
