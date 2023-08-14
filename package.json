@@ -6,13 +6,12 @@
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
     "twitter": "https://twitter.com/larryG_01",
-    "gitter": "https://gitter.im/klassi-js/klassi-js",
     "linkedin": "https://linkedin.com/in/larryg",
     "youtube": "https://youtube.com/@LarryG_01"
   },
   "license": "MIT",
   "engines": {
-    "node": ">=18.6.0",
+    "node": ">=16",
     "yarn": ">=1.22.0"
   },
   "keywords": [
