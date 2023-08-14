@@ -11,12 +11,12 @@ module.exports = {
     s3FolderName: 'klassi-js',
 
     emailData: {
-      nameList: 'QaAutoTest <larryg@klassitech.co.uk>',
+      nameList: 'QaAutoTest <qaAutoTest@klassitech.co.uk>',
       AccessibilityReport: 'Yes',
       // for AWS host
       SES_REGION: 'eu-west-1',
       // for SMTP host
-      SMTP_HOST: '82.165.98.54',
+      SMTP_HOST: 'smtp.ionos.co.uk',
     },
 
     s3Data: {
@@ -24,5 +24,7 @@ module.exports = {
       S3_REGION: 'eu-west-2',
       S3_DOMAIN_NAME: 'http://test-app-automated-reports.s3.eu-west-2.amazonaws.com',
     },
+
+    tagNames: []
   },
 };

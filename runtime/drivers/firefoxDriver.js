@@ -8,18 +8,16 @@
 const wdio = require('webdriverio');
 const program = require('commander');
 const { Before } = require('@cucumber/cucumber');
-const { UtamWdioService } = require('wdio-utam-service');
-const utamConfig = require('../utam.config');
+const { filterQuietTags } = require('../../cucumber.js');
 
 let defaults = {};
-
 let isApiTest;
-let isUTAMTest;
-const apiTagKeywords = ['api', 'get', 'put', 'post', 'delete'];
 
-Before((scenario) => {
-  isApiTest = scenario.pickle.tags.some((tag) => apiTagKeywords.some((word) => tag.name.includes(word)));
-  isUTAMTest = scenario.pickle.tags.some((tag) => tag.name.includes('utam'));
+Before(async (scenario) => {
+  let result = await filterQuietTags();
+  // let result = await helpers.filterQuietTags();
+  const taglist = resultingString.split(',');
+  isApiTest = taglist.some((tag) => result.includes(tag));
 });
 
 /**
@@ -62,10 +60,6 @@ module.exports = async function firefoxDriver(options) {
   }
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await wdio.remote(extendedOptions);
-  if (isUTAMTest) {
-    const utamInstance = new UtamWdioService(utamConfig, extendedOptions.capabilities, extendedOptions);
-    await utamInstance.before(extendedOptions.capabilities, null, browser);
-  }
   await browser.setWindowSize(1280, 1024);
   return browser;
 };

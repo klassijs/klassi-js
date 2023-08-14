@@ -16,13 +16,14 @@ const { S3Client, ListBucketsCommand, PutObjectCommand } = require('@aws-sdk/cli
  */
 module.exports = {
   s3Upload: async () => {
+    let envName = env.envName.toLowerCase();
     let date = require('./helpers').s3BucketCurrentDate();
     const browserName = settings.remoteConfig || BROWSER_NAME;
+    const rootFolder = path.resolve('./reports');
     const folderName = `${date}/${dataconfig.s3FolderName}/reports/`;
     const BUCKET = s3Data.S3_BUCKET;
     const S3_KEY = process.env.S3_KEY;
     const S3_SECRET = process.env.S3_SECRET;
-    const rootFolder = path.resolve('./reports');
     const uploadFolder = `./${browserName}/`;
 
     const s3Client = new S3Client({
@@ -40,10 +41,29 @@ module.exports = {
         console.error('Error ', err.message);
       }
     }
-    function getFiles(dirPath) {
+
+    async function filesToRemove() {
+      const filePath = rootFolder + '/' + browserName + '/' + envName;
+      const filelist = fs.readdirSync(filePath);
+      // console.log('this is the list of files ============> ', filelist);
+      for (let i = 0; i < filelist.length; i++) {
+        let filename = filelist[i];
+
+        if (filename.endsWith('.html.json')) {
+          fs.removeSync(path.resolve(filePath, filename));
+        }
+      }
+    }
+
+    let dirToRemove = rootFolder + '/' + browserName + '/' + envName + 'Combine';
+    async function getFiles(dirPath) {
+      if (await fs.existsSync(dirToRemove)) {
+        await fs.rmSync(dirToRemove, { recursive: true });
+      }
       return fs.existsSync(dirPath) ? readdir(dirPath) : [];
     }
     async function deploy(upload) {
+      await filesToRemove();
       const filesToUpload = await getFiles(path.resolve(rootFolder, upload));
       await async.eachOfLimit(filesToUpload, 20, async (file) => {
         const Key = await file.replace(`${rootFolder}/`, '');
@@ -68,7 +88,7 @@ module.exports = {
     }
     deploy(uploadFolder)
       .then(() => {
-        console.log('Files uploaded successfully, report folder pushed to s3');
+        console.log('Report files uploaded successfully to s3 Bucket');
       })
       .catch((err) => {
         console.error(err.message);
