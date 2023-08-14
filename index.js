@@ -11,7 +11,7 @@ const program = require('commander');
 const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
-const { assert, expect } = require('chai');
+const { assert } = require('chai');
 const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
@@ -40,7 +40,6 @@ async function klassiCli() {
  * all assertions for variable testing
  */
 global.assert = assert;
-global.expect = expect;
 global.fs = fs;
 
 /**
