@@ -59,6 +59,7 @@ module.exports = async function lambdatestDriver(options, configType) {
     config.tunnelName = process.env.TUNNEL_NAME;
     const { CIRCLE_BUILD_NUM, CIRCLE_JOB, CIRCLE_USERNAME } = process.env;
     config.build = `${global.projectName} - CircleCI Build No. #${CIRCLE_BUILD_NUM} for ${CIRCLE_USERNAME}. Job: ${CIRCLE_JOB}`;
+    config.buildTags.push(`${CIRCLE_JOB}`);
   } else {
     /** configs can define their own build name or it is inferred from the configType */
     config.build = `${projectName}-${buildNameFromConfig}`;
