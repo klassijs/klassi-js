@@ -53,8 +53,8 @@
     "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
     "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag",
-    "ciltdev": "node index.js --disableReport --utam --isCI --tags @integration --remoteService lambdatest --extraSettings",
-    "ciltuat": "node index.js --disableReport --utam --isCI --tags @regression --remoteService lambdatest --extraSettings",
+    "ciltdev": "node index.js --disableReport --isCI --tags @integration --remoteService lambdatest --extraSettings",
+    "ciltuat": "node index.js --disableReport --isCI --tags @regression --remoteService lambdatest --extraSettings",
     "cilts3r": "node index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
     "cilts3load": "node index.js --disableReport --tags @s3load --remoteService lambdatest --extraSettings"
   },
