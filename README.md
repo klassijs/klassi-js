@@ -136,9 +136,6 @@ await helpers.filterItem();
 
 //this filters an item from a list of items and clicks on it
 await helpers.filterItemAndClick();
-
-//this uploads a file from local system or project folder. Helpful to automate uploading a file when there are system dialogues exist.
-await helpers.fileUpload();
 ```
 
 ## Test Execution Reports
