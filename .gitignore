@@ -1,0 +1,22 @@
+# ignore dotenv files, except example
+.env
+.env.*
+!.env.example
+
+
+# Logs
+logs
+log
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules
+
+# IntelliJ project files
+.idea
+out
+gen
+.DS_Store
+*.iml
+

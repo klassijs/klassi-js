@@ -1,0 +1,60 @@
+{
+  "name": "klassi-js",
+  "version": "5.2.0",
+  "description": "A debuggable Javascript testing framework using webdriverio",
+  "creator": {
+    "name": "Larry Goddard",
+    "email": "larryg@klassitech.co.uk",
+    "twitter": "https://twitter.com/larryG_01",
+    "linkedin": "https://linkedin.com/in/larryg",
+    "youtube": "https://youtube.com/@LarryG_01"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16",
+    "yarn": ">=1.22.0"
+  },
+  "keywords": [
+    "api testing",
+    "bdd",
+    "lambdatest",
+    "cucumber-js",
+    "javascript",
+    "klassi-js",
+    "klassijs",
+    "testing framework",
+    "test automation",
+    "webdriverio"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/klassijs/klassi-js.git"
+  },
+  "browser": "index.js",
+  "homepage": "https://github.com/klassijs/klassi-js#readme",
+  "bugs": {
+    "url": "https://github.com/klassijs/klassi-js/issues"
+  },
+  "scripts": {
+    "dev": "node index.js --tags",
+    "pkgcheck": "yarn install --check-files"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^9.1.2",
+    "@cucumber/pretty-formatter": "^1.0.0",
+    "async": "^3.2.4",
+    "chai": "^4.3.7",
+    "commander": "^10.0.0",
+    "cosmiconfig": "^8.0.0",
+    "cucumber-junit": "^1.7.1",
+    "dotenv": "^16.0.3",
+    "fs-extra": "^11.1.0",
+    "klassijs-cucumber-html-reporter": "^6.0.0",
+    "merge": "^2.1.1",
+    "prettier": "^2.8.1",
+    "recursive-readdir": "^2.2.3",
+    "require-dir": "^1.2.0",
+    "text-files-loader": "^1.0.5",
+    "webdriverio": "^8.10.2"
+  }
+}
