@@ -12,7 +12,7 @@ const options = {
   default: {
     // eslint-disable-next-line no-undef
     paths: featureFiles,
-    require: ['runtime/world.js', 'node_modules/klassijs/runtime/world.js', 'step_definitions/**/*.js'],
+    require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
     format: [
       '@cucumber/pretty-formatter',
       `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,

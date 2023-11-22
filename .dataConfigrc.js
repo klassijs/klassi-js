@@ -7,6 +7,6 @@
  */
 module.exports = {
   dataConfig: {
-    projectName: 'klassijs',
+    projectName: 'klassi-js',
   },
 };
