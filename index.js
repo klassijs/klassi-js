@@ -12,7 +12,6 @@ const fs = require('fs-extra');
 const merge = require('merge');
 const requireDir = require('require-dir');
 const { assert, expect } = require('chai');
-// const loadTextFile = require('text-files-loader');
 const { cosmiconfigSync } = require('cosmiconfig');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const {
@@ -29,8 +28,6 @@ const {
 } = require('@cucumber/cucumber');
 
 const pjson = require('./package.json');
-
-// const takeReportBackup = require('./runtime/takeReportBackup');
 
 async function klassiCli() {
   const { runConfiguration } = await loadConfiguration();
@@ -110,8 +107,6 @@ program
   .description(pjson.description)
   .option('--browser <name>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
-  // .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
-  // .option('--email', 'email for sending reports to stakeholders', false)
   .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json'.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
@@ -123,7 +118,6 @@ program
   .option('--pageObjects <paths>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('--reports <paths>', 'output path to save reports. defaults to ./reports', 'reports')
   .option('--headless', 'whether to run browser in headless mode. defaults to false', false)
-  // .option('--coverage <paths>', 'output path to save nyc reports. defaults to ./coverage', 'coverage')
   .option('--steps <paths>', 'path to step definitions. defaults to ./step_definitions', 'step_definitions')
   .option(
     '--tags <EXPRESSION>',
@@ -131,39 +125,12 @@ program
     collectPaths,
     []
   )
-  // .option(
-  //   '--exclude <EXPRESSION>',
-  //   'excludes the features or scenarios with tags matching the expression (repeatable)',
-  //   collectPaths,
-  //   []
-  // )
-  // .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison')
-  // .option('--remoteService <optional>', 'which remote browser service, if any, should be used e.g. lambdatest', '')
-  // .option('--browserOpen', 'keep the browser open after each scenario. defaults to false', false)
-  // .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver', false)
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo', false)
-  // .option('--utam', 'used to launch the compilation process of UTAM test files into scripts.', false)
-  // .option(
-  //   '--dryRun',
-  //   'the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests',
-  //   false
-  // )
-  // .option(
-  //   '--s3Date',
-  //   'this switches the s3 date to allow the downloading and emailing of reports from the latest test run and not last nights run',
-  //   false
-  // )
-  // .option('--useProxy', 'This is in-case you need to use the proxy server while testing', false)
-  // .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
-  // .option('--emailMethod <EXPRESSION>', 'use for email provision SMTP or AWS', 'smtp')
-  // .option('--isCI', 'This is to stop the html from being created while running in the CI', false)
-  // .option('--reportBackup', 'This to clear the "reports" folder & keep the record in back-up folder', false)
-  // .option('--reportClear', 'This to clear the "reports" folder', false)
   .parse(process.argv);
 
 program.on('--help', () => {
-  console.info('For more details please visit https://github.com/klassijs/klassijs#readme\n');
+  console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
 });
 
 const options = program.opts();
@@ -171,24 +138,12 @@ const options = program.opts();
 const settings = {
   projectRoot: options.context,
   reportName: options.reportName,
-  disableReport: options.disableReport,
-  // updateBaselineImage: options.updateBaselineImage,
-  // remoteService: options.remoteService,
-  // extraSettings: options.extraSettings,
+  disableReport: options.disableReport
 };
 
 global.settings = settings;
 global.BROWSER_NAME = options.browser;
 global.headless = options.headless;
-// global.browserOpen = options.browserOpen;
-// global.dryRun = options.dryRun;
-// global.email = options.email;
-// global.s3Date = options.s3Date;
-// global.utam = options.utam;
-// global.useProxy = options.useProxy;
-// global.skipTag = options.skipTag;
-// global.emailMethod = options.emailMethod;
-// global.isCI = options.isCI;
 /**
  * Setting envConfig and dataConfig to be global, used within the world.js when building browser
  * @type {string}
@@ -196,43 +151,17 @@ global.headless = options.headless;
 const getConfig = (configName) => cosmiconfigSync(configName).search().config;
 const { environment } = getConfig('envConfig');
 const { dataConfig } = getConfig('dataConfig');
-// console.log('This is the result of search ====>', environment, dataConfig);
 
 global.dataconfig = dataConfig;
-// global.s3Data = dataConfig.s3Data;
-// global.emailData = dataConfig.emailData;
 global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.env = process.env.ENVIRONMENT || environment[options.env];
-// global.tagNames = dataConfig.tagNames;
-
 /** adding global helpers */
 const helpers = require('./runtime/helpers');
 global.helpers = helpers;
 
 global.date = helpers.currentDate();
 global.dateTime = helpers.reportDateTime();
-
-// if (!isCI) {
-//   //perform the operations for local reports folder
-//   if (options.reportBackup) {
-//     takeReportBackup.backupReport();
-//   }
-//   if (options.reportClear) {
-//     takeReportBackup.clearReport();
-//   }
-// }
-
-// if (options.remoteService && options.extraSettings) {
-//   const additionalSettings = parseRemoteArguments(options.extraSettings);
-//   settings.remoteConfig = additionalSettings.config;
-//   if (additionalSettings.tags) {
-//     if (options.tags.length !== 0) {
-//       throw new Error('Cannot sent two types of tags - either use --extraSettings or --tags');
-//     }
-//     options.tags = [additionalSettings.tags];
-//   }
-// }
 
 function getProjectPath(objectName) {
   return path.resolve(settings.projectRoot + options[objectName]);
@@ -258,43 +187,11 @@ global.browserName = settings.remoteConfig || BROWSER_NAME;
 const envName = env.envName.toLowerCase();
 const reports = `./reports/${browserName}/${envName}`;
 
-/** file creation for userAgent globally */
-// const file = './shared-objects/docs/userAgent.txt';
-//
-// fs.ensureFileSync(file, (err) => {
-//   if (err) {
-//     console.error(`The fileName has NOT been created: ${err.stack}`);
-//   }
-// });
 fs.ensureDirSync(reports, (err) => {
   if (err) {
     console.error(`The Reports Folder has NOT been created: ${err.stack}`);
   }
 });
-// fs.ensureDirSync(reports + 'Combine', (err) => {
-//   if (err) {
-//     console.error(`The Reports Combine Folder has NOT been created: ${err.stack}`);
-//   }
-// });
-
-// /** adding global accessibility library */
-// const accessibility_lib = path.resolve(__dirname, './runtime/accessibility/accessibilityLib.js');
-// if (fs.existsSync(accessibility_lib)) {
-//   const rList = [];
-//   global.accessibilityLib = require(accessibility_lib);
-//   global.accessibilityReportList = rList;
-// } else console.error('No Accessibility Lib');
-//
-// /**
-//  * adding video link access
-//  * @type {string}
-//  */
-// const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
-// if (fs.existsSync(videoLib)) {
-//   global.videoLib = require(videoLib);
-// } else {
-//   console.error('No Video Lib');
-// }
 
 /**
  * add path to import shared objects
@@ -320,111 +217,6 @@ if (fs.existsSync(pageObjectPath)) {
   });
 }
 
-// /** Get tags from feature files
-//  * @returns {Array<string>} list of all tags found
-//  */
-// function getTagsFromFeatureFiles() {
-//   let result = [];
-//   let featurefiles = {};
-//   loadTextFile.setup({ matchRegExp: /\.feature/ });
-//   const featureFilesList = options.featureFiles.split(',');
-//   featureFilesList.forEach((feature) => {
-//     featurefiles = Object.assign(featurefiles, loadTextFile.loadSync(path.resolve(feature)));
-//   });
-//
-//   Object.keys(featurefiles).forEach((key) => {
-//     const content = String(featurefiles[key] || '', ' ');
-//     result = result.concat(content.match(new RegExp('@[a-z0-9]+', 'g')));
-//   });
-//   return result;
-// }
-//
-// global.getTagsFromFeatureFiles = getTagsFromFeatureFiles();
-
-/**
- * verify the correct tags for scenarios to run
- * ignores non existing tags
- */
-// if (options.tags.length > 0) {
-//   const tagsFound = global.getTagsFromFeatureFiles;
-//   const separateMultipleTags = options.tags[0].split(',');
-//   let separateExcludedTags;
-//
-//   if (options.exclude.length >= 1) {
-//     separateExcludedTags = options.exclude[0].split(',');
-//   }
-//
-//   const correctTags = [];
-//   const correctExcludedTags = [];
-//
-//   for (const tag of separateMultipleTags) {
-//     if (tag[0] !== '@') {
-//       console.error('tags must start with a @');
-//       continue;
-//     }
-//     if (tagsFound.indexOf(tag) === -1) {
-//       console.error(`this tag ${tag} does not exist`);
-//       continue;
-//     }
-//     correctTags.push(tag);
-//   }
-//   if (correctTags.length === 0) {
-//     process.exit();
-//   }
-//   if (separateExcludedTags && separateExcludedTags.length >= 1) {
-//     for (const tag of separateExcludedTags) {
-//       if (tag[0] !== '@') {
-//         console.error('tags must start with a @');
-//         continue;
-//       }
-//       if (tagsFound.indexOf(tag) === -1) {
-//         console.error(`this tag ${tag} does not exist`);
-//         continue;
-//       }
-//       correctExcludedTags.push(tag);
-//     }
-//   }
-//
-//   let resultingString;
-//
-//   if (correctTags.length > 1) {
-//     const multipleTagsCommand = correctTags.reduce((acc, currentTag) => {
-//       resultingString = `${acc} or ${currentTag}`;
-//     });
-//
-//     if (correctExcludedTags.length >= 1) {
-//       const excludedCommand = correctExcludedTags.reduce((acc, currentTag) => {
-//         resultingString = `${acc} and not ${currentTag}`;
-//       });
-//
-//       resultingString = `${multipleTagsCommand} and not ${excludedCommand}`;
-//     }
-//
-//     global.resultingString = resultingString;
-//   } else {
-//     switch (correctExcludedTags.length) {
-//       case 0: {
-//         resultingString = correctTags[0];
-//         break;
-//       }
-//
-//       case 1: {
-//         resultingString = `${correctTags[0]} and not ${correctExcludedTags[0]}`;
-//         break;
-//       }
-//
-//       default: {
-//         const excludedCommand = correctExcludedTags.reduce((acc, currentTag) => {
-//           resultingString = `${acc} and not ${currentTag}`;
-//         });
-//         resultingString = `${correctTags[0]} and not ${excludedCommand}`;
-//         break;
-//       }
-//     }
-//     global.resultingString = resultingString;
-//   }
-// }
-
 /** specify the feature files folder (this must be the first argument for Cucumber)
  specify the feature files to be executed */
 if (options.featureFiles) {
@@ -443,37 +235,14 @@ if (options.browser) {
 
 /** execute cucumber Cli */
 klassiCli().then(async (succeeded) => {
-  // if (dryRun === false) {
-  //   if (!succeeded) {
-  //     await module.exports.cucumberCli().then(async () => {
-  //       await process.exit(1);
-  //     });
-  //   } else {
-      await module.exports.cucumberCli();
-    // }
-  // }
+   await module.exports.cucumberCli();
 });
 
 async function cucumberCli() {
-  // if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
-  //   await browser.pause(DELAY_2s).then(async () => {
-  //     await helpers.klassiReporter();
-  //   });
-  // } else if (resultingString !== '@s3load') {
     await browser.pause(DELAY_2s).then(async () => {
       await helpers.klassiReporter();
     });
-  // }
-  await browser.pause(DELAY_5s);
-  /**
-   * send email with the report to stakeholders after test run
-   */
-  // if (email === true) {
-  //   await browser.pause(DELAY_2s).then(async () => {
-  //     await helpers.klassiEmail();
-  //     await browser.pause(DELAY_3s);
-  //   });
-  // }
+  await browser.pause(DELAY_3s);
 }
 
 module.exports = { cucumberCli };

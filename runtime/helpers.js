@@ -7,17 +7,10 @@
  */
 const fs = require('fs-extra');
 const path = require('path');
-// const pactumJs = require('pactum');
-// const loadConfig = require('./configLoader');
-// const verify = require('./imageCompare');
-// const { createWorker } = require('tesseract.js');
 
 const envName = env.envName.toLowerCase();
 
 let elem;
-let getMethod;
-let resp;
-let modID;
 
 module.exports = {
   /**
@@ -50,7 +43,7 @@ module.exports = {
     /**
      * grab the userAgent details from the loaded url
      */
-    await helpers.getUserAgent();
+    // await helpers.getUserAgent();
     cucumberThis.attach(`loaded url: ${url}`);
   },
 
@@ -130,57 +123,6 @@ module.exports = {
   },
 
   /**
-   * Visual comparison function
-   * @param fileName
-   * @returns {Promise<void>}
-   */
-  compareImage: async (fileName) => {
-    await verify.assertion(fileName);
-    await verify.value();
-    await verify.pass();
-  },
-
-  /**
-   * This take an image of a page or an element on a page
-   * fileName only = a whole page image
-   * fileName + elementSnapshot = take an image of an element on the page
-   * @param fileName {string}
-   * @param elementSnapshot {any}
-   * @param elementsToHide {string}
-   * @returns {Promise<void>}
-   */
-  takeImage: async (fileName, elementSnapshot, elementsToHide = '') => {
-    await verify.takePageImage(fileName, elementSnapshot, elementsToHide);
-    await browser.pause(DELAY_500ms);
-  },
-
-  /**
-   * hideElemements hide elements
-   * @param selectors
-   */
-  hideElements: async (selectors) => {
-    // if arg is no array make it one
-    selectors = typeof selectors === 'string' ? [selectors] : selectors;
-    for (let i = 0; i < selectors.length; i++) {
-      const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '0')`;
-      await browser.execute(script);
-    }
-  },
-
-  /**
-   * showElemements show elements
-   * @param selectors
-   */
-  showElements: async (selectors) => {
-    // if arg is no array make it one
-    selectors = typeof selectors === 'string' ? [selectors] : selectors;
-    for (let i = 0; i < selectors.length; i++) {
-      const script = `document.querySelectorAll('${selectors[i]}').forEach(element => element.style.opacity = '1')`;
-      await browser.execute(script);
-    }
-  },
-
-  /**
    * Get the current date dd-mm-yyyy
    * @returns {string|*}
    */
@@ -197,25 +139,6 @@ module.exports = {
       mm = `0${mm}`;
     }
     return `${dd}-${mm}-${yyyy}`;
-  },
-
-  /**
-   * Get the current date yyyy-mm-dd for the s3 bucket folder
-   * @returns {string|*}
-   */
-  s3BucketCurrentDate() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
-
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    return `${yyyy}-${mm}-${dd}`;
   },
 
   reportDateTime() {
@@ -247,35 +170,6 @@ module.exports = {
       milliseconds = `0${milliseconds}`;
     }
     return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
-  },
-
-  emailReportDateTime() {
-    const $today = new Date();
-    const $yesterday = $today;
-    $yesterday.setDate($today.getDate() - 1);
-    let dd = $yesterday.getDate();
-    let mm = $yesterday.getMonth() + 1; // January is 0!
-    const yyyy = $yesterday.getFullYear();
-    let hours = $yesterday.getHours();
-    let minutes = $yesterday.getMinutes();
-    let seconds = $yesterday.getSeconds();
-
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    if (hours < 10) {
-      hours = `0${hours}`;
-    }
-    if (minutes < 10) {
-      minutes = `0${minutes}`;
-    }
-    if (seconds < 10) {
-      seconds = `0${seconds}`;
-    }
-    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
   },
 
   /**
@@ -323,134 +217,6 @@ module.exports = {
       console.error(`There is a reporting system error: ${err.stack}`);
       throw err;
     }
-  },
-
-  // /**
-  //  * ========== EMAIL FUNCTIONALITY ==========
-  //  *   Sends an Email to the concerned users with the log and the test report
-  //  */
-  // klassiEmail() {
-  //   try {
-  //     return require('./mailer').klassiSendMail();
-  //   } catch (err) {
-  //     console.error(`This is a Email system error: ${err.stack}`);
-  //     throw err;
-  //   }
-  // },
-
-  // /**
-  //  * API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
-  //  * @param url
-  //  * @param method
-  //  * @param auth
-  //  * @param body
-  //  * @param status
-  //  * @returns {Promise<*>}
-  //  */
-  // apiCall: async (url, method, auth, body) => {
-  //   const options = {
-  //     url,
-  //     method,
-  //     auth,
-  //     headers: {
-  //       Authorization: `Bearer ${auth}`,
-  //       'content-Type': 'application/json',
-  //     },
-  //     body,
-  //   };
-  //   if (method === 'GET') {
-  //     resp = await pactumJs.spec().get(options.url).withRequestTimeout(DELAY_10s).expectStatus(200).toss();
-  //     getMethod = resp;
-  //   }
-  //
-  //   if (method === 'PUT') {
-  //     resp = await pactumJs
-  //       .spec()
-  //       .put(options.url)
-  //       .withHeaders(options.headers)
-  //       .withBody(options.body)
-  //       .withRequestTimeout(DELAY_10s)
-  //       .expectStatus(200);
-  //   }
-  //
-  //   if (method === 'POST') {
-  //     resp = await pactumJs
-  //       .spec()
-  //       .post(options.url)
-  //       .withHeaders(options.headers)
-  //       .withBody(options.body)
-  //       .withRequestTimeout(DELAY_10s)
-  //       .expectStatus(200);
-  //   }
-  //
-  //   if (method === 'DELETE') {
-  //     resp = await pactumJs
-  //       .spec()
-  //       .post(options.url)
-  //       .withHeaders(options.headers)
-  //       .withBody(options.body)
-  //       .withRequestTimeout(DELAY_10s)
-  //       .expectStatus(200);
-  //   }
-  // },
-  //
-  // /**
-  //  * this stores the content of the APIs GET call
-  //  * @returns {*}
-  //  */
-  // getContent() {
-  //   return getMethod;
-  // },
-
-  // /**
-  //  * function for recording total errors from the Accessibility test run
-  //  * @param pageName
-  //  * @param count
-  //  * @returns {Promise<void>}
-  //  */
-  // accessibilityReport: async (pageName, count = false) => {
-  //   const datatime = helpers.reportDateTime();
-  //   await browser.pause(DELAY_1s).then(() => {
-  //     accessibilityLib.getAccessibilityReport(pageName);
-  //     console.log(
-  //       'this is a place holder for html links ============ ',
-  //       path.resolve(
-  //         paths.reports,
-  //         browserName,
-  //         envName,
-  //         'accessibilityReport',
-  //         `${pageName}-${browserName}_${datatime}.html`
-  //       )
-  //     );
-  //   });
-  //
-  //   await module.exports.accessibilityError(count);
-  // },
-  // /**
-  //  * function for recording total errors from the Accessibility test run
-  //  */
-  // accessibilityError(count) {
-  //   const totalError = accessibilityLib.getAccessibilityTotalError();
-  //   const etotalError = accessibilityLib.getAccessibilityError();
-  //   if (totalError > 0) {
-  //     cucumberThis.attach('The accessibility rule violation has been observed');
-  //     cucumberThis.attach(`accessibility error count per page : ${etotalError}`);
-  //     if (count) {
-  //       cucumberThis.attach(`Total accessibility error count : ${totalError}`);
-  //     }
-  //   } else if (totalError <= 0) {
-  //     const violationcount = accessibilityLib.getAccessibilityError();
-  //     assert.equal(violationcount, 0);
-  //   }
-  // },
-
-  /**
-   * getting the video link from lambdatest
-   * @returns {Promise<void>}
-   */
-  ltVideo: async () => {
-    const page = require('./getVideoLinks');
-    await page.getVideoList();
   },
 
   /**
@@ -553,187 +319,6 @@ module.exports = {
     return randomNumber;
   },
 
-  /**
-   * clicks an element (or multiple if present) that is not visible,
-   * useful in situations where a menu needs a hover before a child link appears
-   * @param {string} selector used to locate the elements
-   * @param {string} text to match inner content (if present)
-   * @example
-   *    helpers.clickHiddenElement('nav[role='navigation'] ul li a','School Shoes');
-   *    @deprecated
-   */
-  clickHiddenElement(selector, textToMatch) {
-    // TODO: Find a better way to do this
-    /**
-     * method to execute within the DOM to find elements containing text
-     */
-    function clickElementInDom(query, content) {
-      /**
-       * get the list of elements to inspect
-       */
-      const elements = document.querySelectorAll(query);
-      /**
-       * workout which property to use to get inner text
-       */
-      const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
-
-      for (let i = 0, l = elements.length; i < l; i++) {
-        /**
-         * If we have content, only click items matching the content
-         */
-        if (content) {
-          if (elements[i][txtProp] === content) {
-            elements[i].click();
-          }
-        } else {
-          /**
-           * otherwise click all
-           */
-          elements[i].click();
-        }
-      }
-    }
-
-    /**
-     * grab the matching elements
-     */
-    return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
-  },
-
-  // /**
-  //  * this adds extensions to Chrome Only
-  //  * @param extName
-  //  * @returns {Promise<*>}
-  //  */
-  // chromeExtension: async (extName) => {
-  //   await browser.pause();
-  //   await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
-  //   const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
-  //   if (script === true) {
-  //     elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
-  //     await elem[1].isExisting();
-  //     await elem[1].scrollIntoView();
-  //     const elem1 = await elem[1].getText();
-  //     if (elem1 === 'I agree') {
-  //       await elem[1].click();
-  //       await browser.pause(DELAY_300ms);
-  //     }
-  //   }
-  //   elem = await browser.$('[role="row"] > div:nth-child(1)');
-  //   await elem.click();
-  //   await browser.pause(DELAY_200ms);
-  //   const str = await browser.getUrl();
-  //   const str2 = await str.split('/');
-  //   modID = str2[6];
-  //   return modID;
-  // },
-
-  // /**
-  //  * This is the function for installing modeHeader
-  //  * @param extName
-  //  * @param username
-  //  * @param password
-  //  * @returns {Promise<void>}
-  //  */
-  // modHeader: async (extName, username, password) => {
-  //   await helpers.chromeExtension(extName);
-  //   console.log('modID = ', modID);
-  //   // eslint-disable-next-line ui-testing/no-hard-wait
-  //   await browser.pause(3000);
-  //   elem = await browser.$(
-  //     '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]'
-  //   );
-  //   await elem.isExisting();
-  //   await elem.click();
-  //   // eslint-disable-next-line ui-testing/no-hard-wait
-  //   await browser.pause(2000);
-  //   elem = await browser.$('.//a[@href="#Add extension"]');
-  //   await elem.isExisting();
-  //   await elem.click();
-  //   await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
-  //   // eslint-disable-next-line ui-testing/no-hard-wait
-  //   await browser.pause(5000);
-  //   await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
-  //   await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
-  //   await helpers.waitAndClick('//button[@title="Lock to tab"]');
-  // },
-
-  // installMobileApp: async (appName, appPath) => {
-  //   if (env.envName === 'android' || env.envName === 'ios') {
-  //     if (!(await browser.isAppInstalled(appName))) {
-  //       console.log('Installing application...');
-  //       await browser.installApp(appPath);
-  //       assert.isTrue(await browser.isAppInstalled(appName), 'The app was not installed correctly.');
-  //     } else {
-  //       console.log(`The app ${appName} was already installed on the device, skipping installation...`);
-  //       await browser.terminateApp(appName);
-  //     }
-  //   }
-  // },
-  //
-  // uninstallMobileApp: async (appName, appPath) => {
-  //   if (env.envName === 'android' || env.envName === 'ios') {
-  //     if (await browser.isAppInstalled(appName)) {
-  //       console.log(`Uninstalling application ${appName}...`);
-  //       await browser.removeApp(appName);
-  //       assert.isNotTrue(await browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
-  //     } else {
-  //       console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
-  //     }
-  //   }
-  // },
-
-  /**
-   * drag the page into view
-   */
-  pageView: async (selector) => {
-    const elem = await browser.$(selector);
-    await elem.scrollIntoView();
-    await browser.pause(DELAY_200ms);
-    return this;
-  },
-
-  /**
-   * Generates a random 13 digit number
-   * @param length
-   * @returns {number}
-   */
-  randomNumberGenerator(length = 13) {
-    const baseNumber = 10 ** (length - 1);
-    let number = Math.floor(Math.random() * baseNumber);
-    /**
-     * Check if number have 0 as first digit
-     */
-    if (number < baseNumber) {
-      number += baseNumber;
-    }
-    console.log(`this is the number ${number}`);
-    return number;
-  },
-
-  /**
-   * Reformats date string into string
-   * @param dateString
-   * @returns {string}
-   */
-  reformatDateString(dateString) {
-    const months = {
-      '01': 'January',
-      '02': 'February',
-      '03': 'March',
-      '04': 'April',
-      '05': 'May',
-      '06': 'June',
-      '07': 'July',
-      '08': 'August',
-      '09': 'September',
-      10: 'October',
-      11: 'November',
-      12: 'December',
-    };
-    const b = dateString.split('/');
-    return `${b[0]} ${months[b[1]]} ${b[2]}`;
-  },
 
   /**
    * Sorts results by date
@@ -816,18 +401,6 @@ module.exports = {
     await elem.addValue(remoteFilePath);
   },
 
-  readTextFromImage: async (visualBaseline) => {
-    let worker = await createWorker();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    const imagePath = 'artifacts/visual-regression/original/' + browserName + '/' + envName + '/positive/';
-    const {
-      data: { text },
-    } = await worker.recognize(imagePath + visualBaseline);
-    console.log(text);
-    await worker.terminate();
-  },
-
   /**
    * This function makes using expect easier by just passing the assertion type and values
    * it will not fail the test right away but allow the other expects to be executed
@@ -886,13 +459,5 @@ module.exports = {
    */
   assertAdv: async (assertionType, actual, expected = '', message = '', operator = '') => {
     await helpers.expectAdv(assertionType, actual, expected, message, operator);
-  },
-
-  switchWindowTabs: async (tabId) => {
-    const handles = await browser.getWindowHandles();
-    if (handles.length > tabId) {
-      await browser.switchToWindow(handles[tabId]);
-      await browser.pause(DELAY_1s);
-    }
   },
 };
