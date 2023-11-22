@@ -177,7 +177,7 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 ```
 
 ## Demo
-To see a demo of the framework without installing it, use this link [HERE]
+To see a demo of the framework without installing it, use this link [HERE](https://github.com/klassijs/klassi-example-test-suite)
 
 ## Bugs
 
