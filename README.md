@@ -17,7 +17,7 @@
     <a href="https://webdriver.io/docs/api.html">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/webdriverio-docs-40b5a4">
     </a> <br>
-klassi-Js stands out as a debuggable BDD (Behavior-Driven Development) JavaScript test automation framework, Built on <a href="http://webdriver.io/"> webdriver.io <a/> (Next-gen browser and mobile automation test framework for Node.js)</a> and <a href="https://github.com/cucumber/cucumber-js"> cucumber-js </a> and distinguished by its integration of AI for advanced debugging functionalities. This incorporation of artificial intelligence elevates the framework's capabilities, providing a streamlined and efficient approach to test automation.
+klassi-Js is a debuggable BDD (Behavior-Driven Development) JavaScript test automation framework, Built on <a href="http://webdriver.io/"> webdriver.io <a/> (Next-gen browser and mobile automation test framework for Node.js)</a> and <a href="https://github.com/cucumber/cucumber-js"> cucumber-js </a> and distinguished by its integration of AI for advanced debugging functionalities. This incorporation of artificial intelligence elevates the framework's capabilities, providing a streamlined and efficient approach to test automation.
 </p>
  
 
