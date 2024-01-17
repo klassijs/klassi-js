@@ -20,6 +20,7 @@ const ChromeDriver = require('./drivers/chromeDriver');
 
 let driver = {};
 global.world = this;
+
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
@@ -59,6 +60,23 @@ Before(function () {
 global.startDateTime = helpers.getStartDateTime();
 
 /**
+ * This is to control closing the browser or keeping it open after each scenario
+ * @returns {Promise<void>|*}
+ */
+After(async (scenario) => {
+  if (
+      scenario.result.status === Status.FAILED ||
+      scenario.result.status === Status.PASSED ||
+      scenario.result.status === Status.SKIPPED
+  )
+    if (global.browserOpen === false) {
+      return browser.deleteSession();
+    } else {
+      return Promise.resolve();
+    }
+})
+
+/**
  * get executed only if there is an error within a scenario
  * will not take an image if it's an API test
  */
@@ -72,4 +90,3 @@ After(async function (scenario) {
     });
   }
 });
-
