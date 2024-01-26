@@ -107,6 +107,7 @@ program
   .description(pjson.description)
   .option('--browser <name>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
+  .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json'.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
@@ -125,6 +126,7 @@ program
     collectPaths,
     []
   )
+  .option('--browserOpen', 'keep the browser open after each scenario. defaults to false', false)
   .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison', false)
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver', false)
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo', false)
@@ -145,6 +147,7 @@ const settings = {
 global.settings = settings;
 global.BROWSER_NAME = options.browser;
 global.headless = options.headless;
+global.browserOpen = options.browserOpen;
 /**
  * Setting envConfig and dataConfig to be global, used within the world.js when building browser
  * @type {string}

@@ -36,7 +36,7 @@
     "url": "https://github.com/klassijs/klassi-js/issues"
   },
   "scripts": {
-    "dev": "node index.js --tags",
+    "dev": "node index.js --disableReport --tags",
     "pkgcheck": "yarn install --check-files"
   },
   "dependencies": {
