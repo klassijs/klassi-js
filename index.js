@@ -126,6 +126,7 @@ program
     collectPaths,
     []
   )
+  .option('--updateBaselineImage', 'automatically update the baseline image after a failed comparison')
   .option('--browserOpen', 'keep the browser open after each scenario. defaults to false', false)
   .option('--wdProtocol', 'the switch to change the browser option from devtools to webdriver', false)
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo', false)
