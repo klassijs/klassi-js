@@ -1,13 +1,14 @@
 /**
- * Klassi-js Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
-const { throwCollectedErrors } = require('klassijs-assertion-tool');
+const getRemote = require('./getRemote');
 const data = require('./helpers');
-const { filterQuietTags } = require('../cucumber')
+const { filterQuietTags } = require('../cucumber');
 const { getTagsFromFeatureFiles } = require('../index');
+const { throwCollectedErrors } = require('klassijs-assertion-tool');
 
 /**
  * This is the Global date functionality
@@ -18,13 +19,15 @@ global.date = data.currentDate();
  * Driver environment variables
  * @type {function(*): {}}
  */
+// const MultiDriver = require('./drivers/multiDriver');
 const ChromeDriver = require('./drivers/chromeDriver');
 const FirefoxDriver = require('./drivers/firefoxDriver');
-// const LambdaTestDriver = require('./drivers/lambdatestDriver');
+const LambdaTestDriver = require('./drivers/lambdatestDriver');
+
+const remoteService = getRemote(global.settings.remoteService);
 
 let driver = {};
 global.world = this;
-
 /**
  * create the web browser based on global let set in index.js
  * @returns {{}}
@@ -34,6 +37,15 @@ async function getDriverInstance() {
 
   astellen.set('BROWSER_NAME', BROWSER_NAME);
   const options = {};
+  if (remoteService && remoteService.type === 'lambdatest') {
+    astellen.set('BROWSER_NAME', global.settings.extraSettings);
+    console.log('extraSettings via astellen GET', astellen.get('BROWSER_NAME'));
+    const configType = global.remoteConfig;
+    assert.isString(configType, 'LambdaTest requires a config type e.g. browserName.json');
+    driver = LambdaTestDriver(options, configType);
+    return driver;
+  }
+  assert.isNotEmpty(browser, 'Browser must be defined');
 
   const getBrowser = {
     firefox: () => (driver = FirefoxDriver(options)),
@@ -68,6 +80,16 @@ Before(function () {
 global.startDateTime = data.getStartDateTime();
 
 /**
+ * executed before each scenario
+ */
+Before(async (scenario) => {
+  const { browser } = global;
+  if (remoteService && remoteService.type === 'lambdatest') {
+    await browser.execute(`lambda-name=${scenario.pickle.name}`);
+  }
+});
+
+/**
  * This verifies that the current scenario to be run includes the @wip or @skip tags
  * and skips the test if that's the case.
  */
@@ -88,6 +110,22 @@ Before((scenario) => {
 });
 
 /**
+ * LambdaTest Only
+ * executed ONLY on failure of a scenario to get the video link
+ * from lambdatest when it fails for the report
+ */
+After(async (scenario) => {
+  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
+    await helpers.ltVideo();
+    // eslint-disable-next-line no-undef
+    const vidLink = await videoLib.getVideoId();
+    cucumberThis.attach(
+      `video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`,
+    );
+  }
+});
+
+/**
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void>|*}
  */
@@ -99,10 +137,8 @@ this.browserOpen = function () {
   }
 };
 
-
 /**
- * This is to control closing the browser or keeping it open after each scenario
- * @returns {Promise<void>|*}
+ * executed after each scenario - always closes the browser to ensure clean browser not cached)
  */
 After(async (scenario) => {
   if (
@@ -113,9 +149,28 @@ After(async (scenario) => {
     scenario.result.status === Status.AMBIGUOUS ||
     scenario.result.status === Status.UNDEFINED ||
     scenario.result.status === Status.PENDING
-  )
-    return this.browserOpen();
-})
+  ) {
+    if (remoteService && remoteService.type === 'lambdatest') {
+      if (scenario.result.status === 'FAILED') {
+        await browser.execute('lambda-status=failed');
+      } else if (scenario.result.status === Status.PASSED) {
+        await browser.execute('lambda-status=passed');
+      } else if (scenario.result.status === Status.SKIPPED) {
+        await browser.execute('lambda-status=skipped');
+      } else if (scenario.result.status === Status.UNKNOWN) {
+        await browser.execute('lambda-status=unknown');
+      } else if (scenario.result.status === Status.AMBIGUOUS) {
+        await browser.execute('lambda-status=ignored');
+      } else if (scenario.result.status === Status.UNDEFINED) {
+        await browser.execute('lambda-status=error');
+      } else if (scenario.result.status === Status.PENDING) {
+        await browser.execute('lambda-status=skipped');
+      }
+      return this.browserOpen();
+    }
+  }
+  return this.browserOpen();
+});
 
 After(async function () {
   // Pass the total assertion errors after each scenario to the report

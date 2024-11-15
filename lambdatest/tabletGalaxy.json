@@ -1,0 +1,11 @@
+{
+  "projectName": "OAF-Example-Test",
+  "build": "OAF-Example-Test",
+  "platform": "Android",
+  "deviceName": "Galaxy Tab S8+",
+  "buildTags": [],
+  "platformVersion": "13",
+  "deviceOrientation": "LANDSCAPE",
+  "visual": true,
+  "autoHeal": true
+}

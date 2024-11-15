@@ -1,13 +1,15 @@
 /**
- * Klassi-js Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const path = require('path');
 const nodemailer = require('nodemailer');
 const { SESClient } = require('@aws-sdk/client-ses');
 const { defaultProvider } = require('@aws-sdk/credential-provider-node');
+const getRemote = require('./getRemote');
 const { astellen } = require('klassijs-astellen');
 
+const remoteService = getRemote(settings.remoteService);
 const envName = env.envName.toLowerCase();
 const emailDateTime = helpers.emailReportDateTime();
 
@@ -21,10 +23,42 @@ const sesClient = new SESClient({
 });
 
 module.exports = {
-  klassiSendMail: async () => {
+  oupSendMail: async () => {
     const browserName = astellen.get('BROWSER_NAME');
     const date = helpers.currentDate();
     let fileList = [];
+
+    if (remoteService && remoteService.type === 'lambdatest') {
+      if (projectName === 'OUP JOURNALS') {
+        fileList.push(
+          {
+            filename: `testReport-${date}.html`,
+            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
+          },
+          {
+            filename: 'urlData.xlsx',
+            path: path.resolve(`${paths.reports}/${browserName}/${envName}/urlData.xlsx`),
+          },
+        );
+      }
+
+      if (emailData.AccessibilityReport === 'Yes') {
+        fileList = fileList.concat(accessibilityReportList);
+      }
+    } else {
+      if (projectName === 'OUP JOURNALS') {
+        fileList.push(
+          {
+            filename: `testReport-${date}.html`,
+            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
+          },
+          {
+            filename: 'urlData.xlsx',
+            path: path.resolve(`${paths.reports}/${browserName}/${envName}/urlData.xlsx`),
+          },
+        );
+      }
+    }
 
     const devTeam = emailData.nameList;
 
@@ -41,7 +75,7 @@ module.exports = {
 
     const mailOptions = {
       to: devTeam,
-      from: 'Klassi-Admin <QAAutoTest@klassi.co.uk>',
+      from: 'OUP-QATEST <QAAutoTest@oup.com>',
       subject: `${projectName} ${reportName}-${emailDateTime}`,
       alternative: true,
       attachments: fileList,

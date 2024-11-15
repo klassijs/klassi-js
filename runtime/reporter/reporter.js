@@ -1,5 +1,5 @@
 /**
- * Klassi-js Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const fs = require('fs-extra');
@@ -9,9 +9,9 @@ const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
 const { astellen } = require('klassijs-astellen');
 
-// const s3Upload = require('../s3Upload');
-// const getRemote = require('../getRemote');
-// const remoteService = getRemote(settings.remoteService);
+const s3Upload = require('../s3Upload');
+const getRemote = require('../getRemote');
+const remoteService = getRemote(settings.remoteService);
 
 console.log('browserName in reporter.js: ', browserName);
 let resp;
@@ -38,8 +38,6 @@ module.exports = {
       let jsonDir = path.resolve(paths.reports, browserName, envName);
       let jsonComDir = path.resolve(paths.reports, browserName, envName + 'Combine');
 
-      console.log('jsonDir =================================== : ', jsonDir);
-      console.log('jsonComDir =================================== : ', jsonComDir);
       global.endDateTime = helpers.getEndDateTime();
 
       const reportOptions = {
@@ -68,20 +66,20 @@ module.exports = {
         await fs.copySync(jsonDir, jsonComDir);
         let jsonfile = path.resolve(paths.reports, browserName, envName + 'Combine', `${reportName}-${dateTime}.json`);
         await browser.pause(DELAY_300ms);
-        // if (resultingString === '@s3load') {
-        //   fs.remove(jsonfile, (err) => {
-        //     if (err) return console.error(err);
-        //   });
-        //   await browser.pause(DELAY_500ms);
-        //   await reporter.generate(reportOptions);
-        //   await browser.pause(DELAY_3s).then(async () => {
-        //     await s3Upload.s3Upload();
-        //     await browser.pause(DELAY_5s);
-        //   });
-        // } else {
-        await browser.pause(DELAY_500ms);
-        await reporter.generate(reportOptions);
-        // }
+        if (resultingString === '@s3load') {
+          fs.remove(jsonfile, (err) => {
+            if (err) return console.error(err);
+          });
+          await browser.pause(DELAY_500ms);
+          await reporter.generate(reportOptions);
+          await browser.pause(DELAY_3s).then(async () => {
+            await s3Upload.s3Upload();
+            await browser.pause(DELAY_5s);
+          });
+        } else {
+          await browser.pause(DELAY_500ms);
+          await reporter.generate(reportOptions);
+        }
       }
       /** grab the file data for xml creation */
       let jsonFile = path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);

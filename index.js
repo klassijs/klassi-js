@@ -1,7 +1,3 @@
-/**
- * Klassi-js Automated Testing Tool
- * Created by Larry Goddard
- */
 require('dotenv').config();
 const fs = require('fs-extra');
 const merge = require('merge');
@@ -28,21 +24,19 @@ const { astellen } = require('klassijs-astellen');
 const program = new Command();
 
 const pjson = require('./package.json');
+const takeReportBackup = require('./runtime/takeReportBackup');
 
-async function klassiCli() {
+async function oupCli() {
   try {
     const { runConfiguration } = await loadConfiguration();
     const { success } = await runCucumber(runConfiguration);
     return success;
   } catch (error) {
-    console.error('Error in klassiCli:', error);
+    console.error('Error in oupCli:', error);
     process.exit(1);
   }
 }
 
-/**
- * all assertions for variable testing
- */
 (async () => {
   const chai = await import('chai');
   global.assert = chai.assert;
@@ -115,13 +109,14 @@ program
   .option('--browser <name>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
+  .option('--email', 'email for sending reports to stakeholders', false)
   .option('--featureFiles <paths>', 'comma-separated list of feature files to run defaults to ./features', 'features')
   .option('--reportName <optional>', 'basename for report files e.g. use report for report.json'.reportName)
   .option('--env <paths>', 'name of environment to run the framework / test in. default to test', 'test')
   .option(
     '--sharedObjects <paths>',
     'path to shared objects (repeatable). defaults to ./shared-objects',
-    'shared-objects'
+    'shared-objects',
   )
   .option('--pageObjects <paths>', 'path to page objects. defaults to ./page-objects', 'page-objects')
   .option('--reports <paths>', 'output path to save reports. defaults to ./reports', 'reports')
@@ -131,7 +126,7 @@ program
     '--tags <EXPRESSION>',
     'only execute the features or scenarios with tags matching the expression (repeatable)',
     collectPaths,
-    []
+    [],
   )
   .option(
     '--exclude <EXPRESSION>',
@@ -140,7 +135,9 @@ program
     [],
   )
   .option('--baselineImageUpdate', 'automatically update the baseline image after a failed comparison', false)
+  .option('--remoteService <optional>', 'which remote browser service, if any, should be used e.g. lambdatest', '')
   .option('--browserOpen', 'keep the browser open after each scenario. defaults to false', false)
+  .option('--extraSettings <optional>', 'further piped configs split with pipes', '')
   .option('--dlink', 'the switch for projects with their test suite, within a Test folder of the repo', false)
   .option(
     '--dryRun',
@@ -154,21 +151,24 @@ program
   )
   .option('--useProxy', 'This is in-case you need to use the proxy server while testing', false)
   .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
-  .option('--isCI', 'This is to stop the html from being created while running in the CI', false);
+  .option('--isCI', 'This is to stop the html from being created while running in the CI', false)
+  .option('--reportBackup', 'This to clear the "reports" folder & keep the record in back-up folder', false)
+  .option('--reportClear', 'This to clear the "reports" folder', false);
 
 program.parse(process.argv);
 const options = program.opts();
 
 program.on('--help', () => {
-  console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
+  console.info('For more details please visit https://github.com/OUP/OAF#readme\n');
 });
-
 
 const settings = {
   projectRoot: options.context,
   reportName: options.reportName,
   disableReport: options.disableReport,
-  baselineImageUpdate: options.baselineImageUpdate
+  remoteService: options.remoteService,
+  extraSettings: options.extraSettings,
+  baselineImageUpdate: options.baselineImageUpdate,
 };
 
 global.settings = settings;
@@ -177,16 +177,13 @@ global.headless = options.headless;
 global.browserOpen = options.browserOpen;
 global.dryRun = options.dryRun;
 global.email = options.email;
+global.s3Date = options.s3Date;
 global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
 global.isCI = options.isCI;
 
 astellen.set('baselineImageUpdate', options.baselineImageUpdate);
 
-/**
- * Setting envConfig and dataConfig to be global, used within the world.js when building browser
- * @type {string}
- */
 const getConfig = (configName) => cosmiconfigSync(configName).search().config;
 const { environment } = getConfig('envConfig');
 const { dataConfig } = getConfig('dataConfig');
@@ -199,12 +196,31 @@ global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
 global.reportName = process.env.REPORT_NAME || 'Automated Report';
 global.tagNames = dataConfig.tagNames;
 
-/** adding global helpers */
 const helpers = require('./runtime/helpers');
 global.helpers = helpers;
 
 global.date = helpers.currentDate();
 global.dateTime = helpers.reportDateTime();
+
+if (!global.isCI) {
+  if (options.reportBackup) {
+    takeReportBackup.backupReport();
+  }
+  if (options.reportClear) {
+    takeReportBackup.clearReport();
+  }
+}
+
+if (options.remoteService && options.extraSettings) {
+  const additionalSettings = parseRemoteArguments(options.extraSettings);
+  global.remoteConfig = additionalSettings.config;
+  if (additionalSettings.tags) {
+    if (options.tags.length !== 0) {
+      throw new Error('Cannot set two types of tags - either use --extraSettings or --tags');
+    }
+    options.tags = [additionalSettings.tags];
+  }
+}
 
 function getProjectPath(objectName) {
   return path.resolve(settings.projectRoot + options[objectName]);
@@ -217,14 +233,9 @@ const paths = {
   sharedObjects: getProjectPath('sharedObjects'),
 };
 
-/** expose settings and paths for global use */
 global.paths = paths;
 
-/**
- * Adding Global browser
- * Adding Accessibility folder at project level
- */
-global.browserName = settings.remoteConfig || BROWSER_NAME;
+global.browserName = global.remoteConfig || BROWSER_NAME;
 console.log('Starting tests with the following browserName:', browserName);
 console.log('Starting tests with the following remoteConfig:', global.remoteConfig);
 
@@ -242,10 +253,13 @@ fs.ensureDirSync(reports + 'Combine', (err) => {
   }
 });
 
-/**
- * add path to import shared objects
- * @type {string}
- */
+const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
+if (fs.existsSync(videoLib)) {
+  global.videoLib = require(videoLib);
+} else {
+  console.error('No Video Lib');
+}
+
 const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
   const allDirs = {};
@@ -254,10 +268,6 @@ if (fs.existsSync(sharedObjectsPath)) {
   global.sharedObjects = sharedObjects;
 }
 
-/**
- * add path to import page objects
- * @type {string}
- */
 const pageObjectPath = path.resolve(paths.pageObjects);
 if (fs.existsSync(pageObjectPath)) {
   global.pageObjects = requireDir(pageObjectPath, {
@@ -363,7 +373,6 @@ if (options.featureFiles) {
   global.featureFiles = splitFeatureFiles;
 }
 
-
 // TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
 /** Add split to run multiple browsers from the command line */
 if (options.browser) {
@@ -373,38 +382,40 @@ if (options.browser) {
   });
 }
 
-/** execute cucumber Cli */
-klassiCli().then(async (succeeded) => {
-  await module.exports.cucumberCli();
-  // if (dryRun === false) {
-  //   if (!succeeded) {
-  //     await cucumberCli().then(async () => {
-  //       await process.exit(1);
-  //     });
-  //   } else {
-  //     await cucumberCli().then(async () => {
-  //       await browser.pause(DELAY_2s).then(async () => {
-  //         console.log('Test run completed successfully');
-  //         await process.exit(0);
-  //       });
-  //     });
-  //   }
-  // }
+oupCli().then(async (succeeded) => {
+  if (dryRun === false) {
+    if (!succeeded) {
+      await cucumberCli().then(async () => {
+        await process.exit(1);
+      });
+    } else {
+      await cucumberCli().then(async () => {
+        await browser.pause(DELAY_2s).then(async () => {
+          console.log('Test run completed successfully');
+          await process.exit(0);
+        });
+      });
+    }
+  }
 });
 
 async function cucumberCli() {
-  // if (resultingString !== '@s3load') {
-  //   await browser.pause(DELAY_2s).then(async () => {
-  await helpers.klassiReporter();
-  // });
-  // }
-  await browser.pause(DELAY_3s);
-  // if (email === true) {
-  //   await browser.pause(DELAY_2s).then(async () => {
-  //     await helpers.klassiEmail();
-  //     await browser.pause(DELAY_3s);
-  //   });
-  // }
+  if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
+    await browser.pause(DELAY_2s).then(async () => {
+      await helpers.oupReporter();
+    });
+  } else if (resultingString !== '@s3load') {
+    await browser.pause(DELAY_2s).then(async () => {
+      await helpers.oupReporter();
+    });
+  }
+  await browser.pause(DELAY_5s);
+  if (email === true) {
+    await browser.pause(DELAY_2s).then(async () => {
+      await helpers.oupEmail();
+      await browser.pause(DELAY_3s);
+    });
+  }
 }
 
-module.exports = { cucumberCli, getTagsFromFeatureFiles };
+module.exports = { getTagsFromFeatureFiles };

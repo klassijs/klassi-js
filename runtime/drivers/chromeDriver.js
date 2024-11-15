@@ -1,5 +1,5 @@
 /**
- * Klassi-js Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const { remote } = require('webdriverio');
@@ -48,7 +48,7 @@ module.exports = async function chromeDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://hostName:8080',
+      httpProxy: 'http://ouparray.oup.com:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };

@@ -1,0 +1,15 @@
+{
+    "build" : "OAF",
+    "name" : "OAF Mobile",
+    "platformName" : "ios",
+    "deviceName": "iPhone 12",
+    "platformVersion" : "15",
+    "appiumVersion" : "1.19.1",
+    "automationName": "xcuitest",
+    "buildTags": [],
+    "console" : "true",
+    "network" : true,
+    "autoHeal": true
+}
+
+

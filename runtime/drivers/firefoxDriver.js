@@ -1,5 +1,5 @@
 /**
- * Klassi-js Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const { remote } = require('webdriverio');

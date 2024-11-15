@@ -1,5 +1,5 @@
 /**
- * klassi Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const fs = require('fs-extra');
@@ -273,7 +273,7 @@ module.exports = {
     return this.getCurrentDateTime();
   },
 
-  klassiReporter() {
+  oupReporter() {
     try {
       return require('./reporter/reporter').reporter();
     } catch (err) {
@@ -286,9 +286,9 @@ module.exports = {
    * ========== EMAIL FUNCTIONALITY ==========
    *   Sends an Email to the concerned users with the log and the test report
    */
-  klassiEmail() {
+  oupEmail() {
     try {
-      return require('./mailer').klassiSendMail();
+      return require('./mailer').oupSendMail();
     } catch (err) {
       console.error(`This is the Email System error: ${err.stack}`);
       throw err;

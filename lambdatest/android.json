@@ -1,0 +1,17 @@
+{
+    "project": "OAF",
+    "build": "OAF Mobile",
+    "platformName" : "Android",
+    "browserName": "",
+    "deviceName" : "Galaxy Tab S8+",
+    "platformVersion" : "13",
+    "appiumVersion" : "1.17.0",
+    "deviceOrientation" : "landscape",
+    "isRealMobile": true,
+    "networkThrottling": "Regular 4G",
+    "buildTags": [],
+    "console" : "true",
+    "network" : true,
+    "visual" : true,
+    "autoHeal": true
+}
