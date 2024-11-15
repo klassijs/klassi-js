@@ -1,0 +1,40 @@
+Projects,Branch,Folder,PlutoraName
+jlops-test-suite, main,,JLOPS
+elt_lti_management-js,master,,OLB LTI
+elt_tao-js,main,,TAO Platform (TAO)
+EPS-test-suite,master,,EPS
+elt-oupe-marketing-test-suite, master,We are not using this project
+NGS-Automation_js, develop,We are not using this project //
+oeuk-orb-test-suite,master,,ELT ORB
+mymaths-test-suite,main,,MyMaths
+elt-oet-js,master,,Oxford English Testing (OET)
+bond11plus-test-suite, main,,Bond Online
+oupc-flashcard,develop,test,OUPC Flash Card
+Eduk-owl-test-suite,master,,Oxford OWL
+Eduk-Kerboodle-test-suite,master,,Kerboodle
+AMS-Decommission-Test,main,We are not using this project
+OxfordLearn,main,,DLP Enrolment
+cmm-test-suite,main,,CMM
+oupe-premium-tests,main,,Oxford Premium
+journals_test_suite,main,,Oxford Academic (Journals)
+Britanico-Integration,main,,Britanico
+Testing_SDC-OLB_Automation,master,,Oxford Learner's Bookshelf (OLB)
+elt-eCommerce,master,,ELT_eCommerce
+EltHub-test-suite,main,,ELT_HUB_2023
+oxford-reading-club,main,,Oxford Reading Club (ORC)
+GA-Narnia-Test,master,,Global CMS (Gitana)
+frost-lor-lti-test-suite,main,,Frost - Learning mate
+HigherEd-testsuite, main,,Oxford Learning Link (formerly known as ARC)
+sps-beagle-test,main,,Oxford Publish (SPS)
+SalesforceAutomation,main,,Salesforce
+oup-academic-GAB-test-suite,main,,eCommerce (GAB) - Konakart –  Academic (UK)
+quad-lor-lti-test-Suite,main,,Quad - Learning mate
+eReader-test-suite,main,,eReader Learning mate
+OED100-test-suite,main,,eReader - Learning mate
+dam-test-suite,main,,DAM
+atlas-test-suite,main,,ATLAS
+RVS_Automation,main,,EPS RVS
+USHE-test-suite, main,,As of now no automation requirment in this project
+oxford-advantage-test-suite, main,,Oxford Advantage India
+nextgen-lti-test-suite, main,,Next Gen LTI
+oxfordTestForEnglish-ote, main,,OTE

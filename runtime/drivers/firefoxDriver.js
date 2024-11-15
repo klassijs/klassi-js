@@ -10,8 +10,6 @@ let defaults = {};
 let isApiTest;
 let useProxy = false;
 
-// chromedriver.start();
-
 Before(async () => {
   let result = await filterQuietTags();
   const taglist = resultingString.split(',');
@@ -22,28 +20,20 @@ Before(async () => {
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function chromeDriver(options) {
+module.exports = async function firefoxDriver(options) {
   defaults = {
     logLevel: 'error',
     path: '/',
-    automationProtocol: 'webdriver',
     capabilities: {
-      browserName: 'chrome',
-      'goog:chromeOptions': {
-        args: [
-          '--no-sandbox',
-          '--disable-gpu',
-          '--disable-popup-blocking',
-          'allow-file-access-from-files',
-          'use-fake-device-for-media-stream',
-          'use-fake-ui-for-media-stream',
-        ],
+      browserName: 'firefox',
+      'moz:firefoxOptions': {
+        args: ['--headless', '--disable-popup-blocking', '--disable-gpu'],
       },
     },
   };
 
-  if (options.headless || isApiTest) {
-    defaults.capabilities['goog:chromeOptions'].args.push('--headless', '--disable-extensions');
+  if (options.headless || isApiTest ? '--headless' : '') {
+    defaults.capabilities['moz:firefoxOptions'].args.push('--headless', '--disable-popup-blocking', '--disable-gpu');
   }
 
   if (useProxy) {
@@ -53,15 +43,7 @@ module.exports = async function chromeDriver(options) {
       autodetect: false,
     };
   }
-
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
   await browser.setWindowSize(1280, 1024);
 };
-
-// process.on('exit', async () => {
-//   await browser.pause(DELAY_3s).then(() => {
-//     console.log('Browser closed successfully');
-//     chromedriver.stop();
-//   });
-// });

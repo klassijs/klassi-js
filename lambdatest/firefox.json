@@ -1,0 +1,13 @@
+{
+  "projectName": "OAF",
+  "build": "OAF",
+  "platform" : "Windows 10",
+  "browserName" : "Firefox",
+  "version" : "119.0",
+  "resolution" : "1280x1024",
+  "selenium_version" : "4.13.0",
+  "buildTags": [],
+  "visual" : true,
+  "firefox.driver" : "v0.31.0",
+  "autoHeal": true
+}
