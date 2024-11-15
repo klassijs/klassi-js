@@ -392,10 +392,18 @@ klassiCli().then(async (succeeded) => {
 });
 
 async function cucumberCli() {
+  if (resultingString !== '@s3load') {
     await browser.pause(DELAY_2s).then(async () => {
       await helpers.klassiReporter();
     });
+  }
   await browser.pause(DELAY_3s);
+  if (email === true) {
+    await browser.pause(DELAY_2s).then(async () => {
+      await helpers.oupEmail();
+      await browser.pause(DELAY_3s);
+    });
+  }
 }
 
 module.exports = { getTagsFromFeatureFiles };

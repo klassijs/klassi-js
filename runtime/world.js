@@ -6,7 +6,7 @@ const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
 const { throwCollectedErrors } = require('klassijs-assertion-tool');
 const data = require('./helpers');
-const { filterQuietTags } = require('../cucumber');
+const { filterQuietTags } = require('../cucumber')
 const { getTagsFromFeatureFiles } = require('../index');
 
 /**
@@ -20,7 +20,7 @@ global.date = data.currentDate();
  */
 const ChromeDriver = require('./drivers/chromeDriver');
 const FirefoxDriver = require('./drivers/firefoxDriver');
-const LambdaTestDriver = require('./drivers/lambdatestDriver');
+// const LambdaTestDriver = require('./drivers/lambdatestDriver');
 
 let driver = {};
 global.world = this;
@@ -31,8 +31,10 @@ global.world = this;
  */
 async function getDriverInstance() {
   let browser = BROWSER_NAME;
+
   astellen.set('BROWSER_NAME', BROWSER_NAME);
   const options = {};
+
   const getBrowser = {
     firefox: () => (driver = FirefoxDriver(options)),
     chrome: () => (driver = ChromeDriver(options)),
@@ -104,9 +106,13 @@ this.browserOpen = function () {
  */
 After(async (scenario) => {
   if (
-      scenario.result.status === Status.FAILED ||
-      scenario.result.status === Status.PASSED ||
-      scenario.result.status === Status.SKIPPED
+    scenario.result.status === Status.FAILED ||
+    scenario.result.status === Status.PASSED ||
+    scenario.result.status === Status.SKIPPED ||
+    scenario.result.status === Status.UNKNOWN ||
+    scenario.result.status === Status.AMBIGUOUS ||
+    scenario.result.status === Status.UNDEFINED ||
+    scenario.result.status === Status.PENDING
   )
    return this.browserOpen();
 })
