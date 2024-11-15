@@ -26,13 +26,13 @@ const program = new Command();
 const pjson = require('./package.json');
 const takeReportBackup = require('./runtime/takeReportBackup');
 
-async function oupCli() {
+async function klassiCli() {
   try {
     const { runConfiguration } = await loadConfiguration();
     const { success } = await runCucumber(runConfiguration);
     return success;
   } catch (error) {
-    console.error('Error in oupCli:', error);
+    console.error('Error in klassiCli:', error);
     process.exit(1);
   }
 }
@@ -159,7 +159,7 @@ program.parse(process.argv);
 const options = program.opts();
 
 program.on('--help', () => {
-  console.info('For more details please visit https://github.com/OUP/OAF#readme\n');
+  console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
 });
 
 const settings = {
@@ -382,7 +382,7 @@ if (options.browser) {
   });
 }
 
-oupCli().then(async (succeeded) => {
+klassiCli().then(async (succeeded) => {
   if (dryRun === false) {
     if (!succeeded) {
       await cucumberCli().then(async () => {
@@ -402,17 +402,17 @@ oupCli().then(async (succeeded) => {
 async function cucumberCli() {
   if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
     await browser.pause(DELAY_2s).then(async () => {
-      await helpers.oupReporter();
+      await helpers.klassiReporter();
     });
   } else if (resultingString !== '@s3load') {
     await browser.pause(DELAY_2s).then(async () => {
-      await helpers.oupReporter();
+      await helpers.klassiReporter();
     });
   }
   await browser.pause(DELAY_5s);
   if (email === true) {
     await browser.pause(DELAY_2s).then(async () => {
-      await helpers.oupEmail();
+      await helpers.klassiEmail();
       await browser.pause(DELAY_3s);
     });
   }

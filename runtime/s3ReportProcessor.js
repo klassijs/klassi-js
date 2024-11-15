@@ -1,5 +1,5 @@
 /**
- * OUP Automated Testing Tool
+ * klassi-js Automated Testing Tool
  * Created by Larry Goddard
  */
 const path = require('path');
@@ -98,7 +98,7 @@ module.exports = {
       console.error('There is no reporting data for this Project....');
     } else if (dataList.length > 0) {
       console.log('Test run completed and s3 report being sent .....');
-      await helpers.oupEmail();
+      await helpers.klassiEmail();
     }
   },
 };
