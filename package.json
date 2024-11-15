@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "5.2.0",
+  "version": "6.0.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
@@ -9,11 +9,13 @@
     "linkedin": "https://linkedin.com/in/larryg",
     "youtube": "https://youtube.com/@LarryG_01"
   },
+  "contributors": [
+    {
+      "name": "Carlos Bermejo",
+      "github": "https://github.com/carlosbermejop"
+    }
+  ],
   "license": "MIT",
-  "engines": {
-    "node": ">=16",
-    "yarn": ">=1.22.0"
-  },
   "keywords": [
     "api testing",
     "bdd",
@@ -30,31 +32,71 @@
     "type": "git",
     "url": "https://github.com/klassijs/klassi-js.git"
   },
-  "browser": "index.js",
   "homepage": "https://github.com/klassijs/klassi-js#readme",
   "bugs": {
     "url": "https://github.com/klassijs/klassi-js/issues"
   },
+  "main": "index.js",
   "scripts": {
-    "dev": "node index.js --disableReport --tags",
-    "pkgcheck": "yarn install --check-files"
+    "pretest": "eslint --ignore-path .gitignore .",
+    "pkgcheck": "pnpm install --check-files",
+    "prepare": "is-ci || husky",
+    "lint-branch-name": "pnpm run branch-name-lint ./branchnamelinter.config.json",
+    "changelog": "standard-version --skip.commit --skip.tag",
+    "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
+    "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
+    "changelog:major": "standard-version --release-as major --skip.commit --skip.tag"
   },
   "dependencies": {
-    "@cucumber/cucumber": "^9.1.2",
-    "@cucumber/pretty-formatter": "^1.0.0",
-    "async": "^3.2.4",
-    "chai": "^4.3.7",
-    "commander": "^10.0.0",
-    "cosmiconfig": "^8.0.0",
+    "@aws-sdk/client-s3": "^3.689.0",
+    "@aws-sdk/client-ses": "^3.687.0",
+    "@aws-sdk/credential-provider-node": "^3.687.0",
+    "@cucumber/cucumber": "^11.0.1",
+    "@cucumber/pretty-formatter": "^1.0.1",
+    "async": "^3.2.6",
+    "axe-core": "^4.10.2",
+    "chai": "^5.1.2",
+    "commander": "^12.1.0",
+    "cosmiconfig": "^9.0.0",
     "cucumber-junit": "^1.7.1",
-    "dotenv": "^16.0.3",
-    "fs-extra": "^11.1.0",
+    "dotenv": "^16.4.5",
+    "expect-webdriverio": "^5.0.4",
+    "fs-extra": "^11.2.0",
+    "is-ci": "^3.0.1",
+    "klassijs-assertion-tool": "github:klassijs/klassijs-assertion-tool",
+    "klassijs-astellen": "github:klassijs/klassijs-astellen",
     "klassijs-cucumber-html-reporter": "^6.0.0",
     "merge": "^2.1.1",
-    "prettier": "^2.8.1",
+    "nodemailer": "^6.9.16",
+    "pactum": "^3.7.3",
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
+    "standard-version": "github:klassijs/standard-version",
     "text-files-loader": "^1.0.5",
-    "webdriverio": "^8.10.2"
+    "webdriverio": "^9.2.12"
+  },
+  "lint-staged": {
+    "**/*.{js}": [
+      "eslint --quiet --fix"
+    ],
+    "**/*.{yml,json,md,js}": [
+      "prettier --write"
+    ]
+  },
+  "eslintIgnore": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@eslint/js": "^9.14.0",
+    "branch-name-lint": "^2.1.1",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3"
   }
 }

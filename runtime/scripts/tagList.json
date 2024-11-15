@@ -1,0 +1,14 @@
+{
+   "tagNames": [
+      "@api",
+      "@tapi",
+      "@get",
+      "@put",
+      "@post",
+      "@delete",
+      "@s3load",
+      "@plutora",
+      "@zephyr",
+      "@s3"
+   ]
+}

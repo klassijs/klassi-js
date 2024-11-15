@@ -24,9 +24,9 @@ klassi-Js is a debuggable BDD (Behavior-Driven Development) JavaScript test auto
 ## Installation
 
 ```bash
-yarn add klassi-js
+pnpm add klassi-js
  
-npm install klassi-js
+yarn install klassi-js
 ```
 
 ## Usage
@@ -48,8 +48,16 @@ node ./node_modules/klassi-js/index.js
 --pageObjects <path>                path to page objects. defaults to ./page-objects
 --sharedObjects <paths>             path to shared objects - repeatable. defaults to ./shared-objects
 --reports <path>                    output path to save reports. defaults to ./reports
+--disableReport                     disables the test report from opening after test completion
+--email                             sends email reports to stakeholders
 --env <path>                        name of environment to run the framework/test in. default to dev
 --reportName <optional>             name of what the report would be called i.e. 'Automated Test'
+--baselineImageUpdate               automatically update the baseline image after a failed comparison. defaults to false
+--browserOpen                       this leaves the browser open after the session completes, useful when debugging test. defaults to false
+--dlink                             the switch for projects with their test suite, within a Test folder of the repo
+--dryRun                            the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests
+--useProxy                          this is in-case you need to use the proxy server while testing
+--skipTag <@tagName>                provide a tag and all tests marked with it will be skipped automatically.
 
 ```
 ## Options Usage
@@ -90,8 +98,6 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `pageObjects`       | collection of **page** objects loaded from disk and keyed by filename |
 | `sharedObjects`     | collection of **shared** objects loaded from disk and keyed by filename |
 | `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
-| `expect`     | instance of [chai expect](https://www.chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
-| `assert`     | instance of [chai assert](https://www.chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
 | `trace`      | handy trace method to log console output with increased visibility |
 
 
@@ -137,6 +143,16 @@ await helpers.filterItem();
 //this filters an item from a list of items and clicks on it
 await helpers.filterItemAndClick();
 ```
+
+## Browser usage
+By default, the test run using Google Chrome/devtools protocol, to run tests using another browser locally supply the browser name along with the `--browser` switch
+
+| Browser | Example |
+| :--- | :--- |
+| Chrome | `--wdProtocol --browser chrome` |
+| Firefox | `--wdProtocol --browser firefox` |
+
+All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest)
 
 ## Test Execution Reports
 
