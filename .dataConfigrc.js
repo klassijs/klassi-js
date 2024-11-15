@@ -1,7 +1,7 @@
 module.exports = {
   dataConfig: {
-    projectName: 'OAF',
-    s3FolderName: 'OAF',
+    projectName: 'klassi',
+    s3FolderName: 'klassi-js',
 
     s3Data: {
       S3_BUCKET: 'test-app-automated-reports',
