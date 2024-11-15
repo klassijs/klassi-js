@@ -1,5 +1,5 @@
 /**
- * OUP Automated Testing Tool
+ * Klassi-js Automated Testing Tool
  * Created by Larry Goddard
  */
 const path = require('path');

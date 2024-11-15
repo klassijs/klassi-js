@@ -48,7 +48,6 @@
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.689.0",
     "@aws-sdk/client-ses": "^3.687.0",
     "@aws-sdk/credential-provider-node": "^3.687.0",
     "@cucumber/cucumber": "^11.0.1",

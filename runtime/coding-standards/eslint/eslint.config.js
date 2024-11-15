@@ -1,3 +1,7 @@
+/**
+ * Klassi-js Automated Testing Tool
+ * Created by Larry Goddard
+ */
 const js = require('@eslint/js');
 const prettierPlugin = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
