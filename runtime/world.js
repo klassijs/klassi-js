@@ -114,7 +114,7 @@ After(async (scenario) => {
     scenario.result.status === Status.UNDEFINED ||
     scenario.result.status === Status.PENDING
   )
-   return this.browserOpen();
+    return this.browserOpen();
 })
 
 After(async function () {

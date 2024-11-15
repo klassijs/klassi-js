@@ -375,35 +375,36 @@ if (options.browser) {
 
 /** execute cucumber Cli */
 klassiCli().then(async (succeeded) => {
-  if (dryRun === false) {
-    if (!succeeded) {
-      await cucumberCli().then(async () => {
-        await process.exit(1);
-      });
-    } else {
-      await cucumberCli().then(async () => {
-        await browser.pause(DELAY_2s).then(async () => {
-          console.log('Test run completed successfully');
-          await process.exit(0);
-        });
-      });
-    }
-  }
+  await module.exports.cucumberCli();
+  // if (dryRun === false) {
+  //   if (!succeeded) {
+  //     await cucumberCli().then(async () => {
+  //       await process.exit(1);
+  //     });
+  //   } else {
+  //     await cucumberCli().then(async () => {
+  //       await browser.pause(DELAY_2s).then(async () => {
+  //         console.log('Test run completed successfully');
+  //         await process.exit(0);
+  //       });
+  //     });
+  //   }
+  // }
 });
 
 async function cucumberCli() {
-  if (resultingString !== '@s3load') {
-    await browser.pause(DELAY_2s).then(async () => {
-      await helpers.klassiReporter();
-    });
-  }
+  // if (resultingString !== '@s3load') {
+  //   await browser.pause(DELAY_2s).then(async () => {
+  await helpers.klassiReporter();
+  // });
+  // }
   await browser.pause(DELAY_3s);
-  if (email === true) {
-    await browser.pause(DELAY_2s).then(async () => {
-      await helpers.oupEmail();
-      await browser.pause(DELAY_3s);
-    });
-  }
+  // if (email === true) {
+  //   await browser.pause(DELAY_2s).then(async () => {
+  //     await helpers.klassiEmail();
+  //     await browser.pause(DELAY_3s);
+  //   });
+  // }
 }
 
-module.exports = { getTagsFromFeatureFiles };
+module.exports = { cucumberCli, getTagsFromFeatureFiles };
