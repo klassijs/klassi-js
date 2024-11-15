@@ -1,5 +1,5 @@
 /**
- * OUP Automated Testing Tool
+ * klassi Automated Testing Tool
  * Created by Larry Goddard
  */
 const path = require('path');
@@ -10,7 +10,7 @@ const options = {
     dryRun: dryRun,
     // eslint-disable-next-line no-undef
     paths: featureFiles,
-    require: ['runtime/world.js', 'node_modules/OAF/runtime/world.js', 'step_definitions/**/*.js'],
+    require: ['runtime/world.js', 'node_modules/klassi-js/runtime/world.js', 'step_definitions/**/*.js'],
     tags: global.resultingString,
     format: [
       '@cucumber/pretty-formatter',

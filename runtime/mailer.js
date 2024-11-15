@@ -1,5 +1,5 @@
 /**
- * OUP Automated Testing Tool
+ * klassi Automated Testing Tool
  * Created by Larry Goddard
  */
 const path = require('path');
@@ -75,7 +75,7 @@ module.exports = {
 
     const mailOptions = {
       to: devTeam,
-      from: 'OUP-QATEST <QAAutoTest@oup.com>',
+      from: 'klassi-QATEST <QAAutoTest@klassi.co.uk>',
       subject: `${projectName} ${reportName}-${emailDateTime}`,
       alternative: true,
       attachments: fileList,

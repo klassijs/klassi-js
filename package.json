@@ -1,11 +1,11 @@
 {
-  "name": "klassi-js",
+  "name": "klassi-automation-framework",
   "version": "6.0.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
-    "twitter": "https://twitter.com/larryG_01",
+    "X": "https://twitter.com/larryG_01",
     "linkedin": "https://linkedin.com/in/larryg",
     "youtube": "https://youtube.com/@LarryG_01"
   },
@@ -22,19 +22,13 @@
     "lambdatest",
     "cucumber-js",
     "javascript",
-    "klassi-js",
-    "klassijs",
     "testing framework",
     "test automation",
     "webdriverio"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/klassijs/klassi-js.git"
-  },
-  "homepage": "https://github.com/klassijs/klassi-js#readme",
-  "bugs": {
-    "url": "https://github.com/klassijs/klassi-js/issues"
+    "url": "hhtps://github.com/klassijs/klassi-js"
   },
   "main": "index.js",
   "scripts": {
@@ -46,6 +40,10 @@
     "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
     "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag"
+  },
+  "homepage": "https://github.com/klassijs/klassi-js#readme",
+  "bugs": {
+    "url": "https://github.com/klassijs/klassi-js/issues"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.689.0",

@@ -1,5 +1,5 @@
 /**
- * OUP Automated Testing Tool
+ * klassi Automated Testing Tool
  * Created by Larry Goddard
  */
 const { remote } = require('webdriverio');
@@ -38,7 +38,7 @@ module.exports = async function firefoxDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
+      httpProxy: 'http://domainName:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };

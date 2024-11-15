@@ -1,5 +1,5 @@
 /**
- * OUP Automated Testing Tool
+ * klassi Automated Testing Tool
  * Created by Larry Goddard
  */
 const fs = require('fs-extra');

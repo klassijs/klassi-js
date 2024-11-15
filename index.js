@@ -235,6 +235,7 @@ const paths = {
 
 global.paths = paths;
 
+// astellen.set('BROWSER_NAME', browserName);
 global.browserName = global.remoteConfig || BROWSER_NAME;
 console.log('Starting tests with the following browserName:', browserName);
 console.log('Starting tests with the following remoteConfig:', global.remoteConfig);
