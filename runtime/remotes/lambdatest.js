@@ -1,5 +1,5 @@
 /**
- * klassi Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const { Before, After } = require('@cucumber/cucumber');

@@ -10,10 +10,9 @@ let defaults = {};
 let isApiTest;
 let useProxy = false;
 
-// chromedriver.start();
-
 Before(async () => {
   let result = await filterQuietTags();
+  const resultingString = result.join(',');
   const taglist = resultingString.split(',');
   isApiTest = taglist.some((tag) => result.includes(tag));
 });
@@ -48,7 +47,7 @@ module.exports = async function chromeDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domainName:8080',
+      httpProxy: 'http://klassiarray.klassi.co.uk:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };
@@ -58,10 +57,3 @@ module.exports = async function chromeDriver(options) {
   global.browser = await remote(extendedOptions);
   await browser.setWindowSize(1280, 1024);
 };
-
-// process.on('exit', async () => {
-//   await browser.pause(DELAY_3s).then(() => {
-//     console.log('Browser closed successfully');
-//     chromedriver.stop();
-//   });
-// });

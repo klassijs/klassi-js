@@ -51,12 +51,10 @@ node ./node_modules/klassijs/index.js
 --reportName <optional>             name of what the report would be called i.e. 'Automated Test'
 --remoteService <optional>          which remote driver service, if any, should be used e.g. browserstack
 --extraSettings <optional>          further piped configs split with pipes
---updateBaselineImages              automatically update the baseline image after a failed comparison or new images
---wdProtocol                        the switch to change the browser option from using devtools to webdriver
---browserOpen                       this leaves the browser open after the session completes, useful when debugging test. defaults to false', false
+--baselineImageUpdate               automatically update the baseline image after a failed comparison. defaults to false
+--browserOpen                       this leaves the browser open after the session completes, useful when debugging test. defaults to false
 --dlink                             the switch for projects with their test suite, within a Test folder of the repo
 --dryRun                            the effect is that Cucumber will still do all the aggregation work of looking at your feature files, loading your support code etc but without actually executing the tests
---utam                              this launches the compiler for salesforce scripts
 --useProxy                          this is in-case you need to use the proxy server while testing
 --reportBackup                      This is to clear the "reports" folder & keep the record in back-up folder,default value is false. While using this indicator, the name "reportBackup" needs to be added to the git ignore file 
 --reportClear                       This is to clear the "reports" folder, default value is false
@@ -83,10 +81,6 @@ You can use the framework without any command line arguments if your application
     └── searchData.js
 └── step_definitions
     └── search-steps.js
-└── reports  # folder and content gets created automatically at runtime
-    └── chrome
-        ├── reportName-01-01-1900-235959.html
-        └── reportName-01-01-1900-235959.json
 .envConfigrc.js # this file will contain all your environment variables (i.e. dev, test, prod etc.,)
 .dataConfigrc.js # this file will contain all your project variables #projectName, emailAddresses
 .env # this file contains all config username and passcode and should be listed in the gitignore file
@@ -99,13 +93,9 @@ The following variables are available within the ```Given()```, ```When()``` and
 | Variable | Description |
 | :--- | :---  |
 | `browser`     | an instance of [webdriverio](https://webdriver.io/docs/setuptypes.html) (_the browser_) |
-| `wdio`| the raw [webdriverio](https://webdriver.io/docs/api.html) module, providing access to static properties/methods |
 | `pageObjects`       | collection of **page** objects loaded from disk and keyed by filename |
 | `sharedObjects`     | collection of **shared** objects loaded from disk and keyed by filename |
 | `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
-| `expect`     | instance of [chai expect](https://www.chaijs.com/api/bdd/) to ```expect('something').to.equal('something')``` |
-| `assert`     | instance of [chai assert](https://www.chaijs.com/api/assert/) to ```assert.isOk('everything', 'everything is ok')``` |
-| `trace`      | handy trace method to log console output with increased visibility |
 
 
 ## Helpers
@@ -113,15 +103,6 @@ klassijs contains a few helper methods to help along the way, these methods are:
 ```js
 // Load a URL, returning only when the <body> tag is present
 await helpers.loadPage('https://duckduckgo.com', 10);
-
-// take image for comparisson
-await helpers.takeImage('flower_1-0.png', 'div.badge-link--serp.ddg-extension-hide.js-badge-link');
-
-// compare taken image with baseline image
-await helpers.compareImage('flower_1-0.png');
-
-// get the content of an endpoint
-await helpers.apiCall('http://httpbin.org/get', 'get');
 
 // writing content to a text file
 await helpers.writeToTxtFile(filepath, output);
@@ -153,50 +134,20 @@ await helpers.waitAndSetValue(selector, value);
 // function to get element from frame or frameset
 await helpers.getElementFromFrame(frameName, selector);
 
-// This will assert 'equal' text being returned
-await helpers.assertText(selector, expected);
-
-// This will assert text being returned includes
-await helpers.expectToIncludeText(selector, expectedText);
-
-// this asserts that the returned url is the correct one
-await helpers.assertUrl(expected);
-
-// this is the generating accessibility reports per page
-await helpers.accessibilityReport: async (pageName, count = false || true);
-
 //reading from a json file
 await helpers.readFromJson();
-
-//writing data to testData json file in shared objects folder
-await helpers.write();
 
 //writing data to a json file 
 await helpers.writeToJson();
 
-//writing json data from above to UrlData json file
-await helpers.writeToUrlsData();
-
 //merging json files
 await helpers.mergeJson();
-
-//hide elements
-await helpers.hideElements();
-
-//show elements
-await helpers.showElements();
 
 //reporting the current date and time
 await helpers.reportDateTime();
 
 //API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
 await helpers.apiCall();
-
-//function for recording Accessibility logs from the test run
-await helpers.accessibilityReport();
-
-//function for recording total errors from the Accessibility test run
-await helpers.accessibilityError();
 
 //Get the href link from an element
 await helpers.getLink();
@@ -206,9 +157,6 @@ await helpers.getElementFromFrame();
 
 //Generate random integer from a given range
 await helpers.generateRandomInteger();
-
-//this generates the full execution time for a full scenario run
-await helpers.executeTime();
 
 //Generates a random 13 digit number
 await helpers.randomNumberGenerator();
@@ -230,31 +178,29 @@ await helpers.fileUpload();
 ```
 
 ## Browser usage
-By default, the test run using Google Chrome/devtools protocol, to run tests using another browser locally you'll need a local selenium server running, supply the browser name along with the `--wdProtocol --browser` switch
+By default, the test run using Google Chrome/devtools protocol, to run tests using another browser locally supply the browser name along with the `--browser` switch
 
 | Browser | Example |
 | :--- | :--- |
-| Chrome | `--wdProtocol --browser chrome` |
-| Firefox | `--wdProtocol --browser firefox` |
+| Chrome | `--browser chrome` |
+| Firefox | `--browser firefox` |
 
 All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest | sauceLabs)
 
-Selenium Standalone Server installation
+Selenium Standalone installation
 ```bash
 npm install -g selenium-standalone@latest
 selenium-standalone install
-selenium-standalone start
 ```
 
-## Visual Regression with [Resemble JS](https://github.com/rsmbl/Resemble.js)
+## Visual Regression with [klassijs-resembleJs](https://github.com/klassijs/klassijs-resembleJs)
 
 Visual regression testing, the ability to compare a whole page screenshots or of specific parts of the application / page under test.
 If there is dynamic content (i.e. a clock), hide this element by passing the selector (or an array of selectors) to the takeImage function.
 ```js
 // usage within page-object file:
-  await helpers.takeImage(fileName, [elementsToHide, elementsToHide]);
-  await browser.pause(100);
-  await helpers.compareImage(fileName);
+await helpers.takeImage(fileName, elementSnapshot, [elementsToHide, elementsToHide]);
+await helpers.compareImage(fileName);
 ```
 
 ## API Testing with [PactumJS](https://github.com/pactumjs/pactum#readme)
@@ -282,7 +228,7 @@ Getting data from a JSON REST API
  }
 }
 ```
-## Accessibility Testing with [Axe](https://www.deque.com/axe/)
+## Accessibility Testing with [Axe-Core](https://www.deque.com/axe/)
 Automated accessibility testing feature has been introduced using the Axe-Core OpenSource library.
 
 ### Sample code
@@ -296,15 +242,15 @@ All the accessibility fuctions can be accessed through the global variable ``` a
 ```js
 // usage within page-object file:
 When('I run the accesibility analysis for {string}', async function (PageName) {
-  // After navigating to a particular page, just call the function to generate the accessibility report and the total error count for the page
-  await helpers.accessibilityReport: async (pageName, count = false || true)
+ // After navigating to a particular page, just call the function to generate the accessibility report and the total error count for the page
+ await helpers.accessibilityReport: async (pageName, count = false || true)
 });
 ```
 
 ## Test Execution Reports
 
 HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be
- changed by providing a new path using the `--reports` command line switch:
+changed by providing a new path using the `--reports` command line switch:
 
 ![Cucumber HTML report](./runtime/img/cucumber-html-report.png)
 
@@ -401,18 +347,20 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 
 ```js
   When(/^I search DuckDuckGo for "([^"]*)"$/, function (searchQuery, done) {
-    elem = browser.$('#search_form_input_homepage').then(function(input) {
-      expect(input).to.exist;
-      debugger; // <<- your IDE should step in at this point, with the browser open
-      return input;
-    })
-       done(); // <<- let cucumber know you're done
-  });
+ elem = browser.$('#search_form_input_homepage').then(function(input) {
+  expect(input).to.exist;
+  debugger; // <<- your IDE should step in at this point, with the browser open
+  return input;
+ })
+ done(); // <<- let cucumber know you're done
+});
 ```
 
 ## Commit conventions
 
 To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
+
+Bear in mind that the `/.circleci/config.yml` file **in each project using OAF as a dependency** needs to be modified to change from `yarn install` to `yarn install --network-concurrency 1`. This is to avoid race conditions in multiple calls to the registry during the installation process.
 
 ### Commits
 After committing the staged code, the Husky scripts will enforce the implementation of the [**Conventional Commits specification**](https://www.conventionalcommits.org/en/v1.0.0/#summary).
@@ -423,14 +371,27 @@ To summarize them, all commits should follow the following schema:
 git commit -m "<type>: <subject>"
 ```
 
+Where **type** is one of the following:
+
+- **fix**: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
+- **feat**: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
+- **BREAKING CHANGE**: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
+- Types other than **fix:** and **feat:** are allowed, for example @commitlint/Tconfig-conventional (based on the Angular convention) recommends **build:, chore:, ci:, docs:, style:, refactor:, perf:, test:**, and others.
+  footers other than **BREAKING CHANGE:** may be provided and follow a convention similar to git trailer format.
+
 Please keep in mind that the **subject** must be written in lowercase.
 
-## Demo
-To see a demo of the framework without installing it, use this link [HERE](https://github.com/klassijs/klassijs-example-test-suite)
+### Branch naming
+
+The same script will also verify the naming convention. Please remember that we only allow for two possible branch prefixes:
+
+- **testfix/**
+- **automation/**
+
 
 ## Bugs
 
-Please raise bugs via the [klassijs issue tracker](https://github.com/klassijs/klassijs/issues), please provide enough information for bug reproduction.
+Please raise bugs via the [OAF issue tracker](https://github.com/OUP/OAF/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 

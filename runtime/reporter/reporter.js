@@ -13,7 +13,6 @@ const s3Upload = require('../s3Upload');
 const getRemote = require('../getRemote');
 const remoteService = getRemote(settings.remoteService);
 
-console.log('browserName in reporter.js: ', browserName);
 let resp;
 let obj;
 
@@ -31,7 +30,7 @@ module.exports = {
       obj = await resp.body;
     } catch (err) {
       obj = {};
-      console.log('IpAddr func err: ', err.message);
+      console.error('IpAddr func err: ', err.message);
     }
     if (paths.reports && fs.existsSync(paths.reports)) {
       const browserName = astellen.get('BROWSER_NAME');

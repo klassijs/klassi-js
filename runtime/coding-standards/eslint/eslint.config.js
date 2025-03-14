@@ -1,20 +1,64 @@
 const js = require('@eslint/js');
-const prettierPlugin = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
+const pluginImport = require('eslint-plugin-import');
 
 module.exports = [
   js.configs.recommended,
   {
-    files: ['**/*.js', '**/*.jsx'],
+    plugins: {
+      import: require('eslint-plugin-import'),
+      prettier: require('eslint-plugin-prettier'),
+    },
+
+    rules: Object.assign(
+      {},
+      js.configs.recommended.rules,
+      prettierConfig.rules,
+      pluginImport.configs.errors.rules,
+      pluginImport.configs.warnings.rules,
+      {
+        'prettier/prettier': [
+          'warn',
+          {
+            singleQuote: true,
+            printWidth: 120,
+            endOfLine: 'auto',
+          },
+        ],
+        'no-const-assign': 'warn',
+        'no-this-before-super': 'warn',
+        'no-undef': 'warn',
+        'no-unreachable': 'warn',
+        'no-unused-vars': 'warn',
+        'constructor-super': 'warn',
+        'valid-typeof': 'warn',
+        'no-console': [0, 'error'],
+        'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+        indent: ['error', 2, { SwitchCase: 1 }],
+        semi: ['error', 'always'],
+        quotes: ['error', 'single'],
+      },
+    ),
+
     languageOptions: {
-      ecmaVersion: 2017,
+      ecmaVersion: 'latest', // Use latest ECMAScript version
+      sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          dynamicImport: true,
+        },
+      },
+    },
+  },
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
         Given: true,
         When: true,
         Then: true,
-        Before: true,
-        BeforeAll: true,
         BeforeStep: true,
         After: true,
         AfterAll: true,
@@ -35,90 +79,18 @@ module.exports = [
         envConfig: true,
         assert: true,
         expect: true,
-        DELAY_100ms: true,
-        DELAY_200ms: true,
-        DELAY_300ms: true,
-        DELAY_500ms: true,
-        DELAY_750ms: true,
-        DELAY_1s: true,
-        DELAY_2s: true,
-        DELAY_3s: true,
-        DELAY_5s: true,
-        DELAY_7s: true,
-        DELAY_8s: true,
-        DELAY_10s: true,
-        DELAY_15s: true,
-        DELAY_20s: true,
-        DELAY_30s: true,
-        DELAY_40s: true,
-        DELAY_1m: true,
-        DELAY_2m: true,
-        DELAY_3m: true,
-        DELAY_5m: true,
-        noImplicitAny: true,
-        noImplicitThis: true,
-        strictNullChecks: true,
-        strictFunctionTypes: true,
-        noEmit: true,
-        forceConsistentCasingInFileNames: true,
-        getTagsFromFeatureFiles: true,
-        sharedObjects: true,
-        pageObjects: true,
-        resultingString: 'readonly',
-        skipTag: true,
-        paths: true,
-        s3Data: true,
-        emailData: true,
-        dryRun: true,
-        email: true,
-        s3Date: true,
-        useProxy: true,
-        cucumberThis: true,
-        accessibilityLib: true,
-        dataconfig: true,
         console: true,
         require: true,
         process: true,
         module: true,
         global: true,
       },
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
-    plugins: {
-      import: require('eslint-plugin-import'),
-      prettier: prettierPlugin,
-    },
-    rules: {
-      'prettier/prettier': [
-        'warn',
-        {
-          singleQuote: true,
-          printWidth: 120,
-          endOfLine: 'auto',
-        },
-      ],
-      'no-const-assign': 'warn',
-      'no-this-before-super': 'warn',
-      'no-undef': 'warn',
-      'no-unreachable': 'warn',
-      'no-unused-vars': 'warn',
-      'constructor-super': 'warn',
-      'valid-typeof': 'warn',
-      'linebreak-style': [0, 'warn'],
-      'no-console': [0, 'error'],
-      indent: ['error', 2, { SwitchCase: 1 }],
-      semi: ['error', 'always'],
-      quotes: ['error', 'single'],
-    },
-    settings: {
-      react: {
-        version: 'detect',
-      },
     },
   },
-  prettierConfig,
+  {
+    files: ['index.js'],
+    rules: {
+      'no-restricted-syntax': 'off',
+    },
+  },
 ];

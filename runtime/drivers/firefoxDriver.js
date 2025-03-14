@@ -12,6 +12,7 @@ let useProxy = false;
 
 Before(async () => {
   let result = await filterQuietTags();
+  const resultingString = result.join(',');
   const taglist = resultingString.split(',');
   isApiTest = taglist.some((tag) => result.includes(tag));
 });
@@ -38,7 +39,7 @@ module.exports = async function firefoxDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domainName:8080',
+      httpProxy: 'http://klassiarray.klassi.co.uk:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };

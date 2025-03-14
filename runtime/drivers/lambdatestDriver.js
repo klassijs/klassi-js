@@ -29,7 +29,6 @@ module.exports = async function lambdatestDriver(options, configType) {
 
 const browserExecute = async (options, configTypeA) => {
   const browserCaps = loadConfig(`./lambdatest/${configTypeA}.json`);
-  console.log('browserCaps ================ ln 130 lambdaDriver:', browserCaps);
   const credentials = lambdatest.getCredentials();
   const { user, key } = credentials;
 
@@ -45,13 +44,13 @@ const browserExecute = async (options, configTypeA) => {
     config.buildTags.push(`${CIRCLE_JOB}`);
   } else {
     config.build = `${projectName}-${buildNameFromConfig}`;
-    config.tunnelName = 'ouptunnel' || '';
+    config.tunnelName = process.env.TUNNEL_NAME || 'klassitunnel';
   }
 
   const capabilities = {
     'LT:Options': {
       ...config,
-      user,
+      user: user,
       accessKey: key,
     },
   };
@@ -68,7 +67,7 @@ const browserExecute = async (options, configTypeA) => {
     hostname: 'hub.lambdatest.com',
     port: 443,
     path: '/wd/hub',
-    capabilities,
+    capabilities: capabilities,
   };
 
   try {

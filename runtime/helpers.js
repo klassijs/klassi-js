@@ -3,14 +3,10 @@
  * Created by Larry Goddard
  */
 const fs = require('fs-extra');
-const path = require('path');
 const pactumJs = require('pactum');
-// const urlData = require('../shared-objects/urlData.json').URLs;
+const { assertExpect } = require('klassijs-assertion-tool');
 const loadConfig = require('./configLoader');
-// const testData = require('../shared-objects/testdata.json');
 const { EOL, os } = require('os');
-
-// const envName = env.envName.toLowerCase();
 
 let elem;
 let getMethod;
@@ -122,10 +118,6 @@ module.exports = {
       console.error('This Happened: ', err);
     }
   },
-
-  // writeToUrlsData: async (data) => {
-  //   await module.exports.writeToJson('./shared-objects/urlData.json', data); // Need to check if it is pointing to the right file
-  // },
 
   /**
    * This is to merge content of json files
@@ -413,33 +405,6 @@ module.exports = {
     }
   },
 
-  // /**
-  //  * This will assert text being returned
-  //  * @param selector
-  //  * @param expected
-  //  */
-  // assertText: async (selector, expected) => {
-  //   let actual = await browser.$(selector);
-  //   await actual.getText();
-  //   actual = actual.trim();
-  //   await helpers.expectAdv('equal', actual, expected);
-  //   // assert.equal(actual, expected);
-  //   return this;
-  // },
-  //
-  // /**
-  //  * This will assert text being returned includes
-  //  * @param selector
-  //  * @param expectedText
-  //  */
-  // expectToIncludeText: async (selector, expectedText) => {
-  //   const actual = await browser.$(selector);
-  //   await actual.getText();
-  //   await helpers.expectAdv('include', elem.length, 0);
-  //   expect(actual).to.include(expectedText);
-  //   return this;
-  // },
-
   /**
    * function to get element from frame or frameset
    * @param frameName
@@ -587,89 +552,42 @@ module.exports = {
     await helpers.waitAndClick('//button[@title="Lock to tab"]');
   },
 
-  // installMobileApp: async (appName, appPath) => {
-  //   if (env.envName === 'android' || env.envName === 'ios') {
-  //     if (!(await browser.isAppInstalled(appName))) {
-  //       console.log('Installing application...');
-  //       await browser.installApp(appPath);
-  //       // assert.isTrue(await browser.isAppInstalled(appName), 'The app was not installed correctly.');
-  //       await helpers.expectAdv(
-  //         'isTrue',
-  //         await browser.isAppInstalled(appName),
-  //         null,
-  //         'The app was not installed correctly.',
-  //       );
-  //     } else {
-  //       console.log(`The app ${appName} was already installed on the device, skipping installation...`);
-  //       await browser.terminateApp(appName);
-  //     }
-  //   }
-  // },
+  installMobileApp: async (appName, appPath) => {
+    if (env.envName === 'android' || env.envName === 'ios') {
+      if (!(await browser.isAppInstalled(appName))) {
+        console.log('Installing application...');
+        await browser.installApp(appPath);
+        // assert.isTrue(await browser.isAppInstalled(appName), 'The app was not installed correctly.');
+        await assertExpect(
+          await browser.isAppInstalled(appName),
+          'isTrue',
+          null,
+          'The app was not installed correctly.',
+        );
+      } else {
+        console.log(`The app ${appName} was already installed on the device, skipping installation...`);
+        await browser.terminateApp(appName);
+      }
+    }
+  },
 
-  // uninstallMobileApp: async (appName) => {
-  //   if (env.envName === 'android' || env.envName === 'ios') {
-  //     if (await browser.isAppInstalled(appName)) {
-  //       console.log(`Uninstalling application ${appName}...`);
-  //       await browser.removeApp(appName);
-  //       await helpers.expectAdv(
-  //         'isNotTrue',
-  //         await browser.isAppInstalled(appName),
-  //         null,
-  //         'The app was not uninstalled correctly.',
-  //       );
-  //       // assert.isNotTrue(await browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
-  //     } else {
-  //       console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
-  //     }
-  //   }
-  // },
-
-  // // TODO: make this more generic
-  // /**
-  //  * This is to write content to a json file
-  //  * @returns {Promise<void>}
-  //  */
-  // write: async () => {
-  //   await module.exports.writeToJson('./shared-objects/testdata.json', testData);
-  // },
-
-  // convertJsonToExcel: () => {
-  //   let dataObj;
-  //   let XLSX;
-  //   const arr = [];
-  //   for (dataObj of urlData) {
-  //     const key = Object.keys(dataObj)[0];
-  //     const { url } = dataObj[key];
-  //     const { refresh1 } = dataObj[key];
-  //     const { refresh2 } = dataObj[key];
-  //     const { average } = dataObj[key];
-  //
-  //     const obj = {
-  //       data: key,
-  //       url,
-  //       refresh1,
-  //       refresh2,
-  //       average,
-  //     };
-  //     arr.push(obj);
-  //   }
-  //
-  //   const workSheet = XLSX.utils.json_to_sheet(arr);
-  //   const workBook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(workBook, workSheet, 'WayFlees');
-  //   // buffer is to handle large amount of data
-  //   XLSX.write(workBook, { bookType: 'xlsx', type: 'buffer' });
-  //   // convert workbook data into Binary string
-  //   XLSX.write(workBook, { bookType: 'xlsx', type: 'binary' });
-  //   XLSX.writeFile(workBook, path.resolve(`./reports/${browserName}/${envName}/urlData.xlsx`));
-  // },
-
-  // executeTime: async (endDate, startDate, message) => {
-  //   const seconds = (endDate.getTime() - startDate.getTime()) / 1000;
-  //   testData.executeTime.time = seconds.toString().replace('-', '');
-  //   await module.exports.write();
-  //   cucumberThis.attach(`${message + testData.executeTime.time} seconds`);
-  // },
+  uninstallMobileApp: async (appName) => {
+    if (env.envName === 'android' || env.envName === 'ios') {
+      if (await browser.isAppInstalled(appName)) {
+        console.log(`Uninstalling application ${appName}...`);
+        await browser.removeApp(appName);
+        await assertExpect(
+          await browser.isAppInstalled(appName),
+          'isNotTrue',
+          null,
+          'The app was not uninstalled correctly.',
+        );
+        // assert.isNotTrue(await browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
+      } else {
+        console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
+      }
+    }
+  },
 
   /**
    * drag the page into view
@@ -804,65 +722,6 @@ module.exports = {
     await elem.addValue(remoteFilePath);
   },
 
-  // /**
-  //  * This function makes using expect easier by just passing the assertion type and values
-  //  * it will not fail the test right away but allow the other expects to be executed
-  //  * @param assertionType {string}
-  //  * @param actual {any}
-  //  * @param expected {any}
-  //  * @param message {string}
-  //  * @param operator {any}
-  //  * @returns {Promise<void>}
-  //  */
-  // expectAdv: async (assertionType, actual, expected = '', message = '', operator = '') => {
-  //   const softAssert = expect;
-  //   let errmsg;
-  //   try {
-  //     const getAssertionType = {
-  //       equal: () => softAssert(actual).to.equal(expected),
-  //       contain: () => softAssert(actual).to.contain(expected),
-  //       exist: () => softAssert(actual, message).to.exist,
-  //       exists: () => assert.exists(actual, message),
-  //       doesNotExist: () => softAssert(actual, message).to.not.exist,
-  //       doesNotContain: () => softAssert(actual).to.not.contain(expected),
-  //       oneOf: () => softAssert(actual).to.be.oneOf(expected),
-  //       toInclude: () => softAssert(actual).to.include(expected),
-  //       include: () => assert.include(actual, expected),
-  //       isTrue: () => assert.isTrue(actual, message),
-  //       isFalse: () => assert.isFalse(actual, message),
-  //       notEqual: () => softAssert(actual).to.not.equal(expected, message),
-  //       fail: () => assert.fail(actual, expected, message, operator),
-  //       isAbove: () => assert.isAbove(actual, expected, message),
-  //       toBeDisplayed: () => softAssert(actual).toBeDisplayed(),
-  //
-  //       default: () => console.info('Invalid assertion type: =======>>>>>>>>>>> ', assertionType),
-  //     };
-  //     (getAssertionType[assertionType] || getAssertionType['default'])();
-  //     errmsg = `Assertion Passes: Valid Assertion Type = ${assertionType}`;
-  //     cucumberThis.attach(`<div style="color:green;"> ${errmsg} </div>`);
-  //   } catch (err) {
-  //     const filteredActual = actual.replace(/[<>]/g, '');
-  //     errmsg =
-  //       `Assertion Failure: Invalid Assertion Type = ${assertionType}` +
-  //       '\n' +
-  //       `Assertion failed: expected ${filteredActual} to ${assertionType} ${expected}`;
-  //     cucumberThis.attach(`<div style="color:red;"> ${errmsg} </div>`);
-  //   }
-  // },
-  // // TODO: add function to record failed assertions and pass it to the end so that the test fails.
-  // /**
-  //  * This function makes using assert easier by just passing the assertion type and values
-  //  * it will not fail the test right away but allow the other asserts to be executed
-  //  * @param assertionType {string}
-  //  * @param actual {mixed}
-  //  * @param expected {any}
-  //  * @param message {string}
-  //  * @param operator {any}
-  //  * @returns {Promise<void>}
-  //  */
-  // assertAdv: async (assertionType, actual, expected = '', message = '', operator = '') => {
-  //   await helpers.expectAdv(assertionType, actual, expected, message, operator);
-  // },
 
   switchWindowTabs: async (tabId) => {
     const handles = await browser.getWindowHandles();

@@ -8,7 +8,8 @@ const getRemote = require('./getRemote');
 const data = require('./helpers');
 const { filterQuietTags } = require('../cucumber');
 const { getTagsFromFeatureFiles } = require('../index');
-const { throwCollectedErrors } = require('klassijs-assertion-tool');
+const { throwCollectedErrors } = require('klassijs-soft-assert');
+const { ImageAssertion } = require('klassijs-visual-validation');
 
 /**
  * This is the Global date functionality
@@ -68,8 +69,11 @@ global.timeout = globalTimeout;
  * also exposing the world object in global variable 'cucumberThis' so that
  * it can be used in arrow functions
  */
+let cucumberThis;
+
 Before(function () {
   global.cucumberThis = this;
+  cucumberThis = this;
   global.driver = getDriverInstance();
   return driver;
 });
@@ -175,6 +179,11 @@ After(async (scenario) => {
 After(async function () {
   // Pass the total assertion errors after each scenario to the report
   await throwCollectedErrors();
+});
+
+After(async function () {
+  // Passing the total visual validation errors after each scenario to the report
+  await ImageAssertion.finalizeTest();
 });
 
 /**

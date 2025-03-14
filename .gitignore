@@ -1,11 +1,10 @@
 ## project folders
 artifacts
-.nyc_output
-coverage
 
 # exclude generated reports
 reports
 reportBackup
+coverage
 
 # ignore dotenv files, except example
 .env
@@ -13,21 +12,11 @@ reportBackup
 !.env.example
 env.*
 
-# exclude file
-shared-objects/docs/userAgent.txt
-visual-regression-baseline
-bashScript
-zephyr123
-zephyr
-
 # Logs
 logs
 log
 *.log
 npm-debug.log*
-
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
 
 # Dependency directories
 node_modules
@@ -41,5 +30,3 @@ gen
 
 #tesseract
 eng.traineddata
-
-.yarn

@@ -23,7 +23,7 @@ const sesClient = new SESClient({
 });
 
 module.exports = {
-  oupSendMail: async () => {
+  klassiSendMail: async () => {
     const browserName = astellen.get('BROWSER_NAME');
     const date = helpers.currentDate();
     let fileList = [];
@@ -75,7 +75,7 @@ module.exports = {
 
     const mailOptions = {
       to: devTeam,
-      from: 'klassi-QATEST <QAAutoTest@klassi.co.uk>',
+      from: 'OUP-QATEST <QAAutoTest@oup.com>',
       subject: `${projectName} ${reportName}-${emailDateTime}`,
       alternative: true,
       attachments: fileList,
@@ -86,7 +86,7 @@ module.exports = {
       if (err) {
         console.error('Server failed to Start', err.stack);
       } else {
-        console.log('Server is ready to take our messages');
+        console.info('Server is ready to take our messages');
       }
 
       if (success) {
@@ -96,7 +96,7 @@ module.exports = {
               console.error(`Results Email CANNOT be sent: ${err.stack}`);
               throw err;
             } else {
-              console.log('Results Email successfully sent');
+              console.info('Results Email successfully sent');
               browser.pause(DELAY_200ms).then(() => {
                 process.exit(0);
               });
