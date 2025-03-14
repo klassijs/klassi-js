@@ -4,7 +4,7 @@
  */
 const fs = require('fs-extra');
 const pactumJs = require('pactum');
-const { assertExpect } = require('klassijs-assertion-tool');
+const { assertExpect } = require('klassijs-soft-assert');
 const loadConfig = require('./configLoader');
 const { EOL, os } = require('os');
 

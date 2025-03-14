@@ -36,10 +36,8 @@
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",
     "preinstall": "npx only-allow pnpm",
-
     "lint": "pnpm lint-staged && pnpm lint:gherkin",
     "lint:gherkin": "gherkin-lint -c runtime/coding-standards/gherkin/gherkin-lint.json '**/*.feature' ",
-
     "lint-branch-name": "pnpm branch-name-lint ./branchnamelinter.config.json",
     "changelog": "standard-version --skip.commit --skip.tag",
     "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
