@@ -6,16 +6,22 @@ const { remote } = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
 const loadConfig = require('../configLoader');
 const lambdatest = require('../remotes/lambdatest');
-const { filterQuietTags } = require('../.././cucumber.js');
+const fs = require('fs-extra');
+const path = require('path');
 
 let config;
 let isApiTest;
 
-/* istanbul ignore next */
-Before(async () => {
-  let result = await filterQuietTags();
-  const taglist = resultingString.split(',');
-  isApiTest = taglist.some((tag) => result.includes(tag));
+const apiTagsData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../scripts/tagList.json')));
+
+Before(async (scenario) => {
+  try {
+    const scenarioTags = scenario.pickle.tags.map(tag => tag.name.replace('@', '').toLowerCase());
+    const tagList = (apiTagsData.tagNames || []).map(tag => tag.replace('@', '').toLowerCase());
+    isApiTest = scenarioTags.some(tag => tagList.includes(tag));
+  } catch (error) {
+    console.error('Error in Before hook: ', error);
+  }
 });
 
 module.exports = async function lambdatestDriver(options, configType) {

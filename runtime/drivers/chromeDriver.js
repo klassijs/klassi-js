@@ -4,17 +4,23 @@
  */
 const { remote } = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
-const { filterQuietTags } = require('../.././cucumber.js');
+const fs = require('fs-extra');
+const path = require('path');
+
+const apiTagsData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../scripts/tagList.json')));
 
 let defaults = {};
-let isApiTest;
+let isApiTest = false;
 let useProxy = false;
 
-Before(async () => {
-  let result = await filterQuietTags();
-  const resultingString = result.join(',');
-  const taglist = resultingString.split(',');
-  isApiTest = taglist.some((tag) => result.includes(tag));
+Before(async (scenario) => {
+  try {
+    const scenarioTags = scenario.pickle.tags.map(tag => tag.name.replace('@', '').toLowerCase());
+    const tagList = (apiTagsData.tagNames || []).map(tag => tag.replace('@', '').toLowerCase());
+    isApiTest = scenarioTags.some(tag => tagList.includes(tag));
+  } catch (error) {
+    console.error('Error in Before hook: ', error);
+  }
 });
 
 /**
@@ -41,7 +47,7 @@ module.exports = async function chromeDriver(options) {
     },
   };
 
-  if (options.headless || isApiTest) {
+  if (isApiTest) {
     defaults.capabilities['goog:chromeOptions'].args.push('--headless', '--disable-extensions');
   }
 
@@ -56,4 +62,5 @@ module.exports = async function chromeDriver(options) {
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
   await browser.setWindowSize(1280, 1024);
+  return browser;
 };
