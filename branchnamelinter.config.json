@@ -1,21 +1,18 @@
 {
   "branchNameLinter": {
     "prefixes": [
+      "feature",
       "testfix",
       "automation",
       "hotfix",
       "release"
     ],
     "suggestions": {
+      "feat": "feature",
       "fix": "testfix",
       "auto": "automation"
     },
-    "disallowed": [
-      "master",
-      "main",
-      "develop",
-      "staging"
-    ],
+    "disallowed": ["master", "main", "develop", "staging"],
     "separator": "/",
     "msgBranchBanned": "Branches with the name \"%s\" are not allowed.",
     "msgBranchDisallowed": "Pushing to \"%s\" is not allowed, use git-flow.",

@@ -1,4 +1,4 @@
-# klassi Automated Testing Tool
+# klassijs Automated Testing Tool
 # Created by Larry Goddard
 # Javascript Node CircleCI 2.1 configuration file
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
@@ -14,12 +14,25 @@ references:
           - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
           - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
           - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
+          - /feature\/.*/ # feature branches with feature/ prefix. e.g. feature/foo
 
   filter_only_integration_branches: &filter_only_integration_branches
     filters:
       branches:
         only:
           - develop # git flow develop branch
+          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
+
+  filter_only_testable_branches: &filter_only_testable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow master branch
+          - main # git flow main branch
+          - develop # git flow develop branch
+          - /feature\/.*/ # git flow hotfix branches
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
           - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
 
   filter_only_releasable_branches: &filter_only_releasable_branches
@@ -31,72 +44,90 @@ references:
           - /hotfix\/.*/ # git flow hotfix branches
           - /release\/.*/ # git flow release branches
 
-  filter_only_testable_branches: &filter_only_testable_branches
-      filters:
-        branches:
-          only:
-            - master # git flow master branch
-            - main # git flow main branch
-            - develop # git flow develop branch
-            - /hotfix\/.*/ # git flow hotfix branches
-            - /release\/.*/ # git flow release branches
-            - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
-
 jobs:
   #########################
   ### build and install ###
   #########################
   build_install: &build_install
     docker:
-      - image: cimg/node:18.12.1-browsers
+      - image: cimg/node:20.18.3-browsers
     resource_class: small
-    working_directory: ~/oup-oaf
+    working_directory: ~/klassijs
 
     steps:
+      # Install pnpm globally
+      - run:
+          name: Install pnpm
+          command: |
+            export SHELL=/bin/bash
+            curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+      # Add PNPM to the path
+      - run:
+          name: Set up PNPM environment
+          command: export PATH="$HOME/.local/share/pnpm:$PATH"
+
+      # Verify pnpm installation
+      - run:
+          name: Check pnpm version
+          command: pnpm --version
+
       - run:
           name: Avoid hosts unknown for github
           command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
       - run:
-          name: Remove the old OAF Repo
-          command: rm -rf ~/oup-oaf/OAF
+          name: Remove the old klassi-js Repo
+          command: rm -rf ~/klassijs/klassi-js
 
       - run:
-          name: Checkout the OAF framework repo
-          command: git clone -b master git@github.com:OUP/OAF.git
+          name: Checkout the klassi-js framework repo
+          command: git clone -b main git@github.com:klassijs/klassi-js.git
 
       - run:
           name: Check out the working branch
-          path: ~/oup-oaf/OAF
+          path: ~/klassijs/klassi-js
           command: git checkout ${CIRCLE_BRANCH}
 
+      # Generate a robust dependency cache key using SHA-256
       - run:
           name: Generate dependency cache key
-          command: cat ~/oup-oaf/OAF/yarn.lock > CACHE_KEY
+          command: |
+            if [ -f pnpm-lock.yaml ]; then
+              shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
+            else
+              echo "pnpm-lock.yaml not found, using package.json instead"
+              shasum -a 256 ~/klassijs/klassi-js/package.json > CACHE_KEY
+            fi
 
+      # Restore cache if available
       - restore_cache:
-          key: oaf-yarn-cache-v2-{{ checksum "CACHE_KEY" }}
+          name: Restore pnpm cache
+          keys:
+            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+            - pnpm-cache-v1-  # Fallback cache key
 
       - run:
-          name: Install the OAF framework dependencies
-          path: ~/oup-oaf/OAF
+          name: Install the klassi-js framework dependencies
+          path: ~/klassijs/klassi-js
           command: |
             git config --global url."git@github.com:".insteadOf "https://github.com/"
-            yarn install
+            pnpm install
 
       ##########################################################################
-      # Save yarn cache, don't include node modules because we end up with an  #
-      # archive so large that unarchiving takes longer than the yarn install   #
+      # Save pnpm cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the pnpm install   #
       ##########################################################################
+      # Save cache
       - save_cache:
+          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
           paths:
-            - ~/.cache/yarn
-          key: oaf-yarn-cache-v2-{{ checksum "CACHE_KEY" }}
+            - ~/.pnpm-store  # PNPM's global store for caching dependencies
 
       - persist_to_workspace:
           root: ./
           paths:
-            - ./OAF
+            - ./klassi-js
 
   build_and_install:
     <<: *build_install
@@ -106,7 +137,7 @@ jobs:
   #####################################################
   project_code_check_out: &project_code_check_out
     docker:
-      - image: cimg/node:18.12.1-browsers
+      - image: cimg/node:20.18.3-browsers
     resource_class: small
 
     steps:
@@ -125,62 +156,66 @@ jobs:
           name: Checkout the Project Repos
           path: ./projects
           command: |
-            exec < "../OAF/runtime/scripts/projectList.csv"
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
             read -r header
-            while IFS=", ", read -r name branch folder plutoraname; do
+            while IFS=", ", read -r name branch folder; do
               if test "$branch"; then
                 echo "#################################################### "
                 echo "# Cloning the $name Project                          "
                 echo "#################################################### "
-                git clone -b $branch git@github.com:OUP/$name.git || true
+                git clone -b $branch git@github.com:klassijs/$name.git || true
               else
-                git clone -b $branch git@github.com:OUP/$name.git || true
+                git clone -b $branch git@github.com:klassijs/$name.git || true
               fi
             done
 
-  #####################################################
-  ##         Generate dependency cache key           ##
-  #####################################################
+      #####################################################
+      ##         Generate dependency cache key           ##
+      #####################################################
       - run:
           name: Generate dependency cache key
           path: ./projects
           command: |
-            exec < "../OAF/runtime/scripts/projectList.csv"
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
             read -r header
-            while IFS=",", read -r name branch folder plutoraname; do
+            while IFS=",", read -r name branch folder; do
               if test "$folder"; then
-                echo "this is the list 1:- $name $branch $folder $plutoraname"
+                echo "this is the list 1:- $name $branch $folder"
                 cd $name/test
-                cat yarn.lock> CACHE_KEY
+                cat shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
                 cd ../../
               else
-                echo "this is the list 2:- $name $branch $folder $plutoraname"
-                cat $name/yarn.lock> CACHE_KEY
+                echo "this is the list 2:- $name $branch $folder"
+                cat $name/shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
               fi
             done
 
+      # Restore cache if available
       - restore_cache:
-          key: oaf-yarn-cache-v2-{{ checksum "./projects/CACHE_KEY" }}
+          keys:
+            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+            - pnpm-cache-v1-  # Fallback cache key
 
-  ##########################################################################
-  # Save yarn cache, don't include node modules because we end up with an  #
-  # archive so large that unarchiving takes longer than the yarn install   #
-  ##########################################################################
+      ##########################################################################
+      # Save pnpm cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the pnpm install   #
+      ##########################################################################
+      # Save cache
       - save_cache:
+          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
           paths:
-            - ~/.cache/yarn
-          key: oaf-yarn-cache-v2-{{ checksum "./projects/CACHE_KEY" }}
+            - ~/.pnpm-store  # PNPM's global store for caching dependencies
 
-  #####################################################
-  ##         Install all Project dependencies        ##
-  #####################################################
+      #####################################################
+      ##         Install all Project dependencies        ##
+      #####################################################
       - run:
           name: Install all Project Dependencies
           path: ./projects
           command: |
-            exec < "../OAF/runtime/scripts/projectList.csv"
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
             read -r header
-            while IFS=", ", read -r name branch folder plutoraname; do
+            while IFS=", ", read -r name branch folder; do
               cd $name
                 echo "#################################################### "
                 echo "# Installing $name Project Dependencies......        "
@@ -188,11 +223,11 @@ jobs:
                 if test "$folder"; then
                   cd test
                   git config --global url."git@github.com:".insteadOf "https://github.com/"
-                  yarn install --network-concurrency 1 || true
+                  pnpm install --network-concurrency 1 || true
                   cd ../
                   else
                   git config --global url."git@github.com:".insteadOf "https://github.com/"
-                  yarn install --network-concurrency 1 || true
+                  pnpm install --network-concurrency 1 || true
                 fi
                   cd ../
             done
@@ -210,15 +245,15 @@ jobs:
   ###########################################
   s3_report_base: &s3_report_base
     docker:
-      - image: cimg/node:18.12.1-browsers
+      - image: cimg/node:20.18.3-browsers
     resource_class: small
     steps:
       - attach_workspace:
           at: ./
 
-  ###############################################
-  # Lambdatest setup for execution and shutdown #
-  ###############################################
+      ###############################################
+      # Lambdatest setup for execution and shutdown #
+      ###############################################
       - run:
           name: Lambdatest tunnel file downloading and upziping
           command: |
@@ -258,27 +293,27 @@ jobs:
             PORT=$(head -1 /tmp/port)
             curl  --silent --retry-connrefused --connect-timeout 5 --max-time 5 --retry 10 --retry-delay 2 --retry-max-time 30 http://127.0.0.1:$PORT/api/v1.0/info 2>&1 > /dev/null
 
-  #########################
-  ## s3 report Execution ##
-  #########################
+      #########################
+      ## s3 report Execution ##
+      #########################
       - run:
           name: Executing the s3 Report
           path: ./projects
           command: |
             exitCode=0
-            exec < ../OAF/runtime/scripts/projectList.csv
+            exec < ../klassi-js/runtime/scripts/projectList.csv
             read -r header
-            while IFS=",", read -r name branch folder plutoraname; do
+            while IFS=",", read -r name branch folder; do
               cd $name
                 echo "#################################################### "
                 echo "#  The $name Project s3 Report                     # "
                 echo "#################################################### "
               if test "$folder"; then
                 cd $folder
-                  yarn cilts3r chrome || exitCode=1
+                  pnpm cilts3r chrome || exitCode=1
                   cd ../../
               else
-                yarn cilts3r chrome || exitCode=1
+                pnpm cilts3r chrome || exitCode=1
                 cd ../
               fi
             done
@@ -288,13 +323,39 @@ jobs:
     <<: *s3_report_base
 
   ###########################################
+  #   Unit test base configuration   #
+  ###########################################
+  unit_test_base: &unit_test_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ./tmp
+
+      - run:
+          name: Run unit tests
+          path: ./klassi-js
+          command: |
+            pnpm test:checkin
+
+      - store_test_results:
+          path: ./klassi-js/reports
+
+  unit_test:
+    <<: *unit_test_base
+
+  ###########################################
   #   Integration test base configuration   #
   ###########################################
   integration_test_base: &integration_test_base
     docker:
-      - image: cimg/node:18.12.1-browsers
+      - image: cimg/node:20.18.3-browsers
     resource_class: small
-    parallelism: 2
     steps:
       - attach_workspace:
           at: ./
@@ -305,132 +366,35 @@ jobs:
 
       - run:
           name: Run integration tests
-          path: ./OAF
+          path: ./klassi-js
           command: |
-            fgrep -rl --include *.feature @integration features | circleci tests split > /tmp/test-to-run | xargs -n 1 echo
-            TEST_FILES=$(cat /tmp/test-to-run | xargs | sed -e 's/ /,/g')
-            echo $TEST_FILES
-            yarn cilt${STAGE} ${BROWSER} --featureFiles $TEST_FILES
-
-      - store_artifacts:
-          path: ./OAF/artifacts/visual-regression/original/
+            pnpm test:merge
 
       - store_test_results:
-          path: ./OAF/reports
+          path: ./klassi-js/reports
 
-  integration_test_chrome:
+  integration_test:
     <<: *integration_test_base
-    environment: { BROWSER: 'chrome', STAGE: 'dev' }
-
-  ###########################################
-  #   Acceptance test base configuration    #
-  ###########################################
-  acceptance_test_base: &acceptance_test_base
-    docker:
-      - image: cimg/node:18.12.1-browsers
-    resource_class: small
-    parallelism: 2
-    steps:
-      - attach_workspace:
-         at: ./
-
-      - run:
-          name: Setting up tmp Dir for split files
-          command: mkdir ./tmp
-
-      - run:
-          name: Run acceptance tests
-          path: ./OAF
-          command: |
-            set +e # do not exit immediately on fail
-            trap 'EXIT_STATUS=$?' ERR # but trap errors and capture exit status
-            env | grep EXIT_STATUS_[0-9]=[^0] && exit 1
-            
-            fgrep -rl --include *.feature @regression features | circleci tests split > /tmp/test-to-run | xargs -n 1 echo
-            TEST_FILES=$(cat /tmp/test-to-run | xargs | sed -e 's/ /,/g')
-            echo $TEST_FILES
-            yarn cilt${STAGE} ${BROWSER} --featureFiles $TEST_FILES
-            echo test exiting with:- $EXIT_STATUS
-            echo this is the node index:- $CIRCLE_NODE_INDEX - $EXIT_STATUS
-            echo export EXIT_STATUS_$CIRCLE_NODE_INDEX="$EXIT_STATUS" >> "$BASH_ENV"
-
-      - run: |
-          cp $BASH_ENV bash.env
-
-      - store_artifacts:
-          path: ./OAF/artifacts/visual-regression/original/
-
-      - store_test_results:
-          path: ./OAF/reports
-
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - ./OAF/reports/*
-            - bash.env
-
-  acceptance_test_chrome:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'chrome', STAGE: 'uat' }
-
-  acceptance_test_firefox:
-    <<: *acceptance_test_base
-    environment: { BROWSER: 'firefox', STAGE: 'uat' }
-
-  ##########################################################################
-  #  Generating report from all the parallel run containers into one html  #
-  ##########################################################################
-  generate_report: &generate_report
-    docker:
-      - image: cimg/node:18.12.1-browsers
-
-    steps:
-      - attach_workspace:
-          at: ./
-
-      - run: |
-          cat bash.env >> $BASH_ENV
-
-      - run:
-          name: Running combined html reporter & Uploading files to s3
-          path: ./OAF/reports
-          command: yarn cilt${STAGE} ${BROWSER}
-
-      - run:
-          name: sending exit status code
-          command: |
-            echo test exiting with:- $EXIT_STATUS 
-            exit $EXIT_STATUS
-
-  upload_files_chrome:
-    <<: *generate_report
-    environment: { BROWSER: 'chrome', STAGE: 's3load' }
 
 workflows:
   version: 2
   build_and_test:
     jobs:
       - build_and_install:
-          context: oaf-framework
+          context: klassi-framework
           <<: *filter_only_testable_branches
 
-      - acceptance_test_chrome:
-          context: oaf-framework
+      - unit_test:
+          context: klassi-framework
           requires:
             - build_and_install
-          <<: *filter_only_releasable_branches
+          <<: *filter_only_testable_branches
 
-      - acceptance_test_firefox:
-          context: oaf-framework
+      - integration_test:
+          context: klassi-framework
           requires:
-            - build_and_install
+            - unit_test
           <<: *filter_only_releasable_branches
-
-      - integration_test_chrome:
-          context: oaf-framework
-          requires:
-            - build_and_install
-          <<: *filter_only_integration_branches
 
   s3Report_run:
     triggers:
@@ -439,41 +403,18 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
 
     jobs:
       - build_and_install:
-          context: oaf-framework
+          context: klassi-framework
 
       - project_code_checkout:
-         context: oaf-framework
-         requires:
-           - build_and_install
+          context: klassi-framework
+          requires:
+            - build_and_install
 
       - s3Report_email_run:
-         context: oaf-framework
-         requires:
-           - project_code_checkout
-
-#  nightly_run:
-#    triggers:
-#      - schedule:
-#          cron: "58 15 * * *"
-#          filters:
-#            branches:
-#              only:
-#                - testfix/plutoraApi
-#
-#    jobs:
-#      - build_and_install:
-#          context: oaf-framework
-#
-#      - acceptance_test_chrome:
-#          context: oaf-framework
-#          requires:
-#            - build_and_install
-#
-#      - upload_files_chrome:
-#          context: oaf-framework
-#          requires:
-#            - acceptance_test_chrome
+          context: klassi-framework
+          requires:
+            - project_code_checkout

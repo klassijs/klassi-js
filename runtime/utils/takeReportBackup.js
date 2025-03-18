@@ -13,7 +13,6 @@ module.exports = {
       let newFolderName = `${dateTime
         .toISOString()
         .slice(0, 10)} ${dateTime.getHours()}-${dateTime.getMinutes()}-${dateTime.getSeconds()}`;
-      //console.log(newFolderName);
       const reportBackupFolder = `${rootBackupFolder}/${newFolderName}`;
       if (!fs.existsSync(rootBackupFolder)) {
         fs.mkdirSync(rootBackupFolder);
@@ -24,9 +23,9 @@ module.exports = {
       }
       fs.copySync('reports', reportBackupFolder);
       fs.rmSync('reports', { recursive: true });
-      console.log(`report back-up  taken in ${reportBackupFolder}`);
+      console.info(`report back-up  taken in ${reportBackupFolder}`);
     } catch (err) {
-      console.log('Error during report back-up process / nothing availabe for back-up');
+      console.error('Error during report back-up process / nothing availabe for back-up');
     }
   },
   clearReport: () => {
@@ -34,7 +33,7 @@ module.exports = {
     try {
       fs.rmSync(reportFolder, { recursive: true });
     } catch (err) {
-      console.log('Unable to clear local reports folder');
+      console.error('Unable to clear local reports folder');
     }
   },
 };

@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const fs = require('fs-extra');
 const merge = require('merge');
 const { Command } = require('commander');
@@ -24,7 +25,7 @@ const { astellen } = require('klassijs-astellen');
 const program = new Command();
 
 const pjson = require('./package.json');
-const takeReportBackup = require('./runtime/takeReportBackup');
+const takeReportBackup = require('./runtime/utils/takeReportBackup');
 
 async function klassiCli() {
   try {
@@ -38,6 +39,7 @@ async function klassiCli() {
 }
 
 (async () => {
+  // Dynamically import Chai (ESM)
   const chai = await import('chai');
   global.assert = chai.assert;
 })();
@@ -83,7 +85,7 @@ global.BeforeAll = BeforeAll;
 global.BeforeStep = BeforeStep;
 global.Status = Status;
 
-global.projectRootPath = __dirname;
+global.projectRootPath = path.resolve(__dirname);
 
 function collectPaths(value, paths) {
   paths.push(value);
@@ -182,7 +184,10 @@ global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
 global.isCI = options.isCI;
 
-astellen.set('baselineImageUpdate', options.baselineImageUpdate);
+global.baselineImageUpdate = options.baselineImageUpdate;
+global.browserName = global.remoteConfig || BROWSER_NAME;
+
+astellen.set('BROWSER_NAME', options.browser);
 
 const getConfig = (configName) => cosmiconfigSync(configName).search().config;
 const { environment } = getConfig('envConfig');
@@ -235,11 +240,6 @@ const paths = {
 
 global.paths = paths;
 
-// astellen.set('BROWSER_NAME', browserName);
-global.browserName = global.remoteConfig || BROWSER_NAME;
-console.log('Starting tests with the following browserName:', browserName);
-console.log('Starting tests with the following remoteConfig:', global.remoteConfig);
-
 const envName = env.envName.toLowerCase();
 const reports = `./reports/${browserName}/${envName}`;
 
@@ -261,6 +261,7 @@ if (fs.existsSync(videoLib)) {
   console.error('No Video Lib');
 }
 
+let sharedObjects = {};
 const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
   const allDirs = {};
@@ -304,7 +305,7 @@ function getTagsFromFeatureFiles() {
 if (!options.tags || options.tags.length === 0) {
   process.exit(1);
 }
-
+let resultingString = '';
 if (options.tags.length > 0) {
   const tagsFound = getTagsFromFeatureFiles();
   const separateMultipleTags = options.tags[0].split(',');
@@ -348,7 +349,6 @@ if (options.tags.length > 0) {
     }
   }
 
-  let resultingString = '';
   if (correctTags.length > 1) {
     resultingString = correctTags.join(' or ');
     if (correctExcludedTags.length > 0) {
@@ -384,6 +384,7 @@ if (options.browser) {
 }
 
 klassiCli().then(async (succeeded) => {
+  let dryRun = false;
   if (dryRun === false) {
     if (!succeeded) {
       await cucumberCli().then(async () => {
@@ -392,7 +393,7 @@ klassiCli().then(async (succeeded) => {
     } else {
       await cucumberCli().then(async () => {
         await browser.pause(DELAY_2s).then(async () => {
-          console.log('Test run completed successfully');
+          console.info('Test run completed successfully');
           await process.exit(0);
         });
       });
@@ -401,6 +402,7 @@ klassiCli().then(async (succeeded) => {
 });
 
 async function cucumberCli() {
+  let email = false;
   if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
     await browser.pause(DELAY_2s).then(async () => {
       await helpers.klassiReporter();

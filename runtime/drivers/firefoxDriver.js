@@ -4,16 +4,23 @@
  */
 const { remote } = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
-const { filterQuietTags } = require('../.././cucumber.js');
+const fs = require('fs-extra');
+const path = require('path');
+
+const apiTagsData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../scripts/tagList.json')));
 
 let defaults = {};
 let isApiTest;
 let useProxy = false;
 
-Before(async () => {
-  let result = await filterQuietTags();
-  const taglist = resultingString.split(',');
-  isApiTest = taglist.some((tag) => result.includes(tag));
+Before(async (scenario) => {
+  try {
+    const scenarioTags = scenario.pickle.tags.map(tag => tag.name.replace('@', '').toLowerCase());
+    const tagList = (apiTagsData.tagNames || []).map(tag => tag.replace('@', '').toLowerCase());
+    isApiTest = scenarioTags.some(tag => tagList.includes(tag));
+  } catch (error) {
+    console.error('Error in Before hook: ', error);
+  }
 });
 
 /**
@@ -32,13 +39,13 @@ module.exports = async function firefoxDriver(options) {
     },
   };
 
-  if (options.headless || isApiTest ? '--headless' : '') {
+  if (isApiTest) {
     defaults.capabilities['moz:firefoxOptions'].args.push('--headless', '--disable-popup-blocking', '--disable-gpu');
   }
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://domainName:8080',
+      httpProxy: 'http://klassiarray.klassi.co.uk:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };
