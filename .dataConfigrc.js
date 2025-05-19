@@ -1,6 +1,6 @@
 module.exports = {
   dataConfig: {
-    projectName: 'klassi',
+    projectName: 'klassi-js',
     s3FolderName: 'klassi-js',
 
     s3Data: {

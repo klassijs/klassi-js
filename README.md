@@ -65,8 +65,8 @@ node ./node_modules/klassijs/index.js
   --tags @get,@put || will execute the scenarios tagged with the values provided. If multiple are necessary, separate them with a comma (no blank space in between).
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
 ```
-## Upgrading to klassijs v5
-To upgrade existing projects for use with klassijs v5, please follow these few steps [HERE](docs/upgradeDoc.md)
+## Upgrading to klassijs v6
+To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Directory Structure
 You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage.
