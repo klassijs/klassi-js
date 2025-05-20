@@ -6,6 +6,10 @@ const fs = require('fs-extra');
 const path = require('path');
 
 module.exports = {
+  /**
+   * This function will take the back-up of the report folder
+   * @param {string} folderName - The name of the folder to be backed up
+   */
   backupReport: () => {
     const rootBackupFolder = path.resolve(settings.projectRoot, './reportBackup');
     let dateTime = new Date();
@@ -28,6 +32,11 @@ module.exports = {
       console.error('Error during report back-up process / nothing availabe for back-up');
     }
   },
+
+  /**
+   * This function will clear the local report folder
+   * @param {string} folderName - The name of the folder to be cleared
+   */
   clearReport: () => {
     const reportFolder = path.resolve(settings.projectRoot, './reports');
     try {

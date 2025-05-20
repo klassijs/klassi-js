@@ -32,6 +32,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "random": "node runtime/utils/random",
     "test:checkin": "jest __tests__/unit",
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",

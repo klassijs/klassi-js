@@ -98,8 +98,34 @@ The following variables are available within the ```Given()```, ```When()``` and
 | `helpers`    | a collection of [helper methods](runtime/helpers.js) _things webdriver.io does not provide but really should!_ |
 
 
+## Klassi-js JS modules
+
+To streamline test script development and ensure consistency across projects, the following JavaScript libraries are being exported from klassi-js. This approach allows these libraries to be utilized at the project level without the need for duplicate installations, thereby reducing redundancy and potential conflicts.
+
+- Exported libraries:
+
+| JS Library    | Description                                                                                                                               |
+| :------------ | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| `pactum`      | A REST API testing tool for automating end-to-end, integration, contract, and component tests                                             |
+| `webdriverio` | A next-gen browser and mobile automation test framework for Node.js                                                                       |
+| `fs-extra`    | Provides extra file system methods and promise support, enhancing the native fs module                                                    |
+| `dotenv`      | Loads environment variables from a .env file into process.env to manage configuration separately from code                                |
+| `Husky`       | A tool for managing Git hooks to automate tasks like linting, testing, and code formatting before commits or pushes                       |
+| `S3Client`    | Part of the AWS SDK for JavaScript, it allows interaction with Amazon S3 for operations like uploading, downloading, and managing objects |
+
+  ```js
+  // usage klassi-js module at project level i.e.  
+  const pactumJs = require('klassi-js/klassiModule').pactum;
+
+  require('klassi-js/klassiModule').dotenv.config();
+
+  const fs = require('klassi-js/klassiModule').fs-extra;
+
+  ```
+
+
 ## Helpers
-klassijs contains a few helper methods to help along the way, these methods are:
+klassi-js contains a few helper methods to help along the way, these methods are:
 ```js
 // Load a URL, returning only when the <body> tag is present
 await helpers.loadPage('https://duckduckgo.com', 10);
