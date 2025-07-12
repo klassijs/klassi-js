@@ -1,16 +1,17 @@
 /**
- * klassi-js
- * Copyright © 2016 - Larry Goddard
-
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * klassi Automated Testing Tool
+ * Created by Larry Goddard
  */
 const fs = require('fs-extra');
-const path = require('path');
-
-const envName = env.envName.toLowerCase();
+const pactumJs = require('pactum');
+const { assertExpect } = require('klassijs-soft-assert');
+const loadConfig = require('./configLoader');
+const { EOL, os } = require('os');
 
 let elem;
+let getMethod;
+let resp;
+let modID;
 
 module.exports = {
   /**
@@ -43,18 +44,7 @@ module.exports = {
     /**
      * grab the userAgent details from the loaded url
      */
-    // await helpers.getUserAgent();
     cucumberThis.attach(`loaded url: ${url}`);
-  },
-
-  /**
-   * @returns {Promise<void>}
-   */
-  getUserAgent: async () => {
-    const script = await browser.execute(() => window.navigator.userAgent);
-    const file = path.resolve('./shared-objects/docs/userAgent.txt');
-    await helpers.writeToTxtFile(file, script);
-    await browser.pause(DELAY_100ms);
   },
 
   /**
@@ -73,11 +63,29 @@ module.exports = {
   },
 
   /**
+   * append / add data to file on hard drive
+   * @param filepath
+   * @param output
+   * @returns {Promise<void>}
+   */
+  appendToTxtFile: async (filepath, output) => {
+    try {
+      await fs.openSync(filepath, 'a');
+      await fs.appendFileSync(filepath, output + '\r\n');
+      await fs.appendFileSync(filepath, EOL);
+    } catch (err) {
+      console.error(`Error in writing file ${err.message}`);
+      throw err;
+    }
+  },
+
+  /**
+   * This is to read the content of a text file
    * @param filepath
    * @returns {Promise<unknown>}
    */
   readFromFile: (filepath) =>
-    new Promise((resolve, reject) => {
+    new Promise((resolve) => {
       fs.readFile(filepath, 'utf-8', (err, data) => {
         data = data.toString();
         resolve(data);
@@ -86,7 +94,7 @@ module.exports = {
     }),
 
   /**
-   * This is to read content from a Json file
+   * This is to read the content of a Json file
    * @param filename
    * @returns {Promise<void>}
    */
@@ -105,7 +113,7 @@ module.exports = {
   writeToJson: async (filePath, fileContent) => {
     try {
       await fs.writeFile(filePath, JSON.stringify(fileContent, null, 4));
-      console.log('Success - the content: ', fileContent);
+      // console.log('Success - the content: ', fileContent);
     } catch (err) {
       console.error('This Happened: ', err);
     }
@@ -141,6 +149,25 @@ module.exports = {
     return `${dd}-${mm}-${yyyy}`;
   },
 
+  /**
+   * Get the current date in yyyy-mm-dd format for the s3 bucket folder
+   * @returns {string|*}
+   */
+  s3BucketCurrentDate() {
+    const today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; // January is 0!
+    const yyyy = today.getFullYear();
+
+    if (dd < 10) {
+      dd = `0${dd}`;
+    }
+    if (mm < 10) {
+      mm = `0${mm}`;
+    }
+    return `${yyyy}-${mm}-${dd}`;
+  },
+
   reportDateTime() {
     const today = new Date();
     let dd = today.getDate();
@@ -172,6 +199,34 @@ module.exports = {
     return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
   },
 
+  emailReportDateTime() {
+    const $today = new Date();
+    const $yesterday = $today;
+    $yesterday.setDate($today.getDate() - 1);
+    let dd = $yesterday.getDate();
+    let mm = $yesterday.getMonth() + 1; // January is 0!
+    const yyyy = $yesterday.getFullYear();
+    let hours = $yesterday.getHours();
+    let minutes = $yesterday.getMinutes();
+    let seconds = $yesterday.getSeconds();
+
+    if (dd < 10) {
+      dd = `0${dd}`;
+    }
+    if (mm < 10) {
+      mm = `0${mm}`;
+    }
+    if (hours < 10) {
+      hours = `0${hours}`;
+    }
+    if (minutes < 10) {
+      minutes = `0${minutes}`;
+    }
+    if (seconds < 10) {
+      seconds = `0${seconds}`;
+    }
+    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
+  },
   /**
    * Get current date and time dd-mm-yyyy 00:00:00
    */
@@ -214,9 +269,106 @@ module.exports = {
     try {
       return require('./reporter/reporter').reporter();
     } catch (err) {
-      console.error(`There is a reporting system error: ${err.stack}`);
+      console.error(`This is the Reporting System error: ${err.stack}`);
       throw err;
     }
+  },
+
+  /**
+   * ========== EMAIL FUNCTIONALITY ==========
+   *   Sends an Email to the concerned users with the log and the test report
+   */
+  klassiEmail() {
+    try {
+      return require('./mailer').oupSendMail();
+    } catch (err) {
+      console.error(`This is the Email System error: ${err.stack}`);
+      throw err;
+    }
+  },
+
+  /**
+   * API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
+   * @param url
+   * @param method
+   * @param auth
+   * @param body
+   * @param form
+   * @param expectedStatusCode
+   * @returns {Promise<*>}
+   */
+  apiCall: async (url, method, auth = null, form = null, body = null, expectedStatusCode = null) => {
+    const options = {
+      url,
+      method,
+      auth,
+      headers: {
+        Authorization: `${auth}`,
+      },
+      form,
+      body,
+      expectedStatusCode,
+    };
+    if (method === 'GET') {
+      resp = await pactumJs
+        .spec()
+        .get(options.url)
+        .withHeaders(options.headers)
+        .withRequestTimeout(DELAY_15s)
+        .expectStatus(expectedStatusCode)
+        .toss();
+      getMethod = resp;
+    }
+
+    if (method === 'PUT') {
+      resp = await pactumJs
+        .spec()
+        .put(options.url)
+        .withHeaders(options.headers)
+        .withBody(options.body)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(expectedStatusCode);
+      getMethod = resp;
+    }
+
+    if (method === 'POST') {
+      resp = await pactumJs
+        .spec()
+        .post(options.url)
+        .withHeaders(options.headers)
+        .withBody(options.body)
+        .withForm(options.form)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(expectedStatusCode);
+      getMethod = resp;
+    }
+
+    if (method === 'DELETE') {
+      resp = await pactumJs
+        .spec()
+        .post(options.url)
+        .withHeaders(options.headers)
+        .withBody(options.body)
+        .withRequestTimeout(DELAY_10s)
+        .expectStatus(expectedStatusCode);
+    }
+  },
+
+  /**
+   * this stores the content of the APIs GET call
+   * @returns {*}
+   */
+  getContent() {
+    return getMethod;
+  },
+
+  /**
+   * getting the video link from lambdatest
+   * @returns {Promise<void>}
+   */
+  ltVideo: async () => {
+    const page = require('./getVideoLinks');
+    await page.getVideoList();
   },
 
   /**
@@ -254,31 +406,6 @@ module.exports = {
   },
 
   /**
-   * This will assert text being returned
-   * @param selector
-   * @param expected
-   */
-  assertText: async (selector, expected) => {
-    let actual = await browser.$(selector);
-    await actual.getText();
-    actual = actual.trim();
-    assert.equal(actual, expected);
-    return this;
-  },
-
-  /**
-   * This will assert text being returned includes
-   * @param selector
-   * @param expectedText
-   */
-  expectToIncludeText: async (selector, expectedText) => {
-    const actual = await browser.$(selector);
-    await actual.getText();
-    expect(actual).to.include(expectedText);
-    return this;
-  },
-
-  /**
    * function to get element from frame or frameset
    * @param frameName
    * @param selector
@@ -296,7 +423,8 @@ module.exports = {
    */
   assertUrl: async (expected) => {
     const actual = await browser.getUrl();
-    assert.equal(actual, expected);
+    // assert.equal(actual, expected);
+    await helpers.expectAdv('equal', actual, expected);
   },
 
   /**
@@ -319,6 +447,199 @@ module.exports = {
     return randomNumber;
   },
 
+  /**
+   * clicks an element (or multiple if present) that is not visible,
+   * useful in situations where a menu needs a hover before a child link appears
+   * @param {string} selector used to locate the elements
+   * @param {string} text to match inner content (if present)
+   * @example
+   *    helpers.clickHiddenElement('nav[role='navigation'] ul li a','School Shoes');
+   *    @deprecated
+   */
+  clickHiddenElement(selector, textToMatch) {
+    // TODO: Find a better way to do this
+    /**
+     * method to execute within the DOM to find elements containing text
+     */
+    function clickElementInDom(query, content) {
+      /**
+       * get the list of elements to inspect
+       */
+      const elements = document.querySelectorAll(query);
+      /**
+       * workout which property to use to get inner text
+       */
+      const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
+
+      for (let i = 0, l = elements.length; i < l; i++) {
+        /**
+         * If we have content, only click items matching the content
+         */
+        if (content) {
+          if (elements[i][txtProp] === content) {
+            elements[i].click();
+          }
+        } else {
+          /**
+           * otherwise click all
+           */
+          elements[i].click();
+        }
+      }
+    }
+
+    /**
+     * grab the matching elements
+     */
+    return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
+  },
+
+  /**
+   * this adds extensions to Chrome Only
+   * @param extName
+   * @returns {Promise<*>}
+   */
+  chromeExtension: async (extName) => {
+    await browser.pause();
+    await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
+    const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
+    if (script === true) {
+      elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
+      await elem[1].isExisting();
+      await elem[1].scrollIntoView();
+      const elem1 = await elem[1].getText();
+      if (elem1 === 'I agree') {
+        await elem[1].click();
+        await browser.pause(DELAY_300ms);
+      }
+    }
+    elem = await browser.$('[role="row"] > div:nth-child(1)');
+    await elem.click();
+    await browser.pause(DELAY_200ms);
+    const str = await browser.getUrl();
+    const str2 = await str.split('/');
+    modID = str2[6];
+    return modID;
+  },
+
+  /**
+   * This is the function for installing modeHeader
+   * @param extName
+   * @param username
+   * @param password
+   * @returns {Promise<void>}
+   */
+  modHeader: async (extName, username, password) => {
+    await helpers.chromeExtension(extName);
+    console.log('modID = ', modID);
+
+    await browser.pause(3000);
+    elem = await browser.$(
+      '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]',
+    );
+    await elem.isExisting();
+    await elem.click();
+
+    await browser.pause(2000);
+    elem = await browser.$('.//a[@href="#Add extension"]');
+    await elem.isExisting();
+    await elem.click();
+    await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
+
+    await browser.pause(5000);
+    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
+    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
+    await helpers.waitAndClick('//button[@title="Lock to tab"]');
+  },
+
+  installMobileApp: async (appName, appPath) => {
+    if (env.envName === 'android' || env.envName === 'ios') {
+      if (!(await browser.isAppInstalled(appName))) {
+        console.log('Installing application...');
+        await browser.installApp(appPath);
+        // assert.isTrue(await browser.isAppInstalled(appName), 'The app was not installed correctly.');
+        await assertExpect(
+          await browser.isAppInstalled(appName),
+          'isTrue',
+          null,
+          'The app was not installed correctly.',
+        );
+      } else {
+        console.log(`The app ${appName} was already installed on the device, skipping installation...`);
+        await browser.terminateApp(appName);
+      }
+    }
+  },
+
+  uninstallMobileApp: async (appName) => {
+    if (env.envName === 'android' || env.envName === 'ios') {
+      if (await browser.isAppInstalled(appName)) {
+        console.log(`Uninstalling application ${appName}...`);
+        await browser.removeApp(appName);
+        await assertExpect(
+          await browser.isAppInstalled(appName),
+          'isNotTrue',
+          null,
+          'The app was not uninstalled correctly.',
+        );
+        // assert.isNotTrue(await browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
+      } else {
+        console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
+      }
+    }
+  },
+
+  /**
+   * drag the page into view
+   */
+  pageView: async (selector) => {
+    const elem = await browser.$(selector);
+    await elem.scrollIntoView();
+    await browser.pause(DELAY_200ms);
+    return this;
+  },
+
+  /**
+   * Generates a random 13 digit number
+   * @param length
+   * @returns {number}
+   */
+  randomNumberGenerator(length = 13) {
+    const baseNumber = 10 ** (length - 1);
+    let number = Math.floor(Math.random() * baseNumber);
+    /**
+     * Check if number have 0 as first digit
+     */
+    if (number < baseNumber) {
+      number += baseNumber;
+    }
+    console.log(`this is the number ${number}`);
+    return number;
+  },
+
+  /**
+   * Reformats date string into string
+   * @param dateString
+   * @returns {string}
+   */
+  reformatDateString(dateString) {
+    const months = {
+      '01': 'January',
+      '02': 'February',
+      '03': 'March',
+      '04': 'April',
+      '05': 'May',
+      '06': 'June',
+      '07': 'July',
+      '08': 'August',
+      '09': 'September',
+      10: 'October',
+      11: 'November',
+      12: 'December',
+    };
+    const b = dateString.split('/');
+    return `${b[0]} ${months[b[1]]} ${b[2]}`;
+  },
 
   /**
    * Sorts results by date
@@ -401,63 +722,86 @@ module.exports = {
     await elem.addValue(remoteFilePath);
   },
 
-  /**
-   * This function makes using expect easier by just passing the assertion type and values
-   * it will not fail the test right away but allow the other expects to be executed
-   * @param assertionType {string}
-   * @param actual {any}
-   * @param expected {any}
-   * @param message {string}
-   * @param operator {any}
-   * @returns {Promise<void>}
-   */
-  expectAdv: async (assertionType, actual, expected = '', message = '', operator = '') => {
-    const softAssert = expect;
-    let errmsg;
-    try {
-      const getAssertionType = {
-        equal: () => softAssert(actual).to.equal(expected),
-        contain: () => softAssert(actual).to.contain(expected),
-        exist: () => softAssert(actual, message).to.exist,
-        exists: () => assert.exists(actual, message),
-        doesNotExist: () => softAssert(actual, message).to.not.exist,
-        doesNotContain: () => softAssert(actual).to.not.contain(expected),
-        toBeOneOf: () => softAssert(actual).to.be.oneOf(expected),
-        toInclude: () => softAssert(actual).to.include(expected),
-        include: () => assert.include(actual, expected),
-        isTrue: () => assert.isTrue(actual, message),
-        isFalse: () => assert.isFalse(actual, message),
-        toNotEqual: () => softAssert(actual).to.not.equal(expected, message),
-        fail: () => assert.fail(actual, expected, message, operator),
-        isAbove: () => assert.isAbove(actual, expected, message),
-        toBeDisplayed: () => softAssert(actual).toBeDisplayed(),
 
-        default: () => console.info('Invalid assertion type: =======>>>>>>>>>>> ', assertionType),
-      };
-      (getAssertionType[assertionType] || getAssertionType['default'])();
-      errmsg = `Assertion Passes: Valid Assertion Type = ${assertionType}`;
-      cucumberThis.attach(`<div style="color:green;"> ${errmsg} </div>`);
-    } catch (err) {
-      const filteredActual = actual.replace(/[<>]/g, '');
-      errmsg =
-        `Assertion Failure: Invalid Assertion Type = ${assertionType}` +
-        '\n' +
-        `Assertion failed: expected ${filteredActual} to ${assertionType} ${expected}`;
-      cucumberThis.attach(`<div style="color:red;"> ${errmsg} </div>`);
+  switchWindowTabs: async (tabId) => {
+    const handles = await browser.getWindowHandles();
+    if (handles.length > tabId) {
+      await browser.switchToWindow(handles[tabId]);
+      await browser.pause(DELAY_1s);
     }
   },
-  // TODO: add function to record failed assertions and pass it to the end so that the test fails.
+
   /**
-   * This function makes using assert easier by just passing the assertion type and values
-   * it will not fail the test right away but allow the other asserts to be executed
-   * @param assertionType {string}
-   * @param actual {mixed}
-   * @param expected {any}
-   * @param message {string}
-   * @param operator {any}
-   * @returns {Promise<void>}
+   * Function to verify if a file has been downloaded
+   * @param {string} fileName Filename with extension
+   * @param {number} timeout Maximum wait time for the file to be downloaded, default value is set to 5 seconds
+   * @param {number} interval Wait time between every iteration to recheck the file download, default value is set to 500 ms
    */
-  assertAdv: async (assertionType, actual, expected = '', message = '', operator = '') => {
-    await helpers.expectAdv(assertionType, actual, expected, message, operator);
+  async verifyDownload(fileName, timeout = DELAY_5s, interval = DELAY_500ms) {
+    let value = settings.remoteService === 'lambdatest' ? 0 : 1;
+    let path;
+    if (value === 1) {
+      // The below path points to the default downloads folder, if the folder is in some other location, it has to be configured.
+      let home = os.homedir();
+      path = home + `/Downloads/${fileName}`;
+    }
+    let isFileDownloaded = false;
+    let timeoutInSeconds = timeout / DELAY_1s;
+    let intervalInSeconds = interval / DELAY_1s;
+
+    loop: for (let i = 1; i <= timeoutInSeconds / intervalInSeconds; i++) {
+      switch (value) {
+        case 0:
+          if (await browser.execute(`lambda-file-exists=${fileName}`)) {
+            isFileDownloaded = true;
+            break loop;
+          }
+          break;
+        case 1:
+          if (fs.existsSync(path)) {
+            isFileDownloaded = true;
+            break loop;
+          }
+      }
+      await browser.pause(interval);
+    }
+    assert.isTrue(isFileDownloaded, `File '${fileName}' is still not downloaded after ${timeout} ms`);
+  },
+
+  /**
+   * Function to upload one or more files
+   * @param {string|string[]} filePaths files to be uploaded with extension
+   * @param {string} locator element having attribute type='file'
+   */
+  async uploadFiles(filePaths, locator) {
+    if (typeof filePaths === 'string') {
+      filePaths = [filePaths];
+    } else if (!Array.isArray(filePaths)) {
+      throw `Expected 'string|string[]' but '${typeof filePaths}' was passed`;
+    } else if (filePaths.length === 0) {
+      throw 'Empty array was passed';
+    }
+    elem = await browser.$(locator);
+    await elem.waitForExist({ DELAY_5s });
+    let remoteFilePath = [];
+    for (let filePath of filePaths) {
+      remoteFilePath.push(await browser.uploadFile(filePath));
+    }
+    await elem.addValue(remoteFilePath.join('\n'));
+  },
+
+  /**
+   * Function to get the displayed element among multiple matches
+   * @param {string} locator
+   * @returns Displayed element
+   */
+  async returnDisplayedElement(locator) {
+    elem = await browser.$(locator);
+    await elem.waitForExist();
+    let elems = await browser.$$(locator);
+    for (let elem of elems) {
+      if (await elem.isDisplayed()) return elem;
+    }
+    return null;
   },
 };

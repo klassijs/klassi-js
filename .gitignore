@@ -1,13 +1,16 @@
+## project folders
+artifacts
+
+# exclude generated reports
+reports
+reportBackup
+coverage
+
 # ignore dotenv files, except example
 .env
 .env.*
 !.env.example
-reports
-
-features
-page-objects
-step_definitions
-shared-objects
+env.*
 
 # Logs
 logs
@@ -25,3 +28,5 @@ gen
 .DS_Store
 *.iml
 
+#tesseract
+eng.traineddata

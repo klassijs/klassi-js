@@ -1,0 +1,420 @@
+# klassijs Automated Testing Tool
+# Created by Larry Goddard
+# Javascript Node CircleCI 2.1 configuration file
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+
+version: 2.1
+
+references:
+  filter_ignore_wip_branches:
+    filters:
+      branches:
+        ignore:
+          - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
+          - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
+          - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
+          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
+          - /feature\/.*/ # feature branches with feature/ prefix. e.g. feature/foo
+
+  filter_only_integration_branches: &filter_only_integration_branches
+    filters:
+      branches:
+        only:
+          - develop # git flow develop branch
+          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
+
+  filter_only_testable_branches: &filter_only_testable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow master branch
+          - main # git flow main branch
+          - develop # git flow develop branch
+          - /feature\/.*/ # git flow hotfix branches
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
+          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
+
+  filter_only_releasable_branches: &filter_only_releasable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow master branch
+          - main # git flow main branch
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
+
+jobs:
+  #########################
+  ### build and install ###
+  #########################
+  build_install: &build_install
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    working_directory: ~/klassijs
+
+    steps:
+      # Install pnpm globally
+      - run:
+          name: Install pnpm
+          command: |
+            export SHELL=/bin/bash
+            curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+      # Add PNPM to the path
+      - run:
+          name: Set up PNPM environment
+          command: export PATH="$HOME/.local/share/pnpm:$PATH"
+
+      # Verify pnpm installation
+      - run:
+          name: Check pnpm version
+          command: pnpm --version
+
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Remove the old klassi-js Repo
+          command: rm -rf ~/klassijs/klassi-js
+
+      - run:
+          name: Checkout the klassi-js framework repo
+          command: git clone -b main git@github.com:klassijs/klassi-js.git
+
+      - run:
+          name: Check out the working branch
+          path: ~/klassijs/klassi-js
+          command: git checkout ${CIRCLE_BRANCH}
+
+      # Generate a robust dependency cache key using SHA-256
+      - run:
+          name: Generate dependency cache key
+          command: |
+            if [ -f pnpm-lock.yaml ]; then
+              shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
+            else
+              echo "pnpm-lock.yaml not found, using package.json instead"
+              shasum -a 256 ~/klassijs/klassi-js/package.json > CACHE_KEY
+            fi
+
+      # Restore cache if available
+      - restore_cache:
+          name: Restore pnpm cache
+          keys:
+            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+            - pnpm-cache-v1-  # Fallback cache key
+
+      - run:
+          name: Install the klassi-js framework dependencies
+          path: ~/klassijs/klassi-js
+          command: |
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+            pnpm install
+
+      ##########################################################################
+      # Save pnpm cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the pnpm install   #
+      ##########################################################################
+      # Save cache
+      - save_cache:
+          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+          paths:
+            - ~/.pnpm-store  # PNPM's global store for caching dependencies
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./klassi-js
+
+  build_and_install:
+    <<: *build_install
+
+  #####################################################
+  ##            Checkout Project Repos               ##
+  #####################################################
+  project_code_check_out: &project_code_check_out
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Create projects directory
+          command: mkdir ./projects
+
+      - run:
+          name: Checkout the Project Repos
+          path: ./projects
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=", ", read -r name branch folder; do
+              if test "$branch"; then
+                echo "#################################################### "
+                echo "# Cloning the $name Project                          "
+                echo "#################################################### "
+                git clone -b $branch git@github.com:klassijs/$name.git || true
+              else
+                git clone -b $branch git@github.com:klassijs/$name.git || true
+              fi
+            done
+
+      #####################################################
+      ##         Generate dependency cache key           ##
+      #####################################################
+      - run:
+          name: Generate dependency cache key
+          path: ./projects
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=",", read -r name branch folder; do
+              if test "$folder"; then
+                echo "this is the list 1:- $name $branch $folder"
+                cd $name/test
+                cat shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
+                cd ../../
+              else
+                echo "this is the list 2:- $name $branch $folder"
+                cat $name/shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
+              fi
+            done
+
+      # Restore cache if available
+      - restore_cache:
+          keys:
+            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+            - pnpm-cache-v1-  # Fallback cache key
+
+      ##########################################################################
+      # Save pnpm cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the pnpm install   #
+      ##########################################################################
+      # Save cache
+      - save_cache:
+          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+          paths:
+            - ~/.pnpm-store  # PNPM's global store for caching dependencies
+
+      #####################################################
+      ##         Install all Project dependencies        ##
+      #####################################################
+      - run:
+          name: Install all Project Dependencies
+          path: ./projects
+          command: |
+            exec < "../klassi-js/runtime/scripts/projectList.csv"
+            read -r header
+            while IFS=", ", read -r name branch folder; do
+              cd $name
+                echo "#################################################### "
+                echo "# Installing $name Project Dependencies......        "
+                echo "#################################################### "
+                if test "$folder"; then
+                  cd test
+                  git config --global url."git@github.com:".insteadOf "https://github.com/"
+                  pnpm install --network-concurrency 1 || true
+                  cd ../
+                  else
+                  git config --global url."git@github.com:".insteadOf "https://github.com/"
+                  pnpm install --network-concurrency 1 || true
+                fi
+                  cd ../
+            done
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./projects
+
+  project_code_checkout:
+    <<: *project_code_check_out
+
+  ###########################################
+  # s3 Report base configuration            #
+  ###########################################
+  s3_report_base: &s3_report_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: ./
+
+      ###############################################
+      # Lambdatest setup for execution and shutdown #
+      ###############################################
+      - run:
+          name: Lambdatest tunnel file downloading and upziping
+          command: |
+            sudo apt-get update && sudo apt-get install -y curl unzip iproute2 psmisc
+            curl -O https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip
+            unzip LT_Linux.zip
+            chmod +x LT
+            rm LT_Linux.zip
+
+      - run:
+          name: Adding tunnel name to project
+          background: true
+          command: echo 'export TUNNEL_NAME=${STAGE}-${BROWSER}-${CIRCLE_BUILD_NUM}' >> $BASH_ENV
+
+      - run:
+          name: Starting Lambdatest Tunnel for testing
+          background: true
+          command: |
+            if [ -z $LAMBDATEST_ACCESS_KEY ]; then
+              echo "Error: The parameter lambdatest_key is empty. Please ensure the environment variable LAMBDATEST_KEY has been added."
+              exit 1
+            fi
+            read LOWERPORT UPPERPORT < /proc/sys/net/ipv4/ip_local_port_range
+            PORT=$LOWERPORT
+            while [  $PORT -lt $UPPERPORT ]; do
+                ss -lpn | grep -q ":$PORT " || break
+                let PORT=PORT+1
+            done
+            echo "$PORT" > /tmp/port
+            echo $TUNNEL_NAME
+            ./LT --user $LAMBDATEST_USERNAME --key $LAMBDATEST_ACCESS_KEY --controller circleci --infoAPIPort $PORT --tunnelName $TUNNEL_NAME
+
+      - run:
+          name: Wait for LambdaTest Tunnel confirmation
+          command: |
+            while [ ! -f /tmp/port ]; do sleep 0.5; done
+            PORT=$(head -1 /tmp/port)
+            curl  --silent --retry-connrefused --connect-timeout 5 --max-time 5 --retry 10 --retry-delay 2 --retry-max-time 30 http://127.0.0.1:$PORT/api/v1.0/info 2>&1 > /dev/null
+
+      #########################
+      ## s3 report Execution ##
+      #########################
+      - run:
+          name: Executing the s3 Report
+          path: ./projects
+          command: |
+            exitCode=0
+            exec < ../klassi-js/runtime/scripts/projectList.csv
+            read -r header
+            while IFS=",", read -r name branch folder; do
+              cd $name
+                echo "#################################################### "
+                echo "#  The $name Project s3 Report                     # "
+                echo "#################################################### "
+              if test "$folder"; then
+                cd $folder
+                  pnpm cilts3r chrome || exitCode=1
+                  cd ../../
+              else
+                pnpm cilts3r chrome || exitCode=1
+                cd ../
+              fi
+            done
+            exit $exitCode
+
+  s3Report_email_run:
+    <<: *s3_report_base
+
+  ###########################################
+  #   Unit test base configuration   #
+  ###########################################
+  unit_test_base: &unit_test_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ./tmp
+
+      - run:
+          name: Run unit tests
+          path: ./klassi-js
+          command: |
+            pnpm test:checkin
+
+      - store_test_results:
+          path: ./klassi-js/reports
+
+  unit_test:
+    <<: *unit_test_base
+
+  ###########################################
+  #   Integration test base configuration   #
+  ###########################################
+  integration_test_base: &integration_test_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ./tmp
+
+      - run:
+          name: Run integration tests
+          path: ./klassi-js
+          command: |
+            pnpm test:merge
+
+      - store_test_results:
+          path: ./klassi-js/reports
+
+  integration_test:
+    <<: *integration_test_base
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_and_install:
+          context: klassi-framework
+          <<: *filter_only_testable_branches
+
+      - unit_test:
+          context: klassi-framework
+          requires:
+            - build_and_install
+          <<: *filter_only_testable_branches
+
+      - integration_test:
+          context: klassi-framework
+          requires:
+            - unit_test
+          <<: *filter_only_releasable_branches
+
+  s3Report_run:
+    triggers:
+      - schedule:
+          cron: "00 04 * * *"
+          filters:
+            branches:
+              only:
+                - main
+
+    jobs:
+      - build_and_install:
+          context: klassi-framework
+
+      - project_code_checkout:
+          context: klassi-framework
+          requires:
+            - build_and_install
+
+      - s3Report_email_run:
+          context: klassi-framework
+          requires:
+            - project_code_checkout

@@ -1,0 +1,33 @@
+{
+  "no-empty-file": "on",
+  "file-name": ["on", {"style": "camelCase"}],
+  "indentation" : [
+    "on", {
+      "Feature": 0,
+      "Background": 2,
+      "Scenario": 2,
+      "Step": 4,
+      "Examples": 4,
+      "example": 6,
+      "given": 4,
+      "when": 4,
+      "then": 4,
+      "and": 4,
+      "but": 4,
+      "feature tag": 0,
+      "scenario tag": 2
+    }
+  ],
+  "no-multiple-empty-lines": "on",
+  "no-superfluous-tags": "on",
+  "no-unused-variables": "on",
+  "keywords-in-logical-order": "on",
+  "use-and": "on",
+  "no-dupe-scenario-names": "on",
+  "name-length" : ["on", { "Feature": 70, "Scenario": 70, "Step": 70 }],
+  "scenario-size": ["on", { "steps-length": { "Background": 5, "Scenario": 10, "Examples": 10 } }],
+  "max-scenarios-per-file": ["on", { "maxScenarios": 10, "countOutlineExamples": false }],
+  "no-files-without-scenarios": "on",
+  "no-examples-in-scenarios": "on",
+  "no-scenario-outlines-without-examples": "on"
+}

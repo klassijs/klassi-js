@@ -1,60 +1,104 @@
 {
-  "name": "klassi-js",
-  "version": "5.2.0",
+  "name": "klassi-automation-framework",
+  "version": "5.3.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
     "email": "larryg@klassitech.co.uk",
-    "twitter": "https://twitter.com/larryG_01",
+    "X": "https://twitter.com/larryG_01",
     "linkedin": "https://linkedin.com/in/larryg",
     "youtube": "https://youtube.com/@LarryG_01"
   },
+  "contributors": [
+    {
+      "name": "Carlos Bermejo",
+      "github": "https://github.com/carlosbermejop"
+    }
+  ],
   "license": "MIT",
-  "engines": {
-    "node": ">=16",
-    "yarn": ">=1.22.0"
-  },
   "keywords": [
     "api testing",
     "bdd",
     "lambdatest",
     "cucumber-js",
     "javascript",
-    "klassi-js",
-    "klassijs",
     "testing framework",
     "test automation",
     "webdriverio"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/klassijs/klassi-js.git"
+    "url": "hhtps://github.com/klassijs/klassi-js"
   },
-  "browser": "index.js",
+  "main": "index.js",
+  "scripts": {
+    "random": "node runtime/utils/random",
+    "test:checkin": "jest __tests__/unit",
+    "test:merge": "jest __tests__/integration",
+    "pkgcheck": "pnpm install --frozen-lockfile",
+    "preinstall": "npx only-allow pnpm",
+    "lint": "pnpm lint-staged && pnpm lint:gherkin",
+    "lint:gherkin": "gherkin-lint -c runtime/coding-standards/gherkin/gherkin-lint.json '**/*.feature' ",
+    "lint-branch-name": "pnpm branch-name-lint ./branchnamelinter.config.json",
+    "changelog": "standard-version --skip.commit --skip.tag",
+    "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
+    "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
+    "changelog:major": "standard-version --release-as major --skip.commit --skip.tag"
+  },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
   "bugs": {
     "url": "https://github.com/klassijs/klassi-js/issues"
   },
-  "scripts": {
-    "dev": "node index.js --disableReport --tags",
-    "pkgcheck": "yarn install --check-files"
-  },
   "dependencies": {
-    "@cucumber/cucumber": "^9.1.2",
-    "@cucumber/pretty-formatter": "^1.0.0",
-    "async": "^3.2.4",
-    "chai": "^4.3.7",
-    "commander": "^10.0.0",
-    "cosmiconfig": "^8.0.0",
+    "@aws-sdk/client-s3": "^3.758.0",
+    "@aws-sdk/client-ses": "^3.758.0",
+    "@aws-sdk/credential-provider-node": "^3.758.0",
+    "@cucumber/cucumber": "^11.2.0",
+    "@cucumber/pretty-formatter": "^1.0.1",
+    "@eslint/js": "^9.21.0",
+    "async": "^3.2.6",
+    "branch-name-lint": "^2.1.1",
+    "chai": "^5.2.0",
+    "commander": "^13.1.0",
+    "cosmiconfig": "^9.0.0",
     "cucumber-junit": "^1.7.1",
-    "dotenv": "^16.0.3",
-    "fs-extra": "^11.1.0",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "fs-extra": "^11.3.0",
+    "gherkin-lint": "^4.2.4",
+    "husky": "^9.1.7",
+    "is-ci": "^4.1.0",
+    "klassijs-astellen": "^1.0.0",
     "klassijs-cucumber-html-reporter": "^6.0.0",
+    "klassijs-soft-assert": "^1.2.1",
+    "klassijs-visual-validation": "^1.1.0",
+    "lint-staged": "^15.4.3",
     "merge": "^2.1.1",
-    "prettier": "^2.8.1",
+    "nodemailer": "^6.10.0",
+    "pactum": "^3.7.6",
+    "prettier": "^3.5.3",
     "recursive-readdir": "^2.2.3",
     "require-dir": "^1.2.0",
+    "standard-version": "github:klassijs/standard-version",
     "text-files-loader": "^1.0.5",
-    "webdriverio": "^8.10.2"
+    "webdriverio": "^9.10.1"
+  },
+  "lint-staged": {
+    "**/*.js": "eslint --quiet --fix --config runtime/coding-standards/eslint/eslint.config.js"
+  },
+  "jest-junit": {
+    "suiteName": "jest tests",
+    "outputDirectory": "./reports",
+    "outputName": "junit.xml",
+    "uniqueOutputName": "false"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0"
   }
 }

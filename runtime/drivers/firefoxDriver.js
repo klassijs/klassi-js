@@ -11,7 +11,7 @@ const apiTagsData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../scrip
 const apiTags = global.tagNames;
 
 let defaults = {};
-let isApiTest = false;
+let isApiTest;
 let useProxy = false;
 
 Before(async (scenario) => {
@@ -28,28 +28,20 @@ Before(async (scenario) => {
  * create the web browser based on globals set in index.js
  * @returns {{}}
  */
-module.exports = async function chromeDriver(options) {
+module.exports = async function firefoxDriver(options) {
   defaults = {
     logLevel: 'error',
     path: '/',
-    automationProtocol: 'webdriver',
     capabilities: {
-      browserName: 'chrome',
-      'goog:chromeOptions': {
-        args: [
-          '--no-sandbox',
-          '--disable-gpu',
-          '--disable-popup-blocking',
-          'allow-file-access-from-files',
-          'use-fake-device-for-media-stream',
-          'use-fake-ui-for-media-stream',
-        ],
+      browserName: 'firefox',
+      'moz:firefoxOptions': {
+        args: ['--headless', '--disable-popup-blocking', '--disable-gpu'],
       },
     },
   };
 
   if (isApiTest) {
-    defaults.capabilities['goog:chromeOptions'].args.push('--headless', '--disable-extensions');
+    defaults.capabilities['moz:firefoxOptions'].args.push('--headless', '--disable-popup-blocking', '--disable-gpu');
   }
 
   if (useProxy) {
@@ -59,9 +51,7 @@ module.exports = async function chromeDriver(options) {
       autodetect: false,
     };
   }
-
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
   await browser.setWindowSize(1280, 1024);
-  return browser;
 };
