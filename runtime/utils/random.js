@@ -1,60 +1,3 @@
-// /**
-//  * Generates 6 unique random numbers within a specified range
-//  * @param {number} min Minimum value (inclusive)
-//  * @param {number} max Maximum value (inclusive)
-//  * @returns {number[]}
-//  */
-// function uniqueLotteryNum(min = 1, max = 59) {
-//   if (max - min + 1 < 6) {
-//     throw new Error("Range is too small to generate 6 unique numbers");
-//   }
-//
-//   const uniqueNumbers = new Set();
-//   while (uniqueNumbers.size < 6) {
-//     const number = Math.floor(Math.random() * (max - min + 1)) + min;
-//     uniqueNumbers.add(number);
-//   }
-//
-//   return Array.from(uniqueNumbers);
-// }
-//
-// console.log('This is the lottery number: ', uniqueLotteryNum());
-//
-// uniqueLotteryNum();
-//
-//
-// function uniqueEuroNum(min = 1) {
-//   let max = 50;
-//   if (max - min + 1 < 5) {
-//     throw new Error("Range is too small to generate 6 unique numbers");
-//   }
-//
-//   const uniqueNumbers = new Set();
-//   while (uniqueNumbers.size < 5) {
-//     const number = Math.floor(Math.random() * (max - min + 1)) + min;
-//     uniqueNumbers.add(number);
-//   }
-//
-//   max = 12;
-//   if (max - min + 1 < 2) {
-//     throw new Error("Range is too small to generate 2 unique numbers");
-//   }
-//
-//   const uniqueNumber = new Set();
-//   while (uniqueNumber.size < 2) {
-//     const number = Math.floor(Math.random() * (max - min + 1)) + min;
-//     uniqueNumber.add(number);
-//   }
-//
-//   return Array.from(uniqueNumbers) + ' - ' + Array.from(uniqueNumber);
-// }
-//
-// console.log('This is the Euro numbers: ', uniqueEuroNum());
-// // console.log('This is the Euro lucky stars numbers: ', uniqueNumber());
-//
-// uniqueEuroNum();
-
-
 /**
  * Generates unique random numbers within a specified range
  * @param {number} count Number of unique numbers to generate
@@ -102,7 +45,46 @@ function generateSet4LifeNumbers() {
   return `${mainNumbers.join(', ')} - Life Ball: ${lifeBall.join(', ')}`;
 }
 
-// Display the results
-console.log('Lottery Numbers:', generateLotteryNumbers().join(', '));
-console.log('Euro Numbers:', generateEuroNumbers());
-console.log('Set 4 Life Numbers:', generateSet4LifeNumbers());
+
+/**
+ * Generates 3 sets of lottery numbers
+ * @returns {string[]}
+ */
+function generateMultipleLotteryNumbers() {
+  const sets = [];
+  for (let i = 0; i < 3; i++) {
+    sets.push(generateLotteryNumbers().join(', '));
+  }
+  return sets;
+}
+
+/**
+ * Generates 3 sets of Euro numbers
+ * @returns {string[]}
+ */
+function generateMultipleEuroNumbers() {
+  const sets = [];
+  for (let i = 0; i < 3; i++) {
+    sets.push(generateEuroNumbers());
+  }
+  return sets;
+}
+
+/**
+ * Generates 3 sets of Set 4 Life numbers
+ * @returns {string[]}
+ */
+function generateMultipleSet4LifeNumbers() {
+  const sets = [];
+  for (let i = 0; i < 3; i++) {
+    sets.push(generateSet4LifeNumbers());
+  }
+  return sets;
+}
+
+console.log('Lottery Numbers:', generateMultipleLotteryNumbers());
+console.log('Euro Numbers:', generateMultipleEuroNumbers());
+console.log('Set 4 Life Numbers:', generateMultipleSet4LifeNumbers());
+// console.log('Lottery Numbers:', generateLotteryNumbers().join(', '));
+// console.log('Euro Numbers:', generateEuroNumbers());
+// console.log('Set 4 Life Numbers:', generateSet4LifeNumbers());
