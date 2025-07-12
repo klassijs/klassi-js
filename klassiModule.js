@@ -1,7 +1,6 @@
 module.exports = {
   /**
-   * This module is used to export all the required modules from OAF to be consumed by all projects
-   * Implemented by Sudipta Bhunia
+   * This module is used to export all the required modules from Klassi-js to be consumed by all projects
    */
   pactum : require('pactum'),
   webdriverio : require('webdriverio'),
