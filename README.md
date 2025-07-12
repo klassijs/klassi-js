@@ -22,8 +22,6 @@
 
 ```bash
 pnpm add klassi-js
- 
-yarn add klassi-js
 ```
 
 ## Usage
@@ -70,7 +68,7 @@ node ./node_modules/klassi-js/index.js
 To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Directory Structure
-You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage.
+You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassijs-example-project)
 
 ```bash
 .
