@@ -21,15 +21,15 @@
 ## Installation
 
 ```bash
-yarn add klassijs
+pnpm add klassi-js
  
-npm install klassijs
+yarn add klassi-js
 ```
 
 ## Usage
 
 ```bash
-node ./node_modules/klassijs/index.js
+node ./node_modules/klassi-js/index.js
 ```
 
 ## Options
@@ -37,7 +37,7 @@ node ./node_modules/klassijs/index.js
 ```bash
 --help                              output usage information
 --version                           output the version number
---browser <name>                    name of browser to use (chrome, firefox). defaults to chrome
+--browser <browsers>                name of browser to use (chrome, firefox). defaults to chrome
 --tags <@tagName>                   name of cucumber tags to run - Multiple TAGS usage (@tag1,@tag2)
 --exclude <@tagName>                name of cucumber tags to exclude - Multiple TAGS usage(@tag3,@tag5)
 --steps <path>                      path to step definitions. defaults to ./step-definitions
@@ -64,6 +64,7 @@ node ./node_modules/klassijs/index.js
 ```bash
   --tags @get,@put || will execute the scenarios tagged with the values provided. If multiple are necessary, separate them with a comma (no blank space in between).
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
+  --browser firefox,chrome || will execute the tests in the browser specified. To run tests in parallel use multiple browsers, separate them with a comma (no blank space in between).
 ```
 ## Upgrading to klassijs v6
 To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](docs/upgradeDoc.md)
@@ -126,82 +127,36 @@ To streamline test script development and ensure consistency across projects, th
 
 ## Helpers
 klassi-js contains a few helper methods to help along the way, these methods are:
-```js
-// Load a URL, returning only when the <body> tag is present
-await helpers.loadPage('https://duckduckgo.com', 10);
 
-// writing content to a text file
-await helpers.writeToTxtFile(filepath, output);
 
-// reading content froma text file
-await helpers.readFromFile(filepath);
+| Function                                                | Description                                                                         |
+| :------------------------------------------------------ | :---------------------------------------------------------------------------------- |
+| await helpers.loadPage('url', timeout)                  | Loads the required page                                                             |
+| await helpers.writeToTxtFile(filepath, output)          | Writes content to a text file                                                       |
+| await helpers.readFromFile(filepath)                    | Reads content from a text file                                                      |
+| await helpers.currentDate()                             | Applies the current date to files                                                   |
+| await helpers.getCurrentDateTime()                      | Get current date and time                                                           |
+| await helpers.clickHiddenElement(selector, textToMatch) | Clicks an element that is not visible                                               |
+| await helpers.getRandomIntegerExcludeFirst(range)       | Get a random integer from a given range                                             |
+| await helpers.getLink(selector)                         | Get the href link from an element                                                   |
+| await helpers.waitAndClick(selector)                    | Wait until and element is visible and click it                                      |
+| await helpers.waitAndSetValue(selector, value)          | Wait until element to be in focus and set the value                                 |
+| await helpers.getElementFromFrame(frameName, selector)  | Get element from frame or frameset                                                  |
+| await helpers.readFromJson()                            | Read from a json file                                                               |
+| await helpers.writeToJson()                             | Write data to a json file                                                           |
+| await helpers.mergeJson()                               | Merge json files                                                                    |
+| await helpers.reportDateTime()                          | Reporting the current date and time                                                 |
+| await helpers.apiCall()                                 | API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing |
+| await helpers.getLink()                                 | Get the href link from an element                                                   |
+| await helpers.getElementFromFrame()                     | Get element from frame or frameset                                                  |
+| await helpers.generateRandomInteger()                   | Generate random integer from a given range                                          |
+| await helpers.randomNumberGenerator()                   | Generates a random 13 digit number                                                  |
+| await helpers.reformatDateString()                      | Reformats date string into string                                                   |
+| await helpers.sortByDate()                              | Sorts results by date                                                               |
+| await helpers.filterItem()                              | Filters an item from a list of items                                                |
+| await helpers.filterItemAndClick()                      | Filters an item from a list of items and clicks on it                               |
+| await helpers.fileUpload()                              | Uploads a file from local system or project folder                                  |
 
-// applying the current date to files
-await helpers.currentDate();
-
-// get current date and time (dd-mm-yyyy-00:00:00)
-await helpers.getCurrentDateTime();
-
-// clicks an element (or multiple if present) that is not visible, useful in situations where a menu needs a hover before a child link appears
-await helpers.clickHiddenElement(selector, textToMatch);
-
-// This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
-await helpers.getRandomIntegerExcludeFirst(range);
-
-// Get the href link from an element
-await helpers.getLink(selector);
-
-//wait until and element is visible and click it
-await helpers.waitAndClick(selector);
-
-// wait until element to be in focus and set the value
-await helpers.waitAndSetValue(selector, value);
-
-// function to get element from frame or frameset
-await helpers.getElementFromFrame(frameName, selector);
-
-//reading from a json file
-await helpers.readFromJson();
-
-//writing data to a json file 
-await helpers.writeToJson();
-
-//merging json files
-await helpers.mergeJson();
-
-//reporting the current date and time
-await helpers.reportDateTime();
-
-//API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
-await helpers.apiCall();
-
-//Get the href link from an element
-await helpers.getLink();
-
-//function to get element from frame or frameset
-await helpers.getElementFromFrame();
-
-//Generate random integer from a given range
-await helpers.generateRandomInteger();
-
-//Generates a random 13 digit number
-await helpers.randomNumberGenerator();
-
-//Reformats date string into string
-await helpers.reformatDateString();
-
-//Sorts results by date
-await helpers.sortByDate();
-
-//this filters an item from a list of items
-await helpers.filterItem();
-
-//this filters an item from a list of items and clicks on it
-await helpers.filterItemAndClick();
-
-//this uploads a file from local system or project folder. Helpful to automate uploading a file when there are system dialogues exist.
-await helpers.fileUpload();
-```
 
 ## Browser usage
 By default, the test run using Google Chrome/devtools protocol, to run tests using another browser locally supply the browser name along with the `--browser` switch
@@ -211,7 +166,10 @@ By default, the test run using Google Chrome/devtools protocol, to run tests usi
 | Chrome | `--browser chrome` |
 | Firefox | `--browser firefox` |
 
-All other browser configurations are available via 3rd party services (i.e. browserstack | lambdatest | sauceLabs)
+To run tests in parallel, supply multiple browser names separated by a comma, for example: `--browser chrome,firefox`
+
+## Remote Browser usage
+To run tests in a remote browser, you can use the `--remoteService` switch to specify the service you want to use. Currently, the supported services are: LambdaTest, BrowserStack, SauceLabs, and Selenium Standalone.
 
 Selenium Standalone installation
 ```bash
@@ -219,7 +177,7 @@ npm install -g selenium-standalone@latest
 selenium-standalone install
 ```
 
-## Visual Regression with [klassijs-resembleJs](https://github.com/klassijs/klassijs-resembleJs)
+## Visual Regression with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation)
 
 Visual regression testing, the ability to compare a whole page screenshots or of specific parts of the application / page under test.
 If there is dynamic content (i.e. a clock), hide this element by passing the selector (or an array of selectors) to the takeImage function.
@@ -254,7 +212,7 @@ Getting data from a JSON REST API
  }
 }
 ```
-## Accessibility Testing with [Axe-Core](https://www.deque.com/axe/)
+## Accessibility Testing with [klassijs-a11y-validator](https://github.com/klassijs/klassijs-a11y-validator)
 Automated accessibility testing feature has been introduced using the Axe-Core OpenSource library.
 
 ### Sample code
@@ -267,19 +225,13 @@ All the accessibility fuctions can be accessed through the global variable ``` a
 
 ```js
 // usage within page-object file:
-When('I run the accesibility analysis for {string}', async function (PageName) {
- // After navigating to a particular page, just call the function to generate the accessibility report and the total error count for the page
- await helpers.accessibilityReport: async (pageName, count = false || true)
+const { a11yValidator } = require("klassijs-a11y-validator");
+
+When("I run the accesibility analysis for {string}", async function (PageName) {
+  // After navigating to a particular page, just call the function to generate the accessibility report and the total error count for the page
+  await a11yValidator(`SearchPage1-${PageName}`);
 });
 ```
-
-## Test Execution Reports
-
-HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be
-changed by providing a new path using the `--reports` command line switch:
-
-![Cucumber HTML report](./runtime/img/cucumber-html-report.png)
-
 ## Accessibility Report
 
 HTML and JSON reports will be automatically generated and stored in the default `./reports/accessibility`  folder.This location can be changed by providing a new path using the `--reports` command line switch:
@@ -287,70 +239,12 @@ HTML and JSON reports will be automatically generated and stored in the default 
 ![Aceessibility HTML report](./runtime/img/accessibility-html-report.png)
 
 
-## Mobile App automation with [Appium](https://appium.io/docs/en/about-appium/getting-started/?lang=en)
+## Test Execution Reports with [klassijs-cucumber-html-reporter](https://github.com/klassijs/klassijs-cucumber-html-reporter)
 
-Besides the ability to test web applications on mobile environments, the framework allows for the automation of native mobile applications running on Android or iOS in LambdaTest.
+HTML and JSON reports will be automatically generated and stored in the default `./reports` folder. This location can be changed by providing a new path using the `--reports` command line switch:
 
-klassijs contains sample tests that can be run by executing the following commands:
-```
-yarn run android
-```
+![Cucumber HTML report](./runtime/img/cucumber-html-report.png)
 
-Or:
-
-```
-yarn run ios
-```
-
-### Environment configuration
-
-The environment configuration needs to include the following information:
-
-* **envName**: Android or iOS. The application will be installed before the test is run and uninstalled on cleanup.
-* **appName**: the application package name. Used when handling and verifying app instalation, removal and can be used in selectors.
-* **appPath**: remote path to the .APK file (Android) or ZIP file (iOS) containing the application. Because the files need to be accessible to the Appium instance running on LambdaTest, remote locations are preferred.
-
-For instance:
-```
-{
-  environment: {
-      "android": {
-          "envName": "android",
-          "appName": "oxford.learners.bookshelf.canary",
-          "appPath": "https://olb-android-release.s3-accelerate.amazonaws.com/test/olb-5.9.3-canary.apk"
-      },
-   }
-}
-```
-
-### Mobile capabilities
-
-As far as the mobile capabilities set on `./lambdatest/`, please use [LambdaTest's application](https://www.lambdatest.com/capabilities-generator/) to ensure that you select a correct combination of OS, Appium version and device name that will be accepted by LT.
-
-As for properties that should be set to a specific option, please bear in mind the following considerations:
-
-* **build**: should be set to *"klassijs Mobile"* so test executions for native mobile apps can be filtered easily from web app tests.
-* **browserName**: should be left empty so Lambdatest doesn't interpret that the intention is to test a web application.
-* **networkThrottling**: should be kept as *"Regular 4G"*, during development it was detected that element selection is flaky if the emulators do not keep a steady connection, achieved through this throttling option.
-
-For instance:
-
-```
-{
-    "projectName": "klassijs",
-    "build": "klassijs Mobile",
-    "platformName" : "Android",
-    "browserName": "",
-    "deviceName" : "Galaxy Tab S7 Plus",
-    "platformVersion" : "11",
-    "appiumVersion" : "1.17.0",
-    "deviceOrientation" : "LANDSCAPE",
-    "networkThrottling": "Regular 4G",
-    "console" : "true",
-    "network" : true,
-    "visual" : true
-}
-```
 
 ## Event handlers
 
@@ -386,7 +280,7 @@ Most webdriverio methods return a [JavaScript Promise](https://spring.io/underst
 
 To enforce best practices in using Git for version control, this project includes a **Husky** configuration. Note that breaking the given rules will block the commit of the code.
 
-Bear in mind that the `/.circleci/config.yml` file **in each project using OAF as a dependency** needs to be modified to change from `yarn install` to `yarn install --network-concurrency 1`. This is to avoid race conditions in multiple calls to the registry during the installation process.
+Bear in mind that the `/.circleci/config.yml` file **in each project using klassi-js as a dependency** needs to be modified to change from `pnpm install` to `pnpm install --network-concurrency 1`. This is to avoid race conditions in multiple calls to the registry during the installation process.
 
 ### Commits
 After committing the staged code, the Husky scripts will enforce the implementation of the [**Conventional Commits specification**](https://www.conventionalcommits.org/en/v1.0.0/#summary).
@@ -394,7 +288,8 @@ After committing the staged code, the Husky scripts will enforce the implementat
 To summarize them, all commits should follow the following schema:
 
 ```
-git commit -m "<type>: <subject>"
+git commit -m '<type>: <subject>'
+git commit -m 'chore(): updating config code' 
 ```
 
 Where **type** is one of the following:
@@ -413,6 +308,7 @@ The same script will also verify the naming convention. Please remember that we 
 
 - **testfix/**
 - **automation/**
+- **feature/**
 
 
 ## Bugs
@@ -425,7 +321,7 @@ Anyone can contribute to this project, PRs are welcome. In lieu of a formal styl
 
 ## Credits
 
-[John Doherty](https://www.linkedin.com/in/john-i-doherty)
+John Doherty
 
 
 ## License

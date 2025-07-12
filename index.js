@@ -18,6 +18,8 @@ const {
   Given,
   When,
   Then,
+  And,
+  But,
 } = require('@cucumber/cucumber');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const { astellen } = require('klassijs-astellen');
@@ -77,6 +79,8 @@ global.DELAY_3m = 180000;
 global.Given = Given;
 global.When = When;
 global.Then = Then;
+global.And = And;
+global.But = But;
 global.After = After;
 global.AfterAll = AfterAll;
 global.AfterStep = AfterStep;
@@ -183,7 +187,7 @@ global.s3Date = options.s3Date;
 global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
 global.isCI = options.isCI;
-
+global.dlink = options.dlink;
 global.baselineImageUpdate = options.baselineImageUpdate;
 global.browserName = global.remoteConfig || BROWSER_NAME;
 
@@ -374,14 +378,58 @@ if (options.featureFiles) {
   global.featureFiles = splitFeatureFiles;
 }
 
-// TODO: look into using multi args at commandline for browser i.e --browser chrome,firefox
-/** Add split to run multiple browsers from the command line */
-if (options.browser) {
-  const splitBrowsers = options.browser.split(',');
-  splitBrowsers.forEach((browser) => {
-    process.argv.push('--browser', browser);
-  });
+/** Add split to run multiple browsers from the command line
+ * Runs the script in parallel for each browser passed via --browser.
+ * @param {object} options - Parsed CLI options from Commander.
+ */
+function handleMultipleBrowsers(options) {
+  const { spawn } = require('child_process');
+  if (!options.browser) return;
+
+  // Prevent recursion: only run this logic if the original input had multiple browsers
+  const originalArgv = process.argv.join(' ');
+  if (!originalArgv.includes(',') || options.browser.includes(',')) {
+    const browsers = options.browser.split(',').map(b => b.trim()).filter(Boolean);
+    if (browsers.length <= 1) return;
+
+    const scriptPath = process.argv[1];
+    const args = process.argv.slice(2);
+
+    const browserIndex = args.findIndex(arg => arg === '--browser');
+    const baseArgs = args.slice(0, browserIndex);
+    const trailingArgs = args.slice(browserIndex + 2);
+
+    let completed = 0;
+    const results = {};
+
+    browsers.forEach(browser => {
+      const child = spawn('node', [scriptPath, ...baseArgs, '--browser', browser, ...trailingArgs], {
+        stdio: 'inherit',
+        shell: true,
+      });
+
+      child.on('exit', code => {
+        results[browser] = code;
+        completed++;
+
+        if (completed === browsers.length) {
+          console.log('\n📋 Summary:');
+          browsers.forEach(b => {
+            if (results[b] === 0) {
+              console.log(`✅ ${b} completed successfully`);
+            } else {
+              console.error(`❌ ${b} failed with exit code ${results[b]}`);
+            }
+          });
+          process.exit(0);
+        }
+      });
+    });
+    // Prevent the parent from continuing
+    process.exit(0);
+  }
 }
+handleMultipleBrowsers(options);
 
 klassiCli().then(async (succeeded) => {
   let dryRun = false;
