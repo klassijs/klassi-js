@@ -297,12 +297,9 @@ To run tests in LambdaTest:
 pnpm ltlocal browserName --tags @tagName
 ```
 
-
 ### Assertion upgrades
 
 This will take a while so it can be done over time, please go back to Point 2 and follow the instructions there. Read the README for [klassijs-soft-assert](https://github.com/klassijs/klassijs-soft-assert) so you can update all your assertions in your existing code.
-
-
 
 ### NOTE:
 
