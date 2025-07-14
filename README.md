@@ -5,7 +5,7 @@
     </a> </h1> </p>
 
 <p align="center">
-    <a href="https://github.com/klassijs/klassijs/blob/master/LICENSE">
+    <a href="https://github.com/klassijs/klassijs/blob/main/LICENSE">
     <img alt="License" src="https://img.shields.io/github/license/klassijs/klassijs">
     </a>
     <a href="https://webdriver.io/">
