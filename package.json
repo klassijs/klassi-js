@@ -73,7 +73,7 @@
     "is-ci": "^4.1.0",
     "klassijs-astellen": "^1.0.0",
     "klassijs-cucumber-html-reporter": "^6.0.0",
-    "klassijs-soft-assert": "github:klassijs/klassijs-soft-assert#develop",
+    "klassijs-soft-assert": "github:klassijs/klassijs-soft-assert",
     "klassijs-visual-validation": "^1.1.0",
     "lint-staged": "^15.4.3",
     "merge": "^2.1.1",
