@@ -1,13 +1,13 @@
-# OAF v6.0.0 Upgrade Guide
+# Klassi-js v6.0.0 Upgrade Guide
 #  Overview
 
-This document provides a comprehensive guide to upgrading a project to OAF v6.0.0. The process involves updating assertion types, modifying how assertions are used, upgrading dependencies, and making necessary configuration changes.
+This document provides a comprehensive guide to upgrading a project to Klassi-js v6.0.0. The process involves updating assertion types, modifying how assertions are used, upgrading dependencies, and making necessary configuration changes.
 
-By following this guide, you ensure that your project remains compatible with OAF v6.0.0 while maintaining best practices.
+By following this guide, you ensure that your project remains compatible with Klassi-js v6.0.0 while maintaining best practices.
 
 ##  Assertion Types
 
-OAF v6.0.0 introduces a structured set of assertion types that should be used for validation in your project. Documentation is here. Below is a complete list of valid assertion types:
+Klassi-js v6.0.0 introduces a structured set of assertion types that should be used for validation in your project. Documentation is here. Below is a complete list of valid assertion types:
 
 Table : Valid Assertion Types
 
@@ -26,7 +26,7 @@ Table : Valid Assertion Types
 
 
 ## Why Update Assertions?
-OAF v6.0.0 introduces softAssert, which provides better error handling and allows test execution to continue even if an assertion fails. All failures will be shown/reported at the end of the test run.
+Klassi-js v6.0.0 introduces softAssert, which provides better error handling and allows test execution to continue even if an assertion fails. All failures will be shown/reported at the end of the test run.
 
 #### Key Differences:
 
@@ -40,7 +40,7 @@ await assert.isTrue(await var1.includes(testData.errorMessage.invalidISBN));
 
 await assert.equal(await elem.getText(), testData.userRole.editorRole);
 ```
-New Format (After Upgrade to OAF v6.0.0, assertions should be written using softAssert):
+New Format (After Upgrade to Klassi-js v6.0.0, assertions should be written using softAssert):
 ```javascript
 await softAssert(await var1.includes(testData.errorMessage.invalidISBN), 'isTrue');
 
@@ -50,7 +50,7 @@ await softAssert(await elem.getText(), 'equal', testData.userRole.editorRole);
 # Visual-Validation Usage Updates
 ### Why Update Visual Validation?
 
-OAF v6.0.0 upgrades visual-validation, which provides better error handling and allows test execution to continue even if an image validation fails. There is no update needed for existing code base its just works out of the box. All failures will be shown / reported at the end of the test run.
+Klassi-js v6.0.0 upgrades visual-validation, which provides better error handling and allows test execution to continue even if an image validation fails. There is no update needed for existing code base its just works out of the box. All failures will be shown / reported at the end of the test run.
 
 
 # Project Upgrade Steps
@@ -65,7 +65,7 @@ git checkout develop
 
 git pull origin develop
 
-git checkout -b upgrade-oaf-v6
+git checkout -b upgrade-Klassi-js-v6
 ```
 
 This ensures that your changes are isolated and do not affect the main development branch until they are fully tested and reviewed.
@@ -87,11 +87,11 @@ node_modules: Deleting this prevents conflicts with older versions.
 
 ### Updating package.json
 
-The package.json file should be updated to include the latest dependencies and scripts required for OAF v6.0.0. you can just copy the package.json from oaf-example-project taking care to make a note of dependencies that you are using in your project that’s not a part of OAF 
+The package.json file should be updated to include the latest dependencies and scripts required for Klassi-js v6.0.0. you can just copy the package.json from Klassijs-example-project taking care to make a note of dependencies that you are using in your project that’s not a part of Klassi-js 
 
 Key Changes:
 
-Update dependencies and scripts to match oaf-example-project.
+Update dependencies and scripts to match Klassijs-example-project.
 
 Add new contributors if applicable.
 
@@ -112,8 +112,8 @@ Add new contributors if applicable.
 },
 
 "scripts": {
-  "dev": "node ./node_modules/OAF/index.js --disableReport --tags",
-    "ltlocal": "node ./node_modules/OAF/index.js --disableReport --remoteService lambdatest --extraSettings",
+  "dev": "node ./node_modules/Klassi-js/index.js --disableReport --tags",
+    "ltlocal": "node ./node_modules/Klassi-js/index.js --disableReport --remoteService lambdatest --extraSettings",
     "predev": "pnpm delete-dev",
     "delete-dev": "rimraf ./reports ./artifacts ./visual-regression-baseline eng.traineddata",
     "============================================": "=======================================================",
@@ -122,16 +122,16 @@ Add new contributors if applicable.
     "preinstall": "npx only-allow pnpm",
     "pkgcheck": "pnpm install --frozen-lockfile",
     "lint": "pnpm lint-staged && pnpm lint:gherkin",
-    "lint:gherkin": "gherkin-lint -c node_modules/OAF/runtime/coding-standards/gherkin/gherkin-lint.json '**/*.feature'",
+    "lint:gherkin": "gherkin-lint -c node_modules/Klassi-js/runtime/coding-standards/gherkin/gherkin-lint.json '**/*.feature'",
     "lint-branch-name": "pnpm branch-name-lint ./branchnamelinter.config.json",
-    "ciltuat": "node ./node_modules/OAF/index.js --disableReport --isCI --tags @regression --remoteService lambdatest --extraSettings",
-    "ciltdev": "node ./node_modules/OAF/index.js --disableReport --isCI --tags @integration --remoteService lambdatest --extraSettings",
-    "cilts3r": "node ./node_modules/OAF/index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
-    "cilts3load": "node ./node_modules/OAF/index.js --disableReport --tags @s3load --remoteService lambdatest --extraSettings"
+    "ciltuat": "node ./node_modules/Klassi-js/index.js --disableReport --isCI --tags @regression --remoteService lambdatest --extraSettings",
+    "ciltdev": "node ./node_modules/Klassi-js/index.js --disableReport --isCI --tags @integration --remoteService lambdatest --extraSettings",
+    "cilts3r": "node ./node_modules/Klassi-js/index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
+    "cilts3load": "node ./node_modules/Klassi-js/index.js --disableReport --tags @s3load --remoteService lambdatest --extraSettings"
 },
 
 "dependencies": {
-  "OAF": "github:OUP/OAF#develop",
+  "Klassi-js": "github:klassijs/Klassi-js",
     "klassijs-astellen": "^1.0.0",
     "klassijs-soft-assert": "^1.2.1"
 },
@@ -147,7 +147,7 @@ Add new contributors if applicable.
 },
 
 "lint-staged": {
-  "**/*.js": "eslint --quiet --fix --config node_modules/OAF/runtime/coding-standards/eslint/eslint.config.js"
+  "**/*.js": "eslint --quiet --fix --config node_modules/Klassi-js/runtime/coding-standards/eslint/eslint.config.js"
 }
 ```
 
@@ -255,7 +255,7 @@ These scripts ensure commits follow proper formatting and branch names comply wi
 Replace .circleci/config.yml with the latest version from:  
 please make a note of your project cron job time and replace 'projectName' with your project GitHub name.
 ```shell
-OAF/oaf-example-project/.circleci/config.yml (develop branch)
+Klassijs/klassijs-example-project/.circleci/config.yml.template
 ```
 This ensures that the CI/CD pipeline remains up to date.
 
@@ -264,7 +264,7 @@ Update the browser versions in the browser configuration file with the latest-2 
 ```shell
 Ensure to update the browser versions to the latest-2 in the folder.  
 
-cp -r OAF/oaf-example-project/lambdatest ./lambdatest 
+cp -r Klassijs/Klassijs-example-project/lambdatest ./lambdatest 
 ```
 ### Upgrading Node.js Version 
 
@@ -306,6 +306,6 @@ This will take a while so it can be done over time, please go back to Point 2 an
 
 ### NOTE:
 
-By following this structured guide, your project will be successfully upgraded to OAF v6.0.0.  
+By following this structured guide, your project will be successfully upgraded to Klassi-js v6.0.0.  
 This ensures improved assertion handling, an optimized test framework, and a well-maintained codebase.  
-For any issues, compare your changes with [oaf-example-project](https://github.com/OUP/oaf-example-project) or seek help from the contributors. 
+For any issues, compare your changes with [klassijs-example-project](https://github.com/klassijs/Klassijs-example-project) or seek help from the contributors. 
