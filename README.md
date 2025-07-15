@@ -1,12 +1,12 @@
 <p align="center">
     <h1 align="center" font-size: 2.5em > klassijs <br>
-    <a href="https://github.com/klassijs/klassijs/">
-        <img alt="klassijs" src="./runtime/img/klassiLogo.png">
+    <a href="https://github.com/klassijs/klassi-js/">
+        <img alt="klassi-js" src="./runtime/img/klassiLogo.png">
     </a> </h1> </p>
 
 <p align="center">
-    <a href="https://github.com/klassijs/klassijs/blob/main/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassijs">
+    <a href="https://github.com/klassijs/klassi-js/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassi-js">
     </a>
     <a href="https://webdriver.io/">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
