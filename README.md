@@ -65,7 +65,7 @@ node ./node_modules/klassi-js/index.js
   --browser firefox,chrome || will execute the tests in the browser specified. To run tests in parallel use multiple browsers, separate them with a comma (no blank space in between).
 ```
 ## Upgrading to klassijs v6
-To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](docs/klassi-js-v6-Upgrade.md)
+To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](runtime/docs/klassi-js-v6-Upgrade.md)
 
 ## Directory Structure
 You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassijs-example-project)
