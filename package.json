@@ -1,6 +1,6 @@
 {
   "name": "klassi-automation-framework",
-  "version": "6.0.0",
+  "version": "5.2.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
@@ -8,7 +8,8 @@
     "X": "https://twitter.com/larryG_01",
     "linkedin": "https://linkedin.com/in/larryg",
     "youtube": "https://youtube.com/@LarryG_01"
-  },
+  }
+,
   "contributors": [
     {
       "name": "Carlos Bermejo",
