@@ -10,7 +10,6 @@ const getRemote = require('./getRemote');
 const { astellen } = require('klassijs-astellen');
 
 const remoteService = getRemote(settings.remoteService);
-const envName = env.envName.toLowerCase();
 const emailDateTime = helpers.emailReportDateTime();
 
 process.env.AWS_ACCESS_KEY_ID = process.env.SES_KEY;
@@ -24,39 +23,11 @@ const sesClient = new SESClient({
 
 module.exports = {
   klassiSendMail: async () => {
-    const browserName = astellen.get('BROWSER_NAME');
-    const date = helpers.currentDate();
     let fileList = [];
 
     if (remoteService && remoteService.type === 'lambdatest') {
-      if (projectName === 'OUP JOURNALS') {
-        fileList.push(
-          {
-            filename: `testReport-${date}.html`,
-            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
-          },
-          {
-            filename: 'urlData.xlsx',
-            path: path.resolve(`${paths.reports}/${browserName}/${envName}/urlData.xlsx`),
-          },
-        );
-      }
-
       if (emailData.AccessibilityReport === 'Yes') {
         fileList = fileList.concat(accessibilityReportList);
-      }
-    } else {
-      if (projectName === 'OUP JOURNALS') {
-        fileList.push(
-          {
-            filename: `testReport-${date}.html`,
-            path: path.resolve(`${paths.reports}/testReport-${date}.html`),
-          },
-          {
-            filename: 'urlData.xlsx',
-            path: path.resolve(`${paths.reports}/${browserName}/${envName}/urlData.xlsx`),
-          },
-        );
       }
     }
 
@@ -75,7 +46,7 @@ module.exports = {
 
     const mailOptions = {
       to: devTeam,
-      from: 'OUP-QATEST <QAAutoTest@oup.com>',
+      from: 'KLASSI-QATEST <QAAutoTest@klassi.co.uk>',
       subject: `${projectName} ${reportName}-${emailDateTime}`,
       alternative: true,
       attachments: fileList,
