@@ -31,3 +31,4 @@ gen
 #tesseract
 eng.traineddata
 *.tgz
+CHANGELOG.md
