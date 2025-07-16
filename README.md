@@ -175,7 +175,30 @@ npm install -g selenium-standalone@latest
 selenium-standalone install
 ```
 
-## Visual Regression with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation#readme)
+## Soft Assertions with [klassijs-soft-assert]((https://github.com/klassijs/klassijs-soft-assert#readme))
+The Assertion Tool is designed to enhance your testing by allowing tests to continue running when assertions fail. Instead of halting the test on failure, the tool collects all failed assertions and compiles them into a comprehensive report at the end of the test run.
+
+Usage of the Assertion Tool is straightforward. You can use it with any assertion library, such as Chai or expect-webdriverio, by passing the actual value, the assertion method, the expected value, and an optional message.
+
+// usage within page-object file:
+const { softAssert } = require('klassijs-soft-assert');
+
+// Any Chai assert method
+await softAssert(actual, 'deepEqual', expected, 'Deep equality check');
+await softAssert(actual, 'isArray', undefined, 'Should be an array');
+await softAssert(actual, 'include', expected, 'Should include value');
+
+// Any expect-webdriverio method
+await softAssert(element, 'toBeDisplayed', undefined, 'Element should be displayed');
+await softAssert(element, 'toHaveAttribute', 'class', 'Element should have class');
+await softAssert(element, 'toHaveText', expected, 'Element should have text');
+
+// Chained expect-webdriverio methods
+await softAssert(element, 'not.toBeEnabled', undefined, 'Element should not be enabled');
+await softAssert(element, 'not.toBeSelected', undefined, 'Element should not be selected');
+
+
+## Visual Validation with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation#readme)
 
 Visual regression testing, the ability to compare a whole page screenshots or of specific parts of the application / page under test.
 If there is dynamic content (i.e. a clock), hide this element by passing the selector (or an array of selectors) to the takeImage function.
