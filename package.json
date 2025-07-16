@@ -1,6 +1,6 @@
 {
   "name": "klassi-automation-framework",
-  "version": "5.3.0",
+  "version": "6.0.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
@@ -32,7 +32,6 @@
   },
   "main": "index.js",
   "scripts": {
-    "random": "node runtime/utils/random",
     "test:checkin": "jest __tests__/unit",
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",

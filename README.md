@@ -1,12 +1,12 @@
 <p align="center">
-    <h1 align="center" font-size: 2.5em > klassijs <br>
-    <a href="https://github.com/klassijs/klassijs/">
-        <img alt="klassijs" src="./runtime/img/klassiLogo.png">
+    <h1 align="center" font-size: 2.5em > klassi-js <br>
+    <a href="https://github.com/klassijs/klassi-js/">
+        <img alt="klassi-js" src="./runtime/img/klassiLogo.png">
     </a> </h1> </p>
 
 <p align="center">
-    <a href="https://github.com/klassijs/klassijs/blob/master/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassijs">
+    <a href="https://github.com/klassijs/klassi-js/blob/master/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassi-js">
     </a>
     <a href="https://webdriver.io/">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
@@ -65,7 +65,7 @@ node ./node_modules/klassi-js/index.js
   --browser firefox,chrome || will execute the tests in the browser specified. To run tests in parallel use multiple browsers, separate them with a comma (no blank space in between).
 ```
 ## Upgrading to klassijs v6
-To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](docs/upgradeDoc.md)
+To upgrade existing projects for use with klassi-js v6, please follow these few steps [HERE](docs/upgradeDoc.md)
 
 ## Directory Structure
 You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassijs-example-project)
@@ -311,7 +311,7 @@ The same script will also verify the naming convention. Please remember that we 
 
 ## Bugs
 
-Please raise bugs via the [OAF issue tracker](https://github.com/OUP/OAF/issues), please provide enough information for bug reproduction.
+Please raise bugs via the [klassijs issue tracker](https://github.com/klassijs/klassi-js/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 
