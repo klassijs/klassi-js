@@ -64,8 +64,8 @@ node ./node_modules/klassi-js/index.js
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
   --browser firefox,chrome || will execute the tests in the browser specified. To run tests in parallel use multiple browsers, separate them with a comma (no blank space in between).
 ```
-## Upgrading to klassijs v6
-To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](runtime/docs/klassi-js-v6-Upgrade.md)
+## Upgrading to klassi-js v6
+To upgrade existing projects for use with klassi-js v6, please follow these few steps [HERE](runtime/docs/klassi-js-v6-Upgrade.md)
 
 ## Directory Structure
 You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassijs-example-project)
@@ -175,11 +175,12 @@ npm install -g selenium-standalone@latest
 selenium-standalone install
 ```
 
-## Soft Assertions with [klassijs-soft-assert]((https://github.com/klassijs/klassijs-soft-assert#readme))
+## Soft Assert with [klassijs-soft-assert](https://github.com/klassijs/klassijs-soft-assert#readme)
 The Assertion Tool is designed to enhance your testing by allowing tests to continue running when assertions fail. Instead of halting the test on failure, the tool collects all failed assertions and compiles them into a comprehensive report at the end of the test run.
 
 Usage of the Assertion Tool is straightforward. You can use it with any assertion library, such as Chai or expect-webdriverio, by passing the actual value, the assertion method, the expected value, and an optional message.
 
+```js
 // usage within page-object file:
 const { softAssert } = require('klassijs-soft-assert');
 
@@ -196,7 +197,7 @@ await softAssert(element, 'toHaveText', expected, 'Element should have text');
 // Chained expect-webdriverio methods
 await softAssert(element, 'not.toBeEnabled', undefined, 'Element should not be enabled');
 await softAssert(element, 'not.toBeSelected', undefined, 'Element should not be selected');
-
+```
 
 ## Visual Validation with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation#readme)
 
