@@ -175,15 +175,31 @@ npm install -g selenium-standalone@latest
 selenium-standalone install
 ```
 
-## Visual Regression with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation)
+## Visual Regression with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation#readme)
 
 Visual regression testing, the ability to compare a whole page screenshots or of specific parts of the application / page under test.
 If there is dynamic content (i.e. a clock), hide this element by passing the selector (or an array of selectors) to the takeImage function.
 ```js
 // usage within page-object file:
-await helpers.takeImage(fileName, elementSnapshot, [elementsToHide, elementsToHide]);
-await helpers.compareImage(fileName);
+// Use the `takeImage` method to take a screenshot and automatically compare it with the baseline:
+const {takeImage, compareImage} = require('klassijs-visual-validation');
+await takeImage('screenshot.png');
 ```
+
+**Advanced Usage Options**:
+   ```javascript
+   // Take screenshot of a specific element and compare
+   await takeImage('button.png', '.submit-button');
+   
+   // Hide elements during screenshot and compare
+   await takeImage('clean-page.png', null, '.header, .footer');
+   
+   // Take screenshot without comparison
+   await takeImage('screenshot.png', null, '', false);
+   
+   // Use custom tolerance for comparison
+   await takeImage('screenshot.png', null, '', true, 0.1);
+   ```
 
 ## API Testing with [PactumJS](https://github.com/pactumjs/pactum#readme)
 Getting data from a JSON REST API
