@@ -14,7 +14,6 @@ const options = {
 
 const retrieveAllEmails = async (inbox) => {
   try {
-    console.log('Retrieving all emails...');
     options.url = `${env.mailinatorApiBaseUrl}/${inbox}`;
     const response = await helpers.apiCall(options.url, 'GET', options.headers.Authorization, null);
 
@@ -41,9 +40,6 @@ const getVerificationCode = async (inbox) => {
 
   const verificationEmail = await helpers.apiCall(options.url, 'GET', options.headers.Authorization, null);
   const verificationEmailBody = verificationEmail.parts[0].body;
-
-  console.log('Email retrieved');
-
   const verificationCode = verificationEmailBody.match(/Código de verificación: (\d+)/g)[0].match(/\d+/g)[0];
   await helpers.apiCall(options.url, 'DELETE', options.headers.Authorization, null);
   return verificationCode;

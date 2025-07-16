@@ -1,12 +1,12 @@
 <p align="center">
-    <h1 align="center" font-size: 2.5em > klassijs <br>
-    <a href="https://github.com/klassijs/klassijs/">
-        <img alt="klassijs" src="./runtime/img/klassiLogo.png">
+    <h1 align="center" font-size: 2.5em > klassi-js <br>
+    <a href="https://github.com/klassijs/klassi-js/">
+        <img alt="klassi-js" src="./runtime/img/klassiLogo.png">
     </a> </h1> </p>
 
 <p align="center">
-    <a href="https://github.com/klassijs/klassijs/blob/master/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassijs">
+    <a href="https://github.com/klassijs/klassi-js/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/klassijs/klassi-js">
     </a>
     <a href="https://webdriver.io/">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
@@ -64,8 +64,8 @@ node ./node_modules/klassi-js/index.js
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
   --browser firefox,chrome || will execute the tests in the browser specified. To run tests in parallel use multiple browsers, separate them with a comma (no blank space in between).
 ```
-## Upgrading to klassijs v6
-To upgrade existing projects for use with klassijs v6, please follow these few steps [HERE](docs/upgradeDoc.md)
+## Upgrading to klassi-js v6
+To upgrade existing projects for use with klassi-js v6, please follow these few steps [HERE](runtime/docs/klassi-js-v6-Upgrade.md)
 
 ## Directory Structure
 You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassijs-example-project)
@@ -175,15 +175,55 @@ npm install -g selenium-standalone@latest
 selenium-standalone install
 ```
 
-## Visual Regression with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation)
+## Soft Assert with [klassijs-soft-assert](https://github.com/klassijs/klassijs-soft-assert#readme)
+The Assertion Tool is designed to enhance your testing by allowing tests to continue running when assertions fail. Instead of halting the test on failure, the tool collects all failed assertions and compiles them into a comprehensive report at the end of the test run.
+
+Usage of the Assertion Tool is straightforward. You can use it with any assertion library, such as Chai or expect-webdriverio, by passing the actual value, the assertion method, the expected value, and an optional message.
+
+```js
+// usage within page-object file:
+const { softAssert } = require('klassijs-soft-assert');
+
+// Any Chai assert method
+await softAssert(actual, 'deepEqual', expected, 'Deep equality check');
+await softAssert(actual, 'isArray', undefined, 'Should be an array');
+await softAssert(actual, 'include', expected, 'Should include value');
+
+// Any expect-webdriverio method
+await softAssert(element, 'toBeDisplayed', undefined, 'Element should be displayed');
+await softAssert(element, 'toHaveAttribute', 'class', 'Element should have class');
+await softAssert(element, 'toHaveText', expected, 'Element should have text');
+
+// Chained expect-webdriverio methods
+await softAssert(element, 'not.toBeEnabled', undefined, 'Element should not be enabled');
+await softAssert(element, 'not.toBeSelected', undefined, 'Element should not be selected');
+```
+
+## Visual Validation with [klassijs-visual-validation](https://github.com/klassijs/klassijs-visual-validation#readme)
 
 Visual regression testing, the ability to compare a whole page screenshots or of specific parts of the application / page under test.
 If there is dynamic content (i.e. a clock), hide this element by passing the selector (or an array of selectors) to the takeImage function.
 ```js
 // usage within page-object file:
-await helpers.takeImage(fileName, elementSnapshot, [elementsToHide, elementsToHide]);
-await helpers.compareImage(fileName);
+// Use the `takeImage` method to take a screenshot and automatically compare it with the baseline:
+const {takeImage, compareImage} = require('klassijs-visual-validation');
+await takeImage('screenshot.png');
 ```
+
+**Advanced Usage Options**:
+   ```javascript
+   // Take screenshot of a specific element and compare
+   await takeImage('button.png', '.submit-button');
+   
+   // Hide elements during screenshot and compare
+   await takeImage('clean-page.png', null, '.header, .footer');
+   
+   // Take screenshot without comparison
+   await takeImage('screenshot.png', null, '', false);
+   
+   // Use custom tolerance for comparison
+   await takeImage('screenshot.png', null, '', true, 0.1);
+   ```
 
 ## API Testing with [PactumJS](https://github.com/pactumjs/pactum#readme)
 Getting data from a JSON REST API
@@ -311,7 +351,7 @@ The same script will also verify the naming convention. Please remember that we 
 
 ## Bugs
 
-Please raise bugs via the [OAF issue tracker](https://github.com/OUP/OAF/issues), please provide enough information for bug reproduction.
+Please raise bugs via the [klassijs issue tracker](https://github.com/klassijs/klassi-js/issues), please provide enough information for bug reproduction.
 
 ## Contributing
 

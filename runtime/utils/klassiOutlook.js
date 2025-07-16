@@ -5,13 +5,13 @@ const qs = require('qs');
 const tenantId = process.env.TENANT_ID;
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
-// const userEmail = 'QAE.TestAccounts@oup.com'; // This email address is for user with shared mailbox.
-const userEmail = 'qaAutoTest@oup.com'; // This email address is for user with own mailbox.
+// const userEmail = 'QAE.TestAccounts@klassi.co.uk'; // This email address is for user with shared mailbox.
+const userEmail = 'qaAutoTest@klassi.co.uk'; // This email address is for user with own mailbox.
 
 const tokenEndpoint = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
 const graphEndpoint = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages`;
 
-let emailData = 'Han.Solo@oup.com';
+let emailData = 'Han.Solo@klassi.co.uk';
 
 async function getAccessToken() {
   const data = {
@@ -43,7 +43,7 @@ async function getEmails(accessToken) {
     })
     .expectStatus(200);
 
-  if (userEmail === 'qaAutoTest@oup.com') {
+  if (userEmail === 'qaAutoTest@klassi.co.uk') {
     return response.body.value.map(email => ({
       subject: email.subject,
       body: email.body.content,
