@@ -24,13 +24,6 @@ module.exports = {
       return null;
     }
   })(),
-  visualValidation: (() => {
-    try {
-      return require('./runtime/visualValidation');
-    } catch (error) {
-      console.warn(`Warning: Could not load bundled visual validation: ${error.message}`);
-      return null;
-    }
-  })(),
   softAssert: safeRequire('klassijs-soft-assert'),
+  visualValidation: safeRequire('klassijs-visual-validation'),
 };

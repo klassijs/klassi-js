@@ -77,9 +77,6 @@ importers:
       klassijs-cucumber-html-reporter:
         specifier: ^6.0.0
         version: 6.0.0
-      klassijs-resembleJs:
-        specifier: github:klassijs/klassijs-resembleJs
-        version: node-resemble-js@https://codeload.github.com/klassijs/klassijs-resembleJs/tar.gz/76b8749478e840ef627ac674861f8c402b833972
       klassijs-soft-assert:
         specifier: ^1.3.0
         version: 1.3.0(@wdio/logger@9.18.0)(webdriverio@9.18.0)
