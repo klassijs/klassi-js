@@ -1,11 +1,36 @@
+/**
+ * This module is used to export all the required modules from Klassi-js to be consumed by all projects
+ */
+
+const safeRequire = (moduleName) => {
+  try {
+    return require(moduleName);
+  } catch (error) {
+    console.warn(`Warning: Could not load module '${moduleName}': ${error.message}`);
+    return null;
+  }
+};
+
 module.exports = {
-  /**
-   * This module is used to export all the required modules from Klassi-js to be consumed by all projects
-   */
-  pactum : require('pactum'),
-  webdriverio : require('webdriverio'),
-  fs : require('fs-extra'),
-  dotenv : require('dotenv'),
-  husky : require('husky'),
-  S3Client : require('@aws-sdk/client-s3').S3Client,
+  pactum: safeRequire('pactum'),
+  webdriverio: safeRequire('webdriverio'),
+  fs: safeRequire('fs-extra'),
+  dotenv: safeRequire('dotenv'),
+  S3Client: (() => {
+    try {
+      return require('@aws-sdk/client-s3').S3Client;
+    } catch (error) {
+      console.warn(`Warning: Could not load S3Client: ${error.message}`);
+      return null;
+    }
+  })(),
+  visualValidation: (() => {
+    try {
+      return require('./runtime/visualValidation');
+    } catch (error) {
+      console.warn(`Warning: Could not load bundled visual validation: ${error.message}`);
+      return null;
+    }
+  })(),
+  softAssert: safeRequire('klassijs-soft-assert'),
 };
