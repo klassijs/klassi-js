@@ -30,3 +30,4 @@ gen
 
 #tesseract
 eng.traineddata
+*.tgz
