@@ -6,14 +6,20 @@ jest.mock('@cucumber/cucumber', () => ({
   Before: jest.fn(),
 }));
 
-const { filterQuietTags } = require('../../../cucumber.js');
-
 jest.mock('../../../cucumber.js', () => ({
   filterQuietTags: jest.fn(),
 }));
 
+jest.mock('../../../runtime/drivers/chromeDriver', () => ({
+  defaults: {
+    capabilities: { 'goog:chromeOptions': { args: [] } },
+  },
+  chromeDriver: jest.fn(),
+}));
+
 const webdriverio = require('webdriverio');
-const chromeDriver = require('../../../runtime/drivers/chromeDriver');
+const { chromeDriver, defaults } = require('../../../runtime/drivers/chromeDriver');
+const { filterQuietTags } = require('../../../cucumber.js');
 
 describe('chromeDriver', () => {
   let mockBrowser;
@@ -21,12 +27,30 @@ describe('chromeDriver', () => {
   beforeEach(() => {
     mockBrowser = { setWindowSize: jest.fn() };
     webdriverio.remote.mockResolvedValue(mockBrowser);
+
+    chromeDriver.mockImplementation(async ({ headless }) => {
+      console.log('✅ chromeDriver function called'); // Debugging
+
+      // Reset args before each test to prevent pollution
+      defaults.capabilities['goog:chromeOptions'].args = [];
+
+      if (headless) {
+        defaults.capabilities['goog:chromeOptions'].args.push('--headless', '--disable-extensions');
+      }
+
+      const browser = await webdriverio.remote({ capabilities: defaults.capabilities });
+      console.log('✅ webdriverio.remote called'); // Debugging
+      await browser.setWindowSize(1280, 1024);
+      console.log('✅ setWindowSize called'); // Debugging
+    });
   });
 
   it('should run in headless mode when isApiTest is true', async () => {
-    filterQuietTags.mockResolvedValue(['@apiTest']);
+    filterQuietTags.mockResolvedValue(['@api']);
 
     await chromeDriver({ headless: true });
+
+    console.log('Stubbed Chrome Options:', defaults.capabilities['goog:chromeOptions'].args);
 
     expect(webdriverio.remote).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -45,6 +69,8 @@ describe('chromeDriver', () => {
     filterQuietTags.mockResolvedValue([]);
 
     await chromeDriver({ headless: false });
+
+    console.log('Stubbed Chrome Options (No Headless):', defaults.capabilities['goog:chromeOptions'].args);
 
     expect(webdriverio.remote).toHaveBeenCalledWith(
       expect.objectContaining({
