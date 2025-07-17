@@ -70,6 +70,7 @@
     "gherkin-lint": "^4.2.4",
     "husky": "^9.1.7",
     "is-ci": "^4.1.0",
+    "klassijs-a11y-validator": "^1.0.0",
     "klassijs-astellen": "^1.0.1",
     "klassijs-cucumber-html-reporter": "^6.0.0",
     "klassijs-soft-assert": "^1.3.0",
