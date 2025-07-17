@@ -1,5 +1,5 @@
 {
-  "name": "klassi-js",
+  "name": "@klassijs/klassi-js",
   "version": "6.0.0",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
@@ -16,6 +16,9 @@
     }
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "api testing",
     "bdd",
