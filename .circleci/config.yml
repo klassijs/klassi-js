@@ -396,25 +396,25 @@ workflows:
             - unit_test
           <<: *filter_only_releasable_branches
 
-  s3Report_run:
-    triggers:
-      - schedule:
-          cron: "00 04 * * *"
-          filters:
-            branches:
-              only:
-                - main
-
-    jobs:
-      - build_and_install:
-          context: klassi-framework
-
-      - project_code_checkout:
-          context: klassi-framework
-          requires:
-            - build_and_install
-
-      - s3Report_email_run:
-          context: klassi-framework
-          requires:
-            - project_code_checkout
+#  s3Report_run:
+#    triggers:
+#      - schedule:
+#          cron: "00 04 * * *"
+#          filters:
+#            branches:
+#              only:
+#                - main
+#
+#    jobs:
+#      - build_and_install:
+#          context: klassi-framework
+#
+#      - project_code_checkout:
+#          context: klassi-framework
+#          requires:
+#            - build_and_install
+#
+#      - s3Report_email_run:
+#          context: klassi-framework
+#          requires:
+#            - project_code_checkout
