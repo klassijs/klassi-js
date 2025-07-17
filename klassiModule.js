@@ -26,4 +26,7 @@ module.exports = {
   })(),
   softAssert: safeRequire('klassijs-soft-assert'),
   visualValidation: safeRequire('klassijs-visual-validation'),
+  a11yValidator: safeRequire('klassijs-a11y-validator'),
+  astellen: safeRequire('klassijs-astellen'),
+  smartOcr: safeRequire('klassijs-smart-ocr'),
 };
