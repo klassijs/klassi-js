@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
