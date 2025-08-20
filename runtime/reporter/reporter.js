@@ -7,11 +7,11 @@ const path = require('path');
 const reporter = require('klassijs-cucumber-html-reporter');
 const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
-const { astellen } = require('klassijs-astellen');
 
 const s3Upload = require('../s3Upload');
 const getRemote = require('../getRemote');
 const remoteService = getRemote(settings.remoteService);
+const browserName = global.remoteConfig || BROWSER_NAME;
 
 let resp;
 let obj;
@@ -33,7 +33,6 @@ module.exports = {
       console.error('IpAddr func err: ', err.message);
     }
     if (paths.reports && fs.existsSync(paths.reports)) {
-      const browserName = astellen.get('BROWSER_NAME');
       let jsonDir = path.resolve(paths.reports, browserName, envName);
       let jsonComDir = path.resolve(paths.reports, browserName, envName + 'Combine');
 
