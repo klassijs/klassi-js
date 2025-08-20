@@ -280,7 +280,7 @@ module.exports = {
    */
   klassiEmail() {
     try {
-      return require('./mailer').oupSendMail();
+      return require('./mailer').klassiSendMail();
     } catch (err) {
       console.error(`This is the Email System error: ${err.stack}`);
       throw err;
