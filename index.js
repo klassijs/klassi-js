@@ -195,9 +195,6 @@ global.skipTag = options.skipTag;
 global.isCI = options.isCI;
 global.dlink = options.dlink;
 global.baselineImageUpdate = options.baselineImageUpdate;
-global.browserName = global.remoteConfig || BROWSER_NAME;
-
-astellen.set('BROWSER_NAME', options.browser);
 
 const getConfig = (configName) => cosmiconfigSync(configName).search().config;
 const { environment } = getConfig('envConfig');
@@ -237,6 +234,9 @@ if (options.remoteService && options.extraSettings) {
   }
 }
 
+global.browserName = global.remoteConfig || BROWSER_NAME;
+astellen.set('BROWSER_NAME', options.browser);
+
 function getProjectPath(objectName) {
   return path.resolve(settings.projectRoot + options[objectName]);
 }
@@ -252,7 +252,7 @@ const paths = {
 global.paths = paths;
 
 const envName = env.envName.toLowerCase();
-const reports = `./reports/${browserName}/${envName}`;
+const reports = `./reports/${global.browserName}/${envName}`;
 
 fs.ensureDirSync(reports, (err) => {
   if (err) {
