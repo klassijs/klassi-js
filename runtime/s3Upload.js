@@ -38,6 +38,7 @@ module.exports = {
         return data.Buckets; // For unit tests.
       } catch (err) {
         console.error('Error ', err.message);
+        return null; // Return null instead of undefined
       }
     }
 
@@ -80,18 +81,26 @@ module.exports = {
         }
       });
     }
+    
     const mybucket = await mybucketList();
+    
+    // Check if mybucket exists and is an array
+    if (!mybucket || !Array.isArray(mybucket)) {
+      console.log('The s3 bucket list could not be retrieved');
+      return;
+    }
+    
     const bucketExists = mybucket.some((bucket) => bucket.Name === s3Data.S3_BUCKET);
     if (!bucketExists) {
       console.log('The s3 bucket does not exist');
       return;
     }
-    deploy(uploadFolder)
-      .then(() => {
-        console.log('Report files uploaded successfully to s3 Bucket');
-      })
-      .catch((err) => {
-        console.error(err.message);
-      });
+    
+    try {
+      await deploy(uploadFolder);
+      console.log('Report files uploaded successfully to s3 Bucket');
+    } catch (err) {
+      console.error(err.message);
+    }
   },
 };

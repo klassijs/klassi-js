@@ -22,7 +22,7 @@ describe('getRemote', () => {
   });
 
   it('should return unknown remote when remoteService is unknown', () => {
-    const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const remote = getRemote('unknownService');
 
     expect(consoleSpy).toHaveBeenCalledWith('Unknown remote service unknownService');
@@ -34,7 +34,7 @@ describe('getRemote', () => {
   });
 
   it('should log a message when noop function is called', () => {
-    const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const remote = getRemote('unknownService');
 
     remote.after();
