@@ -29,6 +29,9 @@ const {
   But,
 } = require('@cucumber/cucumber');
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
+const { promisify } = require('util');
+const sleep = promisify(setTimeout);
+
 const { astellen } = require('klassijs-astellen');
 
 const program = new Command();
@@ -53,6 +56,7 @@ async function klassiCli() {
 })();
 
 global.fs = fs;
+global.sleep = sleep;
 
 /**
  * Global timeout to be used in test code
@@ -438,6 +442,7 @@ function handleMultipleBrowsers(options) {
 }
 handleMultipleBrowsers(options);
 
+
 klassiCli().then(async (succeeded) => {
   let dryRun = false;
   if (dryRun === false) {
@@ -447,7 +452,7 @@ klassiCli().then(async (succeeded) => {
       });
     } else {
       await cucumberCli().then(async () => {
-        await browser.pause(DELAY_2s).then(async () => {
+        await sleep(DELAY_2s).then(async () => {
           console.info('Test run completed successfully');
           await process.exit(0);
         });
@@ -459,19 +464,19 @@ klassiCli().then(async (succeeded) => {
 async function cucumberCli() {
   let email = false;
   if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
-    await browser.pause(DELAY_2s).then(async () => {
+    await sleep(DELAY_2s).then(async () => {
       await helpers.klassiReporter();
     });
   } else if (resultingString !== '@s3load') {
-    await browser.pause(DELAY_2s).then(async () => {
+    await sleep(DELAY_2s).then(async () => {
       await helpers.klassiReporter();
     });
   }
-  await browser.pause(DELAY_5s);
+  await sleep(DELAY_5s);
   if (email === true) {
-    await browser.pause(DELAY_2s).then(async () => {
+    await sleep(DELAY_2s).then(async () => {
       await helpers.klassiEmail();
-      await browser.pause(DELAY_3s);
+      await sleep(DELAY_3s);
     });
   }
 }

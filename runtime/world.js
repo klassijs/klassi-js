@@ -2,7 +2,7 @@
  * klassi Automated Testing Tool
  * Created by Larry Goddard
  */
-const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
+const { setDefaultTimeout, Before, AfterAll } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
 const getRemote = require('./getRemote');
 const data = require('./helpers');
@@ -49,11 +49,12 @@ async function getDriverInstance() {
   assert.isNotEmpty(browser, 'Browser must be defined');
 
   const getBrowser = {
-    firefox: () => (driver = FirefoxDriver(options)),
-    chrome: () => (driver = ChromeDriver(options)),
-    default: () => (driver = ChromeDriver(options)),
+    firefox: async() => (driver = await FirefoxDriver(options)),
+    chrome: async() => (driver = await ChromeDriver(options)),
+    default: async() => (driver = await ChromeDriver(options)),
   };
-  (getBrowser[browser] || getBrowser['default'])();
+  await (getBrowser[browser] || getBrowser['default'])();
+  global.browser = driver;
   return driver;
 }
 
@@ -71,10 +72,10 @@ global.timeout = globalTimeout;
  */
 let cucumberThis;
 
-Before(function () {
+Before(async function () {
   global.cucumberThis = this;
   cucumberThis = this;
-  global.driver = getDriverInstance();
+  global.driver = await getDriverInstance();
   return driver;
 });
 
@@ -133,9 +134,15 @@ After(async (scenario) => {
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void>|*}
  */
-this.browserOpen = function () {
+this.browserOpen = async function () {
+  const { browser } = global;
+  if (typeof global.browser === 'undefined') {
+    console.warn('Browser is not defined, skipping cleanup');
+    return Promise.resolve();
+  }
+
   if (global.browserOpen === false) {
-    return browser.deleteSession();
+    return await browser.deleteSession();
   } else {
     return Promise.resolve();
   }
@@ -170,10 +177,10 @@ After(async (scenario) => {
       } else if (scenario.result.status === Status.PENDING) {
         await browser.execute('lambda-status=skipped');
       }
-      return this.browserOpen();
+      return await this.browserOpen();
     }
   }
-  return this.browserOpen();
+  return await this.browserOpen();
 });
 
 After(async function () {
@@ -186,6 +193,33 @@ After(async function () {
   await ImageAssertion.finalizeTest();
 });
 
+After(async function () {
+  // Clean up temporary Chrome profiles
+  try {
+    const fs = require('fs-extra');
+    const path = require('path');
+    const tempDir = path.resolve(__dirname, '../temp');
+    
+    if (await fs.pathExists(tempDir)) {
+      const files = await fs.readdir(tempDir);
+      const chromeProfiles = files.filter(file => file.startsWith('chrome-profile-'));
+      
+      for (const profile of chromeProfiles) {
+        const profilePath = path.join(tempDir, profile);
+        try {
+          await fs.remove(profilePath);
+        } catch (error) {
+          // Ignore cleanup errors - profile might be in use
+          console.warn(`Could not remove Chrome profile: ${profilePath}`);
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore cleanup errors
+    console.warn('Chrome profile cleanup failed:', error.message);
+  }
+});
+
 /**
  * get executed only if there is an error within a scenario
  * will not take an image if it's an API test
@@ -195,10 +229,12 @@ After(async function (scenario) {
   let result = await filterQuietTags();
   const taglist = resultingString.split(',');
   if (!taglist.some((tag) => result.includes(tag)) && scenario.result.status === Status.FAILED) {
-    return browser.takeScreenshot().then((screenShot) => {
-      // screenShot is a base-64 encoded PNG
-      world.attach(screenShot, 'image/png');
-    });
+    if (typeof global.browser !== 'undefined' && global.browser.takeScreenshot) {
+      return await global.browser.takeScreenshot().then((screenShot) => {
+        // screenShot is a base-64 encoded PNG
+        world.attach(screenShot, 'image/png');
+      });
+    }
   }
 });
 
