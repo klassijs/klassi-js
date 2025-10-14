@@ -114,6 +114,12 @@ jobs:
             git config --global url."git@github.com:".insteadOf "https://github.com/"
             pnpm install
 
+      - run:
+          name: Run pre-commit checks
+          command: |
+            cd ~/klassijs/klassi-js
+            ./runtime/scripts/precommit-checks.sh
+
       ##########################################################################
       # Save pnpm cache, don't include node modules because we end up with an  #
       # archive so large that unarchiving takes longer than the pnpm install   #
