@@ -58,24 +58,24 @@ module.exports = {
         brandTitle: `${reportName} ${dateTime}`,
         name: `${projectName} ${browserName} ${envName}`,
       };
-      await browser.pause(DELAY_3s);
+      await sleep(DELAY_3s);
       // eslint-disable-next-line no-undef
       if (!isCI) {
         await fs.copySync(jsonDir, jsonComDir);
         let jsonfile = path.resolve(paths.reports, browserName, envName + 'Combine', `${reportName}-${dateTime}.json`);
-        await browser.pause(DELAY_300ms);
+        await sleep(DELAY_300ms);
         if (resultingString === '@s3load') {
           fs.remove(jsonfile, (err) => {
             if (err) return console.error(err);
           });
-          await browser.pause(DELAY_500ms);
+          await sleep(DELAY_500ms);
           await reporter.generate(reportOptions);
-          await browser.pause(DELAY_3s).then(async () => {
+          await sleep(DELAY_3s).then(async () => {
             await s3Upload.s3Upload();
-            await browser.pause(DELAY_5s);
+            await sleep(DELAY_5s);
           });
         } else {
-          await browser.pause(DELAY_500ms);
+          await sleep(DELAY_500ms);
           await reporter.generate(reportOptions);
         }
       }
