@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
@@ -35,6 +35,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "dev": "node index.js --disableReport --env test --tags",
     "test:checkin": "jest __tests__/unit",
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",

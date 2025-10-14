@@ -1,7 +1,3 @@
-/**
- * klassi Automated Testing Tool
- * Created by Larry Goddard
- */
 const { remote } = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
 const fs = require('fs-extra');
@@ -23,10 +19,6 @@ Before(async (scenario) => {
   }
 });
 
-/**
- * create the web browser based on globals set in index.js
- * @returns {{}}
- */
 module.exports = async function chromeDriver(options) {
   defaults = {
     logLevel: 'error',
@@ -39,16 +31,22 @@ module.exports = async function chromeDriver(options) {
           '--no-sandbox',
           '--disable-gpu',
           '--disable-popup-blocking',
-          'allow-file-access-from-files',
-          'use-fake-device-for-media-stream',
-          'use-fake-ui-for-media-stream',
+          '--allow-file-access-from-files',
+          '--use-fake-device-for-media-stream',
+          '--use-fake-ui-for-media-stream',
+          '--disable-extensions',
+          '--disable-dev-shm-usage',
+          '--remote-debugging-port=0'
         ],
-      },
-    },
+        prefs: {
+          'profile.password_manager_leak_detection': false
+        }
+      }
+    }
   };
 
   if (isApiTest) {
-    defaults.capabilities['goog:chromeOptions'].args.push('--headless', '--disable-extensions');
+    defaults.capabilities['goog:chromeOptions'].args.unshift('--headless=new');
   }
 
   if (useProxy) {
@@ -60,7 +58,14 @@ module.exports = async function chromeDriver(options) {
   }
 
   const extendedOptions = Object.assign(defaults, options);
-  global.browser = await remote(extendedOptions);
-  await browser.setWindowSize(1280, 1024);
-  return browser;
+
+  try {
+    global.browser = await remote(extendedOptions);
+    await global.browser.setWindowSize(1280, 1024);
+    return global.browser;
+  } catch (error) {
+    console.error('Error in Chrome driver:', error.message);
+    console.error('Stack trace:', error.stack);
+    throw error;
+  }
 };
