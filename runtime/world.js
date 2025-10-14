@@ -76,6 +76,7 @@ Before(async function () {
   global.cucumberThis = this;
   cucumberThis = this;
   global.driver = await getDriverInstance();
+  global.browser = global.driver;
   return driver;
 });
 
@@ -193,32 +194,32 @@ After(async function () {
   await ImageAssertion.finalizeTest();
 });
 
-After(async function () {
-  // Clean up temporary Chrome profiles
-  try {
-    const fs = require('fs-extra');
-    const path = require('path');
-    const tempDir = path.resolve(__dirname, '../temp');
-    
-    if (await fs.pathExists(tempDir)) {
-      const files = await fs.readdir(tempDir);
-      const chromeProfiles = files.filter(file => file.startsWith('chrome-profile-'));
-      
-      for (const profile of chromeProfiles) {
-        const profilePath = path.join(tempDir, profile);
-        try {
-          await fs.remove(profilePath);
-        } catch (error) {
-          // Ignore cleanup errors - profile might be in use
-          console.warn(`Could not remove Chrome profile: ${profilePath}`);
-        }
-      }
-    }
-  } catch (error) {
-    // Ignore cleanup errors
-    console.warn('Chrome profile cleanup failed:', error.message);
-  }
-});
+// After(async function () {
+//   // Clean up temporary Chrome profiles
+//   try {
+//     const fs = require('fs-extra');
+//     const path = require('path');
+//     const tempDir = path.resolve(__dirname, '../temp');
+//
+//     if (await fs.pathExists(tempDir)) {
+//       const files = await fs.readdir(tempDir);
+//       const chromeProfiles = files.filter(file => file.startsWith('chrome-profile-'));
+//
+//       for (const profile of chromeProfiles) {
+//         const profilePath = path.join(tempDir, profile);
+//         try {
+//           await fs.remove(profilePath);
+//         } catch (error) {
+//           // Ignore cleanup errors - profile might be in use
+//           console.warn(`Could not remove Chrome profile: ${profilePath}`);
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     // Ignore cleanup errors
+//     console.warn('Chrome profile cleanup failed:', error.message);
+//   }
+// });
 
 /**
  * get executed only if there is an error within a scenario

@@ -122,7 +122,7 @@ function parseRemoteArguments(argumentString) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option('--browser <browsers>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
+  .option('--browser <browserName>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--email', 'email for sending reports to stakeholders', false)
