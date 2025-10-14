@@ -23,5 +23,4 @@ Feature: The API feature/functionality
   @delete
   Scenario: The response of a DELETE call
     Then I expect status code of '201'
-    Then I return the content of the API
-
+    And I return the content of the API

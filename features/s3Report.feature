@@ -8,4 +8,3 @@ Feature: Sending results information
   @s3load
   Scenario: Merging all Json files to create one Html
     Then combining the jsons to create one html file
-

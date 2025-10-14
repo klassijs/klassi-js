@@ -16,4 +16,3 @@ Feature: Searching for apps with duckduckgo
       | searchword |
       | mango |
 #      | traffic |
-
