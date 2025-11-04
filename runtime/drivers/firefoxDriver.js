@@ -34,7 +34,7 @@ module.exports = async function firefoxDriver(options) {
     capabilities: {
       browserName: 'firefox',
       'moz:firefoxOptions': {
-        args: ['--headless', '--disable-popup-blocking', '--disable-gpu'],
+        args: ['--disable-popup-blocking', '--disable-gpu'],
       },
     },
   };
@@ -52,5 +52,6 @@ module.exports = async function firefoxDriver(options) {
   }
   const extendedOptions = Object.assign(defaults, options);
   global.browser = await remote(extendedOptions);
-  await browser.setWindowSize(1280, 1024);
+  await global.browser.setWindowSize(1280, 1024);
+  return global.browser;
 };

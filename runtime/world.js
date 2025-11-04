@@ -34,9 +34,9 @@ global.world = this;
  * @returns {{}}
  */
 async function getDriverInstance() {
-  let browser = BROWSER_NAME;
+  let browser = global.BROWSER_NAME;
 
-  astellen.set('BROWSER_NAME', BROWSER_NAME);
+  astellen.set('BROWSER_NAME', global.BROWSER_NAME);
   const options = {};
   if (remoteService && remoteService.type === 'lambdatest') {
     astellen.set('BROWSER_NAME', global.settings.extraSettings);
@@ -44,14 +44,24 @@ async function getDriverInstance() {
     const configType = global.remoteConfig;
     assert.isString(configType, 'LambdaTest requires a config type e.g. browserName.json');
     driver = LambdaTestDriver(options, configType);
+    global.browser = driver;
     return driver;
   }
   assert.isNotEmpty(browser, 'Browser must be defined');
 
   const getBrowser = {
-    firefox: async() => (driver = await FirefoxDriver(options)),
-    chrome: async() => (driver = await ChromeDriver(options)),
-    default: async() => (driver = await ChromeDriver(options)),
+    firefox: async() => {
+      driver = await FirefoxDriver(options);
+      return driver;
+    },
+    chrome: async() => {
+      driver = await ChromeDriver(options);
+      return driver;
+    },
+    default: async() => {
+      driver = await ChromeDriver(options);
+      return driver;
+    },
   };
   await (getBrowser[browser] || getBrowser['default'])();
   global.browser = driver;
@@ -135,7 +145,7 @@ After(async (scenario) => {
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void>|*}
  */
-this.browserOpen = async function () {
+async function browserOpen() {
   const { browser } = global;
   if (typeof global.browser === 'undefined') {
     console.warn('Browser is not defined, skipping cleanup');
@@ -143,7 +153,7 @@ this.browserOpen = async function () {
   }
 
   if (global.browserOpen === false) {
-    return await browser.deleteSession();
+    return browser.deleteSession();
   } else {
     return Promise.resolve();
   }
@@ -178,10 +188,10 @@ After(async (scenario) => {
       } else if (scenario.result.status === Status.PENDING) {
         await browser.execute('lambda-status=skipped');
       }
-      return await this.browserOpen();
+      return await browserOpen();
     }
   }
-  return await this.browserOpen();
+  return await browserOpen();
 });
 
 After(async function () {
@@ -193,33 +203,6 @@ After(async function () {
   // Passing the total visual validation errors after each scenario to the report
   await ImageAssertion.finalizeTest();
 });
-
-// After(async function () {
-//   // Clean up temporary Chrome profiles
-//   try {
-//     const fs = require('fs-extra');
-//     const path = require('path');
-//     const tempDir = path.resolve(__dirname, '../temp');
-//
-//     if (await fs.pathExists(tempDir)) {
-//       const files = await fs.readdir(tempDir);
-//       const chromeProfiles = files.filter(file => file.startsWith('chrome-profile-'));
-//
-//       for (const profile of chromeProfiles) {
-//         const profilePath = path.join(tempDir, profile);
-//         try {
-//           await fs.remove(profilePath);
-//         } catch (error) {
-//           // Ignore cleanup errors - profile might be in use
-//           console.warn(`Could not remove Chrome profile: ${profilePath}`);
-//         }
-//       }
-//     }
-//   } catch (error) {
-//     // Ignore cleanup errors
-//     console.warn('Chrome profile cleanup failed:', error.message);
-//   }
-// });
 
 /**
  * get executed only if there is an error within a scenario
