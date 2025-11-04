@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const apiTagsData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../scripts/tagList.json')));
+const apiTags = global.tagNames;
 
 let defaults = {};
 let isApiTest = false;
@@ -12,7 +13,7 @@ let useProxy = false;
 Before(async (scenario) => {
   try {
     const scenarioTags = scenario.pickle.tags.map(tag => tag.name.replace('@', '').toLowerCase());
-    const tagList = (apiTagsData.tagNames || []).map(tag => tag.replace('@', '').toLowerCase());
+    const tagList = (apiTagsData.tagNames && apiTags || []).map(tag => tag.replace('@', '').toLowerCase());
     isApiTest = scenarioTags.some(tag => tagList.includes(tag));
   } catch (error) {
     console.error('Error in Before hook: ', error);
