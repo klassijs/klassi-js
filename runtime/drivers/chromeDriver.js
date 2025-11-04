@@ -34,14 +34,8 @@ module.exports = async function chromeDriver(options) {
           '--disable-popup-blocking',
           '--allow-file-access-from-files',
           '--use-fake-device-for-media-stream',
-          '--use-fake-ui-for-media-stream',
-          '--disable-extensions',
-          '--disable-dev-shm-usage',
-          '--remote-debugging-port=0'
-        ],
-        prefs: {
-          'profile.password_manager_leak_detection': false
-        }
+          '--use-fake-ui-for-media-stream'
+        ]
       }
     }
   };
