@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/klassijs/klassi-js/compare/v6.0.1...v6.1.0) (2025-11-04)
+
+
+### Bug Fixes
+
+* **browser:** fixed the browsedr not being initialised ([4bdb524](https://github.com/klassijs/klassi-js/commit/4bdb5246df38514b3306f5c9875057a0250e82e5))
+* **browser:** fixed the browsedr not being initialised ([#137](https://github.com/klassijs/klassi-js/issues/137)) ([134fbc8](https://github.com/klassijs/klassi-js/commit/134fbc86420f3223a60602bb6110d3b265867f83))
+
 ### [6.0.2](https://github.com/klassijs/klassi-js/compare/v6.0.1...v6.0.2) (2025-10-14)
 
 ## 6.0.0 (2025-07-16)
