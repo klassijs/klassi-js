@@ -5,10 +5,12 @@ if [ -n "$CI" ] || [ -n "$CIRCLECI" ]; then
   # In CI, check all files
   echo "Running lint checks in CI mode (checking all files)..."
   
-  # Find eslint binary using node to resolve it from klassi-js's dependencies
+  # Find eslint binary using node to resolve it from OAF's dependencies
   echo "Finding eslint binary..."
-  ESLINT_BIN=$(node -e "try { const path = require('path'); const klassiPath = require.resolve('klassi-js/package.json'); const eslintPkg = require.resolve('eslint/package.json', {paths: [path.dirname(klassiPath)]}); console.log(eslintPkg.replace('/package.json', '/bin/eslint.js')); } catch(e) { process.exit(1); }" 2>/dev/null)
-  
+  ESLINT_BIN=$(node -e "try { const path = require('path'); const klassiPath = require.resolve('klassi-js/package.json');
+  const eslintPkg = require.resolve('eslint/package.json', {paths: [path.dirname(klassiPath)]});
+  console.log(eslintPkg.replace('/package.json', '/bin/eslint.js')); } catch(e) { process.exit(1); }" 2>/dev/null)
+
   LINT_EXIT=0
 
   # Run eslint on all JS files
