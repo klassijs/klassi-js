@@ -1,13 +1,11 @@
 /**
- * klassi Automated Testing Tool
+ * OUP Automated Testing Tool
  * Created by Larry Goddard
  */
 const fs = require('fs-extra');
 const path = require('path');
 const reporter = require('klassijs-cucumber-html-reporter');
-const jUnit = require('cucumber-junit');
 const pactumJs = require('pactum');
-
 const s3Upload = require('../s3Upload');
 const getRemote = require('../getRemote');
 const remoteService = getRemote(settings.remoteService);
@@ -15,6 +13,19 @@ const browserName = global.remoteConfig || BROWSER_NAME;
 
 let resp;
 let obj;
+
+/**
+ * Helper function to pause if browser exists, otherwise use setTimeout
+ * @param {number} delay - Delay in milliseconds
+ * @returns {Promise}
+ */
+async function safePause(delay) {
+  if (typeof global.browser !== 'undefined' && global.browser.pause) {
+    return await global.browser.pause(delay);
+  }
+  // Fallback to setTimeout if browser doesn't exist
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
 
 module.exports = {
   ipAddr: async () => {
@@ -30,8 +41,9 @@ module.exports = {
       obj = await resp.body;
     } catch (err) {
       obj = {};
-      console.error('IpAddr func err: ', err.message);
+      console.log('IpAddr func err: ', err.message);
     }
+
     if (paths.reports && fs.existsSync(paths.reports)) {
       let jsonDir = path.resolve(paths.reports, browserName, envName);
       let jsonComDir = path.resolve(paths.reports, browserName, envName + 'Combine');
@@ -58,36 +70,27 @@ module.exports = {
         brandTitle: `${reportName} ${dateTime}`,
         name: `${projectName} ${browserName} ${envName}`,
       };
-      await sleep(DELAY_3s);
+      await safePause(DELAY_3s);
       // eslint-disable-next-line no-undef
       if (!isCI) {
         await fs.copySync(jsonDir, jsonComDir);
         let jsonfile = path.resolve(paths.reports, browserName, envName + 'Combine', `${reportName}-${dateTime}.json`);
-        await sleep(DELAY_300ms);
+        await safePause(DELAY_300ms);
         if (resultingString === '@s3load') {
           fs.remove(jsonfile, (err) => {
             if (err) return console.error(err);
           });
-          await sleep(DELAY_500ms);
+          await safePause(DELAY_500ms);
           await reporter.generate(reportOptions);
-          await sleep(DELAY_3s).then(async () => {
+          await safePause(DELAY_3s).then(async () => {
             await s3Upload.s3Upload();
-            await sleep(DELAY_5s);
+            await safePause(DELAY_5s);
           });
         } else {
-          await sleep(DELAY_500ms);
+          await safePause(DELAY_500ms);
           await reporter.generate(reportOptions);
         }
       }
-      /** grab the file data for xml creation */
-      let jsonFile = path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.json`);
-      const reportRaw = fs.readFileSync(jsonFile).toString().trim();
-
-      const xmlReport = jUnit(reportRaw);
-      const junitOutputPath = path.resolve(
-        path.resolve(paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`),
-      );
-      fs.writeFileSync(junitOutputPath, xmlReport);
     }
   },
 };

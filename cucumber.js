@@ -14,6 +14,7 @@ const options = {
     tags: global.resultingString,
     format: [
       '@cucumber/pretty-formatter',
+      `junit:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.xml`)}`,
       `json:${path.resolve(__dirname, paths.reports, browserName, envName, `${reportName}-${dateTime}.json`)}`,
     ],
     formatOptions: {

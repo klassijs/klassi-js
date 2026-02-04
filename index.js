@@ -31,7 +31,6 @@ const {
 const { runCucumber, loadConfiguration } = require('@cucumber/cucumber/api');
 const { promisify } = require('util');
 const sleep = promisify(setTimeout);
-
 const { astellen } = require('klassijs-astellen');
 
 const program = new Command();
@@ -51,12 +50,12 @@ async function klassiCli() {
 }
 
 (async () => {
+  // Dynamically import Chai (ESM)
   const chai = await import('chai');
   global.assert = chai.assert;
 })();
 
 global.fs = fs;
-global.sleep = sleep;
 
 /**
  * Global timeout to be used in test code
@@ -122,7 +121,7 @@ function parseRemoteArguments(argumentString) {
 program
   .version(pjson.version)
   .description(pjson.description)
-  .option('--browser <browserName>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
+  .option('--browser <name>', 'name of browser to use (chrome, firefox). defaults to chrome', 'chrome')
   .option('--context <paths>', 'contextual root path for project-specific features, steps, objects etc', './')
   .option('--disableReport', 'Disables the auto opening of the test report in the browser. defaults to true')
   .option('--email', 'email for sending reports to stakeholders', false)
@@ -169,10 +168,36 @@ program
   .option('--skipTag <EXPRESSION>', 'provide a tag and all tests marked with it will be skipped automatically')
   .option('--isCI', 'This is to stop the html from being created while running in the CI', false)
   .option('--reportBackup', 'This to clear the "reports" folder & keep the record in back-up folder', false)
-  .option('--reportClear', 'This to clear the "reports" folder', false);
+  .option('--reportClear', 'This to clear the "reports" folder', false)
+  .option('--testgenie', 'Run klassijs-testgenie UI for AI-powered test case generation', false);
 
 program.parse(process.argv);
 const options = program.opts();
+
+// Handle --testgenie option early
+if (options.testgenie) {
+  const { spawn } = require('child_process');
+  const testgenieScript = path.join(__dirname, 'scripts', 'run-testgenie.js');
+  if (fs.existsSync(testgenieScript)) {
+    const child = spawn('node', [testgenieScript], {
+      stdio: 'inherit',
+      shell: true,
+      env: { ...process.env }
+    });
+    child.on('exit', (code) => {
+      process.exit(code || 0);
+    });
+    child.on('error', (error) => {
+      console.error('❌ Error running testgenie:', error.message);
+      process.exit(1);
+    });
+    // Keep process alive to handle child
+    return;
+  } else {
+    console.error('❌ Testgenie script not found. Please ensure klassi-js is properly installed.');
+    process.exit(1);
+  }
+}
 
 program.on('--help', () => {
   console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
@@ -198,6 +223,7 @@ global.useProxy = options.useProxy;
 global.skipTag = options.skipTag;
 global.isCI = options.isCI;
 global.dlink = options.dlink;
+
 global.baselineImageUpdate = options.baselineImageUpdate;
 
 const getConfig = (configName) => cosmiconfigSync(configName).search().config;
@@ -252,22 +278,35 @@ const paths = {
   sharedObjects: getProjectPath('sharedObjects'),
 };
 
-/** expose settings and paths for global use */
 global.paths = paths;
 
 const envName = env.envName.toLowerCase();
+
 const reports = `./reports/${global.browserName}/${envName}`;
 
-fs.ensureDirSync(reports, (err) => {
-  if (err) {
-    console.error(`The Reports Folder has NOT been created: ${err.stack}`);
-  }
-});
-fs.ensureDirSync(reports + 'Combine', (err) => {
-  if (err) {
-    console.error(`The Reports Combine Folder has NOT been created: ${err.stack}`);
-  }
-});
+if (browserName.includes(',')) {
+  console.log('🛑 Skipping report folder creation for multi-browser parent process.');
+} else {
+  fs.ensureDirSync(reports, (err) => {
+    if (err) {
+      console.error(`The Reports Folder has NOT been created: ${err.stack}`);
+    }
+  });
+  fs.ensureDirSync(reports + 'Combine', (err) => {
+    if (err) {
+      console.error(`The Reports Combine Folder has NOT been created: ${err.stack}`);
+    }
+  });
+}
+
+try {
+  const { a11yValidator } = require('klassijs-a11y-validator');
+  global.accessibilityLib = a11yValidator;
+  global.accessibilityReportList = [];
+} catch (error) {
+  console.error('❌ Failed to load klassijs-a11y-validator:', error.message);
+}
+
 
 const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
 if (fs.existsSync(videoLib)) {
@@ -300,7 +339,8 @@ function getTagsFromFeatureFiles() {
   const featureFilesList = options.featureFiles.split(',');
 
   featureFilesList.forEach((feature) => {
-    const filePath = path.resolve(feature);
+    const fileOnly = feature.split(':')[0];
+    const filePath = path.resolve(fileOnly);
     try {
       const fileContent = loadTextFile.loadSync(filePath);
       featurefiles = Object.assign(featurefiles, fileContent);
@@ -317,41 +357,26 @@ function getTagsFromFeatureFiles() {
   return result;
 }
 
+
 if (!options.tags || options.tags.length === 0) {
   process.exit(1);
 }
 let resultingString = '';
-if (options.tags.length > 0) {
-  const tagsFound = getTagsFromFeatureFiles();
-  const separateMultipleTags = options.tags[0].split(',');
-  let separateExcludedTags;
 
-  if (options.exclude && options.exclude.length >= 1) {
-    separateExcludedTags = options.exclude[0].split(',');
-  }
+if (!options.testgenie) {
+  if (options.tags.length > 0) {
+    const tagsFound = getTagsFromFeatureFiles();
+    const separateMultipleTags = options.tags[0].split(',');
+    let separateExcludedTags;
 
-  const correctTags = [];
-  const correctExcludedTags = [];
-
-  for (const tag of separateMultipleTags) {
-    if (tag[0] !== '@') {
-      console.error('tags must start with a @');
-      process.exit(1);
+    if (options.exclude && options.exclude.length >= 1) {
+      separateExcludedTags = options.exclude[0].split(',');
     }
-    if (tagsFound.indexOf(tag) === -1) {
-      console.error(`this tag ${tag} does not exist`);
-      process.exit(0);
-    }
-    correctTags.push(tag);
-  }
 
-  if (correctTags.length === 0) {
-    console.error('No valid tags found.');
-    process.exit(1);
-  }
+    const correctTags = [];
+    const correctExcludedTags = [];
 
-  if (separateExcludedTags && separateExcludedTags.length >= 1) {
-    for (const tag of separateExcludedTags) {
+    for (const tag of separateMultipleTags) {
       if (tag[0] !== '@') {
         console.error('tags must start with a @');
         process.exit(1);
@@ -360,30 +385,48 @@ if (options.tags.length > 0) {
         console.error(`this tag ${tag} does not exist`);
         process.exit(0);
       }
-      correctExcludedTags.push(tag);
+      correctTags.push(tag);
     }
-  }
 
-  if (correctTags.length > 1) {
-    resultingString = correctTags.join(' or ');
-    if (correctExcludedTags.length > 0) {
-      const excludedCommand = correctExcludedTags.join(' and not ');
-      resultingString = `${resultingString} and not ${excludedCommand}`;
+    if (correctTags.length === 0) {
+      console.error('No valid tags found.');
+      process.exit(1);
     }
+
+    if (separateExcludedTags && separateExcludedTags.length >= 1) {
+      for (const tag of separateExcludedTags) {
+        if (tag[0] !== '@') {
+          console.error('tags must start with a @');
+          process.exit(1);
+        }
+        if (tagsFound.indexOf(tag) === -1) {
+          console.error(`this tag ${tag} does not exist`);
+          process.exit(0);
+        }
+        correctExcludedTags.push(tag);
+      }
+    }
+
+    if (correctTags.length > 1) {
+      resultingString = correctTags.join(' or ');
+      if (correctExcludedTags.length > 0) {
+        const excludedCommand = correctExcludedTags.join(' and not ');
+        resultingString = `${resultingString} and not ${excludedCommand}`;
+      }
+    } else {
+      resultingString = correctTags[0];
+      if (correctExcludedTags.length > 0) {
+        const excludedCommand = correctExcludedTags.join(' and not ');
+        resultingString = `${resultingString} and not ${excludedCommand}`;
+      }
+    }
+
+    global.resultingString = resultingString;
   } else {
-    resultingString = correctTags[0];
-    if (correctExcludedTags.length > 0) {
-      const excludedCommand = correctExcludedTags.join(' and not ');
-      resultingString = `${resultingString} and not ${excludedCommand}`;
-    }
+    console.error('No tags provided in options.');
+    process.exit(1);
   }
-
-  global.resultingString = resultingString;
-} else {
-  console.error('No tags provided in options.');
-  process.exit(1);
 }
-
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
   global.featureFiles = splitFeatureFiles;
@@ -397,7 +440,7 @@ function handleMultipleBrowsers(options) {
   const { spawn } = require('child_process');
   if (!options.browser) return;
 
-  // Prevent recursion: only run this logic if the original input had multiple browsers
+  // only run this logic if the original input had multiple browsers
   const originalArgv = process.argv.join(' ');
   if (!originalArgv.includes(',') || options.browser.includes(',')) {
     const browsers = options.browser.split(',').map(b => b.trim()).filter(Boolean);
@@ -441,7 +484,6 @@ function handleMultipleBrowsers(options) {
   }
 }
 handleMultipleBrowsers(options);
-
 
 klassiCli().then(async (succeeded) => {
   let dryRun = false;
