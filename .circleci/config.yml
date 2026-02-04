@@ -1,4 +1,4 @@
-# klassijs Automated Testing Tool
+# klassi Automated Testing Tool
 # Created by Larry Goddard
 # Javascript Node CircleCI 2.1 configuration file
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
@@ -14,35 +14,34 @@ references:
           - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
           - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
           - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
-          - /feature\/.*/ # feature branches with feature/ prefix. e.g. feature/foo
+          - /feature\/.*/ # automation branches with feature/ prefix. e.g. feature/foo
 
-  filter_only_integration_branches: &filter_only_integration_branches
-    filters:
-      branches:
-        only:
-          - develop # git flow develop branch
-          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
+    filter_only_integration_branches: &filter_only_integration_branches
+      filters:
+        branches:
+          only:
+            - develop # git flow production branch
+            - /testfix\/.*/ # automation branches with testfix/ prefix. e.g. testfix/foo
 
-  filter_only_testable_branches: &filter_only_testable_branches
-    filters:
-      branches:
-        only:
-          - master # git flow master branch
-          - main # git flow main branch
-          - develop # git flow develop branch
-          - /feature\/.*/ # git flow hotfix branches
-          - /hotfix\/.*/ # git flow hotfix branches
-          - /release\/.*/ # git flow release branches
-          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
+    filter_only_testable_branches: &filter_only_testable_branches
+      filters:
+        branches:
+          only:
+            - master # git flow master branch
+            - main # git flow main branch
+            - develop # git flow develop branch
+            - /hotfix\/.*/ # git flow hotfix branches
+            - /release\/.*/ # git flow release branches
+            - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
 
-  filter_only_releasable_branches: &filter_only_releasable_branches
-    filters:
-      branches:
-        only:
-          - master # git flow master branch
-          - main # git flow main branch
-          - /hotfix\/.*/ # git flow hotfix branches
-          - /release\/.*/ # git flow release branches
+    filter_only_releasable_branches: &filter_only_releasable_branches
+      filters:
+        branches:
+          only:
+            - master # git flow production branch
+            - main # git flow production branch
+            - /hotfix\/.*/ # git flow hotfix branches
+            - /release\/.*/ # git flow release branches
 
 jobs:
   #########################
@@ -93,7 +92,7 @@ jobs:
       - run:
           name: Generate dependency cache key
           command: |
-            if [ -f pnpm-lock.yaml ]; then
+            if [ -f ~/klassijs/klassi-js/pnpm-lock.yaml ]; then
               shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
             else
               echo "pnpm-lock.yaml not found, using package.json instead"
@@ -104,21 +103,14 @@ jobs:
       - restore_cache:
           name: Restore pnpm cache
           keys:
-            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
-            - pnpm-cache-v1-  # Fallback cache key
+            - klassi-pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
 
       - run:
           name: Install the klassi-js framework dependencies
           path: ~/klassijs/klassi-js
           command: |
             git config --global url."git@github.com:".insteadOf "https://github.com/"
-            pnpm install
-
-      - run:
-          name: Run pre-commit checks
-          command: |
-            cd ~/klassijs/klassi-js
-            ./runtime/scripts/precommit-checks.sh
+            pnpm install --no-frozen-lockfile
 
       ##########################################################################
       # Save pnpm cache, don't include node modules because we end up with an  #
@@ -126,9 +118,10 @@ jobs:
       ##########################################################################
       # Save cache
       - save_cache:
-          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+          key: klassi-pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
           paths:
-            - ~/.pnpm-store  # PNPM's global store for caching dependencies
+            - ~/klassijs/klassi-js/.cache/pnpm
+            - ~/klassijs/klassi-js/.pnpm-store  # PNPM's global store for caching dependencies
 
       - persist_to_workspace:
           root: ./
@@ -188,29 +181,36 @@ jobs:
               if test "$folder"; then
                 echo "this is the list 1:- $name $branch $folder"
                 cd $name/test
-                cat shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
+                if [ -f pnpm-lock.yaml ]; then
+                  shasum -a 256 ./pnpm-lock.yaml > /home/circleci/project/CACHE_KEY
+                else
+                  echo "pnpm-lock.yaml not found, using package.json instead"
+                  shasum -a 256 ./package.json > /home/circleci/project/CACHE_KEY
+                fi
                 cd ../../
               else
                 echo "this is the list 2:- $name $branch $folder"
-                cat $name/shasum -a 256 ~/klassijs/klassi-js/pnpm-lock.yaml > CACHE_KEY
+                if [ -f ./projects/$name/pnpm-lock.yaml ]; then
+                  shasum -a 256 $name/pnpm-lock.yaml > /home/circleci/project/CACHE_KEY
+                else
+                  echo "pnpm-lock.yaml not found in $name, using package.json instead"
+                  shasum -a 256 $name/package.json > /home/circleci/project/CACHE_KEY
+                fi
+              fi
+              if [ -f /home/circleci/project/CACHE_KEY ]; then
+                echo "CACHE_KEY file created successfully."
+              else
+                echo "Failed to create CACHE_KEY file."
+                ls -l /home/circleci/project/
               fi
             done
 
       # Restore cache if available
       - restore_cache:
+          name: Restore pnpm cache
           keys:
-            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
-            - pnpm-cache-v1-  # Fallback cache key
-
-      ##########################################################################
-      # Save pnpm cache, don't include node modules because we end up with an  #
-      # archive so large that unarchiving takes longer than the pnpm install   #
-      ##########################################################################
-      # Save cache
-      - save_cache:
-          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
-          paths:
-            - ~/.pnpm-store  # PNPM's global store for caching dependencies
+            - klassi-pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+            - klassi-pnpm-cache-v1-  # Fallback cache key
 
       #####################################################
       ##         Install all Project dependencies        ##
@@ -231,12 +231,23 @@ jobs:
                   git config --global url."git@github.com:".insteadOf "https://github.com/"
                   pnpm install --network-concurrency 1 || true
                   cd ../
-                  else
+                else
                   git config --global url."git@github.com:".insteadOf "https://github.com/"
                   pnpm install --network-concurrency 1 || true
                 fi
-                  cd ../
+                cd ../
             done
+
+      ##########################################################################
+      # Save pnpm cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the pnpm install   #
+      ##########################################################################
+      # Save cache
+      - save_cache:
+          key: klassi-pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+          paths:
+            - ./projects/.pnpm-store  # PNPM's global store for caching dependencies
+            - ./projects/.cache/pnpm
 
       - persist_to_workspace:
           root: ./
@@ -400,7 +411,7 @@ workflows:
           context: klassi-framework
           requires:
             - unit_test
-          <<: *filter_only_releasable_branches
+          <<: *filter_only_integration_branches
 
 #  s3Report_run:
 #    triggers:

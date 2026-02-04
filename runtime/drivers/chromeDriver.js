@@ -1,3 +1,7 @@
+/**
+ * klassi Automated Testing Tool
+ * Created by Larry Goddard
+ */
 const { remote } = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
 const fs = require('fs-extra');
@@ -13,13 +17,24 @@ let useProxy = false;
 Before(async (scenario) => {
   try {
     const scenarioTags = scenario.pickle.tags.map(tag => tag.name.replace('@', '').toLowerCase());
-    const tagList = (apiTagsData.tagNames && apiTags || []).map(tag => tag.replace('@', '').toLowerCase());
+
+    const tagList = [
+      ...(apiTagsData?.tagNames || []),
+      ...(apiTags || [])
+    ]
+      .map(tag => tag.replace('@', '').trim().toLowerCase())
+      .filter((tag, index, arr) => tag.length > 0 && arr.indexOf(tag) === index);
+
     isApiTest = scenarioTags.some(tag => tagList.includes(tag));
   } catch (error) {
     console.error('Error in Before hook: ', error);
   }
 });
 
+/**
+ * create the web browser based on globals set in index.js
+ * @returns {{}}
+ */
 module.exports = async function chromeDriver(options) {
   defaults = {
     logLevel: 'error',
@@ -36,17 +51,17 @@ module.exports = async function chromeDriver(options) {
           '--use-fake-device-for-media-stream',
           '--use-fake-ui-for-media-stream'
         ]
-      }
-    }
+      },
+    },
   };
 
   if (isApiTest) {
-    defaults.capabilities['goog:chromeOptions'].args.unshift('--headless=new');
+    defaults.capabilities['goog:chromeOptions'].args.unshift('--headless');
   }
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://klassiarray.klassi.co.uk:8080',
+      httpProxy: 'http://ouparray.oup.com:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };

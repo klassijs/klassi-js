@@ -1,8 +1,8 @@
 /**
- * klassi Automated Testing Tool
+ * Klassi Automated Testing Tool
  * Created by Larry Goddard
  */
-const { setDefaultTimeout, Before, AfterAll } = require('@cucumber/cucumber');
+const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
 const getRemote = require('./getRemote');
 const data = require('./helpers');
@@ -40,7 +40,6 @@ async function getDriverInstance() {
   const options = {};
   if (remoteService && remoteService.type === 'lambdatest') {
     astellen.set('BROWSER_NAME', global.settings.extraSettings);
-    console.log('extraSettings via astellen GET', astellen.get('BROWSER_NAME'));
     const configType = global.remoteConfig;
     assert.isString(configType, 'LambdaTest requires a config type e.g. browserName.json');
     driver = LambdaTestDriver(options, configType);
@@ -99,8 +98,8 @@ global.startDateTime = data.getStartDateTime();
  * executed before each scenario
  */
 Before(async (scenario) => {
-  const { browser } = global;
-  if (remoteService && remoteService.type === 'lambdatest') {
+  if (remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
+    const { browser } = global;
     await browser.execute(`lambda-name=${scenario.pickle.name}`);
   }
 });
@@ -131,7 +130,7 @@ Before((scenario) => {
  * from lambdatest when it fails for the report
  */
 After(async (scenario) => {
-  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest') {
+  if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
     await helpers.ltVideo();
     // eslint-disable-next-line no-undef
     const vidLink = await videoLib.getVideoId();
@@ -147,17 +146,18 @@ After(async (scenario) => {
  */
 async function browserOpen() {
   const { browser } = global;
-  if (typeof global.browser === 'undefined') {
-    console.warn('Browser is not defined, skipping cleanup');
-    return Promise.resolve();
-  }
+  // if (typeof global.browser === 'undefined') {
+  //   console.warn('Browser is not defined, skipping cleanup');
+  //   return Promise.resolve();
+  // }
 
   if (global.browserOpen === false) {
-    return browser.deleteSession();
+    return await browser.deleteSession();
   } else {
     return Promise.resolve();
   }
 };
+
 
 /**
  * executed after each scenario - always closes the browser to ensure clean browser not cached)
@@ -172,7 +172,8 @@ After(async (scenario) => {
     scenario.result.status === Status.UNDEFINED ||
     scenario.result.status === Status.PENDING
   ) {
-    if (remoteService && remoteService.type === 'lambdatest') {
+    if (remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
+      const { browser } = global;
       if (scenario.result.status === 'FAILED') {
         await browser.execute('lambda-status=failed');
       } else if (scenario.result.status === Status.PASSED) {
@@ -211,6 +212,7 @@ After(async function () {
 After(async function (scenario) {
   const world = this;
   let result = await filterQuietTags();
+  const resultingString = '';
   const taglist = resultingString.split(',');
   if (!taglist.some((tag) => result.includes(tag)) && scenario.result.status === Status.FAILED) {
     if (typeof global.browser !== 'undefined' && global.browser.takeScreenshot) {
@@ -226,6 +228,7 @@ After(async function (scenario) {
  * this allows for the skipping of scenarios based on tags
  * @returns {*|null}
  */
+const skipTag = '';
 function skipTagValidation() {
   let multipleTags;
   if (!skipTag || skipTag.length === 0) {

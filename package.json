@@ -1,6 +1,6 @@
 {
   "name": "klassi-js",
-  "version": "6.1.0",
+  "version": "6.1.3",
   "description": "A debuggable Javascript testing framework using webdriverio",
   "creator": {
     "name": "Larry Goddard",
@@ -36,13 +36,15 @@
   },
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js --disableReport --env test --tags",
+    "manualcirun": "./runtime/scripts/manualTrigger.sh",
+    "testgenie": "node ./runtime/scripts/run-testgenie.js",
     "test:checkin": "jest __tests__/unit",
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",
     "preinstall": "npx only-allow pnpm",
-    "lint": "pnpm lint-staged && pnpm lint:gherkin",
-    "lint:gherkin": "gherkin-lint -c runtime/coding-standards/gherkin/gherkin-lint.json '**/*.feature' ",
+    "lint": "pnpm lint:gherkin ; g1=$? ; pnpm lint:all ; g2=$? ; pnpm lint-staged ; g3=$? ; exit $((g1 || g2 || g3))",
+    "lint:all": "eslint --quiet --fix --config runtime/coding-standards/eslint/eslint.config.js **/*.js",
+    "lint:gherkin": "gherkin-lint -c runtime/coding-standards/gherkin/gherkin-lint.json **/*.feature",
     "lint-branch-name": "pnpm branch-name-lint ./branchnamelinter.config.json",
     "changelog": "standard-version --skip.commit --skip.tag",
     "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
@@ -80,6 +82,7 @@
     "klassijs-cucumber-html-reporter": "^6.0.0",
     "klassijs-smart-ocr": "github:klassijs/klassijs-smart-ocr",
     "klassijs-soft-assert": "^1.3.0",
+    "klassijs-testgenie": "github:klassijs/klassijs-testgenie#v1.0.0",
     "klassijs-visual-validation": "^1.2.3",
     "lint-staged": "^15.5.2",
     "merge": "^2.1.1",
@@ -96,7 +99,7 @@
     "**/*.js": "eslint --quiet --fix --config runtime/coding-standards/eslint/eslint.config.js"
   },
   "jest-junit": {
-    "suiteName": "jest tests",
+    "suiteName": "Klassi Unit tests",
     "outputDirectory": "./reports",
     "outputName": "junit.xml",
     "uniqueOutputName": "false"
