@@ -9,6 +9,18 @@ const lambdatest = require('../remotes/lambdatest');
 const fs = require('fs-extra');
 const path = require('path');
 
+const modHeader = fs.readFileSync(path.resolve(__dirname, '../scripts/extensions/modHeader_3_1_22_0.crx'), {
+  encoding: 'base64',
+});
+
+const chExt = {
+  'LT:Options': {
+    'goog:chromeOptions': {
+      extensions: [modHeader],
+    },
+  },
+};
+
 let config;
 let isApiTest;
 
@@ -32,6 +44,8 @@ module.exports = async function lambdatestDriver(options, configType) {
       await browserExecute(options, browserItem);
     }
   }
+  // Should return the browser instance
+  return await browserExecute(options, configType);
 };
 
 const browserExecute = async (options, configTypeA) => {
@@ -39,7 +53,11 @@ const browserExecute = async (options, configTypeA) => {
   const credentials = lambdatest.getCredentials();
   const { user, key } = credentials;
 
+  // if (browserName === 'chrome') {
+  //   config = Object.assign(browserCaps, [chExt]);
+  // } else {
   config = browserCaps;
+  // }
 
   /** lambdatest will do this anyway, this is to make it explicit */
   const buildNameFromConfig = configTypeA.replace(/-/g, ' ');
@@ -51,7 +69,7 @@ const browserExecute = async (options, configTypeA) => {
     config.buildTags.push(`${CIRCLE_JOB}`);
   } else {
     config.build = `${projectName}-${buildNameFromConfig}`;
-    config.tunnelName = process.env.TUNNEL_NAME || 'klassitunnel';
+    config.tunnelName = 'ouptunnel' || '';
   }
 
   const capabilities = {
@@ -79,8 +97,10 @@ const browserExecute = async (options, configTypeA) => {
 
   try {
     global.browser = await remote(options);
+    return global.browser;
   } catch (error) {
     console.error('Error in lambdatestDriver:', error);
+    console.error('Stack trace:', error.stack);
     throw error;
   }
 };

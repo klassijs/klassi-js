@@ -7,7 +7,6 @@
       "@post",
       "@delete",
       "@s3load",
-      "@plutora",
       "@zephyr",
       "@s3"
    ]

@@ -25,8 +25,8 @@
   "use-and": "on",
   "no-dupe-scenario-names": "on",
   "name-length" : ["on", { "Feature": 70, "Scenario": 70, "Step": 70 }],
-  "scenario-size": ["on", { "steps-length": { "Background": 5, "Scenario": 10, "Examples": 10 } }],
-  "max-scenarios-per-file": ["on", { "maxScenarios": 10, "countOutlineExamples": false }],
+  "scenario-size": ["on", { "steps-length": { "Background": 5, "Scenario": 12, "Examples": 12 } }],
+  "max-scenarios-per-file": ["on", { "maxScenarios": 12, "countOutlineExamples": false }],
   "no-files-without-scenarios": "on",
   "no-examples-in-scenarios": "on",
   "no-scenario-outlines-without-examples": "on"
