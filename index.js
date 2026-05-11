@@ -169,35 +169,9 @@ program
   .option('--isCI', 'This is to stop the html from being created while running in the CI', false)
   .option('--reportBackup', 'This to clear the "reports" folder & keep the record in back-up folder', false)
   .option('--reportClear', 'This to clear the "reports" folder', false)
-  .option('--testgenie', 'Run klassijs-testgenie UI for AI-powered test case generation', false);
 
 program.parse(process.argv);
 const options = program.opts();
-
-// Handle --testgenie option early
-if (options.testgenie) {
-  const { spawn } = require('child_process');
-  const testgenieScript = path.join(__dirname, 'scripts', 'run-testgenie.js');
-  if (fs.existsSync(testgenieScript)) {
-    const child = spawn('node', [testgenieScript], {
-      stdio: 'inherit',
-      shell: true,
-      env: { ...process.env }
-    });
-    child.on('exit', (code) => {
-      process.exit(code || 0);
-    });
-    child.on('error', (error) => {
-      console.error('❌ Error running testgenie:', error.message);
-      process.exit(1);
-    });
-    // Keep process alive to handle child
-    return;
-  } else {
-    console.error('❌ Testgenie script not found. Please ensure klassi-js is properly installed.');
-    process.exit(1);
-  }
-}
 
 program.on('--help', () => {
   console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
@@ -363,20 +337,37 @@ if (!options.tags || options.tags.length === 0) {
 }
 let resultingString = '';
 
-if (!options.testgenie) {
-  if (options.tags.length > 0) {
-    const tagsFound = getTagsFromFeatureFiles();
-    const separateMultipleTags = options.tags[0].split(',');
-    let separateExcludedTags;
+if (options.tags.length > 0) {
+  const tagsFound = getTagsFromFeatureFiles();
+  const separateMultipleTags = options.tags[0].split(',');
+  let separateExcludedTags;
 
-    if (options.exclude && options.exclude.length >= 1) {
-      separateExcludedTags = options.exclude[0].split(',');
+  if (options.exclude && options.exclude.length >= 1) {
+    separateExcludedTags = options.exclude[0].split(',');
+  }
+
+  const correctTags = [];
+  const correctExcludedTags = [];
+
+  for (const tag of separateMultipleTags) {
+    if (tag[0] !== '@') {
+      console.error('tags must start with a @');
+      process.exit(1);
     }
+    if (tagsFound.indexOf(tag) === -1) {
+      console.error(`this tag ${tag} does not exist`);
+      process.exit(0);
+    }
+    correctTags.push(tag);
+  }
 
-    const correctTags = [];
-    const correctExcludedTags = [];
+  if (correctTags.length === 0) {
+    console.error('No valid tags found.');
+    process.exit(1);
+  }
 
-    for (const tag of separateMultipleTags) {
+  if (separateExcludedTags && separateExcludedTags.length >= 1) {
+    for (const tag of separateExcludedTags) {
       if (tag[0] !== '@') {
         console.error('tags must start with a @');
         process.exit(1);
@@ -385,48 +376,30 @@ if (!options.testgenie) {
         console.error(`this tag ${tag} does not exist`);
         process.exit(0);
       }
-      correctTags.push(tag);
+      correctExcludedTags.push(tag);
     }
-
-    if (correctTags.length === 0) {
-      console.error('No valid tags found.');
-      process.exit(1);
-    }
-
-    if (separateExcludedTags && separateExcludedTags.length >= 1) {
-      for (const tag of separateExcludedTags) {
-        if (tag[0] !== '@') {
-          console.error('tags must start with a @');
-          process.exit(1);
-        }
-        if (tagsFound.indexOf(tag) === -1) {
-          console.error(`this tag ${tag} does not exist`);
-          process.exit(0);
-        }
-        correctExcludedTags.push(tag);
-      }
-    }
-
-    if (correctTags.length > 1) {
-      resultingString = correctTags.join(' or ');
-      if (correctExcludedTags.length > 0) {
-        const excludedCommand = correctExcludedTags.join(' and not ');
-        resultingString = `${resultingString} and not ${excludedCommand}`;
-      }
-    } else {
-      resultingString = correctTags[0];
-      if (correctExcludedTags.length > 0) {
-        const excludedCommand = correctExcludedTags.join(' and not ');
-        resultingString = `${resultingString} and not ${excludedCommand}`;
-      }
-    }
-
-    global.resultingString = resultingString;
-  } else {
-    console.error('No tags provided in options.');
-    process.exit(1);
   }
+
+  if (correctTags.length > 1) {
+    resultingString = correctTags.join(' or ');
+    if (correctExcludedTags.length > 0) {
+      const excludedCommand = correctExcludedTags.join(' and not ');
+      resultingString = `${resultingString} and not ${excludedCommand}`;
+    }
+  } else {
+    resultingString = correctTags[0];
+    if (correctExcludedTags.length > 0) {
+      const excludedCommand = correctExcludedTags.join(' and not ');
+      resultingString = `${resultingString} and not ${excludedCommand}`;
+    }
+  }
+
+  global.resultingString = resultingString;
+} else {
+  console.error('No tags provided in options.');
+  process.exit(1);
 }
+
 if (options.featureFiles) {
   const splitFeatureFiles = options.featureFiles.split(',');
   global.featureFiles = splitFeatureFiles;
