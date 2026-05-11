@@ -5,6 +5,14 @@
 
 version: 2.1
 
+parameters:
+  run_release:
+    type: boolean
+    default: true
+  run_s3_report:
+    type: boolean
+    default: false
+
 references:
   filter_ignore_wip_branches:
     filters:
