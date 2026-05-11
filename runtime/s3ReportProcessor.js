@@ -1,11 +1,10 @@
 /**
- * klassi Automated Testing Tool
- * Created by Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
  */
 const path = require('path');
 const fs = require('fs-extra');
 const { S3Client, ListObjectsCommand } = require('@aws-sdk/client-s3');
-const program = require('commander');
 
 const s3Bucket = s3Data.S3_BUCKET;
 const s3AccessKeyId = process.env.S3_KEY;
@@ -33,7 +32,8 @@ module.exports = {
     const tempFile = path.resolve(__dirname, './scripts/s3ReportSample');
     let filePath;
     let date = helpers.currentDate();
-    if (program.opts().dlink) {
+
+    if (global.dlink) {
       filePath = `../../${projectName}/test/reports/testReport-${date}.html`;
     } else {
       filePath = `../${projectName}/reports/testReport-${date}.html`;
@@ -48,7 +48,6 @@ module.exports = {
      */
     const browserName = ['chrome', 'firefox', 'edge', 'safari', 'tabletGalaxy', 'tabletiPad'];
     let dataList;
-    let dataNew = '';
     let browsername;
     let dataOut = await helpers.readFromFile(tempFile);
 
@@ -72,20 +71,23 @@ module.exports = {
               dataList = `${domainName}/${key}`;
               if (dataList.includes(browsername)) {
                 const envDataNew = dataList.replace(/^.*reports\/\w+\//, '').replace(/\/.*.html/, '');
-                dataNew = dataList
+                const dataNew = dataList
                   .replace(/^.*reports\/\w+\//, '')
                   .replace(`${envDataNew}/`, '')
                   .replace(/\.html/, '');
                 const theNewData = `${dataNew} -- ${envDataNew}`;
-                let dataFile = '';
-                linkList.push((dataFile = `${dataFile}<a href="${dataList}">${theNewData}</a>`));
+
+                // Accumulate links for this browser; do not return early,
+                // so final email send logic can still run.
+                const dataFile = `<a href="${dataList}">${theNewData}</a>`;
+                linkList.push(dataFile);
               }
             }
           }
         }
         if (linkList.length > 0) {
           const browserData = `<div class="panel ${browsername}"><p style="text-indent:40px">${browsername}</p>${linkList.join(
-            ' ',
+            ' '
           )}</div>`;
           dataOut = dataOut.replace('<-- browser_test_output -->', browserData);
         } else {
@@ -94,6 +96,8 @@ module.exports = {
       }
     }
     await helpers.writeToTxtFile(file, dataOut);
+    // Expose generated s3 summary report for email attachment in lightweight dispatch mode.
+    global.s3ReportAttachment = path.resolve(file);
     if (dataList === undefined) {
       console.error('There is no reporting data for this Project....');
     } else if (dataList.length > 0) {

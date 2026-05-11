@@ -1,0 +1,499 @@
+# klassi Automated Testing Tool
+# Created by Larry Goddard
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+
+version: 2.1
+
+references:
+  filter_ignore_wip_branches:
+    filters:
+      branches:
+        ignore:
+          - /[a-z]{2}_wip.*/ # wip branches with initials prefix, e.g. mw_wip
+          - /wip\/.*/ # wip branches with wip/ prefix, e.g. wip/foo
+          - /poc\/.*/ # poc branches with poc/ prefix, e.g. poc/bar
+          - /automation\/.*/ # automation branches with automation/ prefix. e.g. automation/foo
+          - /feature\/.*/ # automation branches with feature/ prefix. e.g. feature/foo
+
+  filter_only_integration_branches: &filter_only_integration_branches
+    filters:
+      branches:
+        only:
+          - develop # git flow production branch
+          - /support\/.*/ # git flow support branches
+          - /testfix\/.*/ # automation branches with testfix/ prefix. e.g. testfix/foo
+
+  filter_only_testable_branches: &filter_only_testable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow master branch
+          - main # git flow main branch
+          - develop # git flow develop branch
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
+          - /testfix\/.*/ # testfix branches with testfix/ prefix. e.g. testfix/foo
+          - /bugfix\/.*/ # git flow bugfix branches
+          - /support\/.*/ # git flow support branches
+
+  filter_only_releasable_branches: &filter_only_releasable_branches
+    filters:
+      branches:
+        only:
+          - master # git flow production branch
+          - main # git flow production branch
+          - /hotfix\/.*/ # git flow hotfix branches
+          - /release\/.*/ # git flow release branches
+
+jobs:
+  #########################
+  ### build and install ###
+  #########################
+  build_install: &build_install
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    working_directory: ~/klassijs
+
+    steps:
+      # Install pnpm globally
+      - run:
+          name: Install pnpm
+          command: |
+            export SHELL=/bin/bash
+            curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+      # Add PNPM to the path
+      - run:
+          name: Set up PNPM environment
+          command: |
+            echo 'export PATH="$HOME/.local/share/pnpm:$PATH"' >> $BASH_ENV
+            source $BASH_ENV
+
+      # Verify pnpm installation
+      - run:
+          name: Check pnpm version
+          command: pnpm --version
+
+      - run:
+          name: Avoid hosts unknown for github
+          command: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - run:
+          name: Remove the old projectName Repo
+          command: rm -rf ~/klassijs/projectName
+
+      - run:
+          name: Checkout the projectName framework repo
+          command: git clone git@github.com:klassijs/projectName.git
+
+      - run:
+          name: Check out the working branch
+          path: ~/klassijs/projectName
+          command: git checkout ${CIRCLE_BRANCH}
+
+      # Generate a robust dependency cache key using SHA-256
+      - run:
+          name: Generate dependency cache key
+          command: |
+            if [ -f ~/klassijs/projectName/pnpm-lock.yaml ]; then
+              shasum -a 256 ~/klassijs/projectName/pnpm-lock.yaml > CACHE_KEY
+            else
+              echo "pnpm-lock.yaml not found, using package.json instead"
+              shasum -a 256 ~/klassijs/projectName/package.json > CACHE_KEY
+            fi
+
+      # Restore cache if available
+      - restore_cache:
+          name: Restore pnpm cache
+          keys:
+            - pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+
+      - run:
+          name: Install the projectName framework dependencies
+          command: |
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+            cd ~/klassijs/projectName
+            pnpm install --no-frozen-lockfile
+
+      - run:
+          name: Run pre-commit checks
+          command: |
+            cd ~/klassijs/projectName
+            chmod +x ./node_modules/klassi-js/runtime/scripts/precommit-checks.sh
+            ./node_modules/klassi-js/runtime/scripts/precommit-checks.sh
+
+      ##########################################################################
+      # Save pnpm cache, don't include node modules because we end up with an  #
+      # archive so large that unarchiving takes longer than the pnpm install   #
+      ##########################################################################
+      - save_cache:
+          key: pnpm-cache-v1-{{ checksum "CACHE_KEY" }}
+          paths:
+            - ~/klassijs/projectName/.cache/pnpm
+            - ~/klassijs/projectName/.pnpm-store  # PNPM's global store for caching dependencies
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./projectName
+
+  build_and_install:
+    <<: *build_install
+
+  ###########################################
+  #   Integration test base configuration   #
+  ###########################################
+  integration_test_base: &integration_test_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    parallelism: 2
+
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ./tmp
+
+      - run:
+          name: Run integration tests
+          command: |
+            set +e  # run all tests even if some fail
+            cd ./projectName
+            
+            KLASSIJS_DRY_RUN=true KLASSIJS_EMIT_JSON=./tmp/integration-scenarios.json FORCE_COLOR=1 \
+              pnpm cilt${STAGE} ${BROWSER}
+            
+            test -s ./tmp/integration-scenarios.json || exit 0
+            
+            TEST_FILES=$(
+              jq -r '
+                .[] as $f
+                | $f.elements[]?
+                | select(.type == "scenario")
+                | "\($f.uri):\(.line)"
+              ' ./tmp/integration-scenarios.json \
+              | circleci tests split \
+              | paste -sd,
+            )
+            echo "Scenarios to run: ${TEST_FILES:-<none>}"
+            [ -n "$TEST_FILES" ] || { echo "No scenarios assigned to this node."; exit 0; }
+            
+            FEATURE_FILES="$TEST_FILES" FORCE_COLOR=1 \
+              pnpm cilt${STAGE} ${BROWSER}
+            EXIT_STATUS=$?
+            echo "export EXIT_STATUS_${CIRCLE_NODE_INDEX}=${EXIT_STATUS}" >> "$BASH_ENV"
+            echo "${EXIT_STATUS}" > "bash.env.${CIRCLE_NODE_INDEX}"
+            echo this is the node index: $CIRCLE_NODE_INDEX - $EXIT_STATUS
+
+      - run:
+          name: Normalize JUnit XML for CircleCI (pass/skip counts)
+          command: |
+            cd ./projectName
+            node node_modules/klassi-js/runtime/scripts/normalize-junit-for-circleci.js reports
+
+      - store_test_results:
+          path: ./projectName/reports
+          when: always
+
+      - store_artifacts:
+          path: ./projectName/artifacts/visual-regression/original/
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./projectName/reports/*
+            - ./projectName/bash.env.*
+
+      - run:
+          name: sending exit status code
+          command: |            
+            VAR="EXIT_STATUS_${CIRCLE_NODE_INDEX}"
+            EXIT_CODE="${!VAR:-0}"
+            echo exiting with: $EXIT_CODE
+            exit "$EXIT_CODE"
+
+  integration_test_chrome:
+    <<: *integration_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'dev' }
+
+  ###########################################
+  #   Regression test base configuration    #
+  ###########################################
+  regression_test_base: &regression_test_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    parallelism: 2
+
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ./tmp
+
+      - run:
+          name: Run regression tests
+          command: |
+            set +e  # run all tests even if some fail
+            cd ./projectName
+            
+            KLASSIJS_DRY_RUN=true KLASSIJS_EMIT_JSON=./tmp/regression-scenarios.json FORCE_COLOR=1 \
+              pnpm cilt${STAGE} ${BROWSER}
+            
+            test -s ./tmp/regression-scenarios.json || exit 0
+            
+            TEST_FILES=$(
+              jq -r '
+                .[] as $f
+                | $f.elements[]?
+                | select(.type == "scenario")
+                | "\($f.uri):\(.line)"
+              ' ./tmp/regression-scenarios.json \
+              | circleci tests split \
+              | paste -sd,
+            )
+            echo "Scenarios to run: ${TEST_FILES:-<none>}"
+            [ -n "$TEST_FILES" ] || { echo "No scenarios assigned to this node."; exit 0; }
+            
+            FEATURE_FILES="$TEST_FILES" FORCE_COLOR=1 \
+              pnpm cilt${STAGE} ${BROWSER}
+            EXIT_STATUS=$?
+            echo "export EXIT_STATUS_${CIRCLE_NODE_INDEX}=${EXIT_STATUS}" >> "$BASH_ENV" 
+            echo "${EXIT_STATUS}" > "bash.env.${CIRCLE_NODE_INDEX}"
+            echo this is the node index: $CIRCLE_NODE_INDEX - $EXIT_STATUS
+
+      - run:
+          name: Normalize JUnit XML for CircleCI (pass/skip counts)
+          command: |
+            cd ./projectName
+            node node_modules/klassi-js/runtime/scripts/normalize-junit-for-circleci.js reports
+
+      - store_test_results:
+          path: ./projectName/reports
+          when: always
+
+      - store_artifacts:
+          path: ./projectName/artifacts/visual-regression/original/
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./projectName/reports/*
+            - ./projectName/bash.env.*
+
+  regression_test_chrome:
+    <<: *regression_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'uat' }
+
+  ###########################################
+  #     Release test base configuration     #
+  ###########################################
+  release_test_base: &release_test_base
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+    parallelism: 2
+
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Setting up tmp Dir for split files
+          command: mkdir ./tmp
+
+      - run:
+          name: Run release tests
+          command: |
+            set +e  # run all tests even if some fail
+            cd ./projectName
+            
+            KLASSIJS_DRY_RUN=true KLASSIJS_EMIT_JSON=./tmp/release-scenarios.json FORCE_COLOR=1 \
+              pnpm cilt${STAGE} ${BROWSER}
+            
+            test -s ./tmp/release-scenarios.json || exit 0
+            
+            TEST_FILES=$(
+              jq -r '
+                .[] as $f
+                | $f.elements[]?
+                | select(.type == "scenario")
+                | "\($f.uri):\(.line)"
+              ' ./tmp/release-scenarios.json \
+              | circleci tests split \
+              | paste -sd,
+            )
+            echo "Scenarios to run: ${TEST_FILES:-<none>}"
+            [ -n "$TEST_FILES" ] || { echo "No scenarios assigned to this node."; exit 0; }
+            
+            FEATURE_FILES="$TEST_FILES" FORCE_COLOR=1 \
+              pnpm cilt${STAGE} ${BROWSER}
+            EXIT_STATUS=$?
+            echo "export EXIT_STATUS_${CIRCLE_NODE_INDEX}=${EXIT_STATUS}" >> "$BASH_ENV"
+            echo "${EXIT_STATUS}" > "bash.env.${CIRCLE_NODE_INDEX}"
+            echo this is the node index: $CIRCLE_NODE_INDEX - $EXIT_STATUS
+
+      - run:
+          name: Normalize JUnit XML for CircleCI (pass/skip counts)
+          command: |
+            cd ./projectName
+            node node_modules/klassi-js/runtime/scripts/normalize-junit-for-circleci.js reports
+
+      - store_test_results:
+          path: ./projectName/reports
+          when: always
+
+      - store_artifacts:
+          path: ./projectName/artifacts/visual-regression/original/
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./projectName/reports/*
+            - ./projectName/bash.env.*
+
+  release_test_chrome:
+    <<: *release_test_base
+    environment: { BROWSER: 'chrome', STAGE: 'rel' }
+
+  ##########################################################################
+  #  Generating report from all the parallel run containers into one html  #
+  ##########################################################################
+  generate_report: &generate_report
+    docker:
+      - image: cimg/node:20.18.3-browsers
+    resource_class: small
+
+    steps:
+      - attach_workspace:
+          at: ./
+
+      - run:
+          name: Load exit codes from all parallel nodes
+          command: |
+            FINAL_EXIT_CODE=0
+            for env_file in ./projectName/bash.env.*; do
+              [ -f "$env_file" ] || continue
+            
+              NODE_EXIT_CODE=$(cat "$env_file")
+            
+              if [ -n "$NODE_EXIT_CODE" ] && [ "$NODE_EXIT_CODE" != "0" ]; then
+              FINAL_EXIT_CODE="$NODE_EXIT_CODE"
+              fi
+            done
+            echo "Final combined exit code: $FINAL_EXIT_CODE"
+            echo export FINAL_EXIT_CODE="$FINAL_EXIT_CODE" >> "$BASH_ENV"
+
+      - run:
+          name: Running combined html reporter & Uploading files to s3
+          command: |
+            cd ./projectName/reports
+            # Prevent framework writing to testCombine/node_0 (avoids invalid JSON path)
+            export CIRCLE_NODE_INDEX=
+            export CIRCLE_NODE_TOTAL=
+            pnpm cilt${STAGE} ${BROWSER} ${ENV}
+
+      - run:
+          name: sending exit status code
+          command: |
+            source $BASH_ENV
+            echo test exiting with: $FINAL_EXIT_CODE
+            exit $FINAL_EXIT_CODE
+
+  upload_files_chrome:
+    <<: *generate_report
+    environment: { BROWSER: 'chrome', STAGE: 's3load' }
+
+########################################################
+#   workflows parameter for auto and manual triggers   #
+########################################################
+parameters:
+  manual_trigger:
+    type: boolean
+    default: false
+  run_integration_test:
+    type: boolean
+    default: true
+
+workflows:
+  version: 2
+
+  regression_test:
+    when:
+      not: << pipeline.parameters.manual_trigger >>
+
+    jobs:
+      - build_and_install:
+          context: klassi-framework
+          <<: *filter_only_releasable_branches
+
+      - integration_test_chrome:
+          context: klassi-framework
+          requires:
+            - build_and_install
+          <<: *filter_only_releasable_branches
+
+  integration_test:
+    when:
+      and:
+        - << pipeline.parameters.run_integration_test >>
+        - not: << pipeline.parameters.manual_trigger >>
+
+    jobs:
+      - build_and_install:
+          context: klassi-framework
+          <<: *filter_only_integration_branches
+
+      - integration_test_chrome:
+          context: klassi-framework
+          requires:
+            - build_and_install
+          <<: *filter_only_integration_branches
+
+  nightly_run:
+    triggers:
+      - schedule:
+          cron: "00 16 * * *"
+          filters:
+            branches:
+              only:
+                - main
+
+    jobs:
+      - build_and_install:
+          context: klassi-framework
+          <<: *filter_only_testable_branches
+
+      - regression_test_chrome:
+          context: klassi-framework
+          requires:
+            - build_and_install
+
+      - upload_files_chrome:
+          context: klassi-framework
+          requires:
+            - regression_test_chrome
+
+  manual_trigger_workflow:
+    when: << pipeline.parameters.manual_trigger >>
+    jobs:
+      - build_and_install:
+          context: klassi-framework
+
+      - release_test_chrome:
+          context: klassi-framework
+          requires:
+            - build_and_install
+
+      - upload_files_chrome:
+          context: klassi-framework
+          requires:
+            - release_test_chrome

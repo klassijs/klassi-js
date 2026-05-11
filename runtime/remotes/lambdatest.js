@@ -1,6 +1,6 @@
 /**
- * Klassi Automated Testing Tool
- * Created by Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
  */
 const { Before, After } = require('@cucumber/cucumber');
 

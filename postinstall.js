@@ -11,7 +11,7 @@ function findTestgeniePackage() {
   // Try to find testgenie in .pnpm directory (pnpm v7+)
   // pnpm structure: .pnpm/package@version/node_modules/package/
   try {
-    // Start from OAF's location and go up to find .pnpm
+    // Start from klassi-js's location and go up to find .pnpm
     let currentDir = __dirname;
     let pnpmDir = null;
 
@@ -76,6 +76,6 @@ try {
     console.log('   This is normal if testgenie is not installed or will be installed later');
   }
 } catch (error) {
-  console.warn('⚠️  Warning: Error in OAF postinstall script:', error.message);
+  console.warn('⚠️  Warning: Error in klassi-js postinstall script:', error.message);
   // Don't fail the installation if this script has issues
 }

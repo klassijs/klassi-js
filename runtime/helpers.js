@@ -1,807 +1,763 @@
 /**
- * klassi Automated Testing Tool
- * Created by Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
  */
 const fs = require('fs-extra');
 const pactumJs = require('pactum');
-const { assertExpect } = require('klassijs-soft-assert');
 const loadConfig = require('./configLoader');
-const { EOL, os } = require('os');
+const os = require('os');
+const path = require('path');
 
 let elem;
 let getMethod;
 let resp;
-let modID;
+
+const browser = new Proxy({}, {
+  get(target, prop) {
+    const browserInstance = global.browser;
+    if (!browserInstance) {
+      return undefined;  // Don't throw error, just return undefined
+    }
+    const value = browserInstance[prop];
+    return typeof value === 'function' ? value.bind(browserInstance) : value;
+  }
+});
+
+// Same for cucumberThis
+const cucumberThis = new Proxy({}, {
+  get(target, prop) {
+    const cucumberInstance = global.cucumberThis;
+    if (!cucumberInstance) {
+      return undefined;
+    }
+    const value = cucumberInstance[prop];
+    return typeof value === 'function' ? value.bind(cucumberInstance) : value;
+  }
+});
 
 module.exports = {
-  /**
-   * returns a promise that is called when the url has loaded and the body element is present
-   * @param {string} url to load
-   * @param seconds
-   * @returns {Promise}
-   * @example
-   *      helpers.loadPage('http://www.duckduckgo.com', 5);
-   */
-  loadPage: async (url, seconds) => {
-    /**
-     * Wait function - measured in seconds for pauses during tests to give time for processes such as
-     * a page loading or the user to see what the test is doing
-     * @param seconds
-     * @type {number}
-     */
-    const timeout = seconds || global.timeout;
-    /**
-     * load the url and wait for it to complete
-     */
-    await browser.url(url, async () => {
-      /**
-       * now wait for the body element to be present
-       */
-      await browser.waitUntil(async () => await browser.execute(() => document.readyState === 'complete'), {
-        timeoutMsg: `The web page is still not loaded after ${timeout} seconds`,
-      });
-    });
-    /**
-     * grab the userAgent details from the loaded url
-     */
-    cucumberThis.attach(`loaded url: ${url}`);
-  },
+	/**
+	 * returns a promise that is called when the url has loaded and the body element is present
+	 * @param {string} url to load
+	 * @param seconds
+	 * @returns {Promise}
+	 * @example
+	 *      helpers.loadPage('http://www.duckduckgo.com', 5);
+	 */
+	loadPage: async (url, seconds) => {
+		/**
+		 * Wait function - measured in seconds for pauses during tests to give time for processes such as
+		 * a page loading or the user to see what the test is doing
+		 * @param seconds
+		 * @type {number}
+		 */
+		const timeout = seconds || global.timeout;
+		/**
+		 * load the url and wait for it to complete
+		 */
+		await browser.url(url, async () => {
+			/**
+			 * now wait for the body element to be present
+			 */
+			await browser.waitUntil(async () => await browser.execute(() => document.readyState === 'complete'), {
+				timeout: timeout,
+				timeoutMsg: `The web page is still not loaded after ${timeout} seconds`,
+			});
+		});
+		cucumberThis.attach(`loaded url: ${url}`);
+	},
 
-  /**
-   * writeTextFile write data to file on hard drive
-   * @param filepath
-   * @param output
-   */
-  writeToTxtFile: async (filepath, output) => {
-    try {
-      await fs.truncate(filepath, 0);
-      await fs.writeFileSync(filepath, output);
-    } catch (err) {
-      console.error(`Error in writing file ${err.message}`);
-      throw err;
-    }
-  },
+	/**
+	 * writeTextFile write data to file on hard drive
+	 * @param filepath
+	 * @param output
+	 */
+	writeToTxtFile: async (filepath, output) => {
+		try {
+			await fs.truncate(filepath, 0);
+			await fs.writeFileSync(filepath, output);
+		} catch (err) {
+			console.error(`Error in writing file ${err.message}`);
+			throw err;
+		}
+	},
 
-  /**
-   * append / add data to file on hard drive
-   * @param filepath
-   * @param output
-   * @returns {Promise<void>}
-   */
-  appendToTxtFile: async (filepath, output) => {
-    try {
-      await fs.openSync(filepath, 'a');
-      await fs.appendFileSync(filepath, output + '\r\n');
-      await fs.appendFileSync(filepath, EOL);
-    } catch (err) {
-      console.error(`Error in writing file ${err.message}`);
-      throw err;
-    }
-  },
+	/**
+	 * append / add data to file on hard drive
+	 * @param filepath
+	 * @param output
+	 * @returns {Promise<void>}
+	 */
+	appendToTxtFile: async (filepath, output) => {
+		try {
+			await fs.openSync(filepath, 'a');
+			await fs.appendFileSync(filepath, output + '\r\n');
+			await fs.appendFileSync(filepath, os.EOL);
+		} catch (err) {
+			console.error(`Error in writing file ${err.message}`);
+			throw err;
+		}
+	},
 
-  /**
-   * This is to read the content of a text file
-   * @param filepath
-   * @returns {Promise<unknown>}
-   */
-  readFromFile: (filepath) =>
-    new Promise((resolve) => {
-      fs.readFile(filepath, 'utf-8', (err, data) => {
-        data = data.toString();
-        resolve(data);
-        // console.log('Success - the file content ', data);
-      });
-    }),
+	/**
+	 * This is to read the content of a text file
+	 * @param filepath
+	 * @returns {Promise<unknown>}
+	 */
+	readFromFile: (filepath) =>
+		new Promise((resolve) => {
+			fs.readFile(filepath, 'utf-8', (err, data) => {
+				data = data.toString();
+				resolve(data);
+			});
+		}),
 
-  /**
-   * This is to read the content of a Json file
-   * @param filename
-   * @returns {Promise<void>}
-   */
-  readFromJson: async (filename) => {
-    const fileContent = await fs.readJson(filename);
-    // console.log('Success - the file content ', fileContent);
-    return fileContent;
-  },
+	/**
+	 * This is to read the content of a Json file
+	 * @param filename
+	 * @returns {Promise<void>}
+	 */
+	readFromJson: async (filename) => {
+		const fileContent = await fs.readJson(filename);
+		return fileContent;
+	},
 
-  /**
-   * This is to write values into a JSON file
-   * @param filePath
-   * @param fileContent
-   * @returns {Promise<void>}
-   */
-  writeToJson: async (filePath, fileContent) => {
-    try {
-      await fs.writeFile(filePath, JSON.stringify(fileContent, null, 4));
-      // console.log('Success - the content: ', fileContent);
-    } catch (err) {
-      console.error('This Happened: ', err);
-    }
-  },
+	/**
+	 * This is to write values into a JSON file
+	 * @param filePath
+	 * @param data
+	 * @returns {Promise<void>}
+	 */
+	writeToJson: async function (filePath, data) {
+		try {
+			const fullPath = path.resolve(process.cwd(), filePath);
+			const dirPath = path.dirname(fullPath);
 
-  /**
-   * This is to merge content of json files
-   * @param filePath
-   * @param file
-   * @returns {Promise<void>}
-   */
-  mergeJson: async (filePath, file) => {
-    const fileA = loadConfig(filePath);
-    return Object.assign(fileA, file);
-  },
+			await fs.ensureDir(dirPath);
 
-  /**
-   * Get the current date dd-mm-yyyy
-   * @returns {string|*}
-   */
-  currentDate() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
+			if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isDirectory()) {
+				throw new Error(`Target path is a directory: ${fullPath}`);
+			}
 
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    return `${dd}-${mm}-${yyyy}`;
-  },
+			await fs.writeFile(fullPath, JSON.stringify(data, null, 4), 'utf8');
+			console.log(`Data successfully written to ${fullPath}`);
+		} catch (err) {
+			console.error(`Error writing to file: ${filePath}:`, err);
+		}
+	},
 
-  /**
-   * Get the current date in yyyy-mm-dd format for the s3 bucket folder
-   * @returns {string|*}
-   */
-  s3BucketCurrentDate() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
+	/**
+	 * This is to merge content of json files
+	 * @param filePath
+	 * @param file
+	 * @returns {Promise<void>}
+	 */
+	mergeJson: async (filePath, file) => {
+		const fileA = loadConfig(filePath);
+		return Object.assign(fileA, file);
+	},
 
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    return `${yyyy}-${mm}-${dd}`;
-  },
+	/**
+	 * Get the current date dd-mm-yyyy
+	 * @returns {string|*}
+	 */
+	currentDate() {
+		const today = new Date();
+		let dd = today.getDate();
+		let mm = today.getMonth() + 1; // January is 0!
+		const yyyy = today.getFullYear();
 
-  reportDateTime() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
-    let hours = today.getHours();
-    let minutes = today.getMinutes();
-    let seconds = today.getSeconds();
-    let milliseconds = today.getMilliseconds();
+		if (dd < 10) {
+			dd = `0${dd}`;
+		}
+		if (mm < 10) {
+			mm = `0${mm}`;
+		}
+		return `${dd}-${mm}-${yyyy}`;
+	},
 
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    if (hours < 10) {
-      hours = `0${hours}`;
-    }
-    if (minutes < 10) {
-      minutes = `0${minutes}`;
-    }
-    if (seconds < 10) {
-      seconds = `0${seconds}`;
-    }
-    if (milliseconds < 10) {
-      milliseconds = `0${milliseconds}`;
-    }
-    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
-  },
+	/**
+	 * Get the current date in yyyy-mm-dd format for the s3 bucket folder
+	 * @returns {string|*}
+	 */
+	s3BucketCurrentDate() {
+		const today = new Date();
+		let dd = today.getDate();
+		let mm = today.getMonth() + 1; // January is 0!
+		const yyyy = today.getFullYear();
 
-  emailReportDateTime() {
-    const $today = new Date();
-    const $yesterday = $today;
-    $yesterday.setDate($today.getDate() - 1);
-    let dd = $yesterday.getDate();
-    let mm = $yesterday.getMonth() + 1; // January is 0!
-    const yyyy = $yesterday.getFullYear();
-    let hours = $yesterday.getHours();
-    let minutes = $yesterday.getMinutes();
-    let seconds = $yesterday.getSeconds();
+		if (dd < 10) {
+			dd = `0${dd}`;
+		}
+		if (mm < 10) {
+			mm = `0${mm}`;
+		}
+		return `${yyyy}-${mm}-${dd}`;
+	},
 
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    if (hours < 10) {
-      hours = `0${hours}`;
-    }
-    if (minutes < 10) {
-      minutes = `0${minutes}`;
-    }
-    if (seconds < 10) {
-      seconds = `0${seconds}`;
-    }
-    return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
-  },
-  /**
-   * Get current date and time dd-mm-yyyy 00:00:00
-   */
-  getCurrentDateTime() {
-    const today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1; // January is 0!
-    const yyyy = today.getFullYear();
-    let hours = today.getHours();
-    let minutes = today.getMinutes();
-    let seconds = today.getSeconds();
+	reportDateTime() {
+		const today = new Date();
+		let dd = today.getDate();
+		let mm = today.getMonth() + 1; // January is 0!
+		const yyyy = today.getFullYear();
+		let hours = today.getHours();
+		let minutes = today.getMinutes();
+		let seconds = today.getSeconds();
+		let milliseconds = today.getMilliseconds();
 
-    if (dd < 10) {
-      dd = `0${dd}`;
-    }
-    if (mm < 10) {
-      mm = `0${mm}`;
-    }
-    if (hours < 10) {
-      hours = `0${hours}`;
-    }
-    if (minutes < 10) {
-      minutes = `0${minutes}`;
-    }
-    if (seconds < 10) {
-      seconds = `0${seconds}`;
-    }
-    return `${dd}-${mm}-${yyyy}-${hours}:${minutes}:${seconds}`;
-  },
+		if (dd < 10) {
+			dd = `0${dd}`;
+		}
+		if (mm < 10) {
+			mm = `0${mm}`;
+		}
+		if (hours < 10) {
+			hours = `0${hours}`;
+		}
+		if (minutes < 10) {
+			minutes = `0${minutes}`;
+		}
+		if (seconds < 10) {
+			seconds = `0${seconds}`;
+		}
+		if (milliseconds < 10) {
+			milliseconds = `0${milliseconds}`;
+		}
+		return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}${milliseconds}`;
+	},
 
-  getEndDateTime() {
-    return this.getCurrentDateTime();
-  },
+	emailReportDateTime() {
+		const $today = new Date();
+		const $yesterday = $today;
+		$yesterday.setDate($today.getDate() - 1);
+		let dd = $yesterday.getDate();
+		let mm = $yesterday.getMonth() + 1; // January is 0!
+		const yyyy = $yesterday.getFullYear();
+		let hours = $yesterday.getHours();
+		let minutes = $yesterday.getMinutes();
+		let seconds = $yesterday.getSeconds();
 
-  getStartDateTime() {
-    return this.getCurrentDateTime();
-  },
+		if (dd < 10) {
+			dd = `0${dd}`;
+		}
+		if (mm < 10) {
+			mm = `0${mm}`;
+		}
+		if (hours < 10) {
+			hours = `0${hours}`;
+		}
+		if (minutes < 10) {
+			minutes = `0${minutes}`;
+		}
+		if (seconds < 10) {
+			seconds = `0${seconds}`;
+		}
+		return `${dd}-${mm}-${yyyy}-${hours}${minutes}${seconds}`;
+	},
+	/**
+	 * Get current date and time dd-mm-yyyy 00:00:00
+	 */
+	getCurrentDateTime() {
+		const today = new Date();
+		let dd = today.getDate();
+		let mm = today.getMonth() + 1; // January is 0!
+		const yyyy = today.getFullYear();
+		let hours = today.getHours();
+		let minutes = today.getMinutes();
+		let seconds = today.getSeconds();
 
-  klassiReporter() {
-    try {
-      return require('./reporter/reporter').reporter();
-    } catch (err) {
-      console.error(`This is the Reporting System error: ${err.stack}`);
-      throw err;
-    }
-  },
+		if (dd < 10) {
+			dd = `0${dd}`;
+		}
+		if (mm < 10) {
+			mm = `0${mm}`;
+		}
+		if (hours < 10) {
+			hours = `0${hours}`;
+		}
+		if (minutes < 10) {
+			minutes = `0${minutes}`;
+		}
+		if (seconds < 10) {
+			seconds = `0${seconds}`;
+		}
+		return `${dd}-${mm}-${yyyy}-${hours}:${minutes}:${seconds}`;
+	},
 
-  /**
-   * ========== EMAIL FUNCTIONALITY ==========
-   *   Sends an Email to the concerned users with the log and the test report
-   */
-  klassiEmail() {
-    try {
-      return require('./mailer').klassiSendMail();
-    } catch (err) {
-      console.error(`This is the Email System error: ${err.stack}`);
-      throw err;
-    }
-  },
+	getEndDateTime() {
+		return this.getCurrentDateTime();
+	},
 
-  /**
-   * API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
-   * @param url
-   * @param method
-   * @param auth
-   * @param body
-   * @param form
-   * @param expectedStatusCode
-   * @returns {Promise<*>}
-   */
-  apiCall: async (url, method, auth = null, form = null, body = null, expectedStatusCode = null) => {
-    const options = {
-      url,
-      method,
-      auth,
-      headers: {
-        Authorization: `${auth}`,
-      },
-      form,
-      body,
-      expectedStatusCode,
-    };
-    if (method === 'GET') {
-      resp = await pactumJs
-        .spec()
-        .get(options.url)
-        .withHeaders(options.headers)
-        .withRequestTimeout(DELAY_15s)
-        .expectStatus(expectedStatusCode)
-        .toss();
-      getMethod = resp;
-    }
+	getStartDateTime() {
+		return this.getCurrentDateTime();
+	},
 
-    if (method === 'PUT') {
-      resp = await pactumJs
-        .spec()
-        .put(options.url)
-        .withHeaders(options.headers)
-        .withBody(options.body)
-        .withRequestTimeout(DELAY_10s)
-        .expectStatus(expectedStatusCode);
-      getMethod = resp;
-    }
+	klassiReporter() {
+		try {
+			return require('./reporter/reporter').reporter();
+		} catch (err) {
+			console.error(`This is the Reporting System error: ${err.stack}`);
+			throw err;
+		}
+	},
 
-    if (method === 'POST') {
-      resp = await pactumJs
-        .spec()
-        .post(options.url)
-        .withHeaders(options.headers)
-        .withBody(options.body)
-        .withForm(options.form)
-        .withRequestTimeout(DELAY_10s)
-        .expectStatus(expectedStatusCode);
-      getMethod = resp;
-    }
+	/**
+	 * ========== EMAIL FUNCTIONALITY ==========
+	 *   Sends an Email to the concerned users with the log and the test report
+	 */
+	klassiEmail() {
+		try {
+			return require('./mailer').klassiSendMail();
+		} catch (err) {
+			console.error(`This is the Email System error: ${err.stack}`);
+			throw err;
+		}
+	},
 
-    if (method === 'DELETE') {
-      resp = await pactumJs
-        .spec()
-        .post(options.url)
-        .withHeaders(options.headers)
-        .withBody(options.body)
-        .withRequestTimeout(DELAY_10s)
-        .expectStatus(expectedStatusCode);
-    }
-  },
+	/**
+	 * API call for GET, PUT, POST and DELETE functionality using PactumJS for API testing
+	 * @param url
+	 * @param method
+	 * @param auth
+	 * @param body
+	 * @param form
+	 * @param expectedStatusCode
+	 * @returns {Promise<*>}
+	 */
+	apiCall: async (url, method, auth = null, form = null, body = null, expectedStatusCode = null) => {
+		const options = {
+			url,
+			method,
+			auth,
+			headers: {
+				Authorization: `${auth}`,
+			},
+			form,
+			body,
+			expectedStatusCode,
+		};
+		if (method === 'GET') {
+			resp = await pactumJs
+				.spec()
+				.get(options.url)
+				.withHeaders(options.headers)
+				.withRequestTimeout(DELAY_15s)
+				.expectStatus(expectedStatusCode)
+				.toss();
+			getMethod = resp;
+		}
 
-  /**
-   * this stores the content of the APIs GET call
-   * @returns {*}
-   */
-  getContent() {
-    return getMethod;
-  },
+		if (method === 'PUT') {
+			resp = await pactumJs
+				.spec()
+				.put(options.url)
+				.withHeaders(options.headers)
+				.withBody(options.body)
+				.withRequestTimeout(DELAY_10s)
+				.expectStatus(expectedStatusCode)
+				.toss();
+			getMethod = resp;
+		}
 
-  /**
-   * getting the video link from lambdatest
-   * @returns {Promise<void>}
-   */
-  ltVideo: async () => {
-    const page = require('./getVideoLinks');
-    await page.getVideoList();
-  },
+		if (method === 'POST') {
+			resp = await pactumJs
+				.spec()
+				.post(options.url)
+				.withHeaders(options.headers)
+				.withBody(options.body)
+				.withForm(options.form)
+				.withRequestTimeout(DELAY_10s)
+				.expectStatus(expectedStatusCode)
+				.toss();
+			getMethod = resp;
+		}
 
-  /**
-   * Get the href link from an element
-   * @param selector
-   * @returns {String|String[]|*|string}
-   */
-  getLink: async (selector) => {
-    elem = await browser.$(selector);
-    await elem.getAttribute('href');
-  },
+		if (method === 'DELETE') {
+			resp = await pactumJs
+				.spec()
+				.delete(options.url)
+				.withHeaders(options.headers)
+				.withBody(options.body)
+				.withRequestTimeout(DELAY_10s)
+				.expectStatus(expectedStatusCode)
+				.toss();
+		}
+	},
 
-  waitAndClick: async (selector) => {
-    try {
-      elem = await browser.$(selector);
-      await elem.isExisting();
-      await elem.click();
-      await browser.pause(DELAY_500ms);
-    } catch (err) {
-      console.error(err.message);
-      throw err;
-    }
-  },
+	/**
+	 * this stores the content of the APIs GET call
+	 * @returns {*}
+	 */
+	getContent() {
+		return getMethod;
+	},
 
-  waitAndSetValue: async (selector, value) => {
-    try {
-      elem = await browser.$(selector);
-      await elem.isExisting();
-      await browser.pause(DELAY_500ms);
-      await elem.addValue(value);
-    } catch (err) {
-      console.error(err.message);
-      throw err;
-    }
-  },
+	/**
+	 * getting the video link from lambdatest
+	 * @returns {Promise<void>}
+	 */
+	ltVideo: async () => {
+		const page = require('./getVideoLinks');
+		await page.getVideoList();
+	},
 
-  /**
-   * function to get element from frame or frameset
-   * @param frameName
-   * @param selector
-   * @returns {Promise.<TResult>}
-   */
-  getElementFromFrame: async (frameName, selector) => {
-    const frame = await browser.$(frameName);
-    await browser.switchToFrame(frame.value);
-    await browser.$(selector).getHTML();
-    return browser;
-  },
+	/**
+	 * Get the href link from an element
+	 * @param selector
+	 * @returns {String|String[]|*|string}
+	 */
+	getLink: async (selector) => {
+		elem = await browser.$(selector);
+		return await elem.getAttribute('href');
+	},
 
-  /**
-   * @param expected
-   */
-  assertUrl: async (expected) => {
-    const actual = await browser.getUrl();
-    // assert.equal(actual, expected);
-    await helpers.expectAdv('equal', actual, expected);
-  },
+	/**
+	 * Waits for an element to exist then clicks on it. Gives up after a set time.
+	 * @param selector
+	 * @param timeout  If not provided, uses project-wide default.
+	 */
+	waitAndClick: async (selector, timeout = undefined) => {
+		try {
+			elem = await browser.$(selector);
+			await elem.waitForExist({timeout: timeout});
+			await elem.click();
+			await browser.pause(DELAY_500ms);
+		} catch (err) {
+			console.error(err.message);
+			throw err;
+		}
+	},
 
-  /**
-   * Generate random integer from a given range
-   */
-  generateRandomInteger(range) {
-    return Math.floor(Math.random() * Math.floor(range));
-  },
+	/**
+	 * Waits for an element to exist then sets its value. Gives up after a set time.
+	 * @param selector
+	 * @param value
+	 * @param timeout  If not provided, uses project-wide default.
+	 */
+	waitAndSetValue: async (selector, value, timeout = undefined) => {
+		try {
+			elem = await browser.$(selector);
+			await elem.waitForExist({timeout: timeout});
+			await browser.pause(DELAY_500ms);
+			await elem.addValue(value);
+		} catch (err) {
+			console.error(err.message);
+			throw err;
+		}
+	},
 
-  /**
-   * This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
-   * @param range
-   * @returns randomNumber excluding index 0
-   */
-  getRandomIntegerExcludeFirst(range) {
-    let randomNumber = this.generateRandomInteger(range);
-    if (randomNumber <= 1) {
-      randomNumber += 2;
-    }
-    return randomNumber;
-  },
+	/**
+	 * function to get element from frame or frameset
+	 * @param frameName
+	 * @param selector
+	 * @returns {Promise.<TResult>}
+	 */
+	getElementFromFrame: async (frameName, selector) => {
+		const frame = await browser.$(frameName);
+		await browser.switchToFrame(frame.value);
+		const elem = await browser.$(selector);
+		return elem;
+	},
 
-  /**
-   * clicks an element (or multiple if present) that is not visible,
-   * useful in situations where a menu needs a hover before a child link appears
-   * @param {string} selector used to locate the elements
-   * @param {string} text to match inner content (if present)
-   * @example
-   *    helpers.clickHiddenElement('nav[role='navigation'] ul li a','School Shoes');
-   *    @deprecated
-   */
-  clickHiddenElement(selector, textToMatch) {
-    // TODO: Find a better way to do this
-    /**
-     * method to execute within the DOM to find elements containing text
-     */
-    function clickElementInDom(query, content) {
-      /**
-       * get the list of elements to inspect
-       */
-      const elements = document.querySelectorAll(query);
-      /**
-       * workout which property to use to get inner text
-       */
-      const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
+	/**
+	 * Generate random integer from a given range
+	 */
+	generateRandomInteger(range) {
+		return Math.floor(Math.random() * Math.floor(range));
+	},
 
-      for (let i = 0, l = elements.length; i < l; i++) {
-        /**
-         * If we have content, only click items matching the content
-         */
-        if (content) {
-          if (elements[i][txtProp] === content) {
-            elements[i].click();
-          }
-        } else {
-          /**
-           * otherwise click all
-           */
-          elements[i].click();
-        }
-      }
-    }
+	/**
+	 * This method is useful for dropdown boxes as some of them have default 'Please select' option on index 0
+	 * @param range
+	 * @returns randomNumber excluding index 0
+	 */
+	getRandomIntegerExcludeFirst(range) {
+		let randomNumber = this.generateRandomInteger(range);
+		if (randomNumber <= 1) {
+			randomNumber += 2;
+		}
+		return randomNumber;
+	},
 
-    /**
-     * grab the matching elements
-     */
-    return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
-  },
+	/**
+	 * clicks an element (or multiple if present) that is not visible,
+	 * useful in situations where a menu needs a hover before a child link appears
+	 * @param {string} selector used to locate the elements
+	 * @param {string} text to match inner content (if present)
+	 * @example
+	 *    helpers.clickHiddenElement('nav[role='navigation'] ul li a','School Shoes');
+	 *    @deprecated
+	 */
+	clickHiddenElement: async (selector, textToMatch) => {
+		/**
+		 * method to execute within the DOM to find elements containing text
+		 */
+			// function clickElementInDom(query, content) {
+			//   /**
+			//    * get the list of elements to inspect
+			//    */
+			//   const elements = document.querySelectorAll(query);
+			//   /**
+			//    * workout which property to use to get inner text
+			//    */
+			//   const txtProp = 'textContent' in document ? 'textContent' : 'innerText';
 
-  /**
-   * this adds extensions to Chrome Only
-   * @param extName
-   * @returns {Promise<*>}
-   */
-  chromeExtension: async (extName) => {
-    await browser.pause();
-    await helpers.loadPage(`https://chrome.google.com/webstore/search/${extName}`);
-    const script = await browser.execute(() => window.document.URL.indexOf('consent.google.com') !== -1);
-    if (script === true) {
-      elem = await browser.$$('[jsname="V67aGc"]:nth-child(3)');
-      await elem[1].isExisting();
-      await elem[1].scrollIntoView();
-      const elem1 = await elem[1].getText();
-      if (elem1 === 'I agree') {
-        await elem[1].click();
-        await browser.pause(DELAY_300ms);
-      }
-    }
-    elem = await browser.$('[role="row"] > div:nth-child(1)');
-    await elem.click();
-    await browser.pause(DELAY_200ms);
-    const str = await browser.getUrl();
-    const str2 = await str.split('/');
-    modID = str2[6];
-    return modID;
-  },
+			//   for (let i = 0, l = elements.length; i < l; i++) {
+			//     /**
+			//      * If we have content, only click items matching the content
+			//      */
+			//     if (content) {
+			//       if (elements[i][txtProp] === content) {
+			//         elements[i].click();
+			//       }
+			//     } else {
+			//       /**
+			//        * otherwise click all
+			//        */
+			//       elements[i].click();
+			//     }
+			//   }
+			// }
 
-  /**
-   * This is the function for installing modeHeader
-   * @param extName
-   * @param username
-   * @param password
-   * @returns {Promise<void>}
-   */
-  modHeader: async (extName, username, password) => {
-    await helpers.chromeExtension(extName);
-    console.log('modID = ', modID);
+		const elements = await browser.$$(selector);
+		textToMatch = textToMatch.toLowerCase().trim(); // To match original call
 
-    await browser.pause(3000);
-    elem = await browser.$(
-      '[class="e-f-o"] > div:nth-child(2) > [class="dd-Va g-c-wb g-eg-ua-Uc-c-za g-c-Oc-td-jb-oa g-c"]',
-    );
-    await elem.isExisting();
-    await elem.click();
+		if (textToMatch) {
+			for (elem of elements) {
+				const text = await elem.getText();
+				if (text === textToMatch) {
+					await elem.execute((e) => {
+						e.click();
+					});
+				}
+			}
+		} else {
+			for (elem of elements) {
+				await elem.execute((e) => {
+					e.click();
+				});
+			}
+		}
 
-    await browser.pause(2000);
-    elem = await browser.$('.//a[@href="#Add extension"]');
-    await elem.isExisting();
-    await elem.click();
-    await helpers.loadPage(`chrome-extension://${modID}/popup.html`);
+		/**
+		 * grab the matching elements
+		 */
+		// return browser.$$(selector, clickElementInDom, textToMatch.toLowerCase().trim);
+		return elements;
+	},
 
-    await browser.pause(5000);
-    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[1]', username);
-    await helpers.waitAndSetValue('(//input[@class="mdc-text-field__input "])[2]', password);
-    await helpers.waitAndClick('//button[@title="Lock to tab"]');
-  },
+	/**
+	 * drag the page into view
+	 */
+	pageView: async (selector) => {
+		const elem = await browser.$(selector);
+		await elem.scrollIntoView();
+		await browser.pause(DELAY_200ms);
+		return this;
+	},
 
-  installMobileApp: async (appName, appPath) => {
-    if (env.envName === 'android' || env.envName === 'ios') {
-      if (!(await browser.isAppInstalled(appName))) {
-        console.log('Installing application...');
-        await browser.installApp(appPath);
-        // assert.isTrue(await browser.isAppInstalled(appName), 'The app was not installed correctly.');
-        await assertExpect(
-          await browser.isAppInstalled(appName),
-          'isTrue',
-          null,
-          'The app was not installed correctly.',
-        );
-      } else {
-        console.log(`The app ${appName} was already installed on the device, skipping installation...`);
-        await browser.terminateApp(appName);
-      }
-    }
-  },
+	/**
+	 * Generates a random 13 digit number
+	 * @param length
+	 * @returns {number}
+	 */
+	randomNumberGenerator(length = 13) {
+		const baseNumber = 10 ** (length - 1);
+		let number = Math.floor(Math.random() * baseNumber);
+		/**
+		 * Check if number have 0 as first digit
+		 */
+		if (number < baseNumber) {
+			number += baseNumber;
+		}
+		console.info(`this is the number ${number}`);
+		return number;
+	},
 
-  uninstallMobileApp: async (appName) => {
-    if (env.envName === 'android' || env.envName === 'ios') {
-      if (await browser.isAppInstalled(appName)) {
-        console.log(`Uninstalling application ${appName}...`);
-        await browser.removeApp(appName);
-        await assertExpect(
-          await browser.isAppInstalled(appName),
-          'isNotTrue',
-          null,
-          'The app was not uninstalled correctly.',
-        );
-        // assert.isNotTrue(await browser.isAppInstalled(appName), 'The app was not uninstalled correctly.');
-      } else {
-        console.log(`The app ${appName} was already uninstalled fron the device, skipping...`);
-      }
-    }
-  },
+	/**
+	 * Reformats date string into string
+	 * @param dateString
+	 * @returns {string}
+	 */
+	reformatDateString(dateString) {
+		const months = {
+			'01': 'January',
+			'02': 'February',
+			'03': 'March',
+			'04': 'April',
+			'05': 'May',
+			'06': 'June',
+			'07': 'July',
+			'08': 'August',
+			'09': 'September',
+			10: 'October',
+			11: 'November',
+			12: 'December',
+		};
+		const b = dateString.split('/');
+		return `${b[0]} ${months[b[1]]} ${b[2]}`;
+	},
 
-  /**
-   * drag the page into view
-   */
-  pageView: async (selector) => {
-    const elem = await browser.$(selector);
-    await elem.scrollIntoView();
-    await browser.pause(DELAY_200ms);
-    return this;
-  },
+	/**
+	 * Sorts results by date
+	 * @param array
+	 * @returns {*}
+	 */
+	sortByDate(array) {
+		array.sort((a, b) => {
+			const sentDateA = a.split('/');
+			const c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
+			const sentDateB = b.split('/');
+			const d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
+			return d - c;
+		});
+		return array;
+	},
 
-  /**
-   * Generates a random 13 digit number
-   * @param length
-   * @returns {number}
-   */
-  randomNumberGenerator(length = 13) {
-    const baseNumber = 10 ** (length - 1);
-    let number = Math.floor(Math.random() * baseNumber);
-    /**
-     * Check if number have 0 as first digit
-     */
-    if (number < baseNumber) {
-      number += baseNumber;
-    }
-    console.log(`this is the number ${number}`);
-    return number;
-  },
+	filterItem: async (selector, itemToFilter) => {
+		try {
+			const elem = await browser.$(selector);
+			await elem.waitForExist(DELAY_5s);
+			await elem.waitForEnabled(DELAY_5s);
+			await browser.pause(DELAY_500ms);
+			await elem.click();
+			await elem.setValue(itemToFilter);
+		} catch (err) {
+			console.error(err.message);
+			throw err;
+		}
+	},
 
-  /**
-   * Reformats date string into string
-   * @param dateString
-   * @returns {string}
-   */
-  reformatDateString(dateString) {
-    const months = {
-      '01': 'January',
-      '02': 'February',
-      '03': 'March',
-      '04': 'April',
-      '05': 'May',
-      '06': 'June',
-      '07': 'July',
-      '08': 'August',
-      '09': 'September',
-      10: 'October',
-      11: 'November',
-      12: 'December',
-    };
-    const b = dateString.split('/');
-    return `${b[0]} ${months[b[1]]} ${b[2]}`;
-  },
+	filterItemAndClick: async (selector, itemToFilter) => {
+		try {
+			await module.exports.filterItem(selector, itemToFilter);
+			await browser.pause(DELAY_3s);
+			const elem = await browser.$(selector);
+			await elem.click();
+			await browser.pause(DELAY_3s);
+		} catch (err) {
+			console.error(err.message);
+			throw err;
+		}
+	},
 
-  /**
-   * Sorts results by date
-   * @param array
-   * @returns {*}
-   */
-  sortByDate(array) {
-    array.sort((a, b) => {
-      const sentDateA = a.split('/');
-      const c = new Date(sentDateA[2], sentDateA[1], sentDateA[0]);
-      const sentDateB = b.split('/');
-      const d = new Date(sentDateB[2], sentDateB[1], sentDateB[0]);
-      return d - c;
-    });
-    return array;
-  },
+	/**
+	 * This generates the Date for uploading and retrieving the reports from s3
+	 * @returns {Date}
+	 */
+	formatDate() {
+		const $today = new Date();
+		let $yesterday = new Date($today);
+		if (s3Date === true) {
+			$yesterday.setDate($today.getDate()); // for testing sending today's report.
+		} else {
+			$yesterday.setDate($today.getDate() - 1); // Also send last night reports, setDate also supports negative values, which cause the month to rollover.
+		}
+		let $dd = $yesterday.getDate();
+		let $mm = $yesterday.getMonth() + 1; // January is 0!
+		const $yyyy = $yesterday.getFullYear();
+		if ($dd < 10) {
+			$dd = `0${$dd}`;
+		}
+		if ($mm < 10) {
+			$mm = `0${$mm}`;
+		}
+		$yesterday = `${$yyyy}-${$mm}-${$dd}`;
+		return $yesterday;
+	},
 
-  filterItem: async (selector, itemToFilter) => {
-    try {
-      const elem = await browser.$(selector);
-      await elem.waitForExist(DELAY_5s);
-      await elem.waitForEnabled(DELAY_5s);
-      await browser.pause(DELAY_500ms);
-      await elem.click();
-      await browser.setValue(itemToFilter);
-    } catch (err) {
-      console.error(err.message);
-      throw err;
-    }
-  },
+	/**
+	 * this uploads a file from local system or project folder
+	 * @param selector
+	 * @param filePath
+	 * @returns {Promise<void>}
+	 */
+	fileUpload: async (selector, filePath) => {
+		elem = await browser.$(selector);
+		await elem.isExisting();
+		const remoteFilePath = await browser.uploadFile(filePath);
+		await elem.addValue(remoteFilePath);
+	},
 
-  filterItemAndClick: async (selector) => {
-    try {
-      await this.filterItem('itemToFilter');
-      await browser.pause(DELAY_3s);
-      const elem = await browser.$(selector);
-      await elem.click();
-      await browser.pause(DELAY_3s);
-    } catch (err) {
-      console.error(err.message);
-      throw err;
-    }
-  },
+	switchWindowTabs: async (tabId) => {
+		const handles = await browser.getWindowHandles();
+		if (handles.length > tabId) {
+			await browser.switchToWindow(handles[tabId]);
+			await browser.pause(DELAY_1s);
+		}
+	},
 
-  /**
-   * This generates the Date for uploading and retrieving the reports from s3
-   * @returns {Date}
-   */
-  formatDate() {
-    const $today = new Date();
-    let $yesterday = new Date($today);
-    if (s3Date === true) {
-      $yesterday.setDate($today.getDate()); // for testing sending today's report.
-    } else {
-      $yesterday.setDate($today.getDate() - 1); // Also send last night reports, setDate also supports negative values, which cause the month to rollover.
-    }
-    let $dd = $yesterday.getDate();
-    let $mm = $yesterday.getMonth() + 1; // January is 0!
-    const $yyyy = $yesterday.getFullYear();
-    if ($dd < 10) {
-      $dd = `0${$dd}`;
-    }
-    if ($mm < 10) {
-      $mm = `0${$mm}`;
-    }
-    $yesterday = `${$yyyy}-${$mm}-${$dd}`;
-    return $yesterday;
-  },
+	/**
+	 * Function to verify if a file has been downloaded
+	 * @param {string} fileName Filename with extension
+	 * @param {number} timeout Maximum wait time for the file to be downloaded, default value is set to 5 seconds
+	 * @param {number} interval Wait time between every iteration to recheck the file download, default value is set to 500 ms
+	 */
+	async verifyDownload(fileName, timeout = DELAY_5s, interval = DELAY_500ms) {
+		let value = settings.remoteService === 'lambdatest' ? 0 : 1;
+		let path;
+		if (value === 1) {
+			// The below path points to the default downloads folder, if the folder is in some other location, it has to be configured.
+			let home = os.homedir();
+			path = home + `/Downloads/${fileName}`;
+		}
+		let isFileDownloaded = false;
+		let timeoutInSeconds = timeout / DELAY_1s;
+		let intervalInSeconds = interval / DELAY_1s;
 
-  /**
-   * this uploads a file from local system or project folder
-   * @param selector
-   * @param filePath
-   * @returns {Promise<void>}
-   */
-  fileUpload: async (selector, filePath) => {
-    elem = await browser.$(selector);
-    await elem.isExisting();
-    const remoteFilePath = await browser.uploadFile(filePath);
-    await elem.addValue(remoteFilePath);
-  },
+		loop: for (let i = 1; i <= timeoutInSeconds / intervalInSeconds; i++) {
+			switch (value) {
+				case 0:
+					if (await browser.execute(`lambda-file-exists=${fileName}`)) {
+						isFileDownloaded = true;
+						break loop;
+					}
+					break;
+				case 1:
+					if (fs.existsSync(path)) {
+						isFileDownloaded = true;
+						break loop;
+					}
+			}
+			await browser.pause(interval);
+		}
+		assert.isTrue(isFileDownloaded, `File '${fileName}' is still not downloaded after ${timeout} ms`);
+	},
 
+	/**
+	 * Function to upload one or more files
+	 * @param {string|string[]} filePaths files to be uploaded with extension
+	 * @param {string} locator element having attribute type='file'
+	 */
+	async uploadFiles(filePaths, locator) {
+		if (typeof filePaths === 'string') {
+			filePaths = [filePaths];
+		} else if (!Array.isArray(filePaths)) {
+			throw `Expected 'string|string[]' but '${typeof filePaths}' was passed`;
+		} else if (filePaths.length === 0) {
+			throw 'Empty array was passed';
+		}
+		elem = await browser.$(locator);
+		await elem.waitForExist({DELAY_5s});
+		let remoteFilePath = [];
+		for (let filePath of filePaths) {
+			remoteFilePath.push(await browser.uploadFile(filePath));
+		}
+		await elem.addValue(remoteFilePath.join('\n'));
+	},
 
-  switchWindowTabs: async (tabId) => {
-    const handles = await browser.getWindowHandles();
-    if (handles.length > tabId) {
-      await browser.switchToWindow(handles[tabId]);
-      await browser.pause(DELAY_1s);
-    }
-  },
-
-  /**
-   * Function to verify if a file has been downloaded
-   * @param {string} fileName Filename with extension
-   * @param {number} timeout Maximum wait time for the file to be downloaded, default value is set to 5 seconds
-   * @param {number} interval Wait time between every iteration to recheck the file download, default value is set to 500 ms
-   */
-  async verifyDownload(fileName, timeout = DELAY_5s, interval = DELAY_500ms) {
-    let value = settings.remoteService === 'lambdatest' ? 0 : 1;
-    let path;
-    if (value === 1) {
-      // The below path points to the default downloads folder, if the folder is in some other location, it has to be configured.
-      let home = os.homedir();
-      path = home + `/Downloads/${fileName}`;
-    }
-    let isFileDownloaded = false;
-    let timeoutInSeconds = timeout / DELAY_1s;
-    let intervalInSeconds = interval / DELAY_1s;
-
-    loop: for (let i = 1; i <= timeoutInSeconds / intervalInSeconds; i++) {
-      switch (value) {
-        case 0:
-          if (await browser.execute(`lambda-file-exists=${fileName}`)) {
-            isFileDownloaded = true;
-            break loop;
-          }
-          break;
-        case 1:
-          if (fs.existsSync(path)) {
-            isFileDownloaded = true;
-            break loop;
-          }
-      }
-      await browser.pause(interval);
-    }
-    assert.isTrue(isFileDownloaded, `File '${fileName}' is still not downloaded after ${timeout} ms`);
-  },
-
-  /**
-   * Function to upload one or more files
-   * @param {string|string[]} filePaths files to be uploaded with extension
-   * @param {string} locator element having attribute type='file'
-   */
-  async uploadFiles(filePaths, locator) {
-    if (typeof filePaths === 'string') {
-      filePaths = [filePaths];
-    } else if (!Array.isArray(filePaths)) {
-      throw `Expected 'string|string[]' but '${typeof filePaths}' was passed`;
-    } else if (filePaths.length === 0) {
-      throw 'Empty array was passed';
-    }
-    elem = await browser.$(locator);
-    await elem.waitForExist({ DELAY_5s });
-    let remoteFilePath = [];
-    for (let filePath of filePaths) {
-      remoteFilePath.push(await browser.uploadFile(filePath));
-    }
-    await elem.addValue(remoteFilePath.join('\n'));
-  },
-
-  /**
-   * Function to get the displayed element among multiple matches
-   * @param {string} locator
-   * @returns Displayed element
-   */
-  async returnDisplayedElement(locator) {
-    elem = await browser.$(locator);
-    await elem.waitForExist();
-    let elems = await browser.$$(locator);
-    for (let elem of elems) {
-      if (await elem.isDisplayed()) return elem;
-    }
-    return null;
-  },
-};
+	/**
+	 * Function to get the displayed element among multiple matches
+	 * @param {string} locator
+	 * @returns Displayed element
+	 */
+	async getDisplayedElement(locator) {
+		elem = await browser.$(locator);
+		await elem.waitForExist();
+		let elems = await browser.$$(locator);
+		for (let elem of elems) {
+			if (await elem.isDisplayed()) return elem;
+		}
+		return null;
+	}
+}
