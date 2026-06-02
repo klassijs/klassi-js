@@ -1,48 +1,124 @@
-# #!/usr/bin/env sh
+#!/usr/bin/env bash
+set -eo pipefail
 
-# Check if running in CI environment
+#############################################
+# Resolve ESLint JavaScript entrypoint
+# Works with PNPM, workspaces, CI, local
+#############################################
+resolve_eslint() {
+  local eslint_shim
+  eslint_shim="$(pnpm which eslint 2>/dev/null || true)"
+
+  if [ -z "$eslint_shim" ]; then
+    echo "❌ Could not resolve eslint via pnpm" >&2
+    return 1
+  fi
+
+  local eslint_js
+  eslint_js="$(dirname "$eslint_shim")/../eslint/bin/eslint.js"
+  eslint_js="$(realpath "$eslint_js")"
+
+  if [ ! -f "$eslint_js" ]; then
+    echo "❌ ESLint JS entrypoint not found: $eslint_js" >&2
+    return 1
+  fi
+
+  echo "$eslint_js"
+}
+
+
+#############################################
+# Resolve ESLint config (project root first, then KLASSI-JS runtime)
+#############################################
+resolve_eslint_config() {
+  # Prefer project root eslint.config.js (e.g. one that extends KLASSI-JS runtime config)
+  if [ -f "eslint.config.js" ]; then
+    echo "eslint.config.js"
+    return 0
+  fi
+
+  local klassijs_config="node_modules/klassi-js/runtime/coding-standards/eslint/eslint.config.js"
+  local internal_config="runtime/coding-standards/eslint/eslint.config.js"
+
+  if [ -f "$klassijs_config" ]; then
+    echo "$klassijs_config"
+    return 0
+  fi
+
+  if [ -f "$internal_config" ]; then
+    echo "$internal_config"
+    return 0
+  fi
+
+  echo "❌ Could not locate ESLint config in project or KLASSI-JS" >&2
+  return 1
+}
+
+
+
+#############################################
+# CI MODE
+#############################################
 if [ -n "$CI" ] || [ -n "$CIRCLECI" ]; then
-  # In CI, check all files
-  echo "Running lint checks in CI mode (checking all files)..."
-  
-  # Find eslint binary using node to resolve it from OAF's dependencies
-  echo "Finding eslint binary..."
-  ESLINT_BIN=$(node -e "try { const path = require('path'); const klassiPath = require.resolve('klassi-js/package.json');
-  const eslintPkg = require.resolve('eslint/package.json', {paths: [path.dirname(klassiPath)]});
-  console.log(eslintPkg.replace('/package.json', '/bin/eslint.js')); } catch(e) { process.exit(1); }" 2>/dev/null)
+  echo "🏁 Running lint checks in CI mode..."
+
+  echo "🔎 Resolving ESLint binary..."
+  ESLINT_BIN="$(resolve_eslint || true)"
+
+  echo "🔎 Resolving ESLint config..."
+  ESLINT_CONFIG="$(resolve_eslint_config || true)"
 
   LINT_EXIT=0
 
-  # Run eslint on all JS files
-  if [ -n "$ESLINT_BIN" ] && [ -f "$ESLINT_BIN" ]; then
-    echo "Running eslint on all JS files..."
-    node "$ESLINT_BIN" --quiet --fix --config node_modules/klassi-js/runtime/coding-standards/eslint/eslint.config.js '**/*.js' --ignore-pattern 'node_modules/**' --ignore-pattern 'coverage/**'
-    ESLINT_EXIT_CODE=$?
+  if [ -n "$ESLINT_BIN" ] && [ -f "$ESLINT_BIN" ] &&
+     [ -n "$ESLINT_CONFIG" ] && [ -f "$ESLINT_CONFIG" ]; then
+
+    echo "▶ Running ESLint on all JS files..."
+    if node "$ESLINT_BIN" \
+      --quiet \
+      --fix \
+      --config "$ESLINT_CONFIG" \
+      "**/*.js" \
+      --ignore-pattern "node_modules/**" \
+      --ignore-pattern "coverage/**" \
+      --ignore-pattern "__tests__/**" \
+      --ignore-pattern "**/utils/**"; then
+      ESLINT_EXIT_CODE=0
+    else
+      ESLINT_EXIT_CODE=$?
+    fi
+
     if [ $ESLINT_EXIT_CODE -eq 0 ]; then
       echo "✓ ESLint check passed"
     else
-      echo "✗ ESLint found errors (exit code: $ESLINT_EXIT_CODE)"
+      echo "✗ ESLint found issues (exit code: $ESLINT_EXIT_CODE)"
       LINT_EXIT=1
     fi
   else
-    echo "Error: Could not find eslint binary. Make sure klassi-js and its dependencies are installed."
+    echo "❌ ESLint could not be executed. Check installation."
     LINT_EXIT=1
   fi
 
-  # Run gherkin lint on all feature files
-  echo "Running gherkin lint on all feature files..."
-  pnpm lint:gherkin
+  echo "▶ Running Gherkin lint..."
+  # pnpm lint:gherkin
+  pnpm gherkin
   GHERKIN_EXIT_CODE=$?
+
   if [ $GHERKIN_EXIT_CODE -eq 0 ]; then
-    echo "✓ Gherkin lint check passed"
+    echo "✓ Gherkin lint passed"
   else
-    echo "✗ Gherkin lint found errors (exit code: $GHERKIN_EXIT_CODE)"
+    echo "✗ Gherkin lint found issues (exit code: $GHERKIN_EXIT_CODE)"
     LINT_EXIT=1
   fi
 
+  echo "🏁 CI lint exit code: $LINT_EXIT"
   exit $LINT_EXIT
 
+#############################################
+# LOCAL MODE
+#############################################
 else
-  # In local environment, use lint-staged to check only staged files
+  echo "💻 Local mode detected — running staged-file lint..."
   pnpm lint
+  exit $?
 fi

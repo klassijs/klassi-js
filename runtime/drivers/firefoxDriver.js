@@ -1,6 +1,6 @@
 /**
- * klassi Automated Testing Tool
- * Created by Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
  */
 const { remote } = require('webdriverio');
 const { Before } = require('@cucumber/cucumber');
@@ -32,8 +32,10 @@ module.exports = async function firefoxDriver(options) {
   defaults = {
     logLevel: 'error',
     path: '/',
+	  automationProtocol: 'webdriver',
     capabilities: {
       browserName: 'firefox',
+		  webSocketUrl: true,
       'moz:firefoxOptions': {
         args: ['--disable-popup-blocking', '--disable-gpu'],
       },
@@ -46,7 +48,7 @@ module.exports = async function firefoxDriver(options) {
 
   if (useProxy) {
     defaults.capabilities.proxy = {
-      httpProxy: 'http://ouparray.oup.com:8080',
+      httpProxy: 'http://klassiarray.klassi.co.uk:8080',
       proxyType: 'MANUAL',
       autodetect: false,
     };

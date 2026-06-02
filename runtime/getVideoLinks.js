@@ -1,6 +1,6 @@
 /**
- * klassi Automated Testing Tool
- * Created by Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
  */
 const pactumJs = require('pactum');
 
@@ -17,7 +17,11 @@ let url;
 
 module.exports = {
   getVideoList: async () => {
-    const { sessionId } = browser;
+    if (typeof global.browser === 'undefined' || !global.browser.sessionId) {
+      console.warn('Browser or sessionId is not available, skipping video link retrieval');
+      return null;
+    }
+    const { sessionId } = global.browser;
     url = `https://${ltUrl}/sessions/${sessionId}/video`;
     res = await pactumJs.spec().get(url).withAuth(ltUsername, ltKey).expectStatus(200).toss();
     videoID = res.body.url;

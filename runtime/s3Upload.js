@@ -1,13 +1,13 @@
 /**
- * klassi Automated Testing Tool
- * Created by Larry Goddard
+ * klassi-js
+ * Copyright © 2016 - Larry Goddard
  */
 const path = require('path');
 const fs = require('fs-extra');
 const readdir = require('recursive-readdir');
 const async = require('async');
 const { S3Client, ListBucketsCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { astellen } = require('klassijs-astellen');
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * function to upload the test report folder to an s3 Bucket - AWS
@@ -32,13 +32,30 @@ module.exports = {
       },
     });
 
+    async function sendWithRetry(command, actionLabel, maxAttempts = 3) {
+      let lastError;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          return await s3Client.send(command);
+        } catch (err) {
+          lastError = err;
+          const isLastAttempt = attempt === maxAttempts;
+          console.error(`Error during ${actionLabel} (attempt ${attempt}/${maxAttempts}):`, err.message);
+          if (isLastAttempt) {
+            throw err;
+          }
+          await wait(attempt * 500);
+        }
+      }
+      throw lastError;
+    }
+
     async function mybucketList() {
       try {
-        const data = await s3Client.send(new ListBucketsCommand({}));
+        const data = await sendWithRetry(new ListBucketsCommand({}), 'list buckets');
         return data.Buckets; // For unit tests.
       } catch (err) {
         console.error('Error ', err.message);
-        return null; // Return null instead of undefined
       }
     }
 
@@ -67,6 +84,15 @@ module.exports = {
       await filesToRemove();
       const filesToUpload = await getFiles(path.resolve(rootFolder, upload));
       await async.eachOfLimit(filesToUpload, 20, async (file) => {
+
+	      const normalizedPath = file.replace(/\\/g, '/');
+
+	      // Skip node_* worker artifacts
+	      if (normalizedPath.includes('/node_')) {
+		      console.log(`Skipping node artifact: [${normalizedPath}]`);
+		      return;
+	      }
+
         const Key = await file.replace(`${rootFolder}/`, '');
         console.log(`uploading: [${Key}]`);
         const uploadParams = {
@@ -75,32 +101,27 @@ module.exports = {
           Body: fs.readFileSync(file),
         };
         try {
-          await s3Client.send(new PutObjectCommand(uploadParams));
+          await sendWithRetry(new PutObjectCommand(uploadParams), `upload ${Key}`);
         } catch (err) {
-          console.error('Error', err.message);
+          console.error('Error ', err.message);
         }
       });
     }
-    
     const mybucket = await mybucketList();
-    
-    // Check if mybucket exists and is an array
     if (!mybucket || !Array.isArray(mybucket)) {
-      console.log('The s3 bucket list could not be retrieved');
+      console.error('Error ', 'Could not retrieve bucket list');
       return;
     }
-    
     const bucketExists = mybucket.some((bucket) => bucket.Name === s3Data.S3_BUCKET);
     if (!bucketExists) {
       console.log('The s3 bucket does not exist');
       return;
     }
-    
     try {
       await deploy(uploadFolder);
       console.log('Report files uploaded successfully to s3 Bucket');
     } catch (err) {
-      console.error(err.message);
+      console.error('Error ', err.message);
     }
   },
 };
