@@ -1,0 +1,6 @@
+allowBuilds:
+  edgedriver: false
+  esbuild: true
+  geckodriver: false
+  tesseract.js: false
+  unrs-resolver: false
