@@ -88,12 +88,12 @@ jobs:
           command: rm -rf ~/klassijs/klassi-js
 
       - run:
-          name: Checkout the klassi-js framework repo at v6.1.5
+          name: Checkout the klassi-js framework repo at v6.1.3
           command: |
             git clone git@github.com:klassijs/klassi-js.git
             cd klassi-js
             git fetch --all --tags
-            git checkout v6.1.5
+            git checkout v6.1.3
 
       - run:
           name: Check out the working branch
