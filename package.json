@@ -36,7 +36,7 @@
   "main": "index.js",
   "scripts": {
     "manualcirun": "./runtime/scripts/manualTrigger.sh",
-    "test:checkin": "jest __tests__/unit",
+    "test:checkin": "pnpm ai:build && NODE_OPTIONS=--experimental-vm-modules jest __tests__/unit",
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",
     "preinstall": "npx only-allow pnpm",
@@ -49,7 +49,11 @@
     "changelog:patch": "standard-version --release-as patch --skip.commit --skip.tag",
     "changelog:minor": "standard-version --release-as minor --skip.commit --skip.tag",
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag",
-    "cilts3r": "node ./index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings"
+    "cilts3r": "node ./index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
+    "ai:build": "pnpm --filter \"./packages/*\" build",
+    "ai:test": "pnpm --filter \"./packages/*\" test",
+    "ai:lint": "pnpm --filter \"./packages/*\" lint",
+    "ai:typecheck": "pnpm --filter \"./packages/*\" typecheck"
   },
   "homepage": "https://github.com/klassijs/klassi-js#readme",
   "bugs": {
@@ -104,6 +108,9 @@
   "devDependencies": {
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
+    "@klassijs/ai-core": "workspace:*",
+    "@klassijs/ai-datasets": "workspace:*",
+    "@klassijs/ai-evidence": "workspace:*",
     "jest": "30.5.2",
     "jest-junit": "17.0.0"
   }

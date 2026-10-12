@@ -1,0 +1,35 @@
+{
+  "id": "support-release",
+  "name": "Support release",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "refund-policy-001",
+      "name": "Refund policy",
+      "target": {
+        "adapter": "azure-openai",
+        "profile": "target"
+      },
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "Can I return an item after 20 days?"
+          }
+        ]
+      },
+      "evaluators": [
+        {
+          "id": "relevance",
+          "type": "model",
+          "threshold": 0.9
+        }
+      ]
+    }
+  ],
+  "qualityGate": {
+    "overall": {
+      "minimumPassRate": 1
+    }
+  }
+}

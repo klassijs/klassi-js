@@ -20,6 +20,8 @@ npm-debug.log*
 
 # Dependency directories
 node_modules
+packages/*/dist
+.klassi/
 
 # IntelliJ project files
 .idea
@@ -32,3 +34,4 @@ gen
 eng.traineddata
 *.tgz
 
+docs
