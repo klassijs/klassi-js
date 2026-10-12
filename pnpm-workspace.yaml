@@ -1,6 +1,12 @@
 allowBuilds:
+  '@parcel/watcher': false
   edgedriver: false
   esbuild: true
   geckodriver: false
   tesseract.js: false
   unrs-resolver: false
+
+minimumReleaseAgeExclude:
+  - zod@4.6.6
+  
+blockExoticSubdeps: false
