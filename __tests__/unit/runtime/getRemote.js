@@ -22,10 +22,12 @@ describe('getRemote', () => {
   });
 
   it('should return unknown remote when remoteService is unknown', () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
     const remote = getRemote('unknownService');
 
-    expect(consoleSpy).toHaveBeenCalledWith('Unknown remote service unknownService');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Unknown remote service "unknownService". Use: lambdatest | sourcelabs | browserstack | local',
+    );
     expect(remote.type).toBe('unknown');
     expect(remote.after).toBeInstanceOf(Function);
     expect(remote.after()).toBeUndefined();
@@ -34,7 +36,7 @@ describe('getRemote', () => {
   });
 
   it('should log a message when noop function is called', () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
     const remote = getRemote('unknownService');
 
     remote.after();

@@ -8,8 +8,7 @@
     "X": "https://twitter.com/larryG_01",
     "linkedin": "https://linkedin.com/in/larryg",
     "youtube": "https://youtube.com/@LarryG_01"
-  }
-,
+  },
   "contributors": [
     {
       "name": "Carlos Bermejo",
@@ -42,7 +41,7 @@
     "pkgcheck": "pnpm install --frozen-lockfile",
     "preinstall": "npx only-allow pnpm",
     "lint": "pnpm lint:all",
-    "lint:all": "pnpm lint-staged && pnpm lint:gherkin",
+    "lint:all": "pnpm lint-staged && pnpm gherkin",
     "lint-branch-name": "pnpm branch-name-lint ./branchnamelinter.config.json",
     "lint:fix": "eslint --quiet --fix --config runtime/coding-standards/eslint/eslint.config.js **/*.js",
     "gherkin": "gherklin && echo \"Linted feature files in runtime/scripts/features\"",
@@ -57,22 +56,22 @@
     "url": "https://github.com/klassijs/klassi-js/issues"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1008.0",
-    "@aws-sdk/client-ses": "3.1008.0",
-    "@cucumber/cucumber": "12.7.0",
-    "@cucumber/pretty-formatter": "3.2.0",
+    "@aws-sdk/client-s3": "3.1149.0",
+    "@aws-sdk/client-ses": "3.1149.0",
+    "@cucumber/cucumber": "13.3.0",
+    "@cucumber/pretty-formatter": "4.1.0",
     "@eslint/js": "10.0.1",
     "async": "3.2.6",
     "branch-name-lint": "3.0.1",
-    "chai": "6.2.2",
-    "commander": "14.0.3",
-    "cosmiconfig": "9.0.1",
-    "dotenv": "17.3.1",
-    "eslint": "10.0.3",
-    "eslint-config-prettier": "10.1.5",
+    "chai": "6.3.0",
+    "commander": "15.0.0",
+    "cosmiconfig": "10.0.1",
+    "dotenv": "18.0.7",
+    "eslint": "10.12.0",
+    "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-prettier": "5.5.3",
-    "fs-extra": "11.3.4",
+    "eslint-plugin-prettier": "5.5.6",
+    "fs-extra": "11.4.1",
     "gherklin": "github:klassijs/klassijs-gherkin",
     "husky": "9.1.7",
     "is-ci": "4.1.0",
@@ -80,19 +79,20 @@
     "klassijs-astellen": "1.0.1",
     "klassijs-cucumber-html-reporter": "6.1.0",
     "klassijs-smart-ocr": "github:klassijs/klassijs-smart-ocr",
-    "klassijs-soft-assert": "^1.3.0",
-    "klassijs-visual-validation": "^1.2.4",
-    "lint-staged": "16.3.3",
+    "klassijs-soft-assert": "1.3.0",
+    "klassijs-visual-validation": "1.2.4",
+    "lint-staged": "17.6.0",
     "merge": "2.1.1",
-    "nodemailer": "8.0.2",
+    "nodemailer": "10.1.0",
     "pactum": "3.9.1",
-    "prettier": "3.8.1",
+    "prettier": "3.9.10",
     "recursive-readdir": "2.2.3",
     "require-dir": "1.2.0",
     "standard-version": "github:klassijs/standard-version",
     "text-files-loader": "1.0.5",
-    "tsx": "4.21.0",
-    "webdriverio": "9.25.0"
+    "tsx": "4.23.15",
+    "webdriverio": "10.0.2"
+
   },
   "lint-staged": {
     "**/*.js": "eslint --quiet --fix --config runtime/coding-standards/eslint/eslint.config.js"
@@ -104,9 +104,9 @@
     "uniqueOutputName": "false"
   },
   "devDependencies": {
-    "@commitlint/cli": "20.4.4",
-    "@commitlint/config-conventional": "20.4.4",
-    "jest": "30.3.0",
-    "jest-junit": "16.0.0"
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
+    "jest": "30.5.2",
+    "jest-junit": "17.0.0"
   }
 }

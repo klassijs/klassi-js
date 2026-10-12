@@ -86,16 +86,16 @@ describe('s3Upload', () => {
   });
 
   it('should print an error message if list of buckets cannot be retrieved', async () => {
-    const logSpy = jest.spyOn(console, 'log');
-    
-    // Mock failed bucket list
-    mockSend.mockRejectedValueOnce(new Error('Test Error'));
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Fail every retry so the bucket list is never retrieved
+    mockSend.mockRejectedValue(new Error('Test Error'));
 
     const { s3Upload } = require('../../../runtime/s3Upload');
     await s3Upload();
-    
-    expect(logSpy).toHaveBeenCalledWith('The s3 bucket list could not be retrieved');
-    logSpy.mockRestore();
+
+    expect(errorSpy).toHaveBeenCalledWith('Error ', 'Could not retrieve bucket list');
+    errorSpy.mockRestore();
   });
 
   it('should remove a combine directory if it already exists', async () => {
@@ -147,8 +147,6 @@ describe('s3Upload', () => {
     
     try {
       expect(logSpy).toHaveBeenCalledWith('Report files uploaded successfully to s3 Bucket');
-    } catch (err) {
-      throw new Error(err);
     } finally {
       fs.emptyDirSync(testFolderPath);
       logSpy.mockRestore();
