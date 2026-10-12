@@ -112,6 +112,7 @@ const options = {
 		format: formats,
 		formatOptions: {
 			colorsEnabled: true,
+			includeAttachments: false,
 		},
 	},
 
