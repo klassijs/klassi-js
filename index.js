@@ -289,13 +289,10 @@ if (fs.existsSync(videoLib)) {
   console.error('No Video Lib');
 }
 
-let sharedObjects = {};
 const sharedObjectsPath = path.resolve(paths.sharedObjects);
 if (fs.existsSync(sharedObjectsPath)) {
-  const allDirs = {};
   const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
-  sharedObjects = merge(allDirs, dir);
-  global.sharedObjects = sharedObjects;
+  global.sharedObjects = merge({}, dir);
 }
 
 const pageObjectPath = path.resolve(paths.pageObjects);

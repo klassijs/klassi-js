@@ -23,8 +23,14 @@ const sesClient = new SESClient({
 const cleanEmail = (email) => {
   if (!email) return email;
 
-  // Remove all whitespace and control characters first
-  let cleaned = email.trim().replace(/[\s\u0000-\u001F\u007F-\u009F]/g, '');
+  // Remove whitespace and ASCII/C1 control characters before parsing the address
+  let cleaned = [...email.trim()]
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      const isControl = code <= 0x1f || (code >= 0x7f && code <= 0x9f);
+      return !isControl && !/\s/.test(char);
+    })
+    .join('');
 
   // Remove angle brackets and extract just the email part
   // Handle "Name<email@domain.com>" format
