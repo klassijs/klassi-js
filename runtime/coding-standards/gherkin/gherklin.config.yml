@@ -1,0 +1,72 @@
+# Relative to this config file. Use ../../scripts/features (existing) or create project root features/
+featureDirectory: '../../scripts/features'
+customRulesDirectory: 'custom-config'
+reporter:
+  - type: 'stdout'
+  - type: 'json'
+    outFile: 'reports/gherklin-report.json'
+  - type: 'html'
+    outFile: 'reports/gherklin-report.html'
+rules:
+  aligned-datatables: 'error'
+  allowed-tags: 'off'
+  disallowed-tags: 'off'
+  indentation:
+    - 'error'
+    - feature: 0
+      background: 2
+      scenario: 2
+      step: 4
+      examples: 4
+      given: 4
+      when: 4
+      then: 4
+      and: 4
+      but: 4
+      exampleTableHeader: 6
+      exampleTableBody: 6
+      scenarioOutline: 2
+      dataTable: 6
+      featureTag: 0
+      scenarioTag: 2
+  max-scenarios: ['error', 16]
+  new-line-at-eof: 'off'
+  no-background-only: 'error'
+  no-dupe-features: 'error'
+  no-dupe-scenarios: 'error'
+  no-empty-file: 'error'
+  no-trailing-spaces: 'on'
+  no-unnamed-scenarios: 'error'
+  keywords-in-logical-order: 'error'
+  no-similar-scenarios: 'off'
+  no-single-example-outline: 'error'
+  no-full-stop: 'error'
+  no-scenario-splat: 'error'
+  no-typographer-quotes: [ 'error', "\"" ]
+  background-setup-only: 'error'
+  given-after-background: 'error'
+  no-inconsistent-quotes: 'off'
+  filename-snake-case: 'off'
+  filename-kebab-case: 'off'
+  filename-camel-case: 'error'
+  unique-examples: 'error'
+  feature-description: 'off'
+  feature-name-length: ['error', 100]
+  scenario-action: 'error'
+  scenario-verification: 'error'
+  scenario-name-length: ['error', 100]
+  steps-length: ['error', 100]
+  no-consecutive-empty-lines: 'error'
+  scenario-outline-has-examples: 'error'
+  required-tags: 'off'
+  no-duplicate-steps: 'error'
+  scenario-description: 'off'
+  outline-placeholder-consistency: 'warn'
+  max-steps-per-scenario: ['error', 16]
+  no-empty-scenario: 'error'
+  no-punctuation-in-titles: 'error'
+  tag-format: ['error', '^@[a-z][a-z0-9-]*$']
+  max-background-steps: 8
+  no-and-but-first: 'error'
+  one-feature-per-file: 'error'
+fix: true

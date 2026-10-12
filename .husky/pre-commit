@@ -1,4 +1,15 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh".
 
-./runtime/scripts/precommit-checks.sh
+# Check if we're in CI environment
+if [ -n "$CI" ] || [ -n "$CIRCLECI" ]; then
+  # In CI: use the precommit-checks script which checks all files
+  if [ -f "./runtime/scripts/precommit-checks.sh" ]; then
+    ./runtime/scripts/precommit-checks.sh
+  else
+    # Fallback if script doesn't exist
+    echo "Warning: precommit-checks.sh not found, skipping lint checks in CI"
+  fi
+else
+  # Local environment: check staged files using lint-staged
+  pnpm lint
+fi
