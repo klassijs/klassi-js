@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { execute } from '../dist/index.js';
+import { execute, evaluateSuite } from '../dist/index.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -83,6 +83,111 @@ test('ai:doctor checks Azure configuration without starting Cucumber', async () 
   assert.match(missing.stdout, /AZURE_OPENAI_ENDPOINT is not set/);
   assert.equal(missing.stdout.includes('Test run completed'), false);
 });
+
+test('the azure example suite scores a deterministic result and writes reports', async () => {
+  const output = await mkdtemp(path.join(tmpdir(), 'klassi-ai-'));
+  const secret = 'super-secret-token';
+  const env = {
+    AZURE_OPENAI_ENDPOINT: 'https://example.openai.azure.com',
+    AZURE_OPENAI_DEPLOYMENT: 'support-eval',
+    AZURE_OPENAI_API_KEY: secret,
+  };
+  const passed = await evaluateSuite({
+    suite: 'azure-openai',
+    cwd: repoRoot,
+    output,
+    samples: 1,
+    concurrency: 1,
+    reporters: ['json', 'markdown'],
+    platform: 'azure-openai',
+    env,
+    fetch: azureFetch('hello'),
+  });
+  const executionPath = await findNamed(passed.outputDir, 'execution.json');
+  const execution = JSON.parse(await readFile(executionPath, 'utf8'));
+  const report = JSON.parse(await readFile(path.join(passed.outputDir, 'report.json'), 'utf8'));
+  const markdown = await readFile(path.join(passed.outputDir, 'report.md'), 'utf8');
+
+  assert.equal(passed.code, 0);
+  assert.equal(report.status, 'pass');
+  assert.equal(report.cases[0].samples[0].evaluators[0].status, 'pass');
+  assert.equal(execution.output.text, 'hello');
+  assert.equal(execution.model.deployment, 'support-eval');
+  assert.match(markdown, /hello/);
+  assert.equal(JSON.stringify(execution).includes(secret), false);
+
+  const failed = await evaluateSuite({
+    suite: 'azure-openai',
+    cwd: repoRoot,
+    output,
+    reporters: ['json'],
+    platform: 'azure-openai',
+    env,
+    fetch: azureFetch('goodbye'),
+  });
+  const unconfigured = await evaluateSuite({
+    suite: 'azure-openai',
+    cwd: repoRoot,
+    output,
+    reporters: ['json'],
+    platform: 'azure-openai',
+    env: {},
+    fetch: async () => {
+      throw new Error('network should not be called');
+    },
+  });
+
+  assert.equal(failed.code, 1);
+  assert.equal(unconfigured.code, 2);
+
+  const cli = await runNode(['index.js', 'ai:evaluate', '--suite', 'azure-openai', '--platform', 'azure-openai', '--output', output], {
+    AZURE_OPENAI_ENDPOINT: '',
+    AZURE_OPENAI_DEPLOYMENT: '',
+    AZURE_OPENAI_API_KEY: '',
+  });
+  assert.equal(cli.code, 2);
+  assert.match(cli.stderr, /AZURE_OPENAI_ENDPOINT is not set/);
+  assert.equal(cli.stdout.includes('Test run completed'), false);
+});
+
+function azureFetch(text) {
+  return async (url, init) => {
+    if (init?.method === 'GET' || String(url).endsWith('/models')) {
+      return new Response('ok', { status: 200 });
+    }
+    return Response.json({
+      id: 'resp_example',
+      model: 'provider-model',
+      status: 'completed',
+      output: [{ type: 'message', content: [{ type: 'output_text', text }] }],
+    });
+  };
+}
+
+async function findNamed(directory, name) {
+  const found = await walk(directory, name);
+  if (!found) {
+    throw new Error(`${name} was not written`);
+  }
+  return found;
+}
+
+async function walk(directory, name) {
+  const { readdir } = await import('node:fs/promises');
+  const entries = await readdir(directory, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      const found = await walk(fullPath, name);
+      if (found) {
+        return found;
+      }
+    } else if (entry.name === name) {
+      return fullPath;
+    }
+  }
+  return undefined;
+}
 
 function runNode(args, envOverrides = {}) {
   const env = { ...process.env, ...envOverrides };

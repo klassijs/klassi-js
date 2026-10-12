@@ -1,0 +1,38 @@
+{
+  "id": "azure-openai",
+  "name": "Azure OpenAI",
+  "version": "1.0.0",
+  "description": "Deterministic check of an Azure OpenAI deployment. The prompt asks for the exact word hello.",
+  "cases": [
+    {
+      "id": "greeting-001",
+      "name": "Greeting",
+      "tags": ["example", "azure"],
+      "target": {
+        "adapter": "azure-openai"
+      },
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "Reply with the single word hello."
+          }
+        ]
+      },
+      "evaluators": [
+        {
+          "id": "exact-match",
+          "type": "deterministic",
+          "config": {
+            "expected": "hello"
+          }
+        }
+      ]
+    }
+  ],
+  "qualityGate": {
+    "overall": {
+      "minimumPassRate": 1
+    }
+  }
+}

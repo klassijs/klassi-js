@@ -7,4 +7,4 @@ export {
   type AzureOpenAICredentialConfig,
 } from './profile.js';
 export { AzureOpenAIAdapter, type AzureOpenAIAdapterOptions } from './adapter.js';
-export { runAzureDoctor, type AzureDoctorOptions } from './doctor.js';
+export { runAzureDoctor, azureConfigurationIssues, type AzureDoctorOptions } from './doctor.js';

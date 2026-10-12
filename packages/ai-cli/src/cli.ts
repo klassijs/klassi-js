@@ -64,10 +64,11 @@ function addRunOptions(command: Command): Command {
     .option('--tag <tag>', 'run cases with this tag')
     .option('--samples <count>', 'override the sample count', parsePositiveInteger)
     .option('--concurrency <count>', 'override the sample concurrency', parsePositiveInteger)
-    .option('--fail-fast', 'stop later cases after an infrastructure error', false);
+    .option('--fail-fast', 'stop later cases after an infrastructure error', false)
+    .option('--platform <id>', 'fake or azure-openai', 'fake');
 }
 
-function runOptions(options: { suite: string; case?: string; tag?: string; samples?: number; concurrency?: number; output?: string; failFast?: boolean }, reporters: ReportArtifact['format'][]): EvaluateOptions {
+function runOptions(options: { suite: string; case?: string; tag?: string; samples?: number; concurrency?: number; output?: string; failFast?: boolean; platform?: string }, reporters: ReportArtifact['format'][]): EvaluateOptions {
   return {
     suite: options.suite,
     caseId: options.case,
@@ -77,10 +78,11 @@ function runOptions(options: { suite: string; case?: string; tag?: string; sampl
     reporters,
     output: options.output,
     failFast: options.failFast,
+    platform: options.platform,
   };
 }
 
-async function writeBaseline(options: { suite: string; case?: string; tag?: string; samples?: number; concurrency?: number; output: string; failFast?: boolean; name?: string }): Promise<number> {
+async function writeBaseline(options: { suite: string; case?: string; tag?: string; samples?: number; concurrency?: number; output: string; failFast?: boolean; name?: string; platform?: string }): Promise<number> {
   const directory = path.dirname(options.output);
   const outcome = await evaluateSuite({ ...runOptions(options, ['json']), output: directory });
   if (!outcome.suite || !outcome.samples || !outcome.runId || !outcome.datasetHash || outcome.code > EXIT_CODES.qualityGateFailed) {
@@ -110,6 +112,7 @@ async function compareRun(options: {
   samples?: number;
   concurrency?: number;
   failFast?: boolean;
+  platform?: string;
   baseline: string;
   output?: string;
   scoreDelta?: number;

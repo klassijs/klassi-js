@@ -1,6 +1,7 @@
 import { AIEvaluationError, type AdapterHealth } from '@klassijs/ai-core';
 import { AzureOpenAIAdapter } from './adapter.js';
 import { AZURE_ADAPTER_ID, defaultAzureProfile, type AzureOpenAIAdapterProfile } from './profile.js';
+import { inspectAzureProfile } from './resolve.js';
 
 export interface AzureDoctorOptions {
   platform: string;
@@ -47,4 +48,13 @@ function doctorExitCode(health: AdapterHealth): number {
   }
   const configFailed = (health.checks ?? []).some((check) => check.status === 'fail' && check.name !== 'reachability');
   return configFailed ? 2 : 3;
+}
+
+export function azureConfigurationIssues(env: NodeJS.ProcessEnv = process.env, profile: AzureOpenAIAdapterProfile = defaultAzureProfile): string[] {
+  try {
+    const inspected = inspectAzureProfile(profile, env);
+    return inspected.checks.filter((check) => check.status === 'fail').map((check) => (check.message ? `${check.name}: ${check.message}` : check.name));
+  } catch (error) {
+    return [error instanceof Error ? error.message : 'Azure configuration is invalid'];
+  }
 }

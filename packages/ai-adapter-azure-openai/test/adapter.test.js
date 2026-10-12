@@ -130,10 +130,55 @@ test('Entra uses a separate token provider and redacts the bearer token', async 
   assert.equal(output.includes(token), false);
 });
 
-test('execute does not copy credentials into the result or evidence', async () => {
-  const adapter = new AzureOpenAIAdapter({ profile: defaultAzureProfile, env: readyEnv(), fetch: async () => new Response(null, { status: 200 }) });
+test('execute maps a responses payload and redacts secrets from evidence', async () => {
+  let requestBody = '';
+  const adapter = new AzureOpenAIAdapter({
+    profile: defaultAzureProfile,
+    env: readyEnv(),
+    async fetch(_input, init) {
+      requestBody = String(init?.body ?? '');
+      return Response.json({
+        id: 'resp_1',
+        model: 'provider-model',
+        status: 'completed',
+        output_text: `hello ${secret}`,
+        output: [{ type: 'message', content: [{ type: 'output_text', text: 'hello' }] }],
+        usage: { input_tokens: 3, output_tokens: 1, total_tokens: 4 },
+      });
+    },
+  });
+  const context = {
+    runId: 'run-1',
+    suiteId: 'suite-1',
+    caseId: 'case-1',
+    sampleId: 'sample-1',
+    startedAt: '2026-01-01T00:00:00.000Z',
+    evidence: { async write() { return 'evidence'; } },
+    logger: { debug() {}, info() {}, warn() {}, error() {} },
+  };
+  const result = await adapter.execute({ messages: [{ role: 'user', content: secret }], deployment: 'case-deployment', model: 'logical-target' }, context);
+  const evidence = await adapter.collectEvidence(result, context);
+
+  assert.equal(result.status, 'completed');
+  assert.equal(result.output.text, 'hello');
+  assert.equal(result.model.deployment, 'case-deployment');
+  assert.equal(result.model.requested, 'logical-target');
+  assert.equal(result.model.providerModel, 'provider-model');
+  assert.equal(result.usage.totalTokens, 4);
+  assert.equal(JSON.parse(requestBody).model, 'case-deployment');
+  assert.equal(JSON.stringify(result.native).includes(secret), false);
+  assert.equal(JSON.stringify(evidence).includes(secret), false);
+  assert.equal(evidence.redacted, true);
+});
+
+test('a rate limit exposes a safe retry hint', async () => {
+  const adapter = new AzureOpenAIAdapter({
+    profile: defaultAzureProfile,
+    env: readyEnv(),
+    fetch: async () => new Response(`limited ${secret}`, { status: 429, headers: { 'retry-after': '2' } }),
+  });
   const result = await adapter.execute(
-    { messages: [{ role: 'user', content: secret }] },
+    { messages: [{ role: 'user', content: 'hello' }] },
     {
       runId: 'run-1',
       suiteId: 'suite-1',
@@ -144,21 +189,11 @@ test('execute does not copy credentials into the result or evidence', async () =
       logger: { debug() {}, info() {}, warn() {}, error() {} },
     },
   );
-  const evidence = await adapter.collectEvidence(result, {
-    runId: 'run-1',
-    suiteId: 'suite-1',
-    caseId: 'case-1',
-    sampleId: 'sample-1',
-    startedAt: '2026-01-01T00:00:00.000Z',
-    evidence: { async write() { return 'evidence'; } },
-    logger: { debug() {}, info() {}, warn() {}, error() {} },
-  });
 
-  assert.equal(result.status, 'failed');
-  assert.equal(result.error.code, 'PROVIDER_UNAVAILABLE');
+  assert.equal(result.error.code, 'RATE_LIMIT_ERROR');
+  assert.equal(result.error.retryable, true);
+  assert.equal(result.error.retryAfterMs, 2000);
   assert.equal(JSON.stringify(result).includes(secret), false);
-  assert.equal(JSON.stringify(evidence).includes(secret), false);
-  assert.equal(evidence.redacted, true);
 });
 
 test('ai-core does not depend on the Azure identity client', async () => {

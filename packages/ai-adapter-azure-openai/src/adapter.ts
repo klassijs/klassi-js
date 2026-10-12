@@ -3,11 +3,13 @@ import {
   type AdapterHealth,
   type AdapterHealthContext,
   type AIExecutionRequest,
+  type AIErrorCode,
   type AIExecutionResult,
   type AIPlatformAdapter,
   type ExecutionContext,
   type ProviderEvidence,
 } from '@klassijs/ai-core';
+import { mapAzureCall, mapAzureOutput, providerError, requestHasImage, statusError } from './map.js';
 import { AZURE_ADAPTER_ID, AZURE_ADAPTER_VERSION, assertAzureProfile, type AzureOpenAIAdapterProfile } from './profile.js';
 import { redactText, redactValue } from './redact.js';
 import { inspectAzureProfile, safeHealthMessage, type ResolvedAzureTarget } from './resolve.js';
@@ -31,6 +33,7 @@ export interface AzureOpenAIAdapterOptions {
   env?: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
   tokenProvider?: () => Promise<string>;
+  now?: () => number;
 }
 
 export class AzureOpenAIAdapter implements AIPlatformAdapter {
@@ -42,6 +45,7 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
   readonly #env: NodeJS.ProcessEnv;
   readonly #fetch: typeof fetch;
   readonly #tokenProvider?: () => Promise<string>;
+  readonly #now: () => number;
 
   constructor(options: AzureOpenAIAdapterOptions) {
     assertAzureProfile(options.profile);
@@ -49,6 +53,7 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
     this.#env = options.env ?? process.env;
     this.#fetch = options.fetch ?? fetch;
     this.#tokenProvider = options.tokenProvider;
+    this.#now = options.now ?? Date.now;
   }
 
   async capabilities(): Promise<AdapterCapabilities> {
@@ -84,24 +89,135 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
     }
   }
 
-  async execute(_request: AIExecutionRequest, context: ExecutionContext): Promise<AIExecutionResult> {
-    const completedAt = new Date().toISOString();
+  async execute(request: AIExecutionRequest, context: ExecutionContext): Promise<AIExecutionResult> {
+    if (requestHasImage(request)) {
+      return this.failure(context, 0, [], 'ADAPTER_CAPABILITY_ERROR', 'Adapter does not support image content', false);
+    }
+    if (context.signal?.aborted) {
+      return this.failure(context, 0, [], 'TIMEOUT_ERROR', 'Execution aborted', false);
+    }
+    const inspected = inspectAzureProfile(this.profile, this.#env);
+    if (!inspected.resolved) {
+      const message = inspected.checks.find((check) => check.status === 'fail')?.message ?? 'Azure configuration is incomplete';
+      return this.failure(context, 0, [], 'CONFIG_ERROR', message, false);
+    }
+
+    const resolved = inspected.resolved;
+    const started = this.#now();
+    const controller = new AbortController();
+    let abortReason: 'caller' | 'timeout' | undefined;
+    const timer = setTimeout(() => {
+      abortReason = abortReason ?? 'timeout';
+      controller.abort();
+    }, resolved.timeoutMs);
+    const onAbort = () => {
+      abortReason = 'caller';
+      controller.abort();
+    };
+    context.signal?.addEventListener('abort', onAbort);
+
+    try {
+      const call = mapAzureCall(request, resolved);
+      const headers = await this.authorizationHeaders(resolved);
+      const response = await this.#fetch(`${resolved.endpoint}${call.path}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...headers },
+        body: JSON.stringify(call.body),
+        signal: controller.signal,
+      });
+      const raw = await response.text();
+      const latencyMs = Math.max(0, this.#now() - started);
+      const parsed = parseBody(raw);
+      if (!response.ok) {
+        const classified = statusError(response.status);
+        const details = providerError(parsed ?? raw);
+        const retryAfterMs = classified.code === 'RATE_LIMIT_ERROR' ? retryAfter(response.headers.get('retry-after')) : undefined;
+        return this.failure(
+          context,
+          latencyMs,
+          resolved.secrets,
+          classified.code,
+          details.message || `HTTP ${response.status}`,
+          classified.retryable,
+          details.providerCode ?? String(response.status),
+          retryAfterMs,
+          redactValue({ status: response.status, body: parsed ?? raw }, resolved.secrets),
+        );
+      }
+      const mapped = mapAzureOutput(parsed);
+      const native = redactValue({ status: response.status, body: parsed ?? raw }, resolved.secrets);
+      return {
+        id: mapped.id ?? `${this.id}-completed`,
+        adapterId: this.id,
+        status: mapped.status,
+        output: {
+          ...(mapped.text !== undefined ? { text: mapped.text } : {}),
+          ...(mapped.structured !== undefined ? { structured: mapped.structured } : {}),
+        },
+        ...(mapped.toolCalls ? { toolCalls: mapped.toolCalls } : {}),
+        ...(mapped.citations ? { citations: mapped.citations } : {}),
+        ...(mapped.usage ? { usage: mapped.usage } : {}),
+        ...(mapped.safety ? { safety: mapped.safety } : {}),
+        ...(mapped.finishReason ? { finishReason: mapped.finishReason } : {}),
+        timing: timing(context.startedAt, latencyMs),
+        model: {
+          requested: call.requested,
+          deployment: call.deployment,
+          ...(mapped.providerModel ? { providerModel: mapped.providerModel } : {}),
+        },
+        native,
+      };
+    } catch (error) {
+      const latencyMs = Math.max(0, this.#now() - started);
+      if (abortReason === 'caller' || context.signal?.aborted) {
+        return this.failure(context, latencyMs, resolved.secrets, 'TIMEOUT_ERROR', 'Execution aborted', false);
+      }
+      if (abortReason === 'timeout' || isAbortError(error)) {
+        return this.failure(context, latencyMs, resolved.secrets, 'TIMEOUT_ERROR', 'Azure request timed out', true);
+      }
+      const message = error instanceof Error ? error.message : 'Azure request failed';
+      return this.failure(context, latencyMs, resolved.secrets, 'NETWORK_ERROR', message, true);
+    } finally {
+      clearTimeout(timer);
+      context.signal?.removeEventListener('abort', onAbort);
+    }
+  }
+
+  async collectEvidence(result: AIExecutionResult, context: ExecutionContext): Promise<ProviderEvidence> {
+    const secrets = inspectAzureProfile(this.profile, this.#env).resolved?.secrets ?? [];
     return {
-      id: `${this.id}-not-implemented`,
       adapterId: this.id,
-      status: 'failed',
-      output: {},
-      timing: { startedAt: context.startedAt, completedAt, latencyMs: 0 },
-      error: { code: 'PROVIDER_UNAVAILABLE', message: 'Azure execution is not implemented', retryable: false },
+      capturedAt: result.timing.completedAt,
+      redacted: true,
+      payload: redactValue({ caseId: context.caseId, native: result.native, error: result.error }, secrets) as Record<string, unknown>,
     };
   }
 
-  async collectEvidence(result: AIExecutionResult, _context: ExecutionContext): Promise<ProviderEvidence> {
+  private failure(
+    context: ExecutionContext,
+    latencyMs: number,
+    secrets: readonly string[],
+    code: AIErrorCode,
+    message: string,
+    retryable: boolean,
+    providerCode?: string,
+    retryAfterMs?: number,
+    native?: unknown,
+  ): AIExecutionResult {
     return {
+      id: `${this.id}-failed`,
       adapterId: this.id,
-      capturedAt: new Date().toISOString(),
-      redacted: true,
-      payload: redactValue({ status: result.status }, []) as Record<string, unknown>,
+      status: 'failed',
+      output: {},
+      timing: timing(context.startedAt, latencyMs),
+      ...(native !== undefined ? { native } : {}),
+      error: {
+        code,
+        message: redactText(message, secrets),
+        retryable,
+        ...(providerCode ? { providerCode } : {}),
+        ...(retryAfterMs !== undefined ? { retryAfterMs } : {}),
+      },
     };
   }
 
@@ -130,6 +246,40 @@ async function acquireEntraToken(timeoutMs: number): Promise<string> {
     throw new Error('Entra credential did not return a token');
   }
   return token.token;
+}
+
+function timing(startedAt: string, latencyMs: number): AIExecutionResult['timing'] {
+  return {
+    startedAt,
+    completedAt: new Date(Date.parse(startedAt) + latencyMs).toISOString(),
+    latencyMs,
+  };
+}
+
+function parseBody(raw: string): unknown {
+  if (!raw) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return raw;
+  }
+}
+
+function retryAfter(header: string | null): number | undefined {
+  if (!header) {
+    return undefined;
+  }
+  const seconds = Number(header);
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return undefined;
+  }
+  return Math.round(seconds * 1000);
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
 }
 
 function redactChecks(checks: NonNullable<AdapterHealth['checks']>, secrets: readonly string[]): NonNullable<AdapterHealth['checks']> {

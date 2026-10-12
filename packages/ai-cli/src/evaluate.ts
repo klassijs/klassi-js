@@ -13,6 +13,7 @@ import {
   type EvaluatorResult,
 } from '@klassijs/ai-core';
 import { FakeAIAdapter } from '@klassijs/ai-core/testing';
+import { AzureOpenAIAdapter, azureConfigurationIssues, defaultAzureProfile } from '@klassijs/ai-adapter-azure-openai';
 import { DatasetValidationError, loadSuiteFile } from '@klassijs/ai-datasets';
 import { evidenceRunDirectory, FileEvidenceStore } from '@klassijs/ai-evidence';
 import { registerDeterministicEvaluators, registerModelEvaluators } from '@klassijs/ai-evaluators';
@@ -29,6 +30,9 @@ export interface EvaluateOptions {
   output?: string;
   failFast?: boolean;
   cwd?: string;
+  platform?: string;
+  env?: NodeJS.ProcessEnv;
+  fetch?: typeof fetch;
 }
 
 export interface EvaluateOutcome {
@@ -45,13 +49,7 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
     const loaded = await loadSuiteFile(resolveSuitePath(options.suite, options.cwd ?? process.cwd()));
     const suite = selectCases(loaded.suite, options);
     const registry = createAdapterRegistry();
-    const adapter = new FakeAIAdapter();
-    const scriptedText = typeof suite.metadata?.fakeResponse === 'string' ? suite.metadata.fakeResponse : 'hello';
-    const scriptCount = suite.cases.reduce((sum, item) => sum + (options.samples ?? item.execution?.samples ?? 1), 0);
-    for (let index = 0; index < scriptCount; index += 1) {
-      adapter.useScript({ kind: 'success', text: scriptedText });
-    }
-    registry.register(adapter);
+    registerPlatform(registry, suite, options);
     const evaluators = registerModelEvaluators(registerDeterministicEvaluators());
     const execution = await runEvaluation({
       registry,
@@ -75,7 +73,14 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
         caseId: sample.caseId,
         request: { messages: suite.cases.find((item) => item.id === sample.caseId)?.input.messages ?? [] },
         response: { text: sample.execution.output.text ?? '' },
-        execution: { status: sample.execution.status, latencyMs: sample.execution.timing.latencyMs },
+        execution: {
+          status: sample.execution.status,
+          latencyMs: sample.execution.timing.latencyMs,
+          finishReason: sample.execution.finishReason,
+          model: sample.execution.model,
+          usage: sample.execution.usage,
+          output: sample.execution.output,
+        },
         evaluators: sample.evaluatorResults.map((result) => ({ evaluatorId: result.evaluatorId, result })),
       })),
     });
@@ -105,6 +110,29 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
     console.error(error instanceof Error ? error.message : String(error));
     return { code: classifyError(error) };
   }
+}
+
+function registerPlatform(registry: ReturnType<typeof createAdapterRegistry>, suite: EvaluationSuite, options: EvaluateOptions): void {
+  const platform = options.platform ?? 'fake';
+  if (platform === 'fake') {
+    const adapter = new FakeAIAdapter();
+    const scriptedText = typeof suite.metadata?.fakeResponse === 'string' ? suite.metadata.fakeResponse : 'hello';
+    const scriptCount = suite.cases.reduce((sum, item) => sum + (options.samples ?? item.execution?.samples ?? 1), 0);
+    for (let index = 0; index < scriptCount; index += 1) {
+      adapter.useScript({ kind: 'success', text: scriptedText });
+    }
+    registry.register(adapter);
+    return;
+  }
+  if (platform === 'azure-openai') {
+    const issues = azureConfigurationIssues(options.env ?? process.env);
+    if (issues.length > 0) {
+      throw new AIEvaluationError('CONFIG_ERROR', issues.join('\n'));
+    }
+    registry.register(new AzureOpenAIAdapter({ profile: defaultAzureProfile, env: options.env, fetch: options.fetch }));
+    return;
+  }
+  throw new AIEvaluationError('CONFIG_ERROR', `Unknown AI platform "${platform}". Supported platforms: fake, azure-openai`);
 }
 
 function resolveSuitePath(suite: string, cwd: string): string {
