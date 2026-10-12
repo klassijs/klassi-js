@@ -57,22 +57,20 @@ jobs:
   #########################
   build_install: &build_install
     docker:
-      - image: cimg/node:20.18.3-browsers
+      - image: cimg/node:22.23.3-browsers
     resource_class: small
     working_directory: ~/klassijs
 
     steps:
-      # Install pnpm globally
+      # Pin pnpm 11. The unversioned installer now installs pnpm 12, which
+      # rejects a settings-only pnpm-workspace.yaml ("packages field missing or empty").
       - run:
           name: Install pnpm
           command: |
             export SHELL=/bin/bash
-            curl -fsSL https://get.pnpm.io/install.sh | sh -
-
-      # Add PNPM to the path
-      - run:
-          name: Set up PNPM environment
-          command: export PATH="$HOME/.local/share/pnpm:$PATH"
+            curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=11.10.0 sh -
+            echo 'export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"' >> "$BASH_ENV"
+            echo 'export PATH="$PNPM_HOME:$PATH"' >> "$BASH_ENV"
 
       # Verify pnpm installation
       - run:
@@ -155,7 +153,7 @@ jobs:
   ###########################################
   s3_report_base: &s3_report_base
     docker:
-      - image: cimg/node:20.18.3-browsers
+      - image: cimg/node:22.23.3-browsers
     resource_class: small
     steps:
       - attach_workspace:
@@ -208,7 +206,7 @@ jobs:
   ###########################################
   unit_test_base: &unit_test_base
     docker:
-      - image: cimg/node:20.18.3-browsers
+      - image: cimg/node:22.23.3-browsers
     resource_class: small
     steps:
       - attach_workspace:
@@ -217,6 +215,14 @@ jobs:
       - run:
           name: Setting up tmp Dir for split files
           command: mkdir ./tmp
+
+      - run:
+          name: Install pnpm
+          command: |
+            export SHELL=/bin/bash
+            curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=11.10.0 sh -
+            echo 'export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"' >> "$BASH_ENV"
+            echo 'export PATH="$PNPM_HOME:$PATH"' >> "$BASH_ENV"
 
       - run:
           name: Run unit tests
@@ -235,7 +241,7 @@ jobs:
   ###########################################
   integration_test_base: &integration_test_base
     docker:
-      - image: cimg/node:20.18.3-browsers
+      - image: cimg/node:22.23.3-browsers
     resource_class: small
     steps:
       - attach_workspace:
@@ -244,6 +250,14 @@ jobs:
       - run:
           name: Setting up tmp Dir for split files
           command: mkdir ./tmp
+
+      - run:
+          name: Install pnpm
+          command: |
+            export SHELL=/bin/bash
+            curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=11.10.0 sh -
+            echo 'export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"' >> "$BASH_ENV"
+            echo 'export PATH="$PNPM_HOME:$PATH"' >> "$BASH_ENV"
 
       - run:
           name: Run integration tests
