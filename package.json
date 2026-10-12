@@ -59,7 +59,6 @@
     "@aws-sdk/client-s3": "3.1149.0",
     "@aws-sdk/client-ses": "3.1149.0",
     "@cucumber/cucumber": "13.3.0",
-    "@cucumber/pretty-formatter": "4.1.0",
     "@eslint/js": "10.0.1",
     "async": "3.2.6",
     "branch-name-lint": "3.0.1",

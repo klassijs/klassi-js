@@ -17,9 +17,6 @@ importers:
       '@cucumber/cucumber':
         specifier: 13.3.0
         version: 13.3.0
-      '@cucumber/pretty-formatter':
-        specifier: 4.1.0
-        version: 4.1.0(@cucumber/messages@34.2.1)
       '@eslint/js':
         specifier: 10.0.1
         version: 10.0.1(eslint@10.12.0(jiti@2.7.0)(supports-color@11.0.0))
