@@ -90,7 +90,6 @@
     "standard-version": "github:klassijs/standard-version",
     "text-files-loader": "1.0.5",
     "tsx": "4.23.15",
-    "wdio-chromedriver-service": "^8.1.1",
     "webdriverio": "10.0.2"
   },
   "lint-staged": {
