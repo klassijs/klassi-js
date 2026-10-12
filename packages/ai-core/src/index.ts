@@ -79,6 +79,32 @@ export { createEvaluatorRegistry, InMemoryEvaluatorRegistry } from './evaluator-
 export type { EvaluatorRegistry } from './evaluator-registry.js';
 
 export type { Baseline, BaselineCaseResult } from './baseline.js';
+export { compareBaselines, createBaseline, DEFAULT_COMPARISON_THRESHOLDS } from './baseline-compare.js';
+export type { BaselineComparison, CaseComparison, ComparisonThresholds, ComparisonVerdict, MetricComparison } from './baseline-compare.js';
+
+export {
+  aggregateCase,
+  aggregateSample,
+  aggregateStatus,
+  aggregateSuite,
+  PASS_RATE,
+  PERCENTILE_ALGORITHM,
+  percentile,
+  STANDARD_DEVIATION,
+  summarizeNumbers,
+  summarizeStatuses,
+} from './aggregation.js';
+export type { AggregateStatus, CaseAggregate, NumericSummary, SampleAggregate, StatusCounts, SuiteAggregate } from './aggregation.js';
+
+export { CRITICAL_CASE_TAG, evaluateQualityGate } from './quality-gate.js';
+export type {
+  QualityGateCase,
+  QualityGateCheck,
+  QualityGateDecision,
+  QualityGateEvidence,
+  QualityGateInput,
+  QualityGateResult,
+} from './quality-gate.js';
 
 export { createRunId, createSampleId } from './orchestration/ids.js';
 export { isInfrastructureRetry, mergeExecutionPolicy, retryDelayMs } from './orchestration/policy.js';

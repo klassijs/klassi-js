@@ -1,0 +1,40 @@
+{
+  "id": "example",
+  "name": "Example",
+  "version": "1.0.0",
+  "metadata": {
+    "fakeResponse": "hello"
+  },
+  "cases": [
+    {
+      "id": "greeting-001",
+      "name": "Greeting",
+      "tags": ["example"],
+      "target": {
+        "adapter": "fake"
+      },
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "Say hello"
+          }
+        ]
+      },
+      "evaluators": [
+        {
+          "id": "exact-match",
+          "type": "deterministic",
+          "config": {
+            "expected": "hello"
+          }
+        }
+      ]
+    }
+  ],
+  "qualityGate": {
+    "overall": {
+      "minimumPassRate": 1
+    }
+  }
+}

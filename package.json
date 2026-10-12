@@ -35,8 +35,10 @@
   },
   "main": "index.js",
   "scripts": {
+    "klassi": "node index.js",
     "manualcirun": "./runtime/scripts/manualTrigger.sh",
-    "test:checkin": "pnpm ai:build && NODE_OPTIONS=--experimental-vm-modules jest __tests__/unit",
+    "test": "pnpm test:checkin && pnpm test:merge",
+    "test:checkin": "pnpm ai:test && NODE_OPTIONS=--experimental-vm-modules jest __tests__/unit",
     "test:merge": "jest __tests__/integration",
     "pkgcheck": "pnpm install --frozen-lockfile",
     "preinstall": "npx only-allow pnpm",
@@ -108,9 +110,12 @@
   "devDependencies": {
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
+    "@klassijs/ai-cli": "workspace:*",
     "@klassijs/ai-core": "workspace:*",
     "@klassijs/ai-datasets": "workspace:*",
     "@klassijs/ai-evidence": "workspace:*",
+    "@klassijs/ai-evaluators": "workspace:*",
+    "@klassijs/ai-reporters": "workspace:*",
     "jest": "30.5.2",
     "jest-junit": "17.0.0"
   }
