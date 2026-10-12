@@ -35,3 +35,4 @@ eng.traineddata
 *.tgz
 
 docs
+.pnpm-store

@@ -4,7 +4,6 @@ import {
   aggregateStatus,
   AIEvaluationError,
   createAdapterRegistry,
-  createEvaluatorResult,
   evaluateQualityGate,
   runEvaluation,
   type AggregateStatus,
@@ -16,7 +15,7 @@ import {
 import { FakeAIAdapter } from '@klassijs/ai-core/testing';
 import { DatasetValidationError, loadSuiteFile } from '@klassijs/ai-datasets';
 import { evidenceRunDirectory, FileEvidenceStore } from '@klassijs/ai-evidence';
-import { registerDeterministicEvaluators } from '@klassijs/ai-evaluators';
+import { registerDeterministicEvaluators, registerModelEvaluators } from '@klassijs/ai-evaluators';
 import { createRunReport, writeRunReports, type ReportArtifact } from '@klassijs/ai-reporters';
 import { EXIT_CODES, type ExitCode } from './exit-codes.js';
 
@@ -53,7 +52,7 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
       adapter.useScript({ kind: 'success', text: scriptedText });
     }
     registry.register(adapter);
-    const evaluators = registerDeterministicEvaluators();
+    const evaluators = registerModelEvaluators(registerDeterministicEvaluators());
     const execution = await runEvaluation({
       registry,
       suite,
@@ -141,7 +140,7 @@ async function scoreSamples(
   samples: EvaluationSample[],
   suite: EvaluationSuite,
   run: { runId: string; suiteId: string; startedAt: string },
-  evaluators: ReturnType<typeof registerDeterministicEvaluators>,
+  evaluators: ReturnType<typeof registerModelEvaluators>,
   adapters: ReturnType<typeof createAdapterRegistry>,
 ): Promise<EvaluationSample[]> {
   const scored: EvaluationSample[] = [];
@@ -170,15 +169,9 @@ async function scoreBinding(
   evaluationCase: EvaluationCase,
   sample: EvaluationSample,
   run: { runId: string; suiteId: string; startedAt: string },
-  evaluators: ReturnType<typeof registerDeterministicEvaluators>,
+  evaluators: ReturnType<typeof registerModelEvaluators>,
   adapters: ReturnType<typeof createAdapterRegistry>,
 ): Promise<EvaluatorResult> {
-  if (binding.type !== 'deterministic') {
-    return createEvaluatorResult(
-      { id: binding.id, version: '0.0.0' },
-      { status: 'error', error: { code: 'EVALUATOR_ERROR', message: `${binding.id} is not a deterministic evaluator` } },
-    );
-  }
   const evaluator = evaluators.resolve(binding);
   return evaluator.evaluate({
     run,

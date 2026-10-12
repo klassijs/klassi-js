@@ -170,7 +170,7 @@ program
   .option('--reportBackup', 'This to clear the "reports" folder & keep the record in back-up folder', false)
   .option('--reportClear', 'This to clear the "reports" folder', false)
 
-if (process.argv[2] === 'ai:evaluate' || process.argv[2] === 'ai:baseline' || process.argv[2] === 'ai:compare') {
+if (process.argv[2] === 'ai:evaluate' || process.argv[2] === 'ai:baseline' || process.argv[2] === 'ai:compare' || process.argv[2] === 'ai:doctor') {
   import('@klassijs/ai-cli')
     .then(({ execute }) => execute(process.argv))
     .then((code) => {

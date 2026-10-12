@@ -70,9 +70,24 @@ test('ai:baseline saves the run and ai:compare reports a dataset mismatch', asyn
   assert.equal(mismatched, 2);
 });
 
-function runNode(args) {
+test('ai:doctor checks Azure configuration without starting Cucumber', async () => {
+  const unknown = await execute(['node', 'klassi', 'ai:doctor', '--platform', 'other']);
+  const missing = await runNode(['index.js', 'ai:doctor', '--platform', 'azure-openai'], {
+    AZURE_OPENAI_ENDPOINT: '',
+    AZURE_OPENAI_DEPLOYMENT: '',
+    AZURE_OPENAI_API_KEY: '',
+  });
+
+  assert.equal(unknown, 2);
+  assert.equal(missing.code, 2);
+  assert.match(missing.stdout, /AZURE_OPENAI_ENDPOINT is not set/);
+  assert.equal(missing.stdout.includes('Test run completed'), false);
+});
+
+function runNode(args, envOverrides = {}) {
+  const env = { ...process.env, ...envOverrides };
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, args, { cwd: repoRoot });
+    const child = spawn(process.execPath, args, { cwd: repoRoot, env });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => {

@@ -2,7 +2,7 @@
   "name": "@klassijs/ai-evaluators",
   "version": "0.1.0",
   "private": true,
-  "description": "Deterministic evaluators for Klassi-JS AI evaluation",
+  "description": "Deterministic and model-backed evaluators for Klassi-JS AI evaluation",
   "license": "MIT",
   "type": "module",
   "engines": {

@@ -4,6 +4,7 @@ import { Command, CommanderError } from 'commander';
 import { compareBaselines, createBaseline, type ComparisonThresholds } from '@klassijs/ai-core';
 import { DatasetValidationError, parseBaseline } from '@klassijs/ai-datasets';
 import type { ReportArtifact } from '@klassijs/ai-reporters';
+import { runAzureDoctor } from '@klassijs/ai-adapter-azure-openai';
 import { evaluateSuite, type EvaluateOptions } from './evaluate.js';
 import { EXIT_CODES } from './exit-codes.js';
 
@@ -40,6 +41,9 @@ export async function execute(argv: string[]): Promise<number> {
     .action(async (options) => {
       code = await compareRun(options);
     });
+  program.command('ai:doctor').description('Check AI platform configuration and connectivity').requiredOption('--platform <id>', 'platform adapter id').action(async (options: { platform: string }) => {
+    code = await runAzureDoctor({ platform: options.platform });
+  });
 
   try {
     await program.parseAsync(argv);
