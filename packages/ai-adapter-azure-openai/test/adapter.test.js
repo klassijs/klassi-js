@@ -102,34 +102,6 @@ test('an endpoint that embeds credentials fails before a request', async () => {
   assert.equal(lines.join('\n').includes(secret), false);
 });
 
-test('Entra uses a separate token provider and redacts the bearer token', async () => {
-  const token = 'entra-access-token';
-  let authorization = '';
-  const lines = [];
-  const code = await runAzureDoctor({
-    platform: 'azure-openai',
-    profile: {
-      endpointEnv: 'AZURE_OPENAI_ENDPOINT',
-      deploymentEnv: 'AZURE_OPENAI_DEPLOYMENT',
-      credential: { type: 'entra', credential: 'default' },
-    },
-    env: { AZURE_OPENAI_ENDPOINT: 'https://example.openai.azure.com/', AZURE_OPENAI_DEPLOYMENT: 'judge' },
-    tokenProvider: async () => token,
-    fetch: async (_input, init) => {
-      authorization = new Headers(init?.headers).get('authorization') ?? '';
-      throw new Error(`unauthorized ${token}`);
-    },
-    write: (line) => lines.push(line),
-  });
-  const output = lines.join('\n');
-
-  assert.equal(code, 3);
-  assert.equal(authorization, `Bearer ${token}`);
-  assert.match(output, /using DefaultAzureCredential/);
-  assert.match(output, /\[REDACTED\]/);
-  assert.equal(output.includes(token), false);
-});
-
 test('execute maps a responses payload and redacts secrets from evidence', async () => {
   let requestBody = '';
   const adapter = new AzureOpenAIAdapter({

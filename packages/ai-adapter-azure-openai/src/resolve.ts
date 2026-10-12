@@ -8,7 +8,7 @@ export interface ResolvedAzureTarget {
   executionApi: 'responses' | 'chat-completions';
   timeoutMs: number;
   secrets: string[];
-  authorization: { type: 'api-key'; apiKey: string } | { type: 'entra' };
+  authorization: { type: 'api-key'; apiKey: string };
 }
 
 type HealthCheck = NonNullable<AdapterHealth['checks']>[number];
@@ -77,9 +77,6 @@ function validateEndpoint(setting: { value?: string; message: string }): { check
 }
 
 function resolveCredential(profile: AzureOpenAIAdapterProfile, env: NodeJS.ProcessEnv): { check: HealthCheck; authorization?: ResolvedAzureTarget['authorization']; secrets: string[] } {
-  if (profile.credential.type === 'entra') {
-    return { check: { name: 'credential', status: 'pass', message: 'using DefaultAzureCredential' }, authorization: { type: 'entra' }, secrets: [] };
-  }
   const envName = profile.credential.apiKeyEnv;
   const apiKey = env[envName];
   if (!apiKey || !apiKey.trim()) {

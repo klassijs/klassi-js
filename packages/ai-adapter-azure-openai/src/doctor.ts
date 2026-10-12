@@ -7,7 +7,6 @@ export interface AzureDoctorOptions {
   platform: string;
   env?: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
-  tokenProvider?: () => Promise<string>;
   profile?: AzureOpenAIAdapterProfile;
   write?: (line: string) => void;
 }
@@ -24,7 +23,6 @@ export async function runAzureDoctor(options: AzureDoctorOptions): Promise<numbe
       profile: options.profile ?? defaultAzureProfile,
       env: options.env,
       fetch: options.fetch,
-      tokenProvider: options.tokenProvider,
     });
     const health = await adapter.healthCheck({});
     write(`${AZURE_ADAPTER_ID}: ${health.status}`);

@@ -26,13 +26,10 @@ const CAPABILITIES: AdapterCapabilities = {
   seed: true,
 };
 
-const ENTRA_SCOPE = 'https://cognitiveservices.azure.com/.default';
-
 export interface AzureOpenAIAdapterOptions {
   profile: AzureOpenAIAdapterProfile;
   env?: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
-  tokenProvider?: () => Promise<string>;
   now?: () => number;
 }
 
@@ -44,7 +41,6 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
 
   readonly #env: NodeJS.ProcessEnv;
   readonly #fetch: typeof fetch;
-  readonly #tokenProvider?: () => Promise<string>;
   readonly #now: () => number;
 
   constructor(options: AzureOpenAIAdapterOptions) {
@@ -52,7 +48,6 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
     this.profile = options.profile;
     this.#env = options.env ?? process.env;
     this.#fetch = options.fetch ?? fetch;
-    this.#tokenProvider = options.tokenProvider;
     this.#now = options.now ?? Date.now;
   }
 
@@ -222,30 +217,8 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
   }
 
   async authorizationHeaders(resolved: ResolvedAzureTarget): Promise<Record<string, string>> {
-    if (resolved.authorization.type === 'api-key') {
-      return { 'api-key': resolved.authorization.apiKey };
-    }
-    const token = this.#tokenProvider ? await this.#tokenProvider() : await acquireEntraToken(resolved.timeoutMs);
-    resolved.secrets.push(token);
-    return { authorization: `Bearer ${token}` };
+    return { 'api-key': resolved.authorization.apiKey };
   }
-}
-
-async function acquireEntraToken(timeoutMs: number): Promise<string> {
-  const identity = (await import('@azure/identity')) as {
-    DefaultAzureCredential: new () => { getToken(scope: string): Promise<{ token: string } | null> };
-  };
-  const credential = new identity.DefaultAzureCredential();
-  const token = await Promise.race([
-    credential.getToken(ENTRA_SCOPE),
-    new Promise<null>((_, reject) => {
-      setTimeout(() => reject(new Error('Entra token request timed out')), timeoutMs);
-    }),
-  ]);
-  if (!token?.token) {
-    throw new Error('Entra credential did not return a token');
-  }
-  return token.token;
 }
 
 function timing(startedAt: string, latencyMs: number): AIExecutionResult['timing'] {

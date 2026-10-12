@@ -27,7 +27,6 @@
     "test": "pnpm build && node --test test/*.test.js"
   },
   "dependencies": {
-    "@azure/identity": "4.13.0",
     "@klassijs/ai-core": "workspace:*"
   },
   "devDependencies": {

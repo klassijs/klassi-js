@@ -1,14 +1,9 @@
 import { AIEvaluationError } from '@klassijs/ai-core';
 
-export type AzureOpenAICredentialConfig =
-  | {
-      type: 'api-key';
-      apiKeyEnv: string;
-    }
-  | {
-      type: 'entra';
-      credential?: 'default';
-    };
+export interface AzureOpenAICredentialConfig {
+  type: 'api-key';
+  apiKeyEnv: string;
+}
 
 /** Environment variable names and non-secret settings. Credential values are resolved later. */
 export interface AzureOpenAIAdapterProfile {
@@ -58,13 +53,7 @@ export function assertAzureProfile(profile: AzureOpenAIAdapterProfile): void {
   if (profile.executionApi !== undefined && profile.executionApi !== 'responses' && profile.executionApi !== 'chat-completions') {
     throw new AIEvaluationError('CONFIG_ERROR', 'Azure adapter executionApi must be responses or chat-completions');
   }
-  if (!profile.credential || (profile.credential.type !== 'api-key' && profile.credential.type !== 'entra')) {
-    throw new AIEvaluationError('CONFIG_ERROR', 'Azure adapter requires a credential strategy');
-  }
-  if (profile.credential.type === 'api-key' && !ENV_NAME.test(profile.credential.apiKeyEnv)) {
+  if (profile.credential?.type !== 'api-key' || !ENV_NAME.test(profile.credential.apiKeyEnv)) {
     throw new AIEvaluationError('CONFIG_ERROR', 'Azure adapter apiKeyEnv must be an environment variable name');
-  }
-  if (profile.credential.type === 'entra' && profile.credential.credential !== undefined && profile.credential.credential !== 'default') {
-    throw new AIEvaluationError('CONFIG_ERROR', 'Azure adapter Entra credential must be default');
   }
 }
