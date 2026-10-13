@@ -59,7 +59,6 @@
     "@aws-sdk/client-s3": "3.1149.0",
     "@aws-sdk/client-ses": "3.1149.0",
     "@cucumber/cucumber": "13.3.0",
-    "@cucumber/pretty-formatter": "4.1.0",
     "@eslint/js": "10.0.1",
     "async": "3.2.6",
     "branch-name-lint": "3.0.1",
@@ -92,7 +91,6 @@
     "text-files-loader": "1.0.5",
     "tsx": "4.23.15",
     "webdriverio": "10.0.2"
-
   },
   "lint-staged": {
     "**/*.js": "eslint --quiet --fix --config runtime/coding-standards/eslint/eslint.config.js"

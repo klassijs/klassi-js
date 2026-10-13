@@ -79,7 +79,7 @@ if (!isCombineRun) {
 /* ---------------------------------------------------
  * Cucumber formatter configuration (SAFE)
  * --------------------------------------------------- */
-const formats = ['@cucumber/pretty-formatter'];
+const formats = ['pretty'];
 
 /**
  * JUnit MUST be disabled during combine runs
@@ -112,6 +112,7 @@ const options = {
 		format: formats,
 		formatOptions: {
 			colorsEnabled: true,
+			includeAttachments: false,
 		},
 	},
 

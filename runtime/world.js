@@ -272,8 +272,8 @@ After(async function (scenario) {
 	if (!taglist.some((tag) => result.includes(tag)) && scenario.result.status === Status.FAILED) {
 		if (typeof global.browser !== 'undefined' && global.browser.takeScreenshot) {
 			return await global.browser.takeScreenshot().then((screenShot) => {
-				// screenShot is a base-64 encoded PNG
-				world.attach(screenShot, 'image/png');
+				// takeScreenshot already returns base64. The base64: prefix stops Cucumber from encoding it again.
+				world.attach(screenShot, 'base64:image/png');
 			});
 		}
 	}

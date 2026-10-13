@@ -44,7 +44,8 @@ module.exports = async function chromeDriver(options) {
       browserName: 'chrome',
 	    webSocketUrl: true,
       'goog:chromeOptions': {
-        args: [
+	      binary: '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+	      args: [
           '--no-sandbox',
           '--disable-gpu',
           '--disable-popup-blocking',
