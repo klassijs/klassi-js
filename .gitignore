@@ -32,3 +32,5 @@ gen
 eng.traineddata
 *.tgz
 
+.pnpm-store
+docs
