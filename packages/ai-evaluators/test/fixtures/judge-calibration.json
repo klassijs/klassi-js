@@ -1,0 +1,28 @@
+[
+  {
+    "evaluator": "relevance",
+    "output": "{\"score\":0.96,\"reason\":\"addresses the request\"}",
+    "threshold": 0.9,
+    "status": "pass",
+    "score": 0.96
+  },
+  {
+    "evaluator": "completeness",
+    "output": "{\"score\":0.4,\"reason\":\"missing parts\"}",
+    "threshold": 0.9,
+    "status": "fail",
+    "score": 0.4
+  },
+  {
+    "evaluator": "groundedness",
+    "output": "not json",
+    "threshold": 0.9,
+    "status": "error"
+  },
+  {
+    "evaluator": "instruction-adherence",
+    "output": "{\"score\":1.5,\"reason\":\"out of range\"}",
+    "threshold": 0.9,
+    "status": "error"
+  }
+]

@@ -191,3 +191,50 @@ test('concurrency limits overlapping sample execution', async () => {
 
   assert.equal(maxActive, 1);
 });
+
+test('a conversation carries each assistant reply into the next turn', async () => {
+  const adapter = new FakeAIAdapter();
+  adapter.useScript({ kind: 'success', text: 'hello' });
+  adapter.useScript({ kind: 'success', text: 'goodbye' });
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      conversation: {
+        turns: [
+          { id: 'greeting', messages: [{ role: 'user', content: 'Say hello.' }] },
+          { id: 'farewell', messages: [{ role: 'user', content: 'Say goodbye.' }] },
+        ],
+      },
+    }),
+    sleep: async () => {},
+  });
+
+  const sample = run.samples[0].sample;
+  assert.equal(sample.turns.length, 2);
+  assert.equal(sample.turns[0].execution.output.text, 'hello');
+  assert.equal(sample.turns[1].messages.map((message) => message.content).join('|'), 'Say hello.|hello|Say goodbye.');
+  assert.equal(sample.execution.output.text, 'hello\ngoodbye');
+  assert.deepEqual(run.samples[0].evidence.map((artifact) => artifact.name), ['turn-greeting', 'turn-farewell']);
+});
+
+test('a model-requested tool is recorded and is not executed', async () => {
+  const adapter = new FakeAIAdapter();
+  adapter.useScript({
+    kind: 'success',
+    text: 'I need a tool.',
+    toolCalls: [{ id: 'call-1', name: 'deleteAccount', arguments: { id: 'user' }, status: 'requested' }],
+  });
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+
+  const run = await runEvaluation({ registry, suite: suite(), sleep: async () => {} });
+  const call = run.samples[0].sample.execution.toolCalls?.[0];
+
+  assert.equal(run.samples[0].attempts.length, 1);
+  assert.equal(call?.name, 'deleteAccount');
+  assert.equal(call?.status, 'requested');
+  assert.equal(call?.result, undefined);
+});

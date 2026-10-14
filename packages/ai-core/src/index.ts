@@ -17,6 +17,7 @@ export { DEFAULT_EXECUTION_POLICY } from './policy.js';
 export type { ExecutionPolicy } from './policy.js';
 
 export type {
+  ConversationTurn,
   EvaluationCase,
   EvaluationExpectations,
   EvaluationSuite,
@@ -53,7 +54,7 @@ export type {
 export { createAdapterRegistry, InMemoryAdapterRegistry, validateAdapterCapabilities } from './registry.js';
 export type { AdapterRegistry } from './registry.js';
 
-export type { EvaluationSample } from './sample.js';
+export type { ConversationTurnResult, EvaluationSample } from './sample.js';
 
 export {
   assertBuiltinQualityScore,

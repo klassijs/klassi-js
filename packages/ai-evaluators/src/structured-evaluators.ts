@@ -7,7 +7,7 @@ function same(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-function matchesSchema(value: unknown, schema: Record<string, unknown>): string | undefined {
+export function matchesSchema(value: unknown, schema: Record<string, unknown>): string | undefined {
   const unsupported = Object.keys(schema).filter((key) => !SUPPORTED_SCHEMA_KEYS.has(key));
   if (unsupported.length > 0) {
     return `unsupported schema keyword ${unsupported.join(', ')}`;

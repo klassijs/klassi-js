@@ -14,6 +14,8 @@ export interface ReportEvaluator {
   evaluatorVersion: string;
   status: string;
   score?: number;
+  severity?: string;
+  owasp?: string;
   reason?: string;
 }
 
@@ -45,6 +47,10 @@ export interface EvaluationRunReport {
   scores: NumericSummary;
   latency: NumericSummary;
   gate: QualityGateDecision;
+  security: {
+    criticalSecurityFailure: boolean;
+    violations: Array<{ evaluatorId: string; severity: string; owasp?: string; reason?: string }>;
+  };
   cases: ReportCase[];
 }
 
@@ -61,6 +67,12 @@ export function createRunReport(input: {
 }): EvaluationRunReport {
   const aggregate = aggregateSuite(input.samples);
   const names = new Map(input.suite.cases.map((item) => [item.id, item.name]));
+  const violations = input.samples.flatMap((sample) => sample.evaluatorResults.filter((result) => result.status === 'fail' && (result.severity === 'critical' || result.severity === 'high')).map((result) => ({
+    evaluatorId: result.evaluatorId,
+    severity: result.severity ?? 'high',
+    ...(typeof result.metadata?.owasp === 'string' ? { owasp: result.metadata.owasp } : {}),
+    ...(result.reason === undefined ? {} : { reason: result.reason }),
+  })));
   return {
     runId: input.run.runId,
     suite: { id: input.suite.id, name: input.suite.name, version: input.suite.version },
@@ -70,6 +82,7 @@ export function createRunReport(input: {
     scores: aggregate.scores,
     latency: aggregate.latency,
     gate: input.gate,
+    security: { criticalSecurityFailure: input.gate.criticalSecurityFailure, violations },
     cases: aggregate.cases.map((item) => ({
       id: item.caseId,
       name: names.get(item.caseId) ?? item.caseId,
@@ -89,6 +102,8 @@ export function createRunReport(input: {
             evaluatorVersion: result.evaluatorVersion,
             status: result.status,
             ...(result.score === undefined ? {} : { score: result.score }),
+            ...(result.severity === undefined ? {} : { severity: result.severity }),
+            ...(typeof result.metadata?.owasp === 'string' ? { owasp: result.metadata.owasp } : {}),
             ...(result.reason === undefined ? {} : { reason: result.reason }),
           })),
         };
@@ -119,6 +134,15 @@ export function renderMarkdown(report: EvaluationRunReport): string {
   if (report.gate.checks.length === 0) {
     lines.push('- no checks configured');
   }
+  lines.push('', '## Security', '', `Critical security failure: ${report.security.criticalSecurityFailure}`);
+  if (report.security.violations.length === 0) {
+    lines.push('- no critical or high violations');
+  }
+  for (const violation of report.security.violations) {
+    const control = violation.owasp === undefined ? '' : ` ${escapeUntrusted(violation.owasp)}`;
+    const reason = violation.reason === undefined ? '' : `: ${escapeUntrusted(violation.reason)}`;
+    lines.push(`- ${escapeUntrusted(violation.severity)} ${escapeUntrusted(violation.evaluatorId)}${control}${reason}`);
+  }
   for (const item of report.cases) {
     lines.push('', `## ${escapeUntrusted(item.name)}`, '', `Status: ${item.status}`, '');
     for (const sample of item.samples) {
@@ -126,8 +150,9 @@ export function renderMarkdown(report: EvaluationRunReport): string {
       lines.push(`  Output: ${escapeUntrusted(sample.output)}`);
       for (const evaluator of sample.evaluators) {
         const score = evaluator.score === undefined ? '' : ` ${evaluator.score}`;
+        const severity = evaluator.severity === undefined ? '' : ` ${escapeUntrusted(evaluator.severity)}`;
         const reason = evaluator.reason === undefined ? '' : ` — ${escapeUntrusted(evaluator.reason)}`;
-        lines.push(`  - ${escapeUntrusted(evaluator.evaluatorId)} ${escapeUntrusted(evaluator.evaluatorVersion)}: ${evaluator.status}${score}${reason}`);
+        lines.push(`  - ${escapeUntrusted(evaluator.evaluatorId)} ${escapeUntrusted(evaluator.evaluatorVersion)}: ${evaluator.status}${severity}${score}${reason}`);
       }
     }
   }

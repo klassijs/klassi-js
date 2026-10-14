@@ -83,3 +83,35 @@ test('deterministic evaluators score a fake response without resolving a judge',
   assert.equal(judgeLookups, 0);
   assert.equal(registry.list().every((item) => item.kind === 'deterministic'), true);
 });
+
+test('tool selection, argument checks, and observable action results stay behavioural', async () => {
+  const registry = registerDeterministicEvaluators();
+  const result = execution({
+    toolCalls: [{ id: 'call-1', name: 'lookupPolicy', arguments: { sku: 'A1', extra: true }, status: 'completed', result: { allowed: false } }],
+  });
+  const adapters = { register() {}, has() { return false; }, get() { throw new Error('no adapter'); }, list() { return []; } };
+  const withCase = (config, expectations) => ({
+    ...context(result, config, adapters),
+    evaluationCase: { ...context(result, config, adapters).evaluationCase, ...(expectations ? { expectations } : {}) },
+  });
+  const passing = [
+    ['expected-tools', { names: ['lookupPolicy'] }],
+    ['forbidden-tools', { names: ['deleteAccount'] }],
+    ['tool-call-count', { count: 1, min: 1, max: 1 }],
+    ['tool-argument-schema', { name: 'lookupPolicy', schema: { type: 'object', required: ['sku'], properties: { sku: { type: 'string' } } } }],
+    ['required-tool-arguments', { name: 'lookupPolicy', arguments: { sku: 'A1' } }],
+    ['tool-result', { name: 'lookupPolicy', status: 'completed', equals: { allowed: false } }],
+  ];
+  for (const [id, config] of passing) {
+    const scored = await registry.resolve({ id, type: 'deterministic' }).evaluate(withCase(config));
+    assert.equal(scored.status, 'pass', id);
+  }
+
+  const fromExpectations = await registry.get('expected-tools').evaluate(withCase({}, { expectedTools: ['lookupPolicy'], forbiddenTools: ['deleteAccount'] }));
+  const forbidden = await registry.get('forbidden-tools').evaluate(withCase({}, { forbiddenTools: ['lookupPolicy'] }));
+  const hidden = await registry.get('tool-result').evaluate(context(execution(), { name: 'lookupPolicy' }, adapters));
+  assert.equal(fromExpectations.status, 'pass');
+  assert.equal(forbidden.status, 'fail');
+  assert.equal(hidden.status, 'fail');
+  assert.match(hidden.reason, /not observable/);
+});

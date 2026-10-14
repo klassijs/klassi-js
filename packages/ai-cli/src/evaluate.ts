@@ -13,10 +13,10 @@ import {
   type EvaluatorResult,
 } from '@klassijs/ai-core';
 import { FakeAIAdapter } from '@klassijs/ai-core/testing';
-import { AzureOpenAIAdapter, azureConfigurationIssues, defaultAzureProfile } from '@klassijs/ai-adapter-azure-openai';
+import { AzureOpenAIAdapter, AZURE_JUDGE_ADAPTER_ID, azureConfigurationIssues, defaultAzureProfile, judgeAzureProfile } from '@klassijs/ai-adapter-azure-openai';
 import { DatasetValidationError, loadSuiteFile } from '@klassijs/ai-datasets';
 import { evidenceRunDirectory, FileEvidenceStore } from '@klassijs/ai-evidence';
-import { registerDeterministicEvaluators, registerModelEvaluators } from '@klassijs/ai-evaluators';
+import { registerDeterministicEvaluators, registerModelEvaluators, registerSecurityEvaluators } from '@klassijs/ai-evaluators';
 import { createRunReport, writeRunReports, type ReportArtifact } from '@klassijs/ai-reporters';
 import { EXIT_CODES, type ExitCode } from './exit-codes.js';
 
@@ -50,7 +50,7 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
     const suite = selectCases(loaded.suite, options);
     const registry = createAdapterRegistry();
     registerPlatform(registry, suite, options);
-    const evaluators = registerModelEvaluators(registerDeterministicEvaluators());
+    const evaluators = registerModelEvaluators(registerSecurityEvaluators(registerDeterministicEvaluators()));
     const execution = await runEvaluation({
       registry,
       suite,
@@ -60,10 +60,10 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
         ...(options.failFast === undefined ? {} : { failFast: options.failFast }),
       },
     });
-    const samples = await scoreSamples(execution.samples.map((record) => record.sample), suite, execution.run, evaluators, registry);
     const root = options.output ?? options.cwd ?? process.cwd();
     const outputDir = evidenceRunDirectory(root, execution.run.runId);
     const store = new FileEvidenceStore(root);
+    const samples = await scoreSamples(execution.samples.map((record) => record.sample), suite, execution.run, evaluators, registry, store);
     await store.save({
       run: { runId: execution.run.runId, suiteId: suite.id, startedAt: execution.run.startedAt },
       suite: { suiteId: suite.id, name: suite.name, version: suite.version },
@@ -117,9 +117,24 @@ function registerPlatform(registry: ReturnType<typeof createAdapterRegistry>, su
   if (platform === 'fake') {
     const adapter = new FakeAIAdapter();
     const scriptedText = typeof suite.metadata?.fakeResponse === 'string' ? suite.metadata.fakeResponse : 'hello';
-    const scriptCount = suite.cases.reduce((sum, item) => sum + (options.samples ?? item.execution?.samples ?? 1), 0);
-    for (let index = 0; index < scriptCount; index += 1) {
-      adapter.useScript({ kind: 'success', text: scriptedText });
+    const scriptedTurns = Array.isArray(suite.metadata?.fakeResponses)
+      ? suite.metadata.fakeResponses.filter((item): item is string => typeof item === 'string')
+      : [scriptedText];
+    for (const item of suite.cases) {
+      const sampleCount = options.samples ?? item.execution?.samples ?? 1;
+      const turnCount = item.conversation?.turns.length ?? 1;
+      const caseText = typeof item.metadata?.fakeResponse === 'string' ? item.metadata.fakeResponse : undefined;
+      const toolNames = Array.isArray(item.metadata?.fakeToolCalls) ? item.metadata.fakeToolCalls.filter((name): name is string => typeof name === 'string') : [];
+      for (let remaining = sampleCount; remaining > 0; remaining -= 1) {
+        for (let turnIndex = 0; turnIndex < turnCount; turnIndex += 1) {
+          const text = caseText ?? scriptedTurns[turnIndex] ?? scriptedTurns[scriptedTurns.length - 1] ?? scriptedText;
+          adapter.useScript({
+            kind: 'success',
+            text,
+            ...(toolNames.length === 0 ? {} : { toolCalls: toolNames.map((name, index) => ({ id: `call-${index + 1}`, name, status: 'requested' as const })) }),
+          });
+        }
+      }
     }
     registry.register(adapter);
     return;
@@ -130,6 +145,18 @@ function registerPlatform(registry: ReturnType<typeof createAdapterRegistry>, su
       throw new AIEvaluationError('CONFIG_ERROR', issues.join('\n'));
     }
     registry.register(new AzureOpenAIAdapter({ profile: defaultAzureProfile, env: options.env, fetch: options.fetch }));
+    if (suite.cases.some((item) => item.evaluators.some((evaluator) => evaluator.type === 'model'))) {
+      const judgeIssues = azureConfigurationIssues(options.env ?? process.env, judgeAzureProfile);
+      if (judgeIssues.length > 0) {
+        throw new AIEvaluationError('CONFIG_ERROR', judgeIssues.join('\n'));
+      }
+      registry.register(new AzureOpenAIAdapter({
+        id: AZURE_JUDGE_ADAPTER_ID,
+        profile: judgeAzureProfile,
+        env: options.env,
+        fetch: options.fetch,
+      }));
+    }
     return;
   }
   throw new AIEvaluationError('CONFIG_ERROR', `Unknown AI platform "${platform}". Supported platforms: fake, azure-openai`);
@@ -170,6 +197,7 @@ async function scoreSamples(
   run: { runId: string; suiteId: string; startedAt: string },
   evaluators: ReturnType<typeof registerModelEvaluators>,
   adapters: ReturnType<typeof createAdapterRegistry>,
+  store: FileEvidenceStore,
 ): Promise<EvaluationSample[]> {
   const scored: EvaluationSample[] = [];
   for (const sample of samples) {
@@ -179,8 +207,28 @@ async function scoreSamples(
       continue;
     }
     const evaluatorResults: EvaluatorResult[] = [];
+    for (const turn of sample.turns ?? []) {
+      const turnSpec = evaluationCase.conversation?.turns.find((item) => item.id === turn.turnId);
+      const turnResults: EvaluatorResult[] = [];
+      for (const binding of turnSpec?.evaluators ?? []) {
+        turnResults.push(await scoreBinding(binding, evaluationCase, { ...sample, execution: turn.execution }, run, evaluators, adapters, store));
+      }
+      turn.evaluatorResults = turnResults;
+      evaluatorResults.push(...turnResults);
+      await store.writer(run.runId, { sampleId: sample.sampleId, caseId: sample.caseId }).write({
+        name: `turn-${turn.turnId}`,
+        body: {
+          turnId: turn.turnId,
+          index: turn.index,
+          messages: turn.messages,
+          response: turn.execution.output.text ?? '',
+          status: turn.execution.status,
+          evaluatorResults: turnResults,
+        },
+      });
+    }
     for (const binding of evaluationCase.evaluators) {
-      evaluatorResults.push(await scoreBinding(binding, evaluationCase, sample, run, evaluators, adapters));
+      evaluatorResults.push(await scoreBinding(binding, evaluationCase, sample, run, evaluators, adapters, store));
     }
     const statuses = evaluatorResults.map((result) => result.status).filter(isAggregateStatus);
     scored.push({
@@ -199,6 +247,7 @@ async function scoreBinding(
   run: { runId: string; suiteId: string; startedAt: string },
   evaluators: ReturnType<typeof registerModelEvaluators>,
   adapters: ReturnType<typeof createAdapterRegistry>,
+  store: FileEvidenceStore,
 ): Promise<EvaluatorResult> {
   const evaluator = evaluators.resolve(binding);
   return evaluator.evaluate({
@@ -208,7 +257,7 @@ async function scoreBinding(
     result: sample.execution,
     config: binding.config ?? {},
     adapters,
-    evidence: { async write() { return 'evaluator'; } },
+    evidence: store.writer(run.runId, { sampleId: sample.sampleId, caseId: sample.caseId }),
   });
 }
 

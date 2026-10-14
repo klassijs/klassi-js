@@ -27,6 +27,7 @@ const CAPABILITIES: AdapterCapabilities = {
 };
 
 export interface AzureOpenAIAdapterOptions {
+  id?: string;
   profile: AzureOpenAIAdapterProfile;
   env?: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
@@ -34,7 +35,7 @@ export interface AzureOpenAIAdapterOptions {
 }
 
 export class AzureOpenAIAdapter implements AIPlatformAdapter {
-  readonly id = AZURE_ADAPTER_ID;
+  readonly id: string;
   readonly name = 'Azure OpenAI';
   readonly version = AZURE_ADAPTER_VERSION;
   readonly profile: AzureOpenAIAdapterProfile;
@@ -45,6 +46,7 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
 
   constructor(options: AzureOpenAIAdapterOptions) {
     assertAzureProfile(options.profile);
+    this.id = options.id ?? AZURE_ADAPTER_ID;
     this.profile = options.profile;
     this.#env = options.env ?? process.env;
     this.#fetch = options.fetch ?? fetch;

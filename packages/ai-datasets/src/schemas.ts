@@ -141,6 +141,22 @@ export const evaluationCaseSchema = z
       .strict(),
     expectations: evaluationExpectationsSchema.optional(),
     evaluators: z.array(evaluatorBindingSchema).min(1),
+    conversation: z
+      .object({
+        turns: z
+          .array(
+            z
+              .object({
+                id: nonEmpty,
+                messages: z.array(aiMessageSchema).min(1),
+                evaluators: z.array(evaluatorBindingSchema).optional(),
+              })
+              .strict(),
+          )
+          .min(1),
+      })
+      .strict()
+      .optional(),
     execution: executionPolicySchema.partial().optional(),
     metadata,
   })

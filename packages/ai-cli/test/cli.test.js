@@ -150,6 +150,62 @@ test('the azure example suite scores a deterministic result and writes reports',
   assert.equal(cli.stdout.includes('Test run completed'), false);
 });
 
+test('the azure judge deployment is separate and its evidence is stored', async () => {
+  const output = await mkdtemp(path.join(tmpdir(), 'klassi-ai-'));
+  const secret = 'super-secret-token';
+  const models = [];
+  const env = {
+    AZURE_OPENAI_ENDPOINT: 'https://example.openai.azure.com',
+    AZURE_OPENAI_DEPLOYMENT: 'target-deploy',
+    AZURE_OPENAI_JUDGE_DEPLOYMENT: 'judge-deploy',
+    AZURE_OPENAI_API_KEY: secret,
+  };
+  const passed = await evaluateSuite({
+    suite: 'azure-judge',
+    cwd: repoRoot,
+    output,
+    samples: 1,
+    concurrency: 1,
+    reporters: ['json', 'markdown'],
+    platform: 'azure-openai',
+    env,
+    fetch: async (url, init) => {
+      if (init?.method === 'GET' || String(url).endsWith('/models')) {
+        return new Response('ok', { status: 200 });
+      }
+      const body = JSON.parse(String(init?.body ?? '{}'));
+      models.push(body.model);
+      const text = body.model === 'judge-deploy' ? '{"score":0.95,"reason":"relevant"}' : 'hello';
+      return Response.json({
+        id: 'resp',
+        model: body.model,
+        status: 'completed',
+        output: [{ type: 'message', content: [{ type: 'output_text', text }] }],
+      });
+    },
+  });
+  const judgeEvidence = JSON.parse(await readFile(await findNamed(passed.outputDir, 'judge-relevance.json'), 'utf8'));
+
+  assert.equal(passed.code, 0);
+  assert.deepEqual(models, ['target-deploy', 'judge-deploy']);
+  assert.equal(judgeEvidence.parsedScore, 0.95);
+  assert.equal(judgeEvidence.promptVersion, '1.0.0');
+  assert.equal(JSON.stringify(judgeEvidence).includes(secret), false);
+
+  const missingJudge = await evaluateSuite({
+    suite: 'azure-judge',
+    cwd: repoRoot,
+    output,
+    reporters: ['json'],
+    platform: 'azure-openai',
+    env: { ...env, AZURE_OPENAI_JUDGE_DEPLOYMENT: '' },
+    fetch: async () => {
+      throw new Error('network should not be called');
+    },
+  });
+  assert.equal(missingJudge.code, 2);
+});
+
 function azureFetch(text) {
   return async (url, init) => {
     if (init?.method === 'GET' || String(url).endsWith('/models')) {
@@ -212,3 +268,71 @@ async function findReport(root) {
   const entries = await readdir(runs);
   return path.join(runs, entries[0], 'report.json');
 }
+
+test('turn evaluators and the conversation evaluator both score a multi-turn case', async () => {
+  const output = await mkdtemp(path.join(tmpdir(), 'klassi-ai-'));
+  const suitePath = path.join(output, 'conversation.json');
+  await writeFile(suitePath, JSON.stringify({
+    id: 'conversation',
+    name: 'Conversation',
+    version: '1.0.0',
+    cases: [{
+      id: 'turns-001',
+      name: 'Two turns',
+      target: { adapter: 'fake' },
+      input: { messages: [{ role: 'user', content: 'Say hello.' }] },
+      conversation: {
+        turns: [
+          { id: 'greeting', messages: [{ role: 'user', content: 'Say hello.' }], evaluators: [{ id: 'exact-match', type: 'deterministic', config: { expected: 'hello' } }] },
+          { id: 'farewell', messages: [{ role: 'user', content: 'Say goodbye.' }], evaluators: [{ id: 'exact-match', type: 'deterministic', config: { expected: 'goodbye' } }] },
+        ],
+      },
+      evaluators: [{ id: 'exact-match', type: 'deterministic', config: { expected: 'hello\ngoodbye' } }],
+      execution: { samples: 1 },
+    }],
+    qualityGate: { overall: { minimumPassRate: 1 } },
+    metadata: { fakeResponses: ['hello', 'goodbye'] },
+  }));
+
+  const outcome = await evaluateSuite({ suite: suitePath, output, reporters: ['json'], samples: 1, concurrency: 1 });
+  const turnFile = await findNamed(path.join(output, '.klassi'), 'turn-greeting.json');
+  const turn = JSON.parse(await readFile(turnFile, 'utf8'));
+
+  assert.equal(outcome.code, 0);
+  assert.equal(outcome.samples[0].execution.output.text, 'hello\ngoodbye');
+  assert.equal(outcome.samples[0].evaluatorResults.length, 3);
+  assert.equal(turn.response, 'hello');
+  assert.equal(turn.evaluatorResults[0].status, 'pass');
+});
+
+test('the security suite records a passing control and a critical disclosure still fails the gate', async () => {
+  const output = await mkdtemp(path.join(tmpdir(), 'klassi-ai-'));
+  const secure = await evaluateSuite({
+    suite: path.join(repoRoot, 'examples/ai/security.json'),
+    output,
+    reporters: ['json', 'markdown'],
+    samples: 1,
+    concurrency: 1,
+  });
+  const evidence = JSON.parse(await readFile(await findNamed(path.join(output, '.klassi'), 'security-prompt-injection.json'), 'utf8'));
+  const report = JSON.parse(await readFile(await findReport(output), 'utf8'));
+
+  assert.equal(secure.code, 0);
+  assert.equal(evidence.owasp.id, 'LLM01:2025');
+  assert.equal(report.security.violations.length, 0);
+
+  const leakedOutput = await mkdtemp(path.join(tmpdir(), 'klassi-ai-'));
+  const leakedSuite = path.join(leakedOutput, 'leaked.json');
+  const leaked = JSON.parse(await readFile(path.join(repoRoot, 'examples/ai/security.json'), 'utf8'));
+  leaked.cases = [leaked.cases[1]];
+  leaked.cases[0].metadata.fakeResponse = 'the value is sk-live-example';
+  leaked.qualityGate.overall.minimumPassRate = 0;
+  await writeFile(leakedSuite, JSON.stringify(leaked));
+  const failed = await evaluateSuite({ suite: leakedSuite, output: leakedOutput, reporters: ['json'], samples: 1, concurrency: 1 });
+  const failedReport = JSON.parse(await readFile(await findReport(leakedOutput), 'utf8'));
+
+  assert.equal(failed.code, 1);
+  assert.equal(failedReport.security.criticalSecurityFailure, true);
+  assert.equal(failedReport.security.violations[0].severity, 'critical');
+  assert.equal(failedReport.security.violations[0].owasp, 'LLM02:2025');
+});

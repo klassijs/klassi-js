@@ -19,11 +19,20 @@ export interface AzureOpenAIAdapterProfile {
 }
 
 export const AZURE_ADAPTER_ID = 'azure-openai';
+export const AZURE_JUDGE_ADAPTER_ID = 'azure-openai-judge';
 export const AZURE_ADAPTER_VERSION = '0.1.0';
 
 export const defaultAzureProfile: AzureOpenAIAdapterProfile = {
   endpointEnv: 'AZURE_OPENAI_ENDPOINT',
   deploymentEnv: 'AZURE_OPENAI_DEPLOYMENT',
+  credential: { type: 'api-key', apiKeyEnv: 'AZURE_OPENAI_API_KEY' },
+  executionApi: 'responses',
+  timeoutMs: 30_000,
+};
+
+export const judgeAzureProfile: AzureOpenAIAdapterProfile = {
+  endpointEnv: 'AZURE_OPENAI_ENDPOINT',
+  deploymentEnv: 'AZURE_OPENAI_JUDGE_DEPLOYMENT',
   credential: { type: 'api-key', apiKeyEnv: 'AZURE_OPENAI_API_KEY' },
   executionApi: 'responses',
   timeoutMs: 30_000,
