@@ -1,5 +1,5 @@
 import { createEvaluatorRegistry, type Evaluator, type InMemoryEvaluatorRegistry } from '@klassijs/ai-core';
-import { allowedCitationDomain, citationPresence, expectedTools, forbiddenTools, latency, refusalDetection, requiredToolArguments, toolArgumentSchema, toolArguments, toolCallCount, toolCalled, toolNotCalled, toolResult } from './behaviour-evaluators.js';
+import { allowedCitationDomain, citationPresence, expectedTools, forbiddenTools, latency, performance, refusalDetection, requiredToolArguments, toolArgumentSchema, toolArguments, toolCallCount, toolCalled, toolNotCalled, toolResult } from './behaviour-evaluators.js';
 import { jsonPath, jsonSchema } from './structured-evaluators.js';
 import { modelEvaluators, registerModelEvaluators } from './model-evaluators.js';
 import { getJudgePrompt, judgePrompts } from './judge-prompts.js';
@@ -28,6 +28,7 @@ export const deterministicEvaluators: Evaluator[] = [
   toolResult,
   refusalDetection,
   latency,
+  performance,
 ];
 
 export { getJudgePrompt, judgePrompts, modelEvaluators, registerModelEvaluators };

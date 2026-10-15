@@ -178,6 +178,38 @@ export const refusalDetection: Evaluator = defineEvaluator('refusal-detection', 
   return scored(refusalDetection, passed, passed ? 'refusal behaviour matched' : 'refusal behaviour did not match');
 });
 
+export const performance: Evaluator = defineEvaluator('performance', 'Performance', async (context) => {
+  const maxLatencyMs = readNumber(context.config, 'maxLatencyMs');
+  const maxTotalTokens = readNumber(context.config, 'maxTotalTokens');
+  const maxInputTokens = readNumber(context.config, 'maxInputTokens');
+  const maxOutputTokens = readNumber(context.config, 'maxOutputTokens');
+  if (maxLatencyMs === undefined && maxTotalTokens === undefined && maxInputTokens === undefined && maxOutputTokens === undefined) {
+    return failedConfig(performance, 'performance requires a latency or token limit');
+  }
+  const failures: string[] = [];
+  if (maxLatencyMs !== undefined && context.result.timing.latencyMs > maxLatencyMs) {
+    failures.push(`latency ${context.result.timing.latencyMs}ms exceeded ${maxLatencyMs}ms`);
+  }
+  const usage = context.result.usage;
+  compareToken(failures, 'total tokens', usage?.totalTokens, maxTotalTokens);
+  compareToken(failures, 'input tokens', usage?.inputTokens, maxInputTokens);
+  compareToken(failures, 'output tokens', usage?.outputTokens, maxOutputTokens);
+  return scored(performance, failures.length === 0, failures.length === 0 ? 'performance limits were met' : failures.join('; '));
+});
+
+function compareToken(failures: string[], label: string, actual: number | undefined, limit: number | undefined): void {
+  if (limit === undefined) {
+    return;
+  }
+  if (actual === undefined) {
+    failures.push(`${label} were not available`);
+    return;
+  }
+  if (actual > limit) {
+    failures.push(`${label} ${actual} exceeded ${limit}`);
+  }
+}
+
 export const latency: Evaluator = defineEvaluator('latency', 'Latency', async (context) => {
   const maxLatencyMs = readNumber(context.config, 'maxLatencyMs');
   if (maxLatencyMs === undefined) {

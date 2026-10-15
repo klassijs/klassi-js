@@ -1,0 +1,79 @@
+# Copy this file to .github/workflows/ai-evaluation.yml.
+# The fake suite needs no credentials. Azure runs only when the repository secrets exist.
+name: AI evaluation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    name: AI evaluation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Evaluate the local example
+        run: pnpm klassi ai:evaluate --suite example --output ai-reports/example
+
+      - name: Quality-gate failure exits 1
+        run: |
+          mkdir -p ai-reports
+          node --input-type=module -e "import { readFile, writeFile } from 'node:fs/promises'; const suite = JSON.parse(await readFile('examples/ai/example.json', 'utf8')); suite.cases[0].evaluators[0].config.expected = 'goodbye'; await writeFile('ai-reports/gate-fail.json', JSON.stringify(suite));"
+          set +e
+          pnpm klassi ai:evaluate --suite ai-reports/gate-fail.json --output ai-reports/gate-fail
+          code=$?
+          set -e
+          test "$code" -eq 1
+
+      - name: Evaluate Azure when secrets are configured
+        env:
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+          AZURE_OPENAI_JUDGE_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_JUDGE_DEPLOYMENT }}
+        run: |
+          if [ -z "$AZURE_OPENAI_API_KEY" ]; then
+            echo "Azure secrets are not configured; skipping the live evaluation."
+            exit 0
+          fi
+          set +e
+          pnpm klassi ai:evaluate --suite azure-openai --platform azure-openai --output ai-reports/azure
+          code=$?
+          set -e
+          if [ "$code" -eq 1 ]; then
+            echo "Quality gate failed. This is a result failure, not a missing credential."
+            exit 1
+          fi
+          if [ "$code" -eq 3 ]; then
+            echo "Execution infrastructure failed. The provider was unavailable or the call did not complete."
+            exit 1
+          fi
+          exit "$code"
+
+      - name: Publish evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-reports
+          path: ai-reports
+          if-no-files-found: warn

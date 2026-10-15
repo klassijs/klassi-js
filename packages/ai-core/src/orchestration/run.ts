@@ -11,6 +11,7 @@ import type { ExecutionPolicy } from '../policy.js';
 import { createRunId } from './ids.js';
 import { planSuite, type PlannedSample } from './plan.js';
 import { isInfrastructureRetry, retryDelayMs } from './policy.js';
+import { emitTelemetry, type TelemetrySink } from '../telemetry.js';
 
 export interface AttemptRecord {
   attempt: number;
@@ -39,6 +40,7 @@ export interface RunEvaluationOptions {
   createRunId?: () => string;
   sleep?: (ms: number) => Promise<void>;
   now?: () => string;
+  telemetry?: TelemetrySink;
 }
 
 const silentLogger = {
@@ -129,6 +131,7 @@ export async function runEvaluation(options: RunEvaluationOptions): Promise<Eval
     }
   }
 
+  emitTelemetry(options.telemetry, { name: 'run.started', runId: run.runId, suiteId: run.suiteId });
   const byCase = new Map<string, PlannedSample[]>();
   for (const sample of planned) {
     const group = byCase.get(sample.evaluationCase.id) ?? [];
@@ -141,16 +144,26 @@ export async function runEvaluation(options: RunEvaluationOptions): Promise<Eval
     if (options.signal?.aborted) {
       break;
     }
+    const caseId = group[0]?.evaluationCase.id ?? 'unknown';
+    emitTelemetry(options.telemetry, { name: 'case.started', runId: run.runId, suiteId: run.suiteId, caseId });
     const concurrency = group[0]?.policy.concurrency ?? 1;
     const records = await mapPool(group, concurrency, (plannedSample) =>
       executePlannedSample(plannedSample, options, run, sleep, now),
     );
     samples.push(...records);
+    emitTelemetry(options.telemetry, {
+      name: 'case.completed',
+      runId: run.runId,
+      suiteId: run.suiteId,
+      caseId,
+      status: records.some((record) => record.sample.status === 'error') ? 'error' : 'review',
+    });
     if (group[0]?.policy.failFast && records.some((record) => record.sample.status === 'error')) {
       break;
     }
   }
 
+  emitTelemetry(options.telemetry, { name: 'run.completed', runId: run.runId, suiteId: run.suiteId, status: samples.some((record) => record.sample.status === 'error') ? 'error' : 'completed' });
   return { run, health, samples };
 }
 
@@ -171,6 +184,7 @@ async function executePlannedSample(
       return ref;
     },
   };
+  emitTelemetry(options.telemetry, { name: 'sample.started', runId: run.runId, suiteId: run.suiteId, caseId: evaluationCase.id, sampleId: plannedSample.sampleId });
   const attempts: AttemptRecord[] = [];
   const requestBase = {
     ...(evaluationCase.target.model ? { model: evaluationCase.target.model } : {}),
@@ -207,6 +221,14 @@ async function executePlannedSample(
     if (!finalResult) {
       throw new AIEvaluationError('INTERNAL_ERROR', `Sample "${plannedSample.sampleId}" produced no result`);
     }
+    emitTelemetry(options.telemetry, {
+      name: 'sample.completed',
+      runId: run.runId,
+      suiteId: run.suiteId,
+      caseId: evaluationCase.id,
+      sampleId: plannedSample.sampleId,
+      status: finalResult.status === 'completed' ? 'review' : 'error',
+    });
     const transcript = turns.map((turn) => turn.execution.output.text ?? '').filter((text) => text.length > 0).join('\n');
     return {
       plan: plannedSample,
@@ -229,6 +251,15 @@ async function executePlannedSample(
 
   const request: AIExecutionRequest = { ...requestBase, messages: evaluationCase.input.messages };
   const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+  emitTelemetry(options.telemetry, {
+    name: 'sample.completed',
+    runId: run.runId,
+    suiteId: run.suiteId,
+    caseId: evaluationCase.id,
+    sampleId: plannedSample.sampleId,
+    status: executed.result.status === 'completed' ? 'review' : 'error',
+    latencyMs: executed.result.timing.latencyMs,
+  });
   return {
     plan: plannedSample,
     attempts: executed.attempts,
@@ -297,6 +328,17 @@ async function runAttempts(
 
     const retry = attempt < maxAttempts && isInfrastructureRetry(result);
     attempts.push({ attempt, result, retried: retry });
+    emitTelemetry(options.telemetry, {
+      name: 'adapter.call',
+      runId: run.runId,
+      suiteId: run.suiteId,
+      caseId: plannedSample.evaluationCase.id,
+      sampleId: plannedSample.sampleId,
+      adapterId: adapter.id,
+      status: result.status,
+      latencyMs: result.timing.latencyMs,
+      attempt,
+    });
     finalResult = result;
     if (!retry) {
       break;

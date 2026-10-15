@@ -1,11 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { Baseline, EvaluationSuite } from '@klassijs/ai-core';
+import type { Baseline, EvaluationCase, EvaluationSuite } from '@klassijs/ai-core';
 import { ZodError } from 'zod';
 import { parse } from 'yaml';
 import { hashDataset } from './canonical.js';
 import { DatasetValidationError, type DatasetValidationIssue } from './errors.js';
-import { aiConfigurationSchema, baselineSchema, evaluationSuiteSchema } from './schemas.js';
+import { aiConfigurationSchema, baselineSchema, evaluationCaseSchema, evaluationSuiteSchema } from './schemas.js';
 
 export interface LoadedSuite {
   suite: EvaluationSuite;
@@ -25,6 +25,10 @@ function parseWith<T>(schema: { safeParse: (value: unknown) => { success: true; 
     throw new DatasetValidationError(issuesFromZod(parsed.error));
   }
   return parsed.data;
+}
+
+export function parseEvaluationCase(value: unknown): EvaluationCase {
+  return parseWith(evaluationCaseSchema, value);
 }
 
 export function parseEvaluationSuite(value: unknown): EvaluationSuite {

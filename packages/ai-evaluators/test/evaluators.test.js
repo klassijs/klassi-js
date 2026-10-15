@@ -10,6 +10,7 @@ function execution(overrides = {}) {
     output: { text: 'The return window is 14 days.', structured: { allowed: false, days: 14 } },
     citations: [{ id: 'policy', uri: 'https://help.example/returns', title: 'Returns' }],
     toolCalls: [{ id: 'call-1', name: 'lookupPolicy', arguments: { sku: 'A1' }, status: 'completed' }],
+    usage: { inputTokens: 4, outputTokens: 6, totalTokens: 10 },
     timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.020Z', latencyMs: 20 },
     ...overrides,
   };
@@ -66,6 +67,7 @@ test('deterministic evaluators score a fake response without resolving a judge',
     ['tool-arguments', { name: 'lookupPolicy', arguments: { sku: 'A1' } }, 'pass'],
     ['refusal-detection', { expectRefusal: false }, 'pass'],
     ['latency', { maxLatencyMs: 50 }, 'pass'],
+    ['performance', { maxLatencyMs: 50, maxTotalTokens: 10 }, 'pass'],
   ];
 
   for (const [id, config, status] of cases) {
@@ -78,6 +80,9 @@ test('deterministic evaluators score a fake response without resolving a judge',
   }
 
   const mismatch = await registry.get('exact-match').evaluate(context(result, { expected: '30 days' }, adapters));
+  const missingUsage = await registry.get('performance').evaluate(context({ ...result, usage: undefined }, { maxTotalTokens: 10 }, adapters));
+  assert.equal(missingUsage.status, 'fail');
+  assert.match(missingUsage.reason, /not available/);
   assert.equal(mismatch.status, 'fail');
   assert.equal(mismatch.score, 0);
   assert.equal(judgeLookups, 0);

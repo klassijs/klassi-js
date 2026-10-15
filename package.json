@@ -110,6 +110,7 @@
   "devDependencies": {
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
+    "@klassijs/ai-adapter-azure-openai": "workspace:*",
     "@klassijs/ai-cli": "workspace:*",
     "@klassijs/ai-core": "workspace:*",
     "@klassijs/ai-datasets": "workspace:*",

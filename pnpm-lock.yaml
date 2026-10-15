@@ -120,6 +120,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: 21.2.3
         version: 21.2.3
+      '@klassijs/ai-adapter-azure-openai':
+        specifier: workspace:*
+        version: link:packages/ai-adapter-azure-openai
       '@klassijs/ai-cli':
         specifier: workspace:*
         version: link:packages/ai-cli

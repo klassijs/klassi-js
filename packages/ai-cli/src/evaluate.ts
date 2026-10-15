@@ -1,11 +1,15 @@
 import { existsSync } from 'node:fs';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   aggregateStatus,
   AIEvaluationError,
   createAdapterRegistry,
+  createTelemetryCollector,
+  emitTelemetry,
   evaluateQualityGate,
   runEvaluation,
+  type TelemetrySink,
   type AggregateStatus,
   type EvaluationCase,
   type EvaluationSample,
@@ -14,7 +18,7 @@ import {
 } from '@klassijs/ai-core';
 import { FakeAIAdapter } from '@klassijs/ai-core/testing';
 import { AzureOpenAIAdapter, AZURE_JUDGE_ADAPTER_ID, azureConfigurationIssues, defaultAzureProfile, judgeAzureProfile } from '@klassijs/ai-adapter-azure-openai';
-import { DatasetValidationError, loadSuiteFile } from '@klassijs/ai-datasets';
+import { DatasetValidationError, hashDataset, loadSuiteFile, parseEvaluationSuite } from '@klassijs/ai-datasets';
 import { evidenceRunDirectory, FileEvidenceStore } from '@klassijs/ai-evidence';
 import { registerDeterministicEvaluators, registerModelEvaluators, registerSecurityEvaluators } from '@klassijs/ai-evaluators';
 import { createRunReport, writeRunReports, type ReportArtifact } from '@klassijs/ai-reporters';
@@ -26,13 +30,15 @@ export interface EvaluateOptions {
   tag?: string;
   samples?: number;
   concurrency?: number;
-  reporters: ReportArtifact['format'][];
+  reporters?: ReportArtifact['format'][];
+  registry?: ReturnType<typeof createAdapterRegistry>;
   output?: string;
   failFast?: boolean;
   cwd?: string;
   platform?: string;
   env?: NodeJS.ProcessEnv;
   fetch?: typeof fetch;
+  telemetry?: TelemetrySink;
 }
 
 export interface EvaluateOutcome {
@@ -44,16 +50,50 @@ export interface EvaluateOutcome {
   samples?: EvaluationSample[];
 }
 
+export interface RunAiEvaluationOptions extends Omit<EvaluateOptions, 'suite'> {
+  suite: string | EvaluationSuite;
+}
+
+/** Programmatic runner. A string suite is loaded from disk. An object suite is validated and run in memory. */
+export async function runAiEvaluation(options: RunAiEvaluationOptions): Promise<EvaluateOutcome> {
+  const reporters = options.reporters ?? ['json'];
+  if (typeof options.suite === 'string') {
+    return evaluateSuite({ ...options, suite: options.suite, reporters });
+  }
+  try {
+    const suite = parseEvaluationSuite(options.suite);
+    return await evaluatePrepared(selectCases(suite, { ...options, suite: suite.id, reporters }), hashDataset(suite), { ...options, suite: suite.id, reporters });
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return { code: classifyError(error) };
+  }
+}
+
 export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateOutcome> {
   try {
     const loaded = await loadSuiteFile(resolveSuitePath(options.suite, options.cwd ?? process.cwd()));
-    const suite = selectCases(loaded.suite, options);
-    const registry = createAdapterRegistry();
-    registerPlatform(registry, suite, options);
+    return await evaluatePrepared(selectCases(loaded.suite, options), loaded.datasetHash, options);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return { code: classifyError(error) };
+  }
+}
+
+async function evaluatePrepared(suite: EvaluationSuite, datasetHash: string, options: EvaluateOptions): Promise<EvaluateOutcome> {
+  try {
+    const registry = options.registry ?? createAdapterRegistry();
+    if (!options.registry) {
+      registerPlatform(registry, suite, options);
+    }
     const evaluators = registerModelEvaluators(registerSecurityEvaluators(registerDeterministicEvaluators()));
+    const collected = createTelemetryCollector();
+    const telemetry: TelemetrySink = options.telemetry
+      ? { emit(event) { collected.sink.emit(event); options.telemetry?.emit(event); } }
+      : collected.sink;
     const execution = await runEvaluation({
       registry,
       suite,
+      telemetry,
       cli: {
         ...(options.samples === undefined ? {} : { samples: options.samples }),
         ...(options.concurrency === undefined ? {} : { concurrency: options.concurrency }),
@@ -63,7 +103,7 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
     const root = options.output ?? options.cwd ?? process.cwd();
     const outputDir = evidenceRunDirectory(root, execution.run.runId);
     const store = new FileEvidenceStore(root);
-    const samples = await scoreSamples(execution.samples.map((record) => record.sample), suite, execution.run, evaluators, registry, store);
+    const samples = await scoreSamples(execution.samples.map((record) => record.sample), suite, execution.run, evaluators, registry, store, telemetry);
     await store.save({
       run: { runId: execution.run.runId, suiteId: suite.id, startedAt: execution.run.startedAt },
       suite: { suiteId: suite.id, name: suite.name, version: suite.version },
@@ -87,6 +127,7 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
     const gate = await evaluateQualityGate({
       gate: suite.qualityGate,
       samples,
+      ...(suite.costTable ? { costTable: suite.costTable } : {}),
       cases: suite.cases.map((item) => ({ id: item.id, ...(item.tags ? { tags: item.tags } : {}) })),
       evidence: store.writer(execution.run.runId, { sampleId: 'run', caseId: 'suite' }),
     });
@@ -95,8 +136,11 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
       suite,
       samples,
       gate: gate.decision,
+      ...(suite.costTable ? { costTable: suite.costTable } : {}),
     });
+    emitTelemetry(telemetry, { name: 'gate.completed', runId: execution.run.runId, suiteId: suite.id, status: gate.decision.status });
     await writeRunReports(report, outputDir, options.reporters);
+    await writeFile(path.join(outputDir, 'telemetry.jsonl'), `${collected.events.map((event) => JSON.stringify(event)).join('\n')}\n`, 'utf8');
     const code = classifyExit(samples, gate.decision.status);
     const passed = report.cases.filter((item) => item.status === 'pass').length;
     const failed = report.cases.filter((item) => item.status === 'fail').length;
@@ -105,7 +149,7 @@ export async function evaluateSuite(options: EvaluateOptions): Promise<EvaluateO
     console.log(`quality gate: ${gate.decision.status}`);
     console.log(`report: ${path.join(outputDir, 'report.json')}`);
     console.log(`exit: ${code}`);
-    return { code, outputDir, runId: execution.run.runId, datasetHash: loaded.datasetHash, suite, samples };
+    return { code, outputDir, runId: execution.run.runId, datasetHash, suite, samples };
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     return { code: classifyError(error) };
@@ -198,6 +242,7 @@ async function scoreSamples(
   evaluators: ReturnType<typeof registerModelEvaluators>,
   adapters: ReturnType<typeof createAdapterRegistry>,
   store: FileEvidenceStore,
+  telemetry: TelemetrySink,
 ): Promise<EvaluationSample[]> {
   const scored: EvaluationSample[] = [];
   for (const sample of samples) {
@@ -211,7 +256,9 @@ async function scoreSamples(
       const turnSpec = evaluationCase.conversation?.turns.find((item) => item.id === turn.turnId);
       const turnResults: EvaluatorResult[] = [];
       for (const binding of turnSpec?.evaluators ?? []) {
-        turnResults.push(await scoreBinding(binding, evaluationCase, { ...sample, execution: turn.execution }, run, evaluators, adapters, store));
+        const scoredTurn = await scoreBinding(binding, evaluationCase, { ...sample, execution: turn.execution }, run, evaluators, adapters, store);
+        turnResults.push(scoredTurn);
+        emitTelemetry(telemetry, { name: 'evaluator.completed', runId: run.runId, suiteId: run.suiteId, caseId: sample.caseId, sampleId: sample.sampleId, evaluatorId: scoredTurn.evaluatorId, status: scoredTurn.status });
       }
       turn.evaluatorResults = turnResults;
       evaluatorResults.push(...turnResults);
@@ -228,7 +275,9 @@ async function scoreSamples(
       });
     }
     for (const binding of evaluationCase.evaluators) {
-      evaluatorResults.push(await scoreBinding(binding, evaluationCase, sample, run, evaluators, adapters, store));
+      const scored = await scoreBinding(binding, evaluationCase, sample, run, evaluators, adapters, store);
+      evaluatorResults.push(scored);
+      emitTelemetry(telemetry, { name: 'evaluator.completed', runId: run.runId, suiteId: run.suiteId, caseId: sample.caseId, sampleId: sample.sampleId, evaluatorId: scored.evaluatorId, status: scored.status });
     }
     const statuses = evaluatorResults.map((result) => result.status).filter(isAggregateStatus);
     scored.push({

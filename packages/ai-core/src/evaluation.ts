@@ -1,4 +1,5 @@
 import type { AdapterId, CaseId, EvaluatorId, SuiteId } from './identifiers.js';
+import type { CostTable } from './usage.js';
 import type { AIMessage } from './messages.js';
 import type { ExecutionPolicy } from './policy.js';
 
@@ -82,6 +83,13 @@ export interface QualityGate {
   performance?: {
     p95LatencyMs?: number;
   };
+  budget?: {
+    maximumTotalTokens?: number;
+    maximumInputTokens?: number;
+    maximumOutputTokens?: number;
+    maximumRequests?: number;
+    maximumEstimatedCost?: number;
+  };
   stability?: {
     minimumPassRate?: number;
     maximumScoreStdDev?: number;
@@ -103,5 +111,6 @@ export interface EvaluationSuite {
     evaluators?: EvaluatorBinding[];
   };
   qualityGate: QualityGate;
+  costTable?: CostTable;
   metadata?: Record<string, unknown>;
 }

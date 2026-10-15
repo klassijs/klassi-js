@@ -140,6 +140,48 @@ test('a critical security failure is not cancelled by a perfect average score', 
   assert.equal(result.decision.status, 'fail');
 });
 
+test('token and request budgets fail closed when usage or price data is missing', async () => {
+  const withinBudget = await evaluateQualityGate({
+    gate: { budget: { maximumTotalTokens: 10, maximumRequests: 1, maximumEstimatedCost: 1 } },
+    costTable: { version: '2026-01', currency: 'USD', prices: [{ match: 'target', inputPerMillion: 2, outputPerMillion: 4 }] },
+    samples: [sample({
+      execution: {
+        id: 'result',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'answer' },
+        model: { deployment: 'target' },
+        usage: { inputTokens: 4, outputTokens: 6, totalTokens: 10 },
+        timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.010Z', latencyMs: 10 },
+      },
+    })],
+  });
+  const missingUsage = await evaluateQualityGate({
+    gate: { budget: { maximumTotalTokens: 100, maximumRequests: 0 } },
+    samples: [sample({})],
+  });
+  const missingPrice = await evaluateQualityGate({
+    gate: { budget: { maximumEstimatedCost: 1 } },
+    costTable: { version: '2026-01', currency: 'USD', prices: [{ match: 'other', inputPerMillion: 2, outputPerMillion: 4 }] },
+    samples: [sample({
+      execution: {
+        id: 'result',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'answer' },
+        model: { deployment: 'target' },
+        usage: { inputTokens: 4, outputTokens: 6, totalTokens: 10 },
+        timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.010Z', latencyMs: 10 },
+      },
+    })],
+  });
+
+  assert.equal(withinBudget.decision.status, 'pass');
+  assert.equal(missingUsage.decision.checks.find((check) => check.id === 'budget.maximumTotalTokens').reason, 'total tokens is unavailable');
+  assert.equal(missingUsage.decision.checks.find((check) => check.id === 'budget.maximumRequests').status, 'fail');
+  assert.equal(missingPrice.decision.checks.find((check) => check.id === 'budget.maximumEstimatedCost').reason, 'estimated cost is unavailable');
+});
+
 test('a missing score does not pass a minimum as zero', async () => {
   const result = await evaluateQualityGate({
     gate: { overall: { minimumScore: 0 } },

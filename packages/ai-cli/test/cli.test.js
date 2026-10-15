@@ -16,7 +16,12 @@ test('ai:evaluate runs the example suite through the fake adapter', async () => 
 
   assert.equal(code, 0);
   const report = JSON.parse(await readFile(reportPath, 'utf8'));
+  const telemetry = await readFile(reportPath.replace(/report\.json$/, 'telemetry.jsonl'), 'utf8');
   assert.equal(report.status, 'pass');
+  assert.equal(telemetry.includes('Say hello'), false);
+  assert.equal(telemetry.includes('"name":"adapter.call"'), true);
+  assert.equal(telemetry.includes('"name":"evaluator.completed"'), true);
+  assert.equal(telemetry.includes('"name":"gate.completed"'), true);
   assert.equal(report.cases[0].samples[0].evaluators[0].status, 'pass');
   assert.equal(report.cases[0].samples[0].output, 'hello');
 });
@@ -36,6 +41,33 @@ test('a quality-gate failure and a missing suite use the documented exit codes',
   assert.equal(missingCase, 2);
   assert.equal(missing, 2);
   assert.equal(usage, 2);
+});
+
+test('a provider outage is an infrastructure failure and does not print the API key', async () => {
+  const output = await mkdtemp(path.join(tmpdir(), 'klassi-ai-'));
+  const errors = [];
+  const original = console.error;
+  console.error = (message) => errors.push(String(message));
+  try {
+    const outcome = await evaluateSuite({
+      suite: path.join(repoRoot, 'examples/ai/azure-openai.json'),
+      output,
+      reporters: ['json'],
+      samples: 1,
+      concurrency: 1,
+      platform: 'azure-openai',
+      env: {
+        AZURE_OPENAI_ENDPOINT: 'https://example.openai.azure.com',
+        AZURE_OPENAI_API_KEY: 'super-secret-token',
+        AZURE_OPENAI_DEPLOYMENT: 'target-deploy',
+      },
+      fetch: async () => new Response('unavailable', { status: 503 }),
+    });
+    assert.equal(outcome.code, 3);
+    assert.equal(errors.join('\n').includes('super-secret-token'), false);
+  } finally {
+    console.error = original;
+  }
 });
 
 test('the klassi command reaches ai:evaluate without starting Cucumber', async () => {
