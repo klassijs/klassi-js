@@ -129,6 +129,7 @@ test('an aborted run and a hung adapter are bounded by timeout', async () => {
     sleep: async () => {},
   });
   assert.equal(timed.samples[0].sample.execution.error.code, 'TIMEOUT_ERROR');
+  assert.equal(timed.samples[0].sample.execution.error.retryable, true);
   assert.equal(timed.samples[0].attempts.length, 1);
 });
 
@@ -237,4 +238,22 @@ test('a model-requested tool is recorded and is not executed', async () => {
   assert.equal(call?.name, 'deleteAccount');
   assert.equal(call?.status, 'requested');
   assert.equal(call?.result, undefined);
+});
+
+test('one hundred samples finish locally without a provider call', async () => {
+  const adapter = new FakeAIAdapter();
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+  const started = Date.now();
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      execution: { samples: 100, concurrency: 10, timeoutMs: 1000, retry: { maxInfrastructureRetries: 0, initialDelayMs: 0, jitter: false } },
+    }),
+    sleep: async () => {},
+  });
+
+  assert.equal(run.samples.length, 100);
+  assert.equal(run.samples.every((record) => record.attempts.length === 1 && record.sample.status === 'review'), true);
+  assert.equal(Date.now() - started < 2000, true);
 });

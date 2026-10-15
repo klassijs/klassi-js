@@ -1,27 +1,50 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { EvidenceWriter } from '@klassijs/ai-core';
+import { AIEvaluationError, type EvidenceWriter } from '@klassijs/ai-core';
 import type { EvidenceArtifact, EvidenceBundle, EvidenceRunInput, EvidenceSampleInput } from './bundle.js';
 import { canonicalizeEvidence, hashEvidence } from './canonical.js';
 import { redactEvidence, type RedactionOptions } from './redact.js';
+
+/** One mebibyte of canonical JSON per artifact. Larger bodies are refused before they are written. */
+export const DEFAULT_MAX_EVIDENCE_BYTES = 1_048_576;
 
 export function evidenceRunDirectory(rootDir: string, runId: string): string {
   return path.join(rootDir, '.klassi', 'ai', 'runs', pathSegment(runId));
 }
 
 function pathSegment(value: string): string {
-  return value.replace(/[^A-Za-z0-9._-]+/g, '_');
+  const cleaned = value.replace(/[^A-Za-z0-9._-]+/g, '_');
+  if (cleaned.length === 0 || cleaned === '.' || cleaned === '..') {
+    return '_';
+  }
+  return cleaned;
 }
 
-async function writeJson(filePath: string, body: unknown): Promise<EvidenceArtifact> {
-  await mkdir(path.dirname(filePath), { recursive: true });
-  const canonical = canonicalizeEvidence(body);
-  await writeFile(filePath, `${canonical}\n`, 'utf8');
-  return { path: filePath, sha256: hashEvidence(body) };
+function inside(root: string, ...parts: string[]): string {
+  const base = path.resolve(root);
+  const target = path.resolve(base, ...parts);
+  const relative = path.relative(base, target);
+  if (relative === '' || path.isAbsolute(relative) || relative.split(path.sep).includes('..')) {
+    throw new AIEvaluationError('EVIDENCE_ERROR', 'Evidence path escapes the run directory');
+  }
+  return target;
 }
 
 export class FileEvidenceStore {
-  constructor(private readonly rootDir: string) {}
+  constructor(
+    private readonly rootDir: string,
+    private readonly maxBytes: number = DEFAULT_MAX_EVIDENCE_BYTES,
+  ) {}
+
+  private async writeJson(filePath: string, body: unknown): Promise<EvidenceArtifact> {
+    const canonical = canonicalizeEvidence(body);
+    if (Buffer.byteLength(canonical) > this.maxBytes) {
+      throw new AIEvaluationError('EVIDENCE_ERROR', `Evidence artifact exceeds ${this.maxBytes} bytes`);
+    }
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, `${canonical}\n`, 'utf8');
+    return { path: filePath, sha256: hashEvidence(body) };
+  }
 
   async save(input: EvidenceRunInput): Promise<EvidenceBundle> {
     const redaction: RedactionOptions = { secrets: input.secrets, patterns: input.patterns };
@@ -30,12 +53,11 @@ export class FileEvidenceStore {
     const samples: EvidenceBundle['samples'] = [];
     const evaluations: EvidenceBundle['evaluations'] = [];
 
-    artifacts.push(await writeJson(path.join(runDir, 'run.json'), redactEvidence(input.run, redaction)));
-    artifacts.push(await writeJson(path.join(runDir, 'suite.json'), redactEvidence(input.suite, redaction)));
+    artifacts.push(await this.writeJson(inside(runDir, 'run.json'), redactEvidence(input.run, redaction)));
+    artifacts.push(await this.writeJson(inside(runDir, 'suite.json'), redactEvidence(input.suite, redaction)));
 
     for (const evaluationCase of input.cases) {
-      const caseDir = path.join(runDir, 'cases', pathSegment(evaluationCase.caseId));
-      artifacts.push(await writeJson(path.join(caseDir, 'case.json'), redactEvidence(evaluationCase, redaction)));
+      artifacts.push(await this.writeJson(inside(runDir, 'cases', pathSegment(evaluationCase.caseId), 'case.json'), redactEvidence(evaluationCase, redaction)));
     }
 
     for (const sample of input.samples) {
@@ -62,36 +84,30 @@ export class FileEvidenceStore {
   }
 
   writer(runId: string, sample: Pick<EvidenceSampleInput, 'sampleId' | 'caseId'>, redaction: RedactionOptions = {}): EvidenceWriter {
-    const sampleDir = path.join(
-      evidenceRunDirectory(this.rootDir, runId),
-      'cases',
-      pathSegment(sample.caseId),
-      'samples',
-      pathSegment(sample.sampleId),
-    );
+    const sampleDir = inside(evidenceRunDirectory(this.rootDir, runId), 'cases', pathSegment(sample.caseId), 'samples', pathSegment(sample.sampleId));
     return {
-      async write(artifact) {
-        const filePath = path.join(sampleDir, `${pathSegment(artifact.name)}.json`);
-        await writeJson(filePath, redactEvidence(artifact.body, redaction));
+      write: async (artifact) => {
+        const filePath = inside(sampleDir, `${pathSegment(artifact.name)}.json`);
+        await this.writeJson(filePath, redactEvidence(artifact.body, redaction));
         return filePath;
       },
     };
   }
 
   private async writeSample(runDir: string, sample: EvidenceSampleInput, redaction: RedactionOptions) {
-    const sampleDir = path.join(runDir, 'cases', pathSegment(sample.caseId), 'samples', pathSegment(sample.sampleId));
-    const requestPath = path.join(sampleDir, 'request.json');
-    const responsePath = path.join(sampleDir, 'response.json');
-    const executionPath = path.join(sampleDir, 'execution.json');
+    const sampleDir = inside(runDir, 'cases', pathSegment(sample.caseId), 'samples', pathSegment(sample.sampleId));
+    const requestPath = inside(sampleDir, 'request.json');
+    const responsePath = inside(sampleDir, 'response.json');
+    const executionPath = inside(sampleDir, 'execution.json');
     const artifacts = [
-      await writeJson(requestPath, redactEvidence(sample.request, redaction)),
-      await writeJson(responsePath, redactEvidence(sample.response, redaction)),
-      await writeJson(executionPath, redactEvidence(sample.execution, redaction)),
+      await this.writeJson(requestPath, redactEvidence(sample.request, redaction)),
+      await this.writeJson(responsePath, redactEvidence(sample.response, redaction)),
+      await this.writeJson(executionPath, redactEvidence(sample.execution, redaction)),
     ];
     const evaluations = [];
     for (const evaluator of sample.evaluators ?? []) {
-      const evaluatorPath = path.join(sampleDir, 'evaluators', `${pathSegment(evaluator.evaluatorId)}.json`);
-      artifacts.push(await writeJson(evaluatorPath, redactEvidence(evaluator.result, redaction)));
+      const evaluatorPath = inside(sampleDir, 'evaluators', `${pathSegment(evaluator.evaluatorId)}.json`);
+      artifacts.push(await this.writeJson(evaluatorPath, redactEvidence(evaluator.result, redaction)));
       evaluations.push({ sampleId: sample.sampleId, evaluatorId: evaluator.evaluatorId, path: evaluatorPath });
     }
     return {

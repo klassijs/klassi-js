@@ -19,7 +19,7 @@ import {
 import { FakeAIAdapter } from '@klassijs/ai-core/testing';
 import { AzureOpenAIAdapter, AZURE_JUDGE_ADAPTER_ID, azureConfigurationIssues, defaultAzureProfile, judgeAzureProfile } from '@klassijs/ai-adapter-azure-openai';
 import { DatasetValidationError, hashDataset, loadSuiteFile, parseEvaluationSuite } from '@klassijs/ai-datasets';
-import { evidenceRunDirectory, FileEvidenceStore } from '@klassijs/ai-evidence';
+import { evidenceRunDirectory, FileEvidenceStore, redactEvidence, type RedactionOptions } from '@klassijs/ai-evidence';
 import { registerDeterministicEvaluators, registerModelEvaluators, registerSecurityEvaluators } from '@klassijs/ai-evaluators';
 import { createRunReport, writeRunReports, type ReportArtifact } from '@klassijs/ai-reporters';
 import { EXIT_CODES, type ExitCode } from './exit-codes.js';
@@ -103,8 +103,13 @@ async function evaluatePrepared(suite: EvaluationSuite, datasetHash: string, opt
     const root = options.output ?? options.cwd ?? process.cwd();
     const outputDir = evidenceRunDirectory(root, execution.run.runId);
     const store = new FileEvidenceStore(root);
-    const samples = await scoreSamples(execution.samples.map((record) => record.sample), suite, execution.run, evaluators, registry, store, telemetry);
+    const redaction: RedactionOptions = { secrets: configuredSecrets(options.env) };
+    const samples = redactEvidence(
+      await scoreSamples(execution.samples.map((record) => record.sample), suite, execution.run, evaluators, registry, store, telemetry, redaction),
+      redaction,
+    );
     await store.save({
+      secrets: redaction.secrets,
       run: { runId: execution.run.runId, suiteId: suite.id, startedAt: execution.run.startedAt },
       suite: { suiteId: suite.id, name: suite.name, version: suite.version },
       cases: suite.cases.map((item) => ({ caseId: item.id, name: item.name, targetAdapter: item.target.adapter })),
@@ -129,7 +134,7 @@ async function evaluatePrepared(suite: EvaluationSuite, datasetHash: string, opt
       samples,
       ...(suite.costTable ? { costTable: suite.costTable } : {}),
       cases: suite.cases.map((item) => ({ id: item.id, ...(item.tags ? { tags: item.tags } : {}) })),
-      evidence: store.writer(execution.run.runId, { sampleId: 'run', caseId: 'suite' }),
+      evidence: store.writer(execution.run.runId, { sampleId: 'run', caseId: 'suite' }, redaction),
     });
     const report = createRunReport({
       run: { runId: execution.run.runId, startedAt: execution.run.startedAt },
@@ -235,6 +240,13 @@ function selectCases(suite: EvaluationSuite, options: EvaluateOptions): Evaluati
   return { ...suite, cases };
 }
 
+const SECRET_ENV_NAMES = ['AZURE_OPENAI_API_KEY'];
+
+function configuredSecrets(env: NodeJS.ProcessEnv | undefined): string[] {
+  const source = env ?? process.env;
+  return [...new Set(SECRET_ENV_NAMES.map((name) => source[name]).filter((value): value is string => typeof value === 'string' && value.length >= 8))];
+}
+
 async function scoreSamples(
   samples: EvaluationSample[],
   suite: EvaluationSuite,
@@ -243,6 +255,7 @@ async function scoreSamples(
   adapters: ReturnType<typeof createAdapterRegistry>,
   store: FileEvidenceStore,
   telemetry: TelemetrySink,
+  redaction: RedactionOptions,
 ): Promise<EvaluationSample[]> {
   const scored: EvaluationSample[] = [];
   for (const sample of samples) {
@@ -256,13 +269,13 @@ async function scoreSamples(
       const turnSpec = evaluationCase.conversation?.turns.find((item) => item.id === turn.turnId);
       const turnResults: EvaluatorResult[] = [];
       for (const binding of turnSpec?.evaluators ?? []) {
-        const scoredTurn = await scoreBinding(binding, evaluationCase, { ...sample, execution: turn.execution }, run, evaluators, adapters, store);
+        const scoredTurn = await scoreBinding(binding, evaluationCase, { ...sample, execution: turn.execution }, run, evaluators, adapters, store, redaction);
         turnResults.push(scoredTurn);
         emitTelemetry(telemetry, { name: 'evaluator.completed', runId: run.runId, suiteId: run.suiteId, caseId: sample.caseId, sampleId: sample.sampleId, evaluatorId: scoredTurn.evaluatorId, status: scoredTurn.status });
       }
       turn.evaluatorResults = turnResults;
       evaluatorResults.push(...turnResults);
-      await store.writer(run.runId, { sampleId: sample.sampleId, caseId: sample.caseId }).write({
+      await store.writer(run.runId, { sampleId: sample.sampleId, caseId: sample.caseId }, redaction).write({
         name: `turn-${turn.turnId}`,
         body: {
           turnId: turn.turnId,
@@ -275,7 +288,7 @@ async function scoreSamples(
       });
     }
     for (const binding of evaluationCase.evaluators) {
-      const scored = await scoreBinding(binding, evaluationCase, sample, run, evaluators, adapters, store);
+      const scored = await scoreBinding(binding, evaluationCase, sample, run, evaluators, adapters, store, redaction);
       evaluatorResults.push(scored);
       emitTelemetry(telemetry, { name: 'evaluator.completed', runId: run.runId, suiteId: run.suiteId, caseId: sample.caseId, sampleId: sample.sampleId, evaluatorId: scored.evaluatorId, status: scored.status });
     }
@@ -297,6 +310,7 @@ async function scoreBinding(
   evaluators: ReturnType<typeof registerModelEvaluators>,
   adapters: ReturnType<typeof createAdapterRegistry>,
   store: FileEvidenceStore,
+  redaction: RedactionOptions,
 ): Promise<EvaluatorResult> {
   const evaluator = evaluators.resolve(binding);
   return evaluator.evaluate({
@@ -306,7 +320,7 @@ async function scoreBinding(
     result: sample.execution,
     config: binding.config ?? {},
     adapters,
-    evidence: store.writer(run.runId, { sampleId: sample.sampleId, caseId: sample.caseId }),
+    evidence: store.writer(run.runId, { sampleId: sample.sampleId, caseId: sample.caseId }, redaction),
   });
 }
 
