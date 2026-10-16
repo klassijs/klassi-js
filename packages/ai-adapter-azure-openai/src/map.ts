@@ -157,6 +157,9 @@ function mapResponsesOutput(record: Record<string, unknown>): AzureMappedOutput 
     }
   }
   const text = texts.join('') || asString(record.output_text);
+  if (structured === undefined) {
+    structured = parseJson(text);
+  }
   const safety = safetyFrom(record.content_filter_results);
   const incomplete = record.incomplete_details && typeof record.incomplete_details === 'object' ? asString((record.incomplete_details as { reason?: unknown }).reason) : undefined;
   const providerStatus = asString(record.status);

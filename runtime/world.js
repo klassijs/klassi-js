@@ -12,7 +12,7 @@ const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
 const getRemote = require('./getRemote');
 const data = require('./helpers');
-const { filterQuietTags } = require('../cucumber');
+const { isHeadlessApiScenario } = require('./apiTags');
 const { getTagsFromFeatureFiles } = require('../index');
 const { throwCollectedErrors } = require('klassijs-soft-assert');
 const { ImageAssertion } = require('klassijs-visual-validation');
@@ -265,17 +265,13 @@ After(async function () {
  * will not take an image if it's an API test
  */
 After(async function (scenario) {
-	const world = this;
-	let result = await filterQuietTags();
-	const resultingString = '';
-	const taglist = resultingString.split(',');
-	if (!taglist.some((tag) => result.includes(tag)) && scenario.result.status === Status.FAILED) {
-		if (typeof global.browser !== 'undefined' && global.browser.takeScreenshot) {
-			return await global.browser.takeScreenshot().then((screenShot) => {
-				// takeScreenshot already returns base64. The base64: prefix stops Cucumber from encoding it again.
-				world.attach(screenShot, 'base64:image/png');
-			});
-		}
+	if (scenario.result.status !== Status.FAILED || isHeadlessApiScenario(scenario)) {
+		return;
+	}
+	if (typeof global.browser !== 'undefined' && global.browser.takeScreenshot) {
+		const screenShot = await global.browser.takeScreenshot();
+		// takeScreenshot already returns base64. The base64: prefix stops Cucumber from encoding it again.
+		this.attach(screenShot, 'base64:image/png');
 	}
 });
 

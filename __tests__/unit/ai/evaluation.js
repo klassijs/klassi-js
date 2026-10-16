@@ -445,6 +445,7 @@ describe('ai evaluation', () => {
       { status: 'incomplete', incomplete_details: { reason: 'max_output_tokens' }, output: [{ type: 'message', content: [{ type: 'output_text', text: 'partial' }] }] },
       { status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'blocked' }] }], content_filter_results: { violence: { filtered: true, severity: 'high' } } },
       { status: 'completed', output: [{ type: 'message', content: [{ type: 'output_json', json: { allowed: false } }] }] },
+      { status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: '{"decision":"deny","ticket":"KL-1008"}' }] }] },
     ];
     const adapter = new azure.AzureOpenAIAdapter({
       profile: azure.defaultAzureProfile,
@@ -475,6 +476,8 @@ describe('ai evaluation', () => {
     expect(blocked.status).toBe('blocked');
     expect(blocked.safety[0].action).toBe('block');
     expect(structured.output.structured).toEqual({ allowed: false });
+    const textJson = await adapter.execute({ messages: [{ role: 'user', content: 'Reply with JSON.' }] }, context);
+    expect(textJson.output.structured).toEqual({ decision: 'deny', ticket: 'KL-1008' });
     expect(requests[2].text.format.type).toBe('json_schema');
     expect(requests[2].text.format.strict).toBe(true);
     expect(JSON.stringify(requests).includes('super-secret-token')).toBe(false);

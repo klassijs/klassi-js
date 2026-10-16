@@ -16083,6 +16083,9 @@ function mapResponsesOutput(record) {
     }
   }
   const text = texts.join("") || asString(record.output_text);
+  if (structured === void 0) {
+    structured = parseJson2(text);
+  }
   const safety = safetyFrom(record.content_filter_results);
   const incomplete = record.incomplete_details && typeof record.incomplete_details === "object" ? asString(record.incomplete_details.reason) : void 0;
   const providerStatus = asString(record.status);
