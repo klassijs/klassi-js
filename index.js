@@ -49,8 +49,15 @@ async function klassiCli() {
   }
 }
 
+const aiApi = require('./runtime/ai/api.cjs');
+global.aiSuite = aiApi.aiSuite;
+global.aiCase = aiApi.aiCase;
+global.createAdapterRegistry = aiApi.createAdapterRegistry;
+global.runAiEvaluation = aiApi.runAiEvaluation;
+global.FakeAIAdapter = aiApi.FakeAIAdapter;
+
 (async () => {
-  // Dynamically import Chai (ESM)
+  // Import chai globally
   const chai = await import('chai');
   global.assert = chai.assert;
 })();
@@ -504,5 +511,12 @@ if (process.argv[2] === 'ai:evaluate' || process.argv[2] === 'ai:baseline' || pr
     }
   }
 
-  module.exports = { getTagsFromFeatureFiles };
+  module.exports = {
+    getTagsFromFeatureFiles,
+    aiSuite: aiApi.aiSuite,
+    aiCase: aiApi.aiCase,
+    createAdapterRegistry: aiApi.createAdapterRegistry,
+    runAiEvaluation: aiApi.runAiEvaluation,
+    FakeAIAdapter: aiApi.FakeAIAdapter,
+  };
 }

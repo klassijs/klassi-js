@@ -53,6 +53,8 @@
     "changelog:major": "standard-version --release-as major --skip.commit --skip.tag",
     "cilts3r": "node ./index.js --disableReport --tags @s3 --remoteService lambdatest --extraSettings",
     "ai:build": "pnpm --filter \"./packages/*\" build",
+    "ai:bundle": "pnpm ai:build && node scripts/bundle-ai-api.mjs",
+    "prepack": "pnpm ai:bundle",
     "ai:test": "pnpm --filter \"./packages/*\" test",
     "ai:lint": "pnpm --filter \"./packages/*\" lint",
     "ai:typecheck": "pnpm --filter \"./packages/*\" typecheck"
@@ -117,6 +119,7 @@
     "@klassijs/ai-evidence": "workspace:*",
     "@klassijs/ai-evaluators": "workspace:*",
     "@klassijs/ai-reporters": "workspace:*",
+    "esbuild": "0.25.12",
     "jest": "30.5.2",
     "jest-junit": "17.0.0"
   }
