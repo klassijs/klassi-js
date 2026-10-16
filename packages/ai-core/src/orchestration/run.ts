@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import type { AdapterHealth, AIPlatformAdapter } from '../adapter.js';
-import type { AIExecutionRequest, AIExecutionResult, EvidenceWriter, ExecutionContext } from '../execution.js';
+import type { AIExecutionRequest, AIExecutionResult, AIResponseFormat, EvidenceWriter, ExecutionContext } from '../execution.js';
 import type { AIMessage } from '../messages.js';
 import type { ConversationTurnResult, EvaluationSample } from '../sample.js';
-import type { EvaluationSuite } from '../evaluation.js';
+import type { EvaluationCase, EvaluationSuite } from '../evaluation.js';
 import { AIEvaluationError } from '../errors.js';
 import type { AdapterRegistry } from '../registry.js';
 import type { RunContext } from '../evaluator.js';
@@ -54,6 +54,30 @@ function defaultSleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+/** A case schema, or an explicit JSON flag, asks the adapter for JSON output. */
+function withResponseFormat(evaluationCase: EvaluationCase, request: AIExecutionRequest): AIExecutionRequest {
+  const schema = jsonSchemaFor(evaluationCase);
+  const explicitJson = evaluationCase.metadata?.json === true || evaluationCase.target.options?.json === true;
+  if (!schema && !explicitJson) {
+    return request;
+  }
+  const responseFormat: AIResponseFormat = schema ? { type: 'json', schema } : { type: 'json' };
+  return { ...request, responseFormat };
+}
+
+function jsonSchemaFor(evaluationCase: EvaluationCase): Record<string, unknown> | undefined {
+  if (evaluationCase.expectations?.expectedSchema) {
+    return evaluationCase.expectations.expectedSchema;
+  }
+  for (const binding of evaluationCase.evaluators) {
+    const schema = binding.config?.schema;
+    if (binding.id === 'json-schema' && schema && typeof schema === 'object' && !Array.isArray(schema)) {
+      return schema as Record<string, unknown>;
+    }
+  }
+  return undefined;
 }
 
 function requestHash(request: AIExecutionRequest): string {
@@ -197,7 +221,7 @@ async function executePlannedSample(
     let finalResult: AIExecutionResult | undefined;
     for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
       history.push(...turn.messages);
-      const request: AIExecutionRequest = { ...requestBase, messages: history.map((message) => ({ ...message })) };
+      const request: AIExecutionRequest = withResponseFormat(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
       const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
       attempts.push(...executed.attempts);
       finalResult = executed.result;
@@ -249,7 +273,7 @@ async function executePlannedSample(
     };
   }
 
-  const request: AIExecutionRequest = { ...requestBase, messages: evaluationCase.input.messages };
+  const request: AIExecutionRequest = withResponseFormat(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
   const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
   emitTelemetry(options.telemetry, {
     name: 'sample.completed',

@@ -3,6 +3,30 @@ import test from 'node:test';
 import { createAdapterRegistry, runEvaluation } from '../dist/index.js';
 import { FakeAIAdapter } from '../dist/testing/index.js';
 
+function recordingAdapter(requests) {
+  return {
+    id: 'fake',
+    name: 'recording',
+    version: '0.0.0',
+    async capabilities() {
+      return { text: true, images: false, streaming: false, structuredOutput: true, toolCalling: false, multiTurn: true, usage: false, contentSafetyMetadata: false, seed: false };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute(request) {
+      requests.push(request);
+      return {
+        id: 'recorded',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'hello' },
+        timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.000Z', latencyMs: 1 },
+      };
+    },
+  };
+}
+
 function suite(overrides = {}) {
   return {
     id: 'support-release',
@@ -219,6 +243,51 @@ test('a conversation carries each assistant reply into the next turn', async () 
   assert.equal(sample.turns[1].messages.map((message) => message.content).join('|'), 'Say hello.|hello|Say goodbye.');
   assert.equal(sample.execution.output.text, 'hello\ngoodbye');
   assert.deepEqual(run.samples[0].evidence.map((artifact) => artifact.name), ['turn-greeting', 'turn-farewell']);
+});
+
+test('a declared schema is requested as JSON on one turn and on every conversation turn', async () => {
+  const schema = { type: 'object', properties: { allowed: { type: 'boolean' } } };
+  const requests = [];
+  const registry = createAdapterRegistry();
+  registry.register(recordingAdapter(requests));
+
+  await runEvaluation({
+    registry,
+    suite: suite({ expectations: { expectedSchema: schema } }),
+    sleep: async () => {},
+  });
+  assert.equal(requests.length, 1);
+  assert.deepEqual(requests[0].responseFormat, { type: 'json', schema });
+
+  requests.length = 0;
+  await runEvaluation({
+    registry,
+    suite: suite({
+      expectations: { expectedSchema: schema },
+      conversation: {
+        turns: [
+          { id: 'greeting', messages: [{ role: 'user', content: 'Say hello.' }] },
+          { id: 'farewell', messages: [{ role: 'user', content: 'Say goodbye.' }] },
+        ],
+      },
+    }),
+    sleep: async () => {},
+  });
+  assert.equal(requests.length, 2);
+  assert.deepEqual(requests[0].responseFormat, { type: 'json', schema });
+  assert.deepEqual(requests[1].responseFormat, { type: 'json', schema });
+});
+
+test('an explicit JSON flag requests JSON output without a schema', async () => {
+  const requests = [];
+  const registry = createAdapterRegistry();
+  registry.register(recordingAdapter(requests));
+  await runEvaluation({
+    registry,
+    suite: suite({ metadata: { json: true } }),
+    sleep: async () => {},
+  });
+  assert.deepEqual(requests[0].responseFormat, { type: 'json' });
 });
 
 test('a model-requested tool is recorded and is not executed', async () => {
