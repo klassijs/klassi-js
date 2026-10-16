@@ -17,7 +17,8 @@ const config = {
     '**/?(*.)+(spec|test).[tj]s?(x)'
   ],
   testPathIgnorePatterns: [
-    '/node_modules/'
+    '/node_modules/',
+    '/packages/',
   ],
   // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
   // watchPathIgnorePatterns: [],

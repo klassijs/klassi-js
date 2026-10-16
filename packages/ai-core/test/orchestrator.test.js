@@ -1,0 +1,193 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createAdapterRegistry, runEvaluation } from '../dist/index.js';
+import { FakeAIAdapter } from '../dist/testing/index.js';
+
+function suite(overrides = {}) {
+  return {
+    id: 'support-release',
+    name: 'Support release',
+    version: '1.0.0',
+    cases: [
+      {
+        id: 'refund-policy-001',
+        name: 'Refund policy',
+        target: { adapter: 'fake', profile: 'target' },
+        input: { messages: [{ role: 'user', content: 'Can I return an item after 20 days?' }] },
+        evaluators: [{ id: 'exact-match', type: 'deterministic' }],
+        execution: { samples: 1, timeoutMs: 1000, retry: { maxInfrastructureRetries: 2, initialDelayMs: 0, jitter: false } },
+        ...overrides,
+      },
+    ],
+    qualityGate: {},
+  };
+}
+
+test('a fake adapter executes one case and one sample', async () => {
+  const adapter = new FakeAIAdapter();
+  adapter.useScript({ kind: 'success', text: 'The return window is 14 days.' });
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+
+  const run = await runEvaluation({ registry, suite: suite(), sleep: async () => {} });
+
+  assert.equal(run.health[0].health.status, 'healthy');
+  assert.equal(run.samples.length, 1);
+  assert.equal(run.samples[0].attempts.length, 1);
+  assert.equal(run.samples[0].sample.execution.output.text, 'The return window is 14 days.');
+  assert.equal(run.samples[0].sample.status, 'review');
+  assert.match(run.run.runId, /^[0-9a-f]{28}$/);
+});
+
+test('samples stay separate and a completed answer is not retried', async () => {
+  const adapter = new FakeAIAdapter();
+  adapter.useScript({ kind: 'success', text: 'wrong answer' });
+  adapter.useScript({ kind: 'success', text: 'another answer' });
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+
+  const run = await runEvaluation({
+    registry,
+    suite: suite({ execution: { samples: 2, retry: { maxInfrastructureRetries: 2, initialDelayMs: 0, jitter: false } } }),
+    sleep: async () => {},
+  });
+
+  assert.equal(run.samples.length, 2);
+  assert.equal(run.samples[0].sample.sampleIndex, 0);
+  assert.equal(run.samples[1].sample.sampleIndex, 1);
+  assert.notEqual(run.samples[0].sample.sampleId, run.samples[1].sample.sampleId);
+  assert.equal(run.samples[0].attempts.length, 1);
+  assert.equal(run.samples[1].attempts.length, 1);
+  assert.equal(run.samples[0].sample.execution.output.text, 'wrong answer');
+  assert.equal(run.samples[1].sample.execution.output.text, 'another answer');
+});
+
+test('infrastructure failures are retried and recorded, behavioural provider errors are not', async () => {
+  const adapter = new FakeAIAdapter();
+  adapter.useScript({ kind: 'rate-limit' });
+  adapter.useScript({ kind: 'success', text: 'recovered' });
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+
+  const retried = await runEvaluation({ registry, suite: suite(), sleep: async () => {} });
+  assert.equal(retried.samples[0].attempts.length, 2);
+  assert.equal(retried.samples[0].attempts[0].retried, true);
+  assert.equal(retried.samples[0].attempts[0].result.error.code, 'RATE_LIMIT_ERROR');
+  assert.equal(retried.samples[0].attempts[1].retried, false);
+  assert.equal(retried.samples[0].sample.execution.output.text, 'recovered');
+  assert.equal(retried.samples[0].evidence.length, 1);
+
+  const failing = new FakeAIAdapter();
+  failing.useScript({ kind: 'provider-failure', providerCode: 'simulated-500' });
+  const failingRegistry = createAdapterRegistry();
+  failingRegistry.register(failing);
+  const once = await runEvaluation({ registry: failingRegistry, suite: suite(), sleep: async () => {} });
+  assert.equal(once.samples[0].attempts.length, 1);
+  assert.equal(once.samples[0].sample.status, 'error');
+});
+
+test('an aborted run and a hung adapter are bounded by timeout', async () => {
+  const adapter = new FakeAIAdapter();
+  adapter.useScript({ kind: 'success', text: 'should not run' });
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+  const controller = new AbortController();
+  controller.abort();
+
+  const aborted = await runEvaluation({ registry, suite: suite(), signal: controller.signal, sleep: async () => {} });
+  assert.equal(aborted.samples.length, 0);
+
+  const hanging = {
+    id: 'fake',
+    name: 'hanging',
+    version: '0.0.0',
+    async capabilities() {
+      return {
+        text: true,
+        images: false,
+        streaming: false,
+        structuredOutput: false,
+        toolCalling: false,
+        multiTurn: false,
+        usage: false,
+        contentSafetyMetadata: false,
+        seed: false,
+      };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    execute() {
+      return new Promise(() => {});
+    },
+  };
+  const hangRegistry = createAdapterRegistry();
+  hangRegistry.register(hanging);
+  const timed = await runEvaluation({
+    registry: hangRegistry,
+    suite: suite({ execution: { timeoutMs: 30, retry: { maxInfrastructureRetries: 0, initialDelayMs: 0, jitter: false } } }),
+    sleep: async () => {},
+  });
+  assert.equal(timed.samples[0].sample.execution.error.code, 'TIMEOUT_ERROR');
+  assert.equal(timed.samples[0].attempts.length, 1);
+});
+
+test('concurrency limits overlapping sample execution', async () => {
+  let active = 0;
+  let maxActive = 0;
+  const adapter = {
+    id: 'fake',
+    name: 'pool',
+    version: '0.0.0',
+    async capabilities() {
+      return {
+        text: true,
+        images: false,
+        streaming: false,
+        structuredOutput: false,
+        toolCalling: false,
+        multiTurn: false,
+        usage: false,
+        contentSafetyMetadata: false,
+        seed: false,
+      };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute() {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      active -= 1;
+      return {
+        id: 'ok',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'ok' },
+        timing: {
+          startedAt: '2026-01-01T00:00:00.000Z',
+          completedAt: '2026-01-01T00:00:00.020Z',
+          latencyMs: 20,
+        },
+      };
+    },
+  };
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+
+  await runEvaluation({
+    registry,
+    suite: suite({
+      execution: {
+        samples: 2,
+        concurrency: 1,
+        timeoutMs: 1000,
+        retry: { maxInfrastructureRetries: 0, initialDelayMs: 0, jitter: false },
+      },
+    }),
+    sleep: async () => {},
+  });
+
+  assert.equal(maxActive, 1);
+});

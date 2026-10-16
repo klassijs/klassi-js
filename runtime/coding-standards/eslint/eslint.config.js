@@ -4,6 +4,10 @@ const prettierPlugin = require('eslint-plugin-prettier');
 const prettierConfig = require('eslint-config-prettier');
 
 module.exports = [
+  {
+    ignores: ['packages/**'],
+  },
+
   js.configs.recommended,
 
   {
@@ -147,6 +151,13 @@ module.exports = [
     files: ['index.js'],
     rules: {
       'no-restricted-syntax': 'off',
+    },
+  },
+
+  {
+    files: ['__tests__/unit/ai/**/*.js'],
+    rules: {
+      'import/no-unresolved': 'off',
     },
   },
 

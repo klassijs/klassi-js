@@ -1,0 +1,28 @@
+{
+  "id": "broken-suite",
+  "name": "Broken suite",
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "missing-evaluator-type",
+      "name": "Missing evaluator type",
+      "target": {
+        "adapter": "azure-openai"
+      },
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ]
+      },
+      "evaluators": [
+        {
+          "id": "relevance",
+          "threshold": 0.9
+        }
+      ]
+    }
+  ]
+}
