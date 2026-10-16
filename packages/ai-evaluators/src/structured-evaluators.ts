@@ -1,4 +1,4 @@
-import type { Evaluator } from '@klassijs/ai-core';
+import type { AIExecutionResult, Evaluator } from '@klassijs/ai-core';
 import { defineEvaluator, failedConfig, scored } from './support.js';
 
 const SUPPORTED_SCHEMA_KEYS = new Set(['type', 'required', 'properties', 'enum', 'const', 'items']);
@@ -57,6 +57,21 @@ export function matchesSchema(value: unknown, schema: Record<string, unknown>): 
   return undefined;
 }
 
+function structuredValue(result: AIExecutionResult): unknown {
+  if (result.output.structured !== undefined) {
+    return result.output.structured;
+  }
+  const text = result.output.text?.trim();
+  if (!text) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
 function readPath(value: unknown, expression: string): { found: boolean; value?: unknown } {
   if (!expression.startsWith('$')) {
     return { found: false };
@@ -90,7 +105,7 @@ export const jsonSchema: Evaluator = defineEvaluator('json-schema', 'JSON schema
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
     return failedConfig(jsonSchema, 'json-schema requires config.schema');
   }
-  const reason = matchesSchema(context.result.output.structured, schema as Record<string, unknown>);
+  const reason = matchesSchema(structuredValue(context.result), schema as Record<string, unknown>);
   if (reason?.startsWith('unsupported')) {
     return failedConfig(jsonSchema, reason);
   }
@@ -102,7 +117,7 @@ export const jsonPath: Evaluator = defineEvaluator('json-path', 'JSON path', asy
   if (!expression) {
     return failedConfig(jsonPath, 'json-path requires config.path');
   }
-  const found = readPath(context.result.output.structured, expression);
+  const found = readPath(structuredValue(context.result), expression);
   const expected = context.config && typeof context.config === 'object' ? (context.config as { equals?: unknown }).equals : undefined;
   if (!found.found) {
     return scored(jsonPath, false, `path ${expression} was missing`);

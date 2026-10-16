@@ -9,7 +9,7 @@ import {
   type ExecutionContext,
   type ProviderEvidence,
 } from '@klassijs/ai-core';
-import { mapAzureCall, mapAzureOutput, providerError, requestHasImage, statusError } from './map.js';
+import { isContentFilter, mapAzureCall, mapAzureOutput, providerError, requestHasImage, statusError } from './map.js';
 import { AZURE_ADAPTER_ID, AZURE_ADAPTER_VERSION, assertAzureProfile, type AzureOpenAIAdapterProfile } from './profile.js';
 import { redactText, redactValue } from './redact.js';
 import { inspectAzureProfile, safeHealthMessage, type ResolvedAzureTarget } from './resolve.js';
@@ -128,6 +128,9 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       if (!response.ok) {
         const classified = statusError(response.status);
         const details = providerError(parsed ?? raw);
+        if (isContentFilter(details.message, details.providerCode)) {
+          return this.blocked(context, latencyMs, details.message || 'Azure content filter blocked the prompt', resolved.secrets, redactValue({ status: response.status, body: parsed ?? raw }, resolved.secrets));
+        }
         const retryAfterMs = classified.code === 'RATE_LIMIT_ERROR' ? retryAfter(response.headers.get('retry-after')) : undefined;
         return this.failure(
           context,
@@ -187,6 +190,20 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       capturedAt: result.timing.completedAt,
       redacted: true,
       payload: redactValue({ caseId: context.caseId, native: result.native, error: result.error }, secrets) as Record<string, unknown>,
+    };
+  }
+
+  private blocked(context: ExecutionContext, latencyMs: number, message: string, secrets: readonly string[], native?: unknown): AIExecutionResult {
+    const text = redactText(message, secrets);
+    return {
+      id: `${this.id}-blocked`,
+      adapterId: this.id,
+      status: 'blocked',
+      output: { text },
+      safety: [{ category: 'content-filter', action: 'block', severity: 'high' }],
+      finishReason: 'content_filter',
+      timing: timing(context.startedAt, latencyMs),
+      ...(native !== undefined ? { native } : {}),
     };
   }
 

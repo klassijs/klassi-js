@@ -325,7 +325,7 @@ async function scoreBinding(
 }
 
 function classifyExit(samples: EvaluationSample[], gateStatus: 'pass' | 'fail'): ExitCode {
-  if (samples.some((sample) => sample.execution.status !== 'completed')) {
+  if (samples.some((sample) => sample.execution.status !== 'completed' && sample.execution.status !== 'blocked')) {
     return EXIT_CODES.executionFailure;
   }
   if (samples.some((sample) => sample.evaluatorResults.some((result) => result.status === 'error'))) {

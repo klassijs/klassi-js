@@ -402,6 +402,13 @@ function numberOr(...values: unknown[]): number | undefined {
   return values.find((value): value is number => typeof value === 'number' && Number.isFinite(value));
 }
 
+export function isContentFilter(message: string | undefined, providerCode: string | undefined): boolean {
+  if (providerCode === 'content_filter') {
+    return true;
+  }
+  return typeof message === 'string' && /content management policy|content filter/i.test(message);
+}
+
 export function statusError(status: number): { code: AIErrorCode; retryable: boolean } {
   if (status === 401) {
     return { code: 'AUTHENTICATION_ERROR', retryable: false };

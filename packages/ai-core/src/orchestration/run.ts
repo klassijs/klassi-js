@@ -80,6 +80,10 @@ function jsonSchemaFor(evaluationCase: EvaluationCase): Record<string, unknown> 
   return undefined;
 }
 
+function scoredExecutionStatus(status: AIExecutionResult['status']): 'review' | 'error' {
+  return status === 'completed' || status === 'blocked' ? 'review' : 'error';
+}
+
 function requestHash(request: AIExecutionRequest): string {
   return createHash('sha256').update(JSON.stringify(request)).digest('hex');
 }
@@ -252,7 +256,7 @@ async function executePlannedSample(
       suiteId: run.suiteId,
       caseId: evaluationCase.id,
       sampleId: plannedSample.sampleId,
-      status: finalResult.status === 'completed' ? 'review' : 'error',
+      status: scoredExecutionStatus(finalResult.status),
     });
     const transcript = turns.map((turn) => turn.execution.output.text ?? '').filter((text) => text.length > 0).join('\n');
     return {
@@ -267,7 +271,7 @@ async function executePlannedSample(
         execution: { ...finalResult, output: { ...finalResult.output, text: transcript, messages: history.map((message) => ({ ...message })) } },
         turns,
         evaluatorResults: [],
-        status: finalResult.status === 'completed' ? 'review' : 'error',
+        status: scoredExecutionStatus(finalResult.status),
         startedAt: attempts[0]?.result.timing.startedAt ?? now(),
         completedAt: finalResult.timing.completedAt,
       },
@@ -282,7 +286,7 @@ async function executePlannedSample(
     suiteId: run.suiteId,
     caseId: evaluationCase.id,
     sampleId: plannedSample.sampleId,
-    status: executed.result.status === 'completed' ? 'review' : 'error',
+    status: scoredExecutionStatus(executed.result.status),
     latencyMs: executed.result.timing.latencyMs,
   });
   return {
@@ -296,7 +300,7 @@ async function executePlannedSample(
       requestHash: requestHash(request),
       execution: executed.result,
       evaluatorResults: [],
-      status: executed.result.status === 'completed' ? 'review' : 'error',
+      status: scoredExecutionStatus(executed.result.status),
       startedAt: executed.attempts[0]?.result.timing.startedAt ?? now(),
       completedAt: executed.result.timing.completedAt,
     },
