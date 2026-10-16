@@ -242,12 +242,12 @@ module.exports = {
 				Location: `${obj.city} ${obj.regionName}`,
 				Platform: process.platform,
 				'Test Completion': endDateTime,
-				'Suite duration': suiteDuration(startDateTime, endDateTime),
 				Executed:
 					remoteService &&
 					remoteService.type === 'lambdatest'
 						? 'Remote'
 						: 'Local',
+				'Suite duration': suiteDuration(startDateTime, endDateTime),
 			},
 			brandTitle: `${reportName} ${dateTime}`,
 			name: `${projectName} ${browserName} ${envName}`,
