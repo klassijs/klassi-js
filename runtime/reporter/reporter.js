@@ -18,6 +18,38 @@ let obj;
  * @param {number} delay - Delay in milliseconds
  * @returns {Promise}
  */
+/** Wall-clock time from Klassi start to report generation. Both stamps use dd-mm-yyyy-HH:MM:SS. */
+function suiteDuration(start, end) {
+	const startMs = parseKlassiDateTime(start);
+	const endMs = parseKlassiDateTime(end);
+	if (startMs === undefined || endMs === undefined || endMs < startMs) {
+		return 'unavailable';
+	}
+	const totalSeconds = Math.round((endMs - startMs) / 1000);
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+	if (hours > 0) {
+		return `${hours}h ${minutes}m ${seconds}s`;
+	}
+	if (minutes > 0) {
+		return `${minutes}m ${seconds}s`;
+	}
+	return `${seconds}s`;
+}
+
+function parseKlassiDateTime(value) {
+	if (typeof value !== 'string') {
+		return undefined;
+	}
+	const match = /^(\d{2})-(\d{2})-(\d{4})-(\d{2}):(\d{2}):(\d{2})$/.exec(value);
+	if (!match) {
+		return undefined;
+	}
+	const [, day, month, year, hours, minutes, seconds] = match;
+	return Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes), Number(seconds));
+}
+
 async function safePause(delay) {
   if (typeof global.browser !== 'undefined' && global.browser.pause) {
     return await global.browser.pause(delay);
@@ -210,6 +242,7 @@ module.exports = {
 				Location: `${obj.city} ${obj.regionName}`,
 				Platform: process.platform,
 				'Test Completion': endDateTime,
+				'Suite duration': suiteDuration(startDateTime, endDateTime),
 				Executed:
 					remoteService &&
 					remoteService.type === 'lambdatest'
