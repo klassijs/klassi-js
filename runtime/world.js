@@ -8,11 +8,11 @@ try {
 	// dotenv optional; .env can be loaded by app or shell
 }
 
-const { setDefaultTimeout, Before } = require('@cucumber/cucumber');
+const { setDefaultTimeout, Before, AfterStep } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
 const getRemote = require('./getRemote');
 const data = require('./helpers');
-const { isHeadlessApiScenario } = require('./apiTags');
+const { filterQuietTags } = require('../cucumber');
 const { getTagsFromFeatureFiles } = require('../index');
 const { throwCollectedErrors } = require('klassijs-soft-assert');
 const { ImageAssertion } = require('klassijs-visual-validation');
@@ -135,6 +135,24 @@ global.timeout = globalTimeout;
  * it can be used in arrow functions
  */
 let cucumberThis;
+const failureShots = [];
+let skipFailureScreenshot = false;
+
+function normaliseTagName(tag) {
+	const name = typeof tag === 'string' ? tag : tag && tag.name;
+	return String(name || '').trim().toLowerCase();
+}
+
+async function rememberFailurePage() {
+	if (skipFailureScreenshot || !global.browser || !global.browser.takeScreenshot) {
+		return;
+	}
+	try {
+		failureShots.push(await global.browser.takeScreenshot());
+	} catch (err) {
+		// The page may already be closing. The scenario hook still reports the failure.
+	}
+}
 
 Before(async function () {
 	global.cucumberThis = this;
@@ -152,7 +170,26 @@ global.startDateTime = data.getStartDateTime();
 /**
  * executed before each scenario
  */
-Before(async (scenario) => {
+Before(async function (scenario) {
+	failureShots.length = 0;
+	const quietTags = (await filterQuietTags()).map((tag) => normaliseTagName(tag));
+	const scenarioTags = [
+		...(scenario.pickle?.tags || []),
+		...(scenario.gherkinDocument?.feature?.tags || []),
+	].map((tag) => normaliseTagName(tag));
+	skipFailureScreenshot = scenarioTags.some((tag) => quietTags.includes(tag));
+	if (!this.attach.klassiWrapped) {
+		const originalAttach = this.attach.bind(this);
+		const wrappedAttach = async (data, mediaType) => {
+			const attached = originalAttach(data, mediaType);
+			if (!mediaType && typeof data === 'string' && data.includes('Assertion failed')) {
+				await rememberFailurePage();
+			}
+			return attached;
+		};
+		wrappedAttach.klassiWrapped = true;
+		this.attach = wrappedAttach;
+	}
 	if (remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
 		const { browser } = global;
 		await browser.executeScript(`lambda-name=${scenario.pickle.name}`, []);
@@ -250,6 +287,35 @@ After(async (scenario) => {
 	return await browserOpen();
 });
 
+/**
+ * A thrown step stops on the page where it failed. Capture that page
+ * before the next step navigates away.
+ */
+AfterStep(async function (step) {
+	if (step.result.status === Status.FAILED) {
+		await rememberFailurePage();
+	}
+});
+
+/**
+ * Runs after the soft-assert and visual hooks have recorded a failure,
+ * and before the browser session is closed.
+ * Cucumber runs After hooks in reverse order of registration.
+ * A tag in runtime/scripts/tagList.json skips the screenshot.
+ */
+After(async function (scenario) {
+	if (scenario.result.status !== Status.FAILED || skipFailureScreenshot) {
+		return;
+	}
+	if (failureShots.length === 0) {
+		await rememberFailurePage();
+	}
+	for (const screenShot of failureShots) {
+		// takeScreenshot already returns base64. The base64: prefix stops Cucumber from encoding it again.
+		this.attach(screenShot, 'base64:image/png');
+	}
+});
+
 After(async function () {
 	// Pass the total assertion errors after each scenario to the report
 	await throwCollectedErrors();
@@ -258,21 +324,6 @@ After(async function () {
 After(async function () {
 	// Passing the total visual validation errors after each scenario to the report
 	await ImageAssertion.finalizeTest();
-});
-
-/**
- * get executed only if there is an error within a scenario
- * will not take an image if it's an API test
- */
-After(async function (scenario) {
-	if (scenario.result.status !== Status.FAILED || isHeadlessApiScenario(scenario)) {
-		return;
-	}
-	if (typeof global.browser !== 'undefined' && global.browser.takeScreenshot) {
-		const screenShot = await global.browser.takeScreenshot();
-		// takeScreenshot already returns base64. The base64: prefix stops Cucumber from encoding it again.
-		this.attach(screenShot, 'base64:image/png');
-	}
 });
 
 /**
