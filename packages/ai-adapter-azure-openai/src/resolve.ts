@@ -57,6 +57,15 @@ function readSetting(literal: string | undefined, envName: string | undefined, e
   return { value: value.trim(), message: 'configured' };
 }
 
+/** The adapter appends `/openai/v1/...`. A copied portal path must not be joined onto that. */
+function resourceEndpoint(url: URL): string {
+  const path = url.pathname.replace(/\/$/, '');
+  if (path === '' || path === '/openai' || path === '/openai/v1' || path === '/openai/deployments') {
+    return url.origin;
+  }
+  return url.origin + path;
+}
+
 function validateEndpoint(setting: { value?: string; message: string }): { check: HealthCheck; endpoint?: string } {
   if (!setting.value) {
     return { check: { name: 'endpoint', status: 'fail', message: setting.message.startsWith('AZURE_') || setting.message.includes(' is not set') ? setting.message : 'endpoint is not configured' } };
@@ -73,7 +82,7 @@ function validateEndpoint(setting: { value?: string; message: string }): { check
   if (url.protocol !== 'https:') {
     return { check: { name: 'endpoint', status: 'fail', message: 'endpoint must be an https URL' } };
   }
-  return { check: { name: 'endpoint', status: 'pass', message: 'https endpoint is configured' }, endpoint: url.origin + url.pathname.replace(/\/$/, '') };
+  return { check: { name: 'endpoint', status: 'pass', message: 'https endpoint is configured' }, endpoint: resourceEndpoint(url) };
 }
 
 function resolveCredential(profile: AzureOpenAIAdapterProfile, env: NodeJS.ProcessEnv): { check: HealthCheck; authorization?: ResolvedAzureTarget['authorization']; secrets: string[] } {

@@ -55,6 +55,19 @@ test('a configured API key reaches the v1 models endpoint and stays out of the h
 
   assert.equal(health.status, 'healthy');
   assert.equal(requestUrl, 'https://example.openai.azure.com/openai/v1/models');
+
+  let deploymentUrl = '';
+  const withPortalPath = new AzureOpenAIAdapter({
+    profile: defaultAzureProfile,
+    env: { ...readyEnv(), AZURE_OPENAI_ENDPOINT: 'https://example.openai.azure.com/openai/deployments' },
+    fetch: async (input) => {
+      deploymentUrl = String(input);
+      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    },
+  });
+  const portalHealth = await withPortalPath.healthCheck({});
+  assert.equal(portalHealth.status, 'healthy');
+  assert.equal(deploymentUrl, 'https://example.openai.azure.com/openai/v1/models');
   assert.equal(apiKey, secret);
   assert.equal(serialized.includes(secret), false);
   assert.equal(adapter.profile.credential.type, 'api-key');

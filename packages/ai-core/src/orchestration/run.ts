@@ -151,7 +151,8 @@ export async function runEvaluation(options: RunEvaluationOptions): Promise<Eval
     const checked = await adapter.healthCheck({ ...(profile ? { profile } : {}), signal: options.signal });
     health.push({ adapterId, health: checked });
     if (checked.status !== 'healthy') {
-      throw new AIEvaluationError('PROVIDER_UNAVAILABLE', `Adapter "${adapterId}" failed its health check`);
+      const detail = checked.checks?.filter((check) => check.status === 'fail').map((check) => check.message).filter((message): message is string => Boolean(message)).join('; ');
+      throw new AIEvaluationError('PROVIDER_UNAVAILABLE', detail ? `Adapter "${adapterId}" failed its health check: ${detail}` : `Adapter "${adapterId}" failed its health check`);
     }
   }
 

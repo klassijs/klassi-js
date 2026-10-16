@@ -11314,6 +11314,27 @@ function defaultSleep(ms) {
     setTimeout(resolve, ms);
   });
 }
+function withResponseFormat(evaluationCase, request) {
+  const schema = jsonSchemaFor(evaluationCase);
+  const explicitJson = evaluationCase.metadata?.json === true || evaluationCase.target.options?.json === true;
+  if (!schema && !explicitJson) {
+    return request;
+  }
+  const responseFormat = schema ? { type: "json", schema } : { type: "json" };
+  return { ...request, responseFormat };
+}
+function jsonSchemaFor(evaluationCase) {
+  if (evaluationCase.expectations?.expectedSchema) {
+    return evaluationCase.expectations.expectedSchema;
+  }
+  for (const binding of evaluationCase.evaluators) {
+    const schema = binding.config?.schema;
+    if (binding.id === "json-schema" && schema && typeof schema === "object" && !Array.isArray(schema)) {
+      return schema;
+    }
+  }
+  return void 0;
+}
 function requestHash(request) {
   return (0, import_node_crypto2.createHash)("sha256").update(JSON.stringify(request)).digest("hex");
 }
@@ -11375,7 +11396,8 @@ async function runEvaluation(options) {
     const checked = await adapter.healthCheck({ ...profile ? { profile } : {}, signal: options.signal });
     health.push({ adapterId, health: checked });
     if (checked.status !== "healthy") {
-      throw new AIEvaluationError("PROVIDER_UNAVAILABLE", `Adapter "${adapterId}" failed its health check`);
+      const detail = checked.checks?.filter((check) => check.status === "fail").map((check) => check.message).filter((message) => Boolean(message)).join("; ");
+      throw new AIEvaluationError("PROVIDER_UNAVAILABLE", detail ? `Adapter "${adapterId}" failed its health check: ${detail}` : `Adapter "${adapterId}" failed its health check`);
     }
   }
   emitTelemetry(options.telemetry, { name: "run.started", runId: run.runId, suiteId: run.suiteId });
@@ -11432,7 +11454,7 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
     let finalResult;
     for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
       history.push(...turn.messages);
-      const request2 = { ...requestBase, messages: history.map((message) => ({ ...message })) };
+      const request2 = withResponseFormat(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
       const executed2 = await runAttempts(request2, adapter, plannedSample, options, run, evidence, sleep, now);
       attempts.push(...executed2.attempts);
       finalResult = executed2.result;
@@ -11483,7 +11505,7 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
       }
     };
   }
-  const request = { ...requestBase, messages: evaluationCase.input.messages };
+  const request = withResponseFormat(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
   const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
   emitTelemetry(options.telemetry, {
     name: "sample.completed",
@@ -16370,6 +16392,13 @@ function readSetting(literal, envName2, env) {
   }
   return { value: value.trim(), message: "configured" };
 }
+function resourceEndpoint(url) {
+  const path6 = url.pathname.replace(/\/$/, "");
+  if (path6 === "" || path6 === "/openai" || path6 === "/openai/v1" || path6 === "/openai/deployments") {
+    return url.origin;
+  }
+  return url.origin + path6;
+}
 function validateEndpoint(setting) {
   if (!setting.value) {
     return { check: { name: "endpoint", status: "fail", message: setting.message.startsWith("AZURE_") || setting.message.includes(" is not set") ? setting.message : "endpoint is not configured" } };
@@ -16386,7 +16415,7 @@ function validateEndpoint(setting) {
   if (url.protocol !== "https:") {
     return { check: { name: "endpoint", status: "fail", message: "endpoint must be an https URL" } };
   }
-  return { check: { name: "endpoint", status: "pass", message: "https endpoint is configured" }, endpoint: url.origin + url.pathname.replace(/\/$/, "") };
+  return { check: { name: "endpoint", status: "pass", message: "https endpoint is configured" }, endpoint: resourceEndpoint(url) };
 }
 function resolveCredential(profile, env) {
   const envName2 = profile.credential.apiKeyEnv;
