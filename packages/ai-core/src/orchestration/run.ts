@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { AdapterHealth, AIPlatformAdapter } from '../adapter.js';
-import type { AIExecutionRequest, AIExecutionResult, AIResponseFormat, EvidenceWriter, ExecutionContext } from '../execution.js';
+import type { AIExecutionRequest, AIExecutionResult, AIResponseFormat, AIToolChoice, AIToolDefinition, EvidenceWriter, ExecutionContext } from '../execution.js';
 import type { AIMessage } from '../messages.js';
 import type { ConversationTurnResult, EvaluationSample } from '../sample.js';
 import type { EvaluationCase, EvaluationSuite } from '../evaluation.js';
@@ -65,6 +65,109 @@ function withResponseFormat(evaluationCase: EvaluationCase, request: AIExecution
   }
   const responseFormat: AIResponseFormat = schema ? { type: 'json', schema } : { type: 'json' };
   return { ...request, responseFormat };
+}
+
+/** Tools declared on the case are sent with the provider request. */
+function withTools(evaluationCase: EvaluationCase, request: AIExecutionRequest): AIExecutionRequest {
+  const formatted = withResponseFormat(evaluationCase, request);
+  const tools = toolDefinitions(evaluationCase.metadata?.tools);
+  const toolChoice = toolChoiceFor(evaluationCase.metadata?.toolChoice);
+  return {
+    ...formatted,
+    ...(tools ? { tools } : {}),
+    ...(toolChoice ? { toolChoice } : {}),
+  };
+}
+
+function toolDefinitions(value: unknown): AIToolDefinition[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const tools = value.flatMap((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return [];
+    }
+    const tool = item as { name?: unknown; description?: unknown; parameters?: unknown; type?: unknown; vectorStoreIds?: unknown };
+    const hostedType = tool.type === 'web_search' || tool.type === 'web_search_preview' || tool.type === 'file_search' ? tool.type : undefined;
+    if (hostedType) {
+      const vectorStoreIds = Array.isArray(tool.vectorStoreIds) ? tool.vectorStoreIds.filter((id): id is string => typeof id === 'string' && id.length > 0) : [];
+      const hosted: AIToolDefinition = {
+        name: typeof tool.name === 'string' && tool.name.trim().length > 0 ? tool.name : hostedType,
+        type: hostedType,
+        ...(vectorStoreIds.length > 0 ? { vectorStoreIds } : {}),
+      };
+      return [hosted];
+    }
+    if (typeof tool.name !== 'string' || tool.name.trim().length === 0) {
+      return [];
+    }
+    return [{
+      name: tool.name,
+      type: 'function' as const,
+      ...(typeof tool.description === 'string' ? { description: tool.description } : {}),
+      ...(tool.parameters && typeof tool.parameters === 'object' && !Array.isArray(tool.parameters) ? { parameters: tool.parameters as Record<string, unknown> } : {}),
+    }];
+  });
+  return tools.length > 0 ? tools : undefined;
+}
+
+type ToolHandler = (args: unknown) => unknown | Promise<unknown>;
+
+function toolHandlers(evaluationCase: EvaluationCase): Map<string, ToolHandler> {
+  const tools = evaluationCase.metadata?.tools;
+  if (!Array.isArray(tools)) {
+    return new Map();
+  }
+  const handlers = new Map<string, ToolHandler>();
+  for (const item of tools) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      continue;
+    }
+    const tool = item as { name?: unknown; execute?: unknown };
+    if (typeof tool.name === 'string' && tool.name.trim().length > 0 && typeof tool.execute === 'function') {
+      handlers.set(tool.name, tool.execute as ToolHandler);
+    }
+  }
+  return handlers;
+}
+
+/** A function call is only a request until the case handler runs and records its result. */
+async function applyToolResults(evaluationCase: EvaluationCase, result: AIExecutionResult): Promise<AIExecutionResult> {
+  const calls = result.toolCalls;
+  if (!calls || calls.length === 0) {
+    return result;
+  }
+  const handlers = toolHandlers(evaluationCase);
+  if (handlers.size === 0) {
+    return result;
+  }
+  const toolCalls = await Promise.all(calls.map(async (call) => {
+    const handler = handlers.get(call.name);
+    if (!handler) {
+      return call;
+    }
+    try {
+      const value = await handler(call.arguments);
+      return { ...call, result: value, status: 'completed' as const };
+    } catch {
+      return { ...call, status: 'failed' as const };
+    }
+  }));
+  return { ...result, toolCalls };
+}
+
+function toolChoiceFor(value: unknown): AIToolChoice | undefined {
+  if (value === 'auto' || value === 'none' || value === 'required') {
+    return value;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  const choice = value as { type?: unknown; name?: unknown };
+  if (choice.type === 'tool' && typeof choice.name === 'string' && choice.name.trim().length > 0) {
+    return { type: 'tool', name: choice.name };
+  }
+  return undefined;
 }
 
 function jsonSchemaFor(evaluationCase: EvaluationCase): Record<string, unknown> | undefined {
@@ -226,7 +329,7 @@ async function executePlannedSample(
     let finalResult: AIExecutionResult | undefined;
     for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
       history.push(...turn.messages);
-      const request: AIExecutionRequest = withResponseFormat(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
+      const request: AIExecutionRequest = withTools(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
       const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
       attempts.push(...executed.attempts);
       finalResult = executed.result;
@@ -278,7 +381,7 @@ async function executePlannedSample(
     };
   }
 
-  const request: AIExecutionRequest = withResponseFormat(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
+  const request: AIExecutionRequest = withTools(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
   const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
   emitTelemetry(options.telemetry, {
     name: 'sample.completed',
@@ -349,7 +452,7 @@ async function runAttempts(
 
     let result: AIExecutionResult;
     try {
-      result = await executeSampleAttempt(adapter, request, context, plannedSample.policy.timeoutMs);
+      result = await applyToolResults(plannedSample.evaluationCase, await executeSampleAttempt(adapter, request, context, plannedSample.policy.timeoutMs));
     } finally {
       clearTimeout(timer);
       options.signal?.removeEventListener('abort', onAbort);

@@ -3,6 +3,7 @@ import type {
   AIExecutionRequest,
   AIMessage,
   AIToolChoice,
+  AIToolDefinition,
   AIUsage,
   NormalizedCitation,
   NormalizedSafetyResult,
@@ -75,7 +76,7 @@ function responsesBody(request: AIExecutionRequest, deployment: string): Record<
     top_p: request.topP,
     max_output_tokens: request.maxOutputTokens,
     seed: request.seed,
-    tools: request.tools?.map((tool) => omitEmpty({ type: 'function', name: tool.name, description: tool.description, parameters: tool.parameters })),
+    tools: request.tools?.map(responsesTool),
     tool_choice: responsesToolChoice(request.toolChoice),
     text: responseTextFormat(request),
     ...safeOptions(request.providerOptions),
@@ -90,10 +91,10 @@ function chatBody(request: AIExecutionRequest, deployment: string): Record<strin
     top_p: request.topP,
     max_completion_tokens: request.maxOutputTokens,
     seed: request.seed,
-    tools: request.tools?.map((tool) => ({
+    tools: request.tools?.flatMap((tool) => (tool.type === 'web_search' || tool.type === 'web_search_preview' || tool.type === 'file_search' ? [] : [{
       type: 'function',
       function: omitEmpty({ name: tool.name, description: tool.description, parameters: tool.parameters }),
-    })),
+    }])),
     tool_choice: chatToolChoice(request.toolChoice),
     response_format: chatResponseFormat(request),
     ...safeOptions(request.providerOptions),
@@ -140,6 +141,7 @@ function mapResponsesOutput(record: Record<string, unknown>): AzureMappedOutput 
       toolCalls.push(toolCall(entry.call_id ?? entry.id, entry.name, entry.arguments));
       continue;
     }
+    citations.push(...citationsFrom(entry.annotations));
     const content = Array.isArray(entry.content) ? entry.content : [];
     for (const part of content) {
       if (!part || typeof part !== 'object') {
@@ -250,7 +252,7 @@ function toolCall(id: unknown, name: unknown, rawArguments: unknown): Normalized
     id: asString(id) ?? toolName,
     name: toolName,
     ...(parsed !== undefined ? { arguments: parsed } : {}),
-    status: 'completed',
+    status: 'requested',
   };
 }
 
@@ -287,12 +289,36 @@ function citationsFrom(value: unknown): NormalizedCitation[] {
     if (annotation.type !== 'url_citation' && annotation.type !== 'file_citation') {
       return [];
     }
-    return [{
-      ...(asString(annotation.id) ? { id: asString(annotation.id) } : {}),
-      ...(asString(annotation.title) ? { title: asString(annotation.title) } : {}),
-      ...(asString(annotation.url) ? { uri: asString(annotation.url) } : {}),
-    }];
+    const nested = annotation.type === 'url_citation' ? asRecord(annotation.url_citation) : asRecord(annotation.file_citation);
+    const source = { ...annotation, ...(nested ?? {}) };
+    const uri = asString(source.url) ?? asString(source.uri);
+    const title = asString(source.title) ?? asString(source.filename);
+    const id = asString(source.id) ?? asString(source.file_id);
+    const startIndex = numberOr(source.start_index);
+    const endIndex = numberOr(source.end_index);
+    const citation: NormalizedCitation = {
+      ...(id ? { id } : {}),
+      ...(title ? { title } : {}),
+      ...(uri ? { uri } : {}),
+      ...(startIndex !== undefined ? { startIndex } : {}),
+      ...(endIndex !== undefined ? { endIndex } : {}),
+    };
+    return Object.keys(citation).length > 0 ? [citation] : [];
   });
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+}
+
+function responsesTool(tool: AIToolDefinition): Record<string, unknown> {
+  if (tool.type === 'web_search' || tool.type === 'web_search_preview') {
+    return { type: tool.type };
+  }
+  if (tool.type === 'file_search') {
+    return omitEmpty({ type: 'file_search', vector_store_ids: tool.vectorStoreIds });
+  }
+  return omitEmpty({ type: 'function', name: tool.name, description: tool.description, parameters: tool.parameters });
 }
 
 function safetyFrom(value: unknown): NormalizedSafetyResult[] {

@@ -11323,6 +11323,100 @@ function withResponseFormat(evaluationCase, request) {
   const responseFormat = schema ? { type: "json", schema } : { type: "json" };
   return { ...request, responseFormat };
 }
+function withTools(evaluationCase, request) {
+  const formatted = withResponseFormat(evaluationCase, request);
+  const tools = toolDefinitions(evaluationCase.metadata?.tools);
+  const toolChoice = toolChoiceFor(evaluationCase.metadata?.toolChoice);
+  return {
+    ...formatted,
+    ...tools ? { tools } : {},
+    ...toolChoice ? { toolChoice } : {}
+  };
+}
+function toolDefinitions(value) {
+  if (!Array.isArray(value)) {
+    return void 0;
+  }
+  const tools = value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return [];
+    }
+    const tool = item;
+    const hostedType = tool.type === "web_search" || tool.type === "web_search_preview" || tool.type === "file_search" ? tool.type : void 0;
+    if (hostedType) {
+      const vectorStoreIds = Array.isArray(tool.vectorStoreIds) ? tool.vectorStoreIds.filter((id) => typeof id === "string" && id.length > 0) : [];
+      const hosted = {
+        name: typeof tool.name === "string" && tool.name.trim().length > 0 ? tool.name : hostedType,
+        type: hostedType,
+        ...vectorStoreIds.length > 0 ? { vectorStoreIds } : {}
+      };
+      return [hosted];
+    }
+    if (typeof tool.name !== "string" || tool.name.trim().length === 0) {
+      return [];
+    }
+    return [{
+      name: tool.name,
+      type: "function",
+      ...typeof tool.description === "string" ? { description: tool.description } : {},
+      ...tool.parameters && typeof tool.parameters === "object" && !Array.isArray(tool.parameters) ? { parameters: tool.parameters } : {}
+    }];
+  });
+  return tools.length > 0 ? tools : void 0;
+}
+function toolHandlers(evaluationCase) {
+  const tools = evaluationCase.metadata?.tools;
+  if (!Array.isArray(tools)) {
+    return /* @__PURE__ */ new Map();
+  }
+  const handlers = /* @__PURE__ */ new Map();
+  for (const item of tools) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      continue;
+    }
+    const tool = item;
+    if (typeof tool.name === "string" && tool.name.trim().length > 0 && typeof tool.execute === "function") {
+      handlers.set(tool.name, tool.execute);
+    }
+  }
+  return handlers;
+}
+async function applyToolResults(evaluationCase, result) {
+  const calls = result.toolCalls;
+  if (!calls || calls.length === 0) {
+    return result;
+  }
+  const handlers = toolHandlers(evaluationCase);
+  if (handlers.size === 0) {
+    return result;
+  }
+  const toolCalls = await Promise.all(calls.map(async (call) => {
+    const handler = handlers.get(call.name);
+    if (!handler) {
+      return call;
+    }
+    try {
+      const value = await handler(call.arguments);
+      return { ...call, result: value, status: "completed" };
+    } catch {
+      return { ...call, status: "failed" };
+    }
+  }));
+  return { ...result, toolCalls };
+}
+function toolChoiceFor(value) {
+  if (value === "auto" || value === "none" || value === "required") {
+    return value;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return void 0;
+  }
+  const choice = value;
+  if (choice.type === "tool" && typeof choice.name === "string" && choice.name.trim().length > 0) {
+    return { type: "tool", name: choice.name };
+  }
+  return void 0;
+}
 function jsonSchemaFor(evaluationCase) {
   if (evaluationCase.expectations?.expectedSchema) {
     return evaluationCase.expectations.expectedSchema;
@@ -11457,7 +11551,7 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
     let finalResult;
     for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
       history.push(...turn.messages);
-      const request2 = withResponseFormat(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
+      const request2 = withTools(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
       const executed2 = await runAttempts(request2, adapter, plannedSample, options, run, evidence, sleep, now);
       attempts.push(...executed2.attempts);
       finalResult = executed2.result;
@@ -11508,7 +11602,7 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
       }
     };
   }
-  const request = withResponseFormat(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
+  const request = withTools(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
   const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
   emitTelemetry(options.telemetry, {
     name: "sample.completed",
@@ -11566,7 +11660,7 @@ async function runAttempts(request, adapter, plannedSample, options, run, eviden
     };
     let result;
     try {
-      result = await executeSampleAttempt(adapter, request, context, plannedSample.policy.timeoutMs);
+      result = await applyToolResults(plannedSample.evaluationCase, await executeSampleAttempt(adapter, request, context, plannedSample.policy.timeoutMs));
     } finally {
       clearTimeout(timer);
       options.signal?.removeEventListener("abort", onAbort);
@@ -16009,7 +16103,7 @@ function responsesBody(request, deployment) {
     top_p: request.topP,
     max_output_tokens: request.maxOutputTokens,
     seed: request.seed,
-    tools: request.tools?.map((tool) => omitEmpty({ type: "function", name: tool.name, description: tool.description, parameters: tool.parameters })),
+    tools: request.tools?.map(responsesTool),
     tool_choice: responsesToolChoice(request.toolChoice),
     text: responseTextFormat(request),
     ...safeOptions(request.providerOptions)
@@ -16023,10 +16117,10 @@ function chatBody(request, deployment) {
     top_p: request.topP,
     max_completion_tokens: request.maxOutputTokens,
     seed: request.seed,
-    tools: request.tools?.map((tool) => ({
+    tools: request.tools?.flatMap((tool) => tool.type === "web_search" || tool.type === "web_search_preview" || tool.type === "file_search" ? [] : [{
       type: "function",
       function: omitEmpty({ name: tool.name, description: tool.description, parameters: tool.parameters })
-    })),
+    }]),
     tool_choice: chatToolChoice(request.toolChoice),
     response_format: chatResponseFormat(request),
     ...safeOptions(request.providerOptions)
@@ -16066,6 +16160,7 @@ function mapResponsesOutput(record) {
       toolCalls.push(toolCall(entry.call_id ?? entry.id, entry.name, entry.arguments));
       continue;
     }
+    citations.push(...citationsFrom(entry.annotations));
     const content = Array.isArray(entry.content) ? entry.content : [];
     for (const part of content) {
       if (!part || typeof part !== "object") {
@@ -16171,7 +16266,7 @@ function toolCall(id, name, rawArguments) {
     id: asString(id) ?? toolName,
     name: toolName,
     ...parsed !== void 0 ? { arguments: parsed } : {},
-    status: "completed"
+    status: "requested"
   };
 }
 function citationsFromContext(value) {
@@ -16206,12 +16301,34 @@ function citationsFrom(value) {
     if (annotation.type !== "url_citation" && annotation.type !== "file_citation") {
       return [];
     }
-    return [{
-      ...asString(annotation.id) ? { id: asString(annotation.id) } : {},
-      ...asString(annotation.title) ? { title: asString(annotation.title) } : {},
-      ...asString(annotation.url) ? { uri: asString(annotation.url) } : {}
-    }];
+    const nested = annotation.type === "url_citation" ? asRecord(annotation.url_citation) : asRecord(annotation.file_citation);
+    const source = { ...annotation, ...nested ?? {} };
+    const uri = asString(source.url) ?? asString(source.uri);
+    const title = asString(source.title) ?? asString(source.filename);
+    const id = asString(source.id) ?? asString(source.file_id);
+    const startIndex = numberOr(source.start_index);
+    const endIndex = numberOr(source.end_index);
+    const citation = {
+      ...id ? { id } : {},
+      ...title ? { title } : {},
+      ...uri ? { uri } : {},
+      ...startIndex !== void 0 ? { startIndex } : {},
+      ...endIndex !== void 0 ? { endIndex } : {}
+    };
+    return Object.keys(citation).length > 0 ? [citation] : [];
   });
+}
+function asRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : void 0;
+}
+function responsesTool(tool) {
+  if (tool.type === "web_search" || tool.type === "web_search_preview") {
+    return { type: tool.type };
+  }
+  if (tool.type === "file_search") {
+    return omitEmpty({ type: "file_search", vector_store_ids: tool.vectorStoreIds });
+  }
+  return omitEmpty({ type: "function", name: tool.name, description: tool.description, parameters: tool.parameters });
 }
 function safetyFrom(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {

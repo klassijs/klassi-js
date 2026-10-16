@@ -201,6 +201,55 @@ test('a rate limit exposes a safe retry hint', async () => {
   assert.equal(JSON.stringify(result).includes(secret), false);
 });
 
+test('nested citations are mapped and a hosted search tool is not sent as a function', async () => {
+  let requestBody = '';
+  const adapter = new AzureOpenAIAdapter({
+    profile: defaultAzureProfile,
+    env: readyEnv(),
+    async fetch(_input, init) {
+      if (!init || init.method === 'GET' || String(_input).endsWith('/models')) {
+        return new Response('{}', { status: 200 });
+      }
+      requestBody = String(init.body ?? '');
+      return Response.json({
+        id: 'resp_cite',
+        model: 'provider-model',
+        status: 'completed',
+        output: [{
+          type: 'message',
+          content: [{
+            type: 'output_text',
+            text: 'See the policy.',
+            annotations: [
+              { type: 'url_citation', url_citation: { url: 'https://example.test/returns', title: 'Returns', start_index: 4, end_index: 10 } },
+              { type: 'file_citation', file_id: 'file-policy', filename: 'policy.md' },
+            ],
+          }],
+        }],
+      });
+    },
+  });
+  const result = await adapter.execute({
+    messages: [{ role: 'user', content: 'Find the return policy' }],
+    tools: [
+      { name: 'web_search', type: 'web_search' },
+      { name: 'lookupTicket', type: 'function', description: 'Look up a ticket', parameters: { type: 'object' } },
+    ],
+  }, createTestExecutionContext());
+  const body = JSON.parse(requestBody);
+
+  assert.deepEqual(body.tools, [
+    { type: 'web_search' },
+    { type: 'function', name: 'lookupTicket', description: 'Look up a ticket', parameters: { type: 'object' } },
+  ]);
+  assert.equal(result.citations[0].uri, 'https://example.test/returns');
+  assert.equal(result.citations[0].title, 'Returns');
+  assert.equal(result.citations[0].startIndex, 4);
+  assert.equal(result.citations[0].endIndex, 10);
+  assert.equal(result.citations[1].id, 'file-policy');
+  assert.equal(result.citations[1].title, 'policy.md');
+});
+
 test('ai-core does not depend on the Azure identity client', async () => {
   const core = JSON.parse(await readFile(path.join(packageRoot, '../ai-core/package.json'), 'utf8'));
   const declared = { ...core.dependencies, ...core.devDependencies };

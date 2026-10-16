@@ -309,6 +309,59 @@ test('a model-requested tool is recorded and is not executed', async () => {
   assert.equal(call?.result, undefined);
 });
 
+test('a case handler records the tool result and a thrown handler is a failed call', async () => {
+  const requests = [];
+  const registry = createAdapterRegistry();
+  registry.register({
+    id: 'fake',
+    name: 'recording',
+    version: '0.0.0',
+    async capabilities() {
+      return { text: true, images: false, streaming: false, structuredOutput: true, toolCalling: true, multiTurn: true, usage: false, contentSafetyMetadata: false, seed: false };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute(request) {
+      requests.push(request);
+      return {
+        id: 'recorded',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: '' },
+        toolCalls: [
+          { id: 'call-1', name: 'lookupTicket', arguments: { ticketId: 'KL-1008' }, status: 'requested' },
+          { id: 'call-2', name: 'brokenTool', arguments: {}, status: 'requested' },
+        ],
+        timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.000Z', latencyMs: 1 },
+      };
+    },
+  });
+
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      metadata: {
+        tools: [
+          { name: 'lookupTicket', type: 'function', execute: (args) => ({ ticketId: args.ticketId, status: 'open' }) },
+          { name: 'web_search', type: 'web_search' },
+          { name: 'brokenTool', execute: () => { throw new Error('tool failed'); } },
+        ],
+      },
+    }),
+    sleep: async () => {},
+  });
+  const calls = run.samples[0].sample.execution.toolCalls;
+
+  assert.deepEqual(requests[0].tools.map((tool) => tool.name), ['lookupTicket', 'web_search', 'brokenTool']);
+  assert.equal(requests[0].tools[0].execute, undefined);
+  assert.equal(requests[0].tools[1].type, 'web_search');
+  assert.equal(calls[0].status, 'completed');
+  assert.deepEqual(calls[0].result, { ticketId: 'KL-1008', status: 'open' });
+  assert.equal(calls[1].status, 'failed');
+  assert.equal(calls[1].result, undefined);
+});
+
 test('one hundred samples finish locally without a provider call', async () => {
   const adapter = new FakeAIAdapter();
   const registry = createAdapterRegistry();
