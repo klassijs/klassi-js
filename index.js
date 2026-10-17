@@ -170,201 +170,194 @@ program
   .option('--reportBackup', 'This to clear the "reports" folder & keep the record in back-up folder', false)
   .option('--reportClear', 'This to clear the "reports" folder', false)
 
-program.parse(process.argv);
-const options = program.opts();
-
-program.on('--help', () => {
-  console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
-});
-
-const settings = {
-  projectRoot: options.context,
-  reportName: options.reportName,
-  disableReport: options.disableReport,
-  remoteService: options.remoteService,
-  extraSettings: options.extraSettings,
-  baselineImageUpdate: options.baselineImageUpdate,
-};
-
-global.settings = settings;
-global.BROWSER_NAME = options.browser;
-global.headless = options.headless;
-global.browserOpen = options.browserOpen;
-global.dryRun = options.dryRun;
-global.email = options.email;
-global.s3Date = options.s3Date;
-global.useProxy = options.useProxy;
-global.skipTag = options.skipTag;
-global.isCI = options.isCI;
-global.dlink = options.dlink;
-
-global.baselineImageUpdate = options.baselineImageUpdate;
-
-const getConfig = (configName) => cosmiconfigSync(configName).search().config;
-const { environment } = getConfig('envConfig');
-const { dataConfig } = getConfig('dataConfig');
-
-global.env = process.env.ENVIRONMENT || environment[options.env];
-global.dataconfig = dataConfig;
-global.s3Data = dataConfig.s3Data;
-global.emailData = dataConfig.emailData;
-global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
-global.reportName = process.env.REPORT_NAME || 'Automated Report';
-global.tagNames = dataConfig.tagNames;
-
-const helpers = require('./runtime/helpers');
-global.helpers = helpers;
-
-global.date = helpers.currentDate();
-global.dateTime = helpers.reportDateTime();
-
-if (!global.isCI) {
-  if (options.reportBackup) {
-    takeReportBackup.backupReport();
-  }
-  if (options.reportClear) {
-    takeReportBackup.clearReport();
-  }
-}
-
-if (options.remoteService && options.extraSettings) {
-  const additionalSettings = parseRemoteArguments(options.extraSettings);
-  global.remoteConfig = additionalSettings.config;
-  if (additionalSettings.tags) {
-    if (options.tags.length !== 0) {
-      throw new Error('Cannot set two types of tags - either use --extraSettings or --tags');
-    }
-    options.tags = [additionalSettings.tags];
-  }
-}
-
-global.browserName = global.remoteConfig || BROWSER_NAME;
-astellen.set('BROWSER_NAME', options.browser);
-
-function getProjectPath(objectName) {
-  return path.resolve(settings.projectRoot + options[objectName]);
-}
-
-const paths = {
-  pageObjects: getProjectPath('pageObjects'),
-  reports: getProjectPath('reports'),
-  featureFiles: getProjectPath('featureFiles'),
-  sharedObjects: getProjectPath('sharedObjects'),
-};
-
-global.paths = paths;
-
-const envName = env.envName.toLowerCase();
-
-const reports = `./reports/${global.browserName}/${envName}`;
-
-if (browserName.includes(',')) {
-  console.log('🛑 Skipping report folder creation for multi-browser parent process.');
+if (process.argv[2] === 'ai:evaluate' || process.argv[2] === 'ai:baseline' || process.argv[2] === 'ai:compare' || process.argv[2] === 'ai:doctor') {
+  import('@klassijs/ai-cli')
+    .then(({ execute }) => execute(process.argv))
+    .then((code) => {
+      process.exit(code);
+    })
+    .catch((error) => {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(6);
+    });
 } else {
-  fs.ensureDirSync(reports, (err) => {
-    if (err) {
-      console.error(`The Reports Folder has NOT been created: ${err.stack}`);
+  program.parse(process.argv);
+  const options = program.opts();
+
+  program.on('--help', () => {
+    console.info('For more details please visit https://github.com/klassijs/klassi-js#readme\n');
+  });
+
+  const settings = {
+    projectRoot: options.context,
+    reportName: options.reportName,
+    disableReport: options.disableReport,
+    remoteService: options.remoteService,
+    extraSettings: options.extraSettings,
+    baselineImageUpdate: options.baselineImageUpdate,
+  };
+
+  global.settings = settings;
+  global.BROWSER_NAME = options.browser;
+  global.headless = options.headless;
+  global.browserOpen = options.browserOpen;
+  global.dryRun = options.dryRun;
+  global.email = options.email;
+  global.s3Date = options.s3Date;
+  global.useProxy = options.useProxy;
+  global.skipTag = options.skipTag;
+  global.isCI = options.isCI;
+  global.dlink = options.dlink;
+
+  global.baselineImageUpdate = options.baselineImageUpdate;
+
+  const getConfig = (configName) => cosmiconfigSync(configName).search().config;
+  const { environment } = getConfig('envConfig');
+  const { dataConfig } = getConfig('dataConfig');
+
+  global.env = process.env.ENVIRONMENT || environment[options.env];
+  global.dataconfig = dataConfig;
+  global.s3Data = dataConfig.s3Data;
+  global.emailData = dataConfig.emailData;
+  global.projectName = process.env.PROJECT_NAME || dataConfig.projectName;
+  global.reportName = process.env.REPORT_NAME || 'Automated Report';
+  global.tagNames = dataConfig.tagNames;
+
+  const helpers = require('./runtime/helpers');
+  global.helpers = helpers;
+
+  global.date = helpers.currentDate();
+  global.dateTime = helpers.reportDateTime();
+
+  if (!global.isCI) {
+    if (options.reportBackup) {
+      takeReportBackup.backupReport();
     }
-  });
-  fs.ensureDirSync(reports + 'Combine', (err) => {
-    if (err) {
-      console.error(`The Reports Combine Folder has NOT been created: ${err.stack}`);
+    if (options.reportClear) {
+      takeReportBackup.clearReport();
     }
-  });
-}
-
-try {
-  const { a11yValidator } = require('klassijs-a11y-validator');
-  global.accessibilityLib = a11yValidator;
-  global.accessibilityReportList = [];
-} catch (error) {
-  console.error('❌ Failed to load klassijs-a11y-validator:', error.message);
-}
-
-
-const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
-if (fs.existsSync(videoLib)) {
-  global.videoLib = require(videoLib);
-} else {
-  console.error('No Video Lib');
-}
-
-const sharedObjectsPath = path.resolve(paths.sharedObjects);
-if (fs.existsSync(sharedObjectsPath)) {
-  const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
-  global.sharedObjects = merge({}, dir);
-}
-
-const pageObjectPath = path.resolve(paths.pageObjects);
-if (fs.existsSync(pageObjectPath)) {
-  global.pageObjects = requireDir(pageObjectPath, {
-    camelcase: true,
-    recurse: true,
-  });
-}
-
-function getTagsFromFeatureFiles() {
-  let result = [];
-  let featurefiles = {};
-  loadTextFile.setup({ matchRegExp: /\.feature/ });
-  const featureFilesList = options.featureFiles.split(',');
-
-  featureFilesList.forEach((feature) => {
-    const fileOnly = feature.split(':')[0];
-    const filePath = path.resolve(fileOnly);
-    try {
-      const fileContent = loadTextFile.loadSync(filePath);
-      featurefiles = Object.assign(featurefiles, fileContent);
-    } catch (error) {
-      console.error(`Error loading feature file ${filePath}:`, error);
-    }
-  });
-
-  Object.keys(featurefiles).forEach((key) => {
-    const content = String(featurefiles[key] || '', ' ');
-    const tags = content.match(new RegExp('@[a-z0-9]+', 'g')) || [];
-    result = result.concat(tags);
-  });
-  return result;
-}
-
-
-if (!options.tags || options.tags.length === 0) {
-  process.exit(1);
-}
-let resultingString = '';
-
-if (options.tags.length > 0) {
-  const tagsFound = getTagsFromFeatureFiles();
-  const separateMultipleTags = options.tags[0].split(',');
-  let separateExcludedTags;
-
-  if (options.exclude && options.exclude.length >= 1) {
-    separateExcludedTags = options.exclude[0].split(',');
   }
 
-  const correctTags = [];
-  const correctExcludedTags = [];
-
-  for (const tag of separateMultipleTags) {
-    if (tag[0] !== '@') {
-      console.error('tags must start with a @');
-      process.exit(1);
+  if (options.remoteService && options.extraSettings) {
+    const additionalSettings = parseRemoteArguments(options.extraSettings);
+    global.remoteConfig = additionalSettings.config;
+    if (additionalSettings.tags) {
+      if (options.tags.length !== 0) {
+        throw new Error('Cannot set two types of tags - either use --extraSettings or --tags');
+      }
+      options.tags = [additionalSettings.tags];
     }
-    if (tagsFound.indexOf(tag) === -1) {
-      console.error(`this tag ${tag} does not exist`);
-      process.exit(0);
-    }
-    correctTags.push(tag);
   }
 
-  if (correctTags.length === 0) {
-    console.error('No valid tags found.');
+  global.browserName = global.remoteConfig || BROWSER_NAME;
+  astellen.set('BROWSER_NAME', options.browser);
+
+  function getProjectPath(objectName) {
+    return path.resolve(settings.projectRoot + options[objectName]);
+  }
+
+  const paths = {
+    pageObjects: getProjectPath('pageObjects'),
+    reports: getProjectPath('reports'),
+    featureFiles: getProjectPath('featureFiles'),
+    sharedObjects: getProjectPath('sharedObjects'),
+  };
+
+  global.paths = paths;
+
+  const envName = env.envName.toLowerCase();
+
+  const reports = `./reports/${global.browserName}/${envName}`;
+
+  if (browserName.includes(',')) {
+    console.log('🛑 Skipping report folder creation for multi-browser parent process.');
+  } else {
+    fs.ensureDirSync(reports, (err) => {
+      if (err) {
+        console.error(`The Reports Folder has NOT been created: ${err.stack}`);
+      }
+    });
+    fs.ensureDirSync(reports + 'Combine', (err) => {
+      if (err) {
+        console.error(`The Reports Combine Folder has NOT been created: ${err.stack}`);
+      }
+    });
+  }
+
+  try {
+    const { a11yValidator } = require('klassijs-a11y-validator');
+    global.accessibilityLib = a11yValidator;
+    global.accessibilityReportList = [];
+  } catch (error) {
+    console.error('❌ Failed to load klassijs-a11y-validator:', error.message);
+  }
+
+
+  const videoLib = path.resolve(__dirname, './runtime/getVideoLinks.js');
+  if (fs.existsSync(videoLib)) {
+    global.videoLib = require(videoLib);
+  } else {
+    console.error('No Video Lib');
+  }
+
+  const sharedObjectsPath = path.resolve(paths.sharedObjects);
+  if (fs.existsSync(sharedObjectsPath)) {
+    const dir = requireDir(sharedObjectsPath, { camelcase: true, recurse: true });
+    global.sharedObjects = merge({}, dir);
+  }
+
+  const pageObjectPath = path.resolve(paths.pageObjects);
+  if (fs.existsSync(pageObjectPath)) {
+    global.pageObjects = requireDir(pageObjectPath, {
+      camelcase: true,
+      recurse: true,
+    });
+  }
+
+  function getTagsFromFeatureFiles() {
+    let result = [];
+    let featurefiles = {};
+    loadTextFile.setup({ matchRegExp: /\.feature/ });
+    const featureFilesList = options.featureFiles.split(',');
+
+    featureFilesList.forEach((feature) => {
+      const fileOnly = feature.split(':')[0];
+      const filePath = path.resolve(fileOnly);
+      try {
+        const fileContent = loadTextFile.loadSync(filePath);
+        featurefiles = Object.assign(featurefiles, fileContent);
+      } catch (error) {
+        console.error(`Error loading feature file ${filePath}:`, error);
+      }
+    });
+
+    Object.keys(featurefiles).forEach((key) => {
+      const content = String(featurefiles[key] || '', ' ');
+      const tags = content.match(new RegExp('@[a-z0-9]+', 'g')) || [];
+      result = result.concat(tags);
+    });
+    return result;
+  }
+
+
+  if (!options.tags || options.tags.length === 0) {
     process.exit(1);
   }
+  let resultingString = '';
 
-  if (separateExcludedTags && separateExcludedTags.length >= 1) {
-    for (const tag of separateExcludedTags) {
+  if (options.tags.length > 0) {
+    const tagsFound = getTagsFromFeatureFiles();
+    const separateMultipleTags = options.tags[0].split(',');
+    let separateExcludedTags;
+
+    if (options.exclude && options.exclude.length >= 1) {
+      separateExcludedTags = options.exclude[0].split(',');
+    }
+
+    const correctTags = [];
+    const correctExcludedTags = [];
+
+    for (const tag of separateMultipleTags) {
       if (tag[0] !== '@') {
         console.error('tags must start with a @');
         process.exit(1);
@@ -373,124 +366,143 @@ if (options.tags.length > 0) {
         console.error(`this tag ${tag} does not exist`);
         process.exit(0);
       }
-      correctExcludedTags.push(tag);
+      correctTags.push(tag);
     }
-  }
 
-  if (correctTags.length > 1) {
-    resultingString = correctTags.join(' or ');
-    if (correctExcludedTags.length > 0) {
-      const excludedCommand = correctExcludedTags.join(' and not ');
-      resultingString = `${resultingString} and not ${excludedCommand}`;
+    if (correctTags.length === 0) {
+      console.error('No valid tags found.');
+      process.exit(1);
     }
-  } else {
-    resultingString = correctTags[0];
-    if (correctExcludedTags.length > 0) {
-      const excludedCommand = correctExcludedTags.join(' and not ');
-      resultingString = `${resultingString} and not ${excludedCommand}`;
-    }
-  }
 
-  global.resultingString = resultingString;
-} else {
-  console.error('No tags provided in options.');
-  process.exit(1);
-}
-
-if (options.featureFiles) {
-  const splitFeatureFiles = options.featureFiles.split(',');
-  global.featureFiles = splitFeatureFiles;
-}
-
-/** Add split to run multiple browsers from the command line
- * Runs the script in parallel for each browser passed via --browser.
- * @param {object} options - Parsed CLI options from Commander.
- */
-function handleMultipleBrowsers(options) {
-  const { spawn } = require('child_process');
-  if (!options.browser) return;
-
-  // only run this logic if the original input had multiple browsers
-  const originalArgv = process.argv.join(' ');
-  if (!originalArgv.includes(',') || options.browser.includes(',')) {
-    const browsers = options.browser.split(',').map(b => b.trim()).filter(Boolean);
-    if (browsers.length <= 1) return;
-
-    const scriptPath = process.argv[1];
-    const args = process.argv.slice(2);
-
-    const browserIndex = args.findIndex(arg => arg === '--browser');
-    const baseArgs = args.slice(0, browserIndex);
-    const trailingArgs = args.slice(browserIndex + 2);
-
-    let completed = 0;
-    const results = {};
-
-    browsers.forEach(browser => {
-      const child = spawn('node', [scriptPath, ...baseArgs, '--browser', browser, ...trailingArgs], {
-        stdio: 'inherit',
-        shell: true,
-      });
-
-      child.on('exit', code => {
-        results[browser] = code;
-        completed++;
-
-        if (completed === browsers.length) {
-          console.log('\n📋 Summary:');
-          browsers.forEach(b => {
-            if (results[b] === 0) {
-              console.log(`✅ ${b} completed successfully`);
-            } else {
-              console.error(`❌ ${b} failed with exit code ${results[b]}`);
-            }
-          });
+    if (separateExcludedTags && separateExcludedTags.length >= 1) {
+      for (const tag of separateExcludedTags) {
+        if (tag[0] !== '@') {
+          console.error('tags must start with a @');
+          process.exit(1);
+        }
+        if (tagsFound.indexOf(tag) === -1) {
+          console.error(`this tag ${tag} does not exist`);
           process.exit(0);
         }
-      });
-    });
-    // Prevent the parent from continuing
-    process.exit(0);
-  }
-}
-handleMultipleBrowsers(options);
+        correctExcludedTags.push(tag);
+      }
+    }
 
-klassiCli().then(async (succeeded) => {
-  let dryRun = false;
-  if (dryRun === false) {
-    if (!succeeded) {
-      await cucumberCli().then(async () => {
-        await process.exit(1);
-      });
+    if (correctTags.length > 1) {
+      resultingString = correctTags.join(' or ');
+      if (correctExcludedTags.length > 0) {
+        const excludedCommand = correctExcludedTags.join(' and not ');
+        resultingString = `${resultingString} and not ${excludedCommand}`;
+      }
     } else {
-      await cucumberCli().then(async () => {
-        await sleep(DELAY_2s).then(async () => {
-          console.info('Test run completed successfully');
-          await process.exit(0);
+      resultingString = correctTags[0];
+      if (correctExcludedTags.length > 0) {
+        const excludedCommand = correctExcludedTags.join(' and not ');
+        resultingString = `${resultingString} and not ${excludedCommand}`;
+      }
+    }
+
+    global.resultingString = resultingString;
+  } else {
+    console.error('No tags provided in options.');
+    process.exit(1);
+  }
+
+  if (options.featureFiles) {
+    const splitFeatureFiles = options.featureFiles.split(',');
+    global.featureFiles = splitFeatureFiles;
+  }
+
+  /** Add split to run multiple browsers from the command line
+   * Runs the script in parallel for each browser passed via --browser.
+   * @param {object} options - Parsed CLI options from Commander.
+   */
+  function handleMultipleBrowsers(options) {
+    const { spawn } = require('child_process');
+    if (!options.browser) return;
+
+    // only run this logic if the original input had multiple browsers
+    const originalArgv = process.argv.join(' ');
+    if (!originalArgv.includes(',') || options.browser.includes(',')) {
+      const browsers = options.browser.split(',').map(b => b.trim()).filter(Boolean);
+      if (browsers.length <= 1) return;
+
+      const scriptPath = process.argv[1];
+      const args = process.argv.slice(2);
+
+      const browserIndex = args.findIndex(arg => arg === '--browser');
+      const baseArgs = args.slice(0, browserIndex);
+      const trailingArgs = args.slice(browserIndex + 2);
+
+      let completed = 0;
+      const results = {};
+
+      browsers.forEach(browser => {
+        const child = spawn('node', [scriptPath, ...baseArgs, '--browser', browser, ...trailingArgs], {
+          stdio: 'inherit',
+          shell: true,
         });
+
+        child.on('exit', code => {
+          results[browser] = code;
+          completed++;
+
+          if (completed === browsers.length) {
+            console.log('\n📋 Summary:');
+            browsers.forEach(b => {
+              if (results[b] === 0) {
+                console.log(`✅ ${b} completed successfully`);
+              } else {
+                console.error(`❌ ${b} failed with exit code ${results[b]}`);
+              }
+            });
+            process.exit(0);
+          }
+        });
+      });
+      // Prevent the parent from continuing
+      process.exit(0);
+    }
+  }
+  handleMultipleBrowsers(options);
+
+  klassiCli().then(async (succeeded) => {
+    let dryRun = false;
+    if (dryRun === false) {
+      if (!succeeded) {
+        await cucumberCli().then(async () => {
+          await process.exit(1);
+        });
+      } else {
+        await cucumberCli().then(async () => {
+          await sleep(DELAY_2s).then(async () => {
+            console.info('Test run completed successfully');
+            await process.exit(0);
+          });
+        });
+      }
+    }
+  });
+
+  async function cucumberCli() {
+    let email = false;
+    if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
+      await sleep(DELAY_2s).then(async () => {
+        await helpers.klassiReporter();
+      });
+    } else if (resultingString !== '@s3load') {
+      await sleep(DELAY_2s).then(async () => {
+        await helpers.klassiReporter();
+      });
+    }
+    await sleep(DELAY_5s);
+    if (email === true) {
+      await sleep(DELAY_2s).then(async () => {
+        await helpers.klassiEmail();
+        await sleep(DELAY_3s);
       });
     }
   }
-});
 
-async function cucumberCli() {
-  let email = false;
-  if (options.remoteService && options.remoteService === 'lambdatest' && resultingString !== '@s3load') {
-    await sleep(DELAY_2s).then(async () => {
-      await helpers.klassiReporter();
-    });
-  } else if (resultingString !== '@s3load') {
-    await sleep(DELAY_2s).then(async () => {
-      await helpers.klassiReporter();
-    });
-  }
-  await sleep(DELAY_5s);
-  if (email === true) {
-    await sleep(DELAY_2s).then(async () => {
-      await helpers.klassiEmail();
-      await sleep(DELAY_3s);
-    });
-  }
+  module.exports = { getTagsFromFeatureFiles };
 }
-
-module.exports = { getTagsFromFeatureFiles };

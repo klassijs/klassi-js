@@ -1,0 +1,47 @@
+{
+  "id": "azure-judge",
+  "name": "Azure judge",
+  "version": "1.0.0",
+  "description": "Scores an Azure reply with a deterministic check and a separate Azure judge deployment.",
+  "cases": [
+    {
+      "id": "greeting-001",
+      "name": "Greeting",
+      "tags": ["example", "azure", "judge"],
+      "target": {
+        "adapter": "azure-openai"
+      },
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "Reply with the single word hello."
+          }
+        ]
+      },
+      "evaluators": [
+        {
+          "id": "exact-match",
+          "type": "deterministic",
+          "config": {
+            "expected": "hello"
+          }
+        },
+        {
+          "id": "relevance",
+          "type": "model",
+          "threshold": 0.9,
+          "judge": {
+            "adapter": "azure-openai-judge",
+            "profile": "judge"
+          }
+        }
+      ]
+    }
+  ],
+  "qualityGate": {
+    "overall": {
+      "minimumPassRate": 1
+    }
+  }
+}

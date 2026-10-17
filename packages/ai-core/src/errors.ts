@@ -25,6 +25,8 @@ export interface NormalizedExecutionError {
   message: string;
   retryable: boolean;
   providerCode?: string;
+  /** Safe provider hint. The orchestrator owns the retry decision. */
+  retryAfterMs?: number;
 }
 
 export class AIEvaluationError extends Error {

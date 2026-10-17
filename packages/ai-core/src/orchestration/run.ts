@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import type { AdapterHealth } from '../adapter.js';
+import type { AdapterHealth, AIPlatformAdapter } from '../adapter.js';
 import type { AIExecutionRequest, AIExecutionResult, EvidenceWriter, ExecutionContext } from '../execution.js';
-import type { EvaluationSample } from '../sample.js';
+import type { AIMessage } from '../messages.js';
+import type { ConversationTurnResult, EvaluationSample } from '../sample.js';
 import type { EvaluationSuite } from '../evaluation.js';
 import { AIEvaluationError } from '../errors.js';
 import type { AdapterRegistry } from '../registry.js';
@@ -162,11 +163,6 @@ async function executePlannedSample(
 ): Promise<SampleRecord> {
   const evaluationCase = plannedSample.evaluationCase;
   const adapter = options.registry.get(evaluationCase.target.adapter);
-  const request: AIExecutionRequest = {
-    messages: evaluationCase.input.messages,
-    ...(evaluationCase.target.model ? { model: evaluationCase.target.model } : {}),
-    ...(evaluationCase.target.deployment ? { deployment: evaluationCase.target.deployment } : {}),
-  };
   const artifacts: Array<{ ref: string; name: string; body: unknown }> = [];
   const evidence: EvidenceWriter = {
     async write(artifact) {
@@ -175,6 +171,92 @@ async function executePlannedSample(
       return ref;
     },
   };
+  const attempts: AttemptRecord[] = [];
+  const requestBase = {
+    ...(evaluationCase.target.model ? { model: evaluationCase.target.model } : {}),
+    ...(evaluationCase.target.deployment ? { deployment: evaluationCase.target.deployment } : {}),
+  };
+
+  if (evaluationCase.conversation && evaluationCase.conversation.turns.length > 0) {
+    const history: AIMessage[] = [];
+    const turns: ConversationTurnResult[] = [];
+    let finalResult: AIExecutionResult | undefined;
+    for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
+      history.push(...turn.messages);
+      const request: AIExecutionRequest = { ...requestBase, messages: history.map((message) => ({ ...message })) };
+      const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+      attempts.push(...executed.attempts);
+      finalResult = executed.result;
+      const responseText = executed.result.output.text ?? '';
+      turns.push({
+        turnId: turn.id,
+        index,
+        messages: history.map((message) => ({ ...message })),
+        execution: executed.result,
+        evaluatorResults: [],
+      });
+      await evidence.write({
+        name: `turn-${turn.id}`,
+        body: { turnId: turn.id, index, request: turn.messages, history: history.map((message) => ({ ...message })), response: responseText, status: executed.result.status },
+      });
+      if (executed.result.status !== 'completed') {
+        break;
+      }
+      history.push({ role: 'assistant', content: responseText });
+    }
+    if (!finalResult) {
+      throw new AIEvaluationError('INTERNAL_ERROR', `Sample "${plannedSample.sampleId}" produced no result`);
+    }
+    const transcript = turns.map((turn) => turn.execution.output.text ?? '').filter((text) => text.length > 0).join('\n');
+    return {
+      plan: plannedSample,
+      attempts,
+      evidence: artifacts,
+      sample: {
+        sampleId: plannedSample.sampleId,
+        sampleIndex: plannedSample.sampleIndex,
+        caseId: evaluationCase.id,
+        requestHash: requestHash({ ...requestBase, messages: history }),
+        execution: { ...finalResult, output: { ...finalResult.output, text: transcript, messages: history.map((message) => ({ ...message })) } },
+        turns,
+        evaluatorResults: [],
+        status: finalResult.status === 'completed' ? 'review' : 'error',
+        startedAt: attempts[0]?.result.timing.startedAt ?? now(),
+        completedAt: finalResult.timing.completedAt,
+      },
+    };
+  }
+
+  const request: AIExecutionRequest = { ...requestBase, messages: evaluationCase.input.messages };
+  const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+  return {
+    plan: plannedSample,
+    attempts: executed.attempts,
+    evidence: artifacts,
+    sample: {
+      sampleId: plannedSample.sampleId,
+      sampleIndex: plannedSample.sampleIndex,
+      caseId: evaluationCase.id,
+      requestHash: requestHash(request),
+      execution: executed.result,
+      evaluatorResults: [],
+      status: executed.result.status === 'completed' ? 'review' : 'error',
+      startedAt: executed.attempts[0]?.result.timing.startedAt ?? now(),
+      completedAt: executed.result.timing.completedAt,
+    },
+  };
+}
+
+async function runAttempts(
+  request: AIExecutionRequest,
+  adapter: AIPlatformAdapter,
+  plannedSample: PlannedSample,
+  options: RunEvaluationOptions,
+  run: RunContext,
+  evidence: EvidenceWriter,
+  sleep: (ms: number) => Promise<void>,
+  now: () => string,
+): Promise<{ result: AIExecutionResult; attempts: AttemptRecord[] }> {
   const attempts: AttemptRecord[] = [];
   const maxAttempts = plannedSample.policy.retry.maxInfrastructureRetries + 1;
   let finalResult: AIExecutionResult | undefined;
@@ -195,7 +277,7 @@ async function executePlannedSample(
     const context: ExecutionContext = {
       runId: run.runId,
       suiteId: run.suiteId,
-      caseId: evaluationCase.id,
+      caseId: plannedSample.evaluationCase.id,
       sampleId: plannedSample.sampleId,
       startedAt,
       deadline: new Date(Date.parse(startedAt) + plannedSample.policy.timeoutMs).toISOString(),
@@ -226,22 +308,5 @@ async function executePlannedSample(
   if (!finalResult) {
     throw new AIEvaluationError('INTERNAL_ERROR', `Sample "${plannedSample.sampleId}" produced no result`);
   }
-
-  const completedAt = finalResult.timing.completedAt;
-  return {
-    plan: plannedSample,
-    attempts,
-    evidence: artifacts,
-    sample: {
-      sampleId: plannedSample.sampleId,
-      sampleIndex: plannedSample.sampleIndex,
-      caseId: evaluationCase.id,
-      requestHash: requestHash(request),
-      execution: finalResult,
-      evaluatorResults: [],
-      status: finalResult.status === 'completed' ? 'review' : 'error',
-      startedAt: attempts[0]?.result.timing.startedAt ?? now(),
-      completedAt,
-    },
-  };
+  return { result: finalResult, attempts };
 }

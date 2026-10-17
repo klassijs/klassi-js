@@ -120,21 +120,87 @@ importers:
       '@commitlint/config-conventional':
         specifier: 21.2.3
         version: 21.2.3
+      '@klassijs/ai-cli':
+        specifier: workspace:*
+        version: link:packages/ai-cli
       '@klassijs/ai-core':
         specifier: workspace:*
         version: link:packages/ai-core
       '@klassijs/ai-datasets':
         specifier: workspace:*
         version: link:packages/ai-datasets
+      '@klassijs/ai-evaluators':
+        specifier: workspace:*
+        version: link:packages/ai-evaluators
       '@klassijs/ai-evidence':
         specifier: workspace:*
         version: link:packages/ai-evidence
+      '@klassijs/ai-reporters':
+        specifier: workspace:*
+        version: link:packages/ai-reporters
       jest:
         specifier: 30.5.2
         version: 30.5.2(@types/node@26.6.5)
       jest-junit:
         specifier: 17.0.0
         version: 17.0.0
+
+  packages/ai-adapter-azure-openai:
+    dependencies:
+      '@klassijs/ai-core':
+        specifier: workspace:*
+        version: link:../ai-core
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.1
+        version: 22.19.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/ai-adapter-http:
+    dependencies:
+      '@klassijs/ai-core':
+        specifier: workspace:*
+        version: link:../ai-core
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.1
+        version: 22.19.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/ai-cli:
+    dependencies:
+      '@klassijs/ai-adapter-azure-openai':
+        specifier: workspace:*
+        version: link:../ai-adapter-azure-openai
+      '@klassijs/ai-core':
+        specifier: workspace:*
+        version: link:../ai-core
+      '@klassijs/ai-datasets':
+        specifier: workspace:*
+        version: link:../ai-datasets
+      '@klassijs/ai-evaluators':
+        specifier: workspace:*
+        version: link:../ai-evaluators
+      '@klassijs/ai-evidence':
+        specifier: workspace:*
+        version: link:../ai-evidence
+      '@klassijs/ai-reporters':
+        specifier: workspace:*
+        version: link:../ai-reporters
+      commander:
+        specifier: 15.0.0
+        version: 15.0.0
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.1
+        version: 22.19.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
   packages/ai-core:
     devDependencies:
@@ -164,7 +230,33 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/ai-evaluators:
+    dependencies:
+      '@klassijs/ai-core':
+        specifier: workspace:*
+        version: link:../ai-core
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.1
+        version: 22.19.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/ai-evidence:
+    dependencies:
+      '@klassijs/ai-core':
+        specifier: workspace:*
+        version: link:../ai-core
+    devDependencies:
+      '@types/node':
+        specifier: 22.19.1
+        version: 22.19.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/ai-reporters:
     dependencies:
       '@klassijs/ai-core':
         specifier: workspace:*

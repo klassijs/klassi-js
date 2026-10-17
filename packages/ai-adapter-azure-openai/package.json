@@ -1,0 +1,36 @@
+{
+  "name": "@klassijs/ai-adapter-azure-openai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Azure OpenAI adapter for Klassi-JS AI evaluation",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "pnpm --filter @klassijs/ai-core build",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node ./scripts/check-boundaries.mjs",
+    "test": "pnpm build && node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@klassijs/ai-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3"
+  }
+}

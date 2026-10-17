@@ -4,11 +4,12 @@ import { fileURLToPath } from 'node:url';
 
 const forbidden = [
   '@azure/openai',
-  'openai',
+  '@azure/identity',
+  "'openai'",
+  '"openai"',
   '@anthropic-ai/sdk',
   '@google/generative-ai',
   '@aws-sdk/client-bedrock-runtime',
-  '@azure/identity',
 ];
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src');

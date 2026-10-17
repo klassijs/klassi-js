@@ -1,0 +1,42 @@
+{
+  "name": "@klassijs/ai-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Klassi-JS AI evaluation command",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "pnpm --filter @klassijs/ai-core build && pnpm --filter @klassijs/ai-datasets build && pnpm --filter @klassijs/ai-evidence build && pnpm --filter @klassijs/ai-evaluators build && pnpm --filter @klassijs/ai-reporters build && pnpm --filter @klassijs/ai-adapter-azure-openai build",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node ./scripts/check-no-provider-sdk.mjs",
+    "test": "pnpm build && node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@klassijs/ai-core": "workspace:*",
+    "@klassijs/ai-datasets": "workspace:*",
+    "@klassijs/ai-evidence": "workspace:*",
+    "@klassijs/ai-evaluators": "workspace:*",
+    "@klassijs/ai-adapter-azure-openai": "workspace:*",
+    "@klassijs/ai-reporters": "workspace:*",
+    "commander": "15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "typescript": "5.9.3"
+  }
+}

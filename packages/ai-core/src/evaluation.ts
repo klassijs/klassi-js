@@ -33,6 +33,12 @@ export interface EvaluatorBinding {
   config?: Record<string, unknown>;
 }
 
+export interface ConversationTurn {
+  id: string;
+  messages: AIMessage[];
+  evaluators?: EvaluatorBinding[];
+}
+
 export interface EvaluationCase {
   id: CaseId;
   name: string;
@@ -42,6 +48,10 @@ export interface EvaluationCase {
   input: {
     messages: AIMessage[];
     variables?: Record<string, unknown>;
+  };
+  /** When set, each turn is executed in order and the assistant reply is carried forward. */
+  conversation?: {
+    turns: ConversationTurn[];
   };
   expectations?: EvaluationExpectations;
   evaluators: EvaluatorBinding[];
