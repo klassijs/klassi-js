@@ -362,6 +362,67 @@ test('a case handler records the tool result and a thrown handler is a failed ca
   assert.equal(calls[1].result, undefined);
 });
 
+test('a completed tool result is sent back and the follow-up answer is scored with the original call', async () => {
+  const requests = [];
+  let calls = 0;
+  const registry = createAdapterRegistry();
+  registry.register({
+    id: 'fake',
+    name: 'recording',
+    version: '0.0.0',
+    async capabilities() {
+      return { text: true, images: false, streaming: false, structuredOutput: true, toolCalling: true, multiTurn: true, usage: true, contentSafetyMetadata: false, seed: false };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute(request) {
+      requests.push(request);
+      calls += 1;
+      const timing = { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.000Z', latencyMs: 1 };
+      if (calls === 1) {
+        return {
+          id: 'recorded',
+          adapterId: 'fake',
+          status: 'completed',
+          output: { text: '' },
+          toolCalls: [{ id: 'call-1', name: 'lookupTicket', arguments: { ticketId: 'KL-1008' }, status: 'requested' }],
+          usage: { inputTokens: 4, outputTokens: 2, totalTokens: 6 },
+          timing,
+        };
+      }
+      return {
+        id: 'follow-up',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'open' },
+        usage: { inputTokens: 8, outputTokens: 1, totalTokens: 9 },
+        timing,
+      };
+    },
+  });
+
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      metadata: {
+        tools: [{ name: 'lookupTicket', execute: (args) => ({ ticketId: args.ticketId, status: 'open' }) }],
+      },
+    }),
+    sleep: async () => {},
+  });
+  const execution = run.samples[0].sample.execution;
+  const toolMessage = requests[1].messages.find((message) => message.role === 'tool');
+
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].toolChoice, 'none');
+  assert.match(toolMessage.content, /"status":"open"/);
+  assert.equal(execution.output.text, 'open');
+  assert.deepEqual(execution.toolCalls[0].result, { ticketId: 'KL-1008', status: 'open' });
+  assert.equal(execution.usage.totalTokens, 15);
+  assert.equal(run.samples[0].attempts.length, 2);
+});
+
 test('one hundred samples finish locally without a provider call', async () => {
   const adapter = new FakeAIAdapter();
   const registry = createAdapterRegistry();

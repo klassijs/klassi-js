@@ -106,7 +106,7 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
     const timer = setTimeout(() => {
       abortReason = abortReason ?? 'timeout';
       controller.abort();
-    }, resolved.timeoutMs);
+    }, attemptBudgetMs(context, resolved.timeoutMs));
     const onAbort = () => {
       abortReason = 'caller';
       controller.abort();
@@ -246,6 +246,15 @@ function timing(startedAt: string, latencyMs: number): AIExecutionResult['timing
     completedAt: new Date(Date.parse(startedAt) + latencyMs).toISOString(),
     latencyMs,
   };
+}
+
+function attemptBudgetMs(context: ExecutionContext, fallbackMs: number): number {
+  const deadline = Date.parse(context.deadline ?? '');
+  const started = Date.parse(context.startedAt);
+  if (!Number.isFinite(deadline) || !Number.isFinite(started)) {
+    return fallbackMs;
+  }
+  return Math.max(1, deadline - started);
 }
 
 function parseBody(raw: string): unknown {

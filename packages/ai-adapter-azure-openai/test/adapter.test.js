@@ -250,6 +250,46 @@ test('nested citations are mapped and a hosted search tool is not sent as a func
   assert.equal(result.citations[1].title, 'policy.md');
 });
 
+test('a tool result is sent back as the function call and its output', async () => {
+  let requestBody = '';
+  const adapter = new AzureOpenAIAdapter({
+    profile: defaultAzureProfile,
+    env: readyEnv(),
+    async fetch(input, init) {
+      if (!init || init.method === 'GET' || String(input).endsWith('/models')) {
+        return new Response('{}', { status: 200 });
+      }
+      requestBody = String(init.body ?? '');
+      return Response.json({
+        id: 'resp_follow',
+        model: 'provider-model',
+        status: 'completed',
+        output: [{ type: 'message', content: [{ type: 'output_text', text: 'open' }] }],
+      });
+    },
+  });
+  const result = await adapter.execute({
+    messages: [
+      { role: 'user', content: 'Look up KL-1008' },
+      { role: 'assistant', content: '', metadata: { toolCalls: [{ id: 'call-1', name: 'lookupTicket', arguments: { ticketId: 'KL-1008' } }] } },
+      { role: 'tool', name: 'lookupTicket', toolCallId: 'call-1', content: '{"status":"open"}' },
+    ],
+    tools: [{ name: 'lookupTicket', type: 'function' }],
+    toolChoice: 'none',
+  }, createTestExecutionContext());
+  const body = JSON.parse(requestBody);
+
+  assert.equal(result.output.text, 'open');
+  assert.equal(body.tool_choice, 'none');
+  assert.deepEqual(body.input[1], {
+    type: 'function_call',
+    call_id: 'call-1',
+    name: 'lookupTicket',
+    arguments: '{"ticketId":"KL-1008"}',
+  });
+  assert.deepEqual(body.input[2], { type: 'function_call_output', call_id: 'call-1', output: '{"status":"open"}' });
+});
+
 test('ai-core does not depend on the Azure identity client', async () => {
   const core = JSON.parse(await readFile(path.join(packageRoot, '../ai-core/package.json'), 'utf8'));
   const declared = { ...core.dependencies, ...core.devDependencies };

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { AdapterHealth, AIPlatformAdapter } from '../adapter.js';
-import type { AIExecutionRequest, AIExecutionResult, AIResponseFormat, AIToolChoice, AIToolDefinition, EvidenceWriter, ExecutionContext } from '../execution.js';
+import type { AIExecutionRequest, AIExecutionResult, AIResponseFormat, AIToolChoice, AIToolDefinition, AIUsage, EvidenceWriter, ExecutionContext } from '../execution.js';
 import type { AIMessage } from '../messages.js';
 import type { ConversationTurnResult, EvaluationSample } from '../sample.js';
 import type { EvaluationCase, EvaluationSuite } from '../evaluation.js';
@@ -330,7 +330,7 @@ async function executePlannedSample(
     for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
       history.push(...turn.messages);
       const request: AIExecutionRequest = withTools(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
-      const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+      const executed = await executeAndContinue(request, adapter, plannedSample, options, run, evidence, sleep, now);
       attempts.push(...executed.attempts);
       finalResult = executed.result;
       const responseText = executed.result.output.text ?? '';
@@ -382,7 +382,7 @@ async function executePlannedSample(
   }
 
   const request: AIExecutionRequest = withTools(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
-  const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+  const executed = await executeAndContinue(request, adapter, plannedSample, options, run, evidence, sleep, now);
   emitTelemetry(options.telemetry, {
     name: 'sample.completed',
     runId: run.runId,
@@ -407,6 +407,89 @@ async function executePlannedSample(
       startedAt: executed.attempts[0]?.result.timing.startedAt ?? now(),
       completedAt: executed.result.timing.completedAt,
     },
+  };
+}
+
+async function executeAndContinue(
+  request: AIExecutionRequest,
+  adapter: AIPlatformAdapter,
+  plannedSample: PlannedSample,
+  options: RunEvaluationOptions,
+  run: RunContext,
+  evidence: EvidenceWriter,
+  sleep: (ms: number) => Promise<void>,
+  now: () => string,
+): Promise<{ result: AIExecutionResult; attempts: AttemptRecord[] }> {
+  const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+  const answered = (executed.result.toolCalls ?? []).filter((call) => call.result !== undefined);
+  if (executed.result.status !== 'completed' || answered.length === 0) {
+    return executed;
+  }
+  const followUp: AIExecutionRequest = {
+    ...request,
+    toolChoice: 'none',
+    messages: [
+      ...request.messages,
+      {
+        role: 'assistant',
+        content: executed.result.output.text ?? '',
+        metadata: {
+          toolCalls: answered.map((call) => ({ id: call.id, name: call.name, arguments: call.arguments })),
+        },
+      },
+      ...answered.map((call) => ({
+        role: 'tool' as const,
+        name: call.name,
+        toolCallId: call.id,
+        content: typeof call.result === 'string' ? call.result : JSON.stringify(call.result),
+      })),
+    ],
+  };
+  const continued = await runAttempts(followUp, adapter, plannedSample, options, run, evidence, sleep, now);
+  const usage = combineUsage(executed.result.usage, continued.result.usage);
+  return {
+    result: mergeToolFollowUp(executed.result, continued.result, usage),
+    attempts: [...executed.attempts, ...continued.attempts],
+  };
+}
+
+function mergeToolFollowUp(first: AIExecutionResult, second: AIExecutionResult, usage: AIUsage | undefined): AIExecutionResult {
+  return {
+    ...second,
+    toolCalls: first.toolCalls,
+    citations: second.citations ?? first.citations,
+    ...(usage ? { usage } : {}),
+    timing: {
+      startedAt: first.timing.startedAt,
+      completedAt: second.timing.completedAt,
+      latencyMs: first.timing.latencyMs + second.timing.latencyMs,
+    },
+  };
+}
+
+function combineUsage(left: AIUsage | undefined, right: AIUsage | undefined): AIUsage | undefined {
+  if (!left && !right) {
+    return undefined;
+  }
+  const field = (name: keyof AIUsage): number | undefined => {
+    const first = left?.[name];
+    const second = right?.[name];
+    if (typeof first !== 'number' && typeof second !== 'number') {
+      return undefined;
+    }
+    return (typeof first === 'number' ? first : 0) + (typeof second === 'number' ? second : 0);
+  };
+  const inputTokens = field('inputTokens');
+  const outputTokens = field('outputTokens');
+  const totalTokens = field('totalTokens');
+  const cachedInputTokens = field('cachedInputTokens');
+  const reasoningTokens = field('reasoningTokens');
+  return {
+    ...(inputTokens === undefined ? {} : { inputTokens }),
+    ...(outputTokens === undefined ? {} : { outputTokens }),
+    ...(totalTokens === undefined ? {} : { totalTokens }),
+    ...(cachedInputTokens === undefined ? {} : { cachedInputTokens }),
+    ...(reasoningTokens === undefined ? {} : { reasoningTokens }),
   };
 }
 

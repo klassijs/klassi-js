@@ -11552,7 +11552,7 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
     for (const [index, turn] of evaluationCase.conversation.turns.entries()) {
       history.push(...turn.messages);
       const request2 = withTools(evaluationCase, { ...requestBase, messages: history.map((message) => ({ ...message })) });
-      const executed2 = await runAttempts(request2, adapter, plannedSample, options, run, evidence, sleep, now);
+      const executed2 = await executeAndContinue(request2, adapter, plannedSample, options, run, evidence, sleep, now);
       attempts.push(...executed2.attempts);
       finalResult = executed2.result;
       const responseText = executed2.result.output.text ?? "";
@@ -11603,7 +11603,7 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
     };
   }
   const request = withTools(evaluationCase, { ...requestBase, messages: evaluationCase.input.messages });
-  const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+  const executed = await executeAndContinue(request, adapter, plannedSample, options, run, evidence, sleep, now);
   emitTelemetry(options.telemetry, {
     name: "sample.completed",
     runId: run.runId,
@@ -11628,6 +11628,77 @@ async function executePlannedSample(plannedSample, options, run, sleep, now) {
       startedAt: executed.attempts[0]?.result.timing.startedAt ?? now(),
       completedAt: executed.result.timing.completedAt
     }
+  };
+}
+async function executeAndContinue(request, adapter, plannedSample, options, run, evidence, sleep, now) {
+  const executed = await runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now);
+  const answered = (executed.result.toolCalls ?? []).filter((call) => call.result !== void 0);
+  if (executed.result.status !== "completed" || answered.length === 0) {
+    return executed;
+  }
+  const followUp = {
+    ...request,
+    toolChoice: "none",
+    messages: [
+      ...request.messages,
+      {
+        role: "assistant",
+        content: executed.result.output.text ?? "",
+        metadata: {
+          toolCalls: answered.map((call) => ({ id: call.id, name: call.name, arguments: call.arguments }))
+        }
+      },
+      ...answered.map((call) => ({
+        role: "tool",
+        name: call.name,
+        toolCallId: call.id,
+        content: typeof call.result === "string" ? call.result : JSON.stringify(call.result)
+      }))
+    ]
+  };
+  const continued = await runAttempts(followUp, adapter, plannedSample, options, run, evidence, sleep, now);
+  const usage = combineUsage(executed.result.usage, continued.result.usage);
+  return {
+    result: mergeToolFollowUp(executed.result, continued.result, usage),
+    attempts: [...executed.attempts, ...continued.attempts]
+  };
+}
+function mergeToolFollowUp(first, second, usage) {
+  return {
+    ...second,
+    toolCalls: first.toolCalls,
+    citations: second.citations ?? first.citations,
+    ...usage ? { usage } : {},
+    timing: {
+      startedAt: first.timing.startedAt,
+      completedAt: second.timing.completedAt,
+      latencyMs: first.timing.latencyMs + second.timing.latencyMs
+    }
+  };
+}
+function combineUsage(left, right) {
+  if (!left && !right) {
+    return void 0;
+  }
+  const field = (name) => {
+    const first = left?.[name];
+    const second = right?.[name];
+    if (typeof first !== "number" && typeof second !== "number") {
+      return void 0;
+    }
+    return (typeof first === "number" ? first : 0) + (typeof second === "number" ? second : 0);
+  };
+  const inputTokens = field("inputTokens");
+  const outputTokens = field("outputTokens");
+  const totalTokens = field("totalTokens");
+  const cachedInputTokens = field("cachedInputTokens");
+  const reasoningTokens = field("reasoningTokens");
+  return {
+    ...inputTokens === void 0 ? {} : { inputTokens },
+    ...outputTokens === void 0 ? {} : { outputTokens },
+    ...totalTokens === void 0 ? {} : { totalTokens },
+    ...cachedInputTokens === void 0 ? {} : { cachedInputTokens },
+    ...reasoningTokens === void 0 ? {} : { reasoningTokens }
   };
 }
 async function runAttempts(request, adapter, plannedSample, options, run, evidence, sleep, now) {
@@ -16098,7 +16169,7 @@ function requestHasImage(request) {
 function responsesBody(request, deployment) {
   return omitEmpty({
     model: deployment,
-    input: request.messages.map(responsesMessage),
+    input: request.messages.flatMap(responsesInput),
     temperature: request.temperature,
     top_p: request.topP,
     max_output_tokens: request.maxOutputTokens,
@@ -16126,17 +16197,62 @@ function chatBody(request, deployment) {
     ...safeOptions(request.providerOptions)
   });
 }
-function responsesMessage(message) {
+function responsesInput(message) {
   if (message.role === "tool") {
-    return { type: "function_call_output", call_id: message.toolCallId ?? message.name ?? "tool", output: messageText(message) };
+    return [{ type: "function_call_output", call_id: message.toolCallId ?? message.name ?? "tool", output: messageText(message) }];
   }
-  return { role: message.role, content: messageText(message) };
+  const calls = messageToolCalls(message);
+  if (message.role === "assistant" && calls.length > 0) {
+    const text = messageText(message);
+    return [
+      ...text ? [{ role: "assistant", content: text }] : [],
+      ...calls.map((call) => ({
+        type: "function_call",
+        call_id: call.id,
+        name: call.name,
+        arguments: typeof call.arguments === "string" ? call.arguments : JSON.stringify(call.arguments ?? {})
+      }))
+    ];
+  }
+  return [{ role: message.role, content: messageText(message) }];
 }
 function chatMessage(message) {
+  const calls = messageToolCalls(message);
+  if (message.role === "assistant" && calls.length > 0) {
+    const text = messageText(message);
+    return omitEmpty({
+      role: "assistant",
+      content: text || null,
+      tool_calls: calls.map((call) => ({
+        id: call.id,
+        type: "function",
+        function: {
+          name: call.name,
+          arguments: typeof call.arguments === "string" ? call.arguments : JSON.stringify(call.arguments ?? {})
+        }
+      }))
+    });
+  }
   return omitEmpty({
     role: message.role === "developer" ? "system" : message.role,
     content: messageText(message),
     ...message.role === "tool" ? { tool_call_id: message.toolCallId ?? message.name } : {}
+  });
+}
+function messageToolCalls(message) {
+  const value = message.metadata?.toolCalls;
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return [];
+    }
+    const call = item;
+    if (typeof call.name !== "string" || call.name.trim().length === 0) {
+      return [];
+    }
+    return [{ id: typeof call.id === "string" && call.id.length > 0 ? call.id : call.name, name: call.name, arguments: call.arguments }];
   });
 }
 function messageText(message) {
@@ -16639,7 +16755,7 @@ var AzureOpenAIAdapter = class {
     const timer = setTimeout(() => {
       abortReason = abortReason ?? "timeout";
       controller.abort();
-    }, resolved.timeoutMs);
+    }, attemptBudgetMs(context, resolved.timeoutMs));
     const onAbort = () => {
       abortReason = "caller";
       controller.abort();
@@ -16753,6 +16869,14 @@ function timing(startedAt, latencyMs) {
     completedAt: new Date(Date.parse(startedAt) + latencyMs).toISOString(),
     latencyMs
   };
+}
+function attemptBudgetMs(context, fallbackMs) {
+  const deadline = Date.parse(context.deadline ?? "");
+  const started = Date.parse(context.startedAt);
+  if (!Number.isFinite(deadline) || !Number.isFinite(started)) {
+    return fallbackMs;
+  }
+  return Math.max(1, deadline - started);
 }
 function parseBody(raw) {
   if (!raw) {

@@ -71,7 +71,7 @@ export function requestHasImage(request: AIExecutionRequest): boolean {
 function responsesBody(request: AIExecutionRequest, deployment: string): Record<string, unknown> {
   return omitEmpty({
     model: deployment,
-    input: request.messages.map(responsesMessage),
+    input: request.messages.flatMap(responsesInput),
     temperature: request.temperature,
     top_p: request.topP,
     max_output_tokens: request.maxOutputTokens,
@@ -101,18 +101,64 @@ function chatBody(request: AIExecutionRequest, deployment: string): Record<strin
   });
 }
 
-function responsesMessage(message: AIMessage): Record<string, unknown> {
+function responsesInput(message: AIMessage): Record<string, unknown>[] {
   if (message.role === 'tool') {
-    return { type: 'function_call_output', call_id: message.toolCallId ?? message.name ?? 'tool', output: messageText(message) };
+    return [{ type: 'function_call_output', call_id: message.toolCallId ?? message.name ?? 'tool', output: messageText(message) }];
   }
-  return { role: message.role, content: messageText(message) };
+  const calls = messageToolCalls(message);
+  if (message.role === 'assistant' && calls.length > 0) {
+    const text = messageText(message);
+    return [
+      ...(text ? [{ role: 'assistant', content: text }] : []),
+      ...calls.map((call) => ({
+        type: 'function_call',
+        call_id: call.id,
+        name: call.name,
+        arguments: typeof call.arguments === 'string' ? call.arguments : JSON.stringify(call.arguments ?? {}),
+      })),
+    ];
+  }
+  return [{ role: message.role, content: messageText(message) }];
 }
 
 function chatMessage(message: AIMessage): Record<string, unknown> {
+  const calls = messageToolCalls(message);
+  if (message.role === 'assistant' && calls.length > 0) {
+    const text = messageText(message);
+    return omitEmpty({
+      role: 'assistant',
+      content: text || null,
+      tool_calls: calls.map((call) => ({
+        id: call.id,
+        type: 'function',
+        function: {
+          name: call.name,
+          arguments: typeof call.arguments === 'string' ? call.arguments : JSON.stringify(call.arguments ?? {}),
+        },
+      })),
+    });
+  }
   return omitEmpty({
     role: message.role === 'developer' ? 'system' : message.role,
     content: messageText(message),
     ...(message.role === 'tool' ? { tool_call_id: message.toolCallId ?? message.name } : {}),
+  });
+}
+
+function messageToolCalls(message: AIMessage): Array<{ id: string; name: string; arguments?: unknown }> {
+  const value = message.metadata?.toolCalls;
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return [];
+    }
+    const call = item as { id?: unknown; name?: unknown; arguments?: unknown };
+    if (typeof call.name !== 'string' || call.name.trim().length === 0) {
+      return [];
+    }
+    return [{ id: typeof call.id === 'string' && call.id.length > 0 ? call.id : call.name, name: call.name, arguments: call.arguments }];
   });
 }
 
