@@ -1,0 +1,66 @@
+# Copy this file to azure-pipelines.yml at the repository root.
+# Store Azure values as secret variables in a variable group. Do not print them.
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: klassi-ai
+
+steps:
+  - task: NodeTool@0
+    displayName: Use Node.js 22
+    inputs:
+      versionSpec: 22.x
+
+  - script: |
+      corepack enable
+      corepack prepare pnpm@11.10.0 --activate
+      pnpm install --frozen-lockfile
+    displayName: Install dependencies
+
+  - script: pnpm klassi ai:evaluate --suite example --output $(Build.ArtifactStagingDirectory)/ai-reports/example
+    displayName: Evaluate the local example
+
+  - script: |
+      node --input-type=module -e "import { readFile, writeFile } from 'node:fs/promises'; const suite = JSON.parse(await readFile('examples/ai/example.json', 'utf8')); suite.cases[0].evaluators[0].config.expected = 'goodbye'; await writeFile('$(Build.ArtifactStagingDirectory)/ai-reports/gate-fail.json', JSON.stringify(suite));"
+      set +e
+      pnpm klassi ai:evaluate --suite $(Build.ArtifactStagingDirectory)/ai-reports/gate-fail.json --output $(Build.ArtifactStagingDirectory)/ai-reports/gate-fail
+      code=$?
+      set -e
+      test "$code" -eq 1
+    displayName: Quality-gate failure exits 1
+
+  - script: |
+      if [ -z "$AZURE_OPENAI_API_KEY" ]; then
+        echo "Azure secrets are not configured; skipping the live evaluation."
+        exit 0
+      fi
+      set +e
+      pnpm klassi ai:evaluate --suite azure-openai --platform azure-openai --output $(Build.ArtifactStagingDirectory)/ai-reports/azure
+      code=$?
+      set -e
+      if [ "$code" -eq 1 ]; then
+        echo "Quality gate failed. This is a result failure, not a missing credential."
+        exit 1
+      fi
+      if [ "$code" -eq 3 ]; then
+        echo "Execution infrastructure failed. The provider was unavailable or the call did not complete."
+        exit 1
+      fi
+      exit "$code"
+    displayName: Evaluate Azure when secrets are configured
+    env:
+      AZURE_OPENAI_ENDPOINT: $(AZURE_OPENAI_ENDPOINT)
+      AZURE_OPENAI_API_KEY: $(AZURE_OPENAI_API_KEY)
+      AZURE_OPENAI_DEPLOYMENT: $(AZURE_OPENAI_DEPLOYMENT)
+      AZURE_OPENAI_JUDGE_DEPLOYMENT: $(AZURE_OPENAI_JUDGE_DEPLOYMENT)
+
+  - task: PublishPipelineArtifact@1
+    displayName: Publish evaluation reports
+    condition: always()
+    inputs:
+      targetPath: $(Build.ArtifactStagingDirectory)/ai-reports
+      artifact: ai-reports

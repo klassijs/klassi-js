@@ -143,6 +143,7 @@ module.exports = [
         beforeAll: true,
         afterAll: true,
         test: true,
+        Response: true,
       },
     },
   },

@@ -103,6 +103,16 @@ export const qualityGateSchema = z
       .strict()
       .optional(),
     performance: z.object({ p95LatencyMs: z.number().int().positive().optional() }).strict().optional(),
+    budget: z
+      .object({
+        maximumTotalTokens: z.number().int().min(0).optional(),
+        maximumInputTokens: z.number().int().min(0).optional(),
+        maximumOutputTokens: z.number().int().min(0).optional(),
+        maximumRequests: z.number().int().min(0).optional(),
+        maximumEstimatedCost: z.number().min(0).optional(),
+      })
+      .strict()
+      .optional(),
     stability: z
       .object({
         minimumPassRate: score.optional(),
@@ -178,6 +188,24 @@ export const evaluationSuiteSchema = z
       .strict()
       .optional(),
     qualityGate: qualityGateSchema,
+    costTable: z
+      .object({
+        version: nonEmpty,
+        currency: nonEmpty,
+        prices: z
+          .array(
+            z
+              .object({
+                match: nonEmpty,
+                inputPerMillion: z.number().min(0),
+                outputPerMillion: z.number().min(0),
+              })
+              .strict(),
+          )
+          .min(1),
+      })
+      .strict()
+      .optional(),
     metadata,
   })
   .strict()

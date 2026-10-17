@@ -30,6 +30,14 @@ pnpm add klassi-js
 node ./node_modules/klassi-js/index.js
 ```
 
+## AI evaluation
+
+Klassi can score model behaviour without starting Cucumber. The guide is [docs/ai-evaluation.md](docs/ai-evaluation.md). A local run uses the fake adapter:
+
+```bash
+pnpm klassi ai:evaluate --suite example
+```
+
 ## Options
 
 ```bash

@@ -9,7 +9,7 @@ import {
   type ExecutionContext,
   type ProviderEvidence,
 } from '@klassijs/ai-core';
-import { mapAzureCall, mapAzureOutput, providerError, requestHasImage, statusError } from './map.js';
+import { isContentFilter, mapAzureCall, mapAzureOutput, providerError, requestHasImage, statusError } from './map.js';
 import { AZURE_ADAPTER_ID, AZURE_ADAPTER_VERSION, assertAzureProfile, type AzureOpenAIAdapterProfile } from './profile.js';
 import { redactText, redactValue } from './redact.js';
 import { inspectAzureProfile, safeHealthMessage, type ResolvedAzureTarget } from './resolve.js';
@@ -65,13 +65,18 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       return { status: 'unhealthy', checkedAt, checks };
     }
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), inspected.resolved.timeoutMs);
+    const onAbort = () => controller.abort();
+    context.signal?.addEventListener('abort', onAbort);
     try {
       const headers = await this.authorizationHeaders(inspected.resolved);
       const response = await this.#fetch(`${inspected.resolved.endpoint}/openai/v1/models`, {
         method: 'GET',
         headers,
-        signal: context.signal ?? AbortSignal.timeout(inspected.resolved.timeoutMs),
+        signal: controller.signal,
       });
+      await response.body?.cancel();
       if (response.ok) {
         checks.push({ name: 'reachability', status: 'pass', message: 'v1 models endpoint responded' });
         return { status: 'healthy', checkedAt, checks: redactChecks(checks, inspected.resolved.secrets) };
@@ -83,6 +88,9 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       const message = error instanceof Error ? error.message : 'Health check failed';
       checks.push({ name: 'reachability', status: 'fail', message: safeHealthMessage(message, inspected.resolved.secrets) });
       return { status: 'unhealthy', checkedAt, checks: redactChecks(checks, inspected.resolved.secrets) };
+    } finally {
+      clearTimeout(timer);
+      context.signal?.removeEventListener('abort', onAbort);
     }
   }
 
@@ -106,7 +114,7 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
     const timer = setTimeout(() => {
       abortReason = abortReason ?? 'timeout';
       controller.abort();
-    }, resolved.timeoutMs);
+    }, attemptBudgetMs(context, resolved.timeoutMs));
     const onAbort = () => {
       abortReason = 'caller';
       controller.abort();
@@ -128,6 +136,9 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       if (!response.ok) {
         const classified = statusError(response.status);
         const details = providerError(parsed ?? raw);
+        if (isContentFilter(details.message, details.providerCode)) {
+          return this.blocked(context, latencyMs, details.message || 'Azure content filter blocked the prompt', resolved.secrets, redactValue({ status: response.status, body: parsed ?? raw }, resolved.secrets));
+        }
         const retryAfterMs = classified.code === 'RATE_LIMIT_ERROR' ? retryAfter(response.headers.get('retry-after')) : undefined;
         return this.failure(
           context,
@@ -190,6 +201,20 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
     };
   }
 
+  private blocked(context: ExecutionContext, latencyMs: number, message: string, secrets: readonly string[], native?: unknown): AIExecutionResult {
+    const text = redactText(message, secrets);
+    return {
+      id: `${this.id}-blocked`,
+      adapterId: this.id,
+      status: 'blocked',
+      output: { text },
+      safety: [{ category: 'content-filter', action: 'block', severity: 'high' }],
+      finishReason: 'content_filter',
+      timing: timing(context.startedAt, latencyMs),
+      ...(native !== undefined ? { native } : {}),
+    };
+  }
+
   private failure(
     context: ExecutionContext,
     latencyMs: number,
@@ -229,6 +254,15 @@ function timing(startedAt: string, latencyMs: number): AIExecutionResult['timing
     completedAt: new Date(Date.parse(startedAt) + latencyMs).toISOString(),
     latencyMs,
   };
+}
+
+function attemptBudgetMs(context: ExecutionContext, fallbackMs: number): number {
+  const deadline = Date.parse(context.deadline ?? '');
+  const started = Date.parse(context.startedAt);
+  if (!Number.isFinite(deadline) || !Number.isFinite(started)) {
+    return fallbackMs;
+  }
+  return Math.max(1, deadline - started);
 }
 
 function parseBody(raw: string): unknown {

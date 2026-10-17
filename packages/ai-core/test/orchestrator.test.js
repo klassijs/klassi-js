@@ -3,6 +3,30 @@ import test from 'node:test';
 import { createAdapterRegistry, runEvaluation } from '../dist/index.js';
 import { FakeAIAdapter } from '../dist/testing/index.js';
 
+function recordingAdapter(requests) {
+  return {
+    id: 'fake',
+    name: 'recording',
+    version: '0.0.0',
+    async capabilities() {
+      return { text: true, images: false, streaming: false, structuredOutput: true, toolCalling: false, multiTurn: true, usage: false, contentSafetyMetadata: false, seed: false };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute(request) {
+      requests.push(request);
+      return {
+        id: 'recorded',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'hello' },
+        timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.000Z', latencyMs: 1 },
+      };
+    },
+  };
+}
+
 function suite(overrides = {}) {
   return {
     id: 'support-release',
@@ -129,6 +153,7 @@ test('an aborted run and a hung adapter are bounded by timeout', async () => {
     sleep: async () => {},
   });
   assert.equal(timed.samples[0].sample.execution.error.code, 'TIMEOUT_ERROR');
+  assert.equal(timed.samples[0].sample.execution.error.retryable, true);
   assert.equal(timed.samples[0].attempts.length, 1);
 });
 
@@ -220,6 +245,51 @@ test('a conversation carries each assistant reply into the next turn', async () 
   assert.deepEqual(run.samples[0].evidence.map((artifact) => artifact.name), ['turn-greeting', 'turn-farewell']);
 });
 
+test('a declared schema is requested as JSON on one turn and on every conversation turn', async () => {
+  const schema = { type: 'object', properties: { allowed: { type: 'boolean' } } };
+  const requests = [];
+  const registry = createAdapterRegistry();
+  registry.register(recordingAdapter(requests));
+
+  await runEvaluation({
+    registry,
+    suite: suite({ expectations: { expectedSchema: schema } }),
+    sleep: async () => {},
+  });
+  assert.equal(requests.length, 1);
+  assert.deepEqual(requests[0].responseFormat, { type: 'json', schema });
+
+  requests.length = 0;
+  await runEvaluation({
+    registry,
+    suite: suite({
+      expectations: { expectedSchema: schema },
+      conversation: {
+        turns: [
+          { id: 'greeting', messages: [{ role: 'user', content: 'Say hello.' }] },
+          { id: 'farewell', messages: [{ role: 'user', content: 'Say goodbye.' }] },
+        ],
+      },
+    }),
+    sleep: async () => {},
+  });
+  assert.equal(requests.length, 2);
+  assert.deepEqual(requests[0].responseFormat, { type: 'json', schema });
+  assert.deepEqual(requests[1].responseFormat, { type: 'json', schema });
+});
+
+test('an explicit JSON flag requests JSON output without a schema', async () => {
+  const requests = [];
+  const registry = createAdapterRegistry();
+  registry.register(recordingAdapter(requests));
+  await runEvaluation({
+    registry,
+    suite: suite({ metadata: { json: true } }),
+    sleep: async () => {},
+  });
+  assert.deepEqual(requests[0].responseFormat, { type: 'json' });
+});
+
 test('a model-requested tool is recorded and is not executed', async () => {
   const adapter = new FakeAIAdapter();
   adapter.useScript({
@@ -237,4 +307,136 @@ test('a model-requested tool is recorded and is not executed', async () => {
   assert.equal(call?.name, 'deleteAccount');
   assert.equal(call?.status, 'requested');
   assert.equal(call?.result, undefined);
+});
+
+test('a case handler records the tool result and a thrown handler is a failed call', async () => {
+  const requests = [];
+  const registry = createAdapterRegistry();
+  registry.register({
+    id: 'fake',
+    name: 'recording',
+    version: '0.0.0',
+    async capabilities() {
+      return { text: true, images: false, streaming: false, structuredOutput: true, toolCalling: true, multiTurn: true, usage: false, contentSafetyMetadata: false, seed: false };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute(request) {
+      requests.push(request);
+      return {
+        id: 'recorded',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: '' },
+        toolCalls: [
+          { id: 'call-1', name: 'lookupTicket', arguments: { ticketId: 'KL-1008' }, status: 'requested' },
+          { id: 'call-2', name: 'brokenTool', arguments: {}, status: 'requested' },
+        ],
+        timing: { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.000Z', latencyMs: 1 },
+      };
+    },
+  });
+
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      metadata: {
+        tools: [
+          { name: 'lookupTicket', type: 'function', execute: (args) => ({ ticketId: args.ticketId, status: 'open' }) },
+          { name: 'web_search', type: 'web_search' },
+          { name: 'brokenTool', execute: () => { throw new Error('tool failed'); } },
+        ],
+      },
+    }),
+    sleep: async () => {},
+  });
+  const calls = run.samples[0].sample.execution.toolCalls;
+
+  assert.deepEqual(requests[0].tools.map((tool) => tool.name), ['lookupTicket', 'web_search', 'brokenTool']);
+  assert.equal(requests[0].tools[0].execute, undefined);
+  assert.equal(requests[0].tools[1].type, 'web_search');
+  assert.equal(calls[0].status, 'completed');
+  assert.deepEqual(calls[0].result, { ticketId: 'KL-1008', status: 'open' });
+  assert.equal(calls[1].status, 'failed');
+  assert.equal(calls[1].result, undefined);
+});
+
+test('a completed tool result is sent back and the follow-up answer is scored with the original call', async () => {
+  const requests = [];
+  let calls = 0;
+  const registry = createAdapterRegistry();
+  registry.register({
+    id: 'fake',
+    name: 'recording',
+    version: '0.0.0',
+    async capabilities() {
+      return { text: true, images: false, streaming: false, structuredOutput: true, toolCalling: true, multiTurn: true, usage: true, contentSafetyMetadata: false, seed: false };
+    },
+    async healthCheck() {
+      return { status: 'healthy', checkedAt: '2026-01-01T00:00:00.000Z' };
+    },
+    async execute(request) {
+      requests.push(request);
+      calls += 1;
+      const timing = { startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:00.000Z', latencyMs: 1 };
+      if (calls === 1) {
+        return {
+          id: 'recorded',
+          adapterId: 'fake',
+          status: 'completed',
+          output: { text: '' },
+          toolCalls: [{ id: 'call-1', name: 'lookupTicket', arguments: { ticketId: 'KL-1008' }, status: 'requested' }],
+          usage: { inputTokens: 4, outputTokens: 2, totalTokens: 6 },
+          timing,
+        };
+      }
+      return {
+        id: 'follow-up',
+        adapterId: 'fake',
+        status: 'completed',
+        output: { text: 'open' },
+        usage: { inputTokens: 8, outputTokens: 1, totalTokens: 9 },
+        timing,
+      };
+    },
+  });
+
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      metadata: {
+        tools: [{ name: 'lookupTicket', execute: (args) => ({ ticketId: args.ticketId, status: 'open' }) }],
+      },
+    }),
+    sleep: async () => {},
+  });
+  const execution = run.samples[0].sample.execution;
+  const toolMessage = requests[1].messages.find((message) => message.role === 'tool');
+
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].toolChoice, 'none');
+  assert.match(toolMessage.content, /"status":"open"/);
+  assert.equal(execution.output.text, 'open');
+  assert.deepEqual(execution.toolCalls[0].result, { ticketId: 'KL-1008', status: 'open' });
+  assert.equal(execution.usage.totalTokens, 15);
+  assert.equal(run.samples[0].attempts.length, 2);
+});
+
+test('one hundred samples finish locally without a provider call', async () => {
+  const adapter = new FakeAIAdapter();
+  const registry = createAdapterRegistry();
+  registry.register(adapter);
+  const started = Date.now();
+  const run = await runEvaluation({
+    registry,
+    suite: suite({
+      execution: { samples: 100, concurrency: 10, timeoutMs: 1000, retry: { maxInfrastructureRetries: 0, initialDelayMs: 0, jitter: false } },
+    }),
+    sleep: async () => {},
+  });
+
+  assert.equal(run.samples.length, 100);
+  assert.equal(run.samples.every((record) => record.attempts.length === 1 && record.sample.status === 'review'), true);
+  assert.equal(Date.now() - started < 2000, true);
 });

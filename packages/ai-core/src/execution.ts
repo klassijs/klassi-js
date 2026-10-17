@@ -47,6 +47,9 @@ export interface AIToolDefinition {
   name: string;
   description?: string;
   parameters?: Record<string, unknown>;
+  /** Function tools omit this. Hosted tools such as web_search are sent as the provider tool type. */
+  type?: 'function' | 'web_search' | 'web_search_preview' | 'file_search';
+  vectorStoreIds?: string[];
 }
 
 export type AIToolChoice = 'auto' | 'none' | 'required' | { type: 'tool'; name: string };

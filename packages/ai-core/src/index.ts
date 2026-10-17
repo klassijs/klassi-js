@@ -97,6 +97,15 @@ export {
 } from './aggregation.js';
 export type { AggregateStatus, CaseAggregate, NumericSummary, SampleAggregate, StatusCounts, SuiteAggregate } from './aggregation.js';
 
+export { createTelemetryCollector, emitTelemetry, noopTelemetry, openTelemetrySink, sanitizeTelemetry, TELEMETRY_EVENTS } from './telemetry.js';
+export type { TelemetryEvent, TelemetryEventName, TelemetrySink, TelemetrySpan, TelemetryTracer } from './telemetry.js';
+
+export { CONTROL_ALIGNMENT_STATEMENT, CONTROL_FRAMEWORKS } from './controls.js';
+export type { ControlFramework, ControlMapping, ControlReference } from './controls.js';
+
+export { budgetTokenTotal, summarizeUsage } from './usage.js';
+export type { CostTable, UsageSummary } from './usage.js';
+
 export { CRITICAL_CASE_TAG, evaluateQualityGate } from './quality-gate.js';
 export type {
   QualityGateCase,

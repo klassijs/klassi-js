@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [Unreleased]
+
+### Features
+
+* **ai:** add provider-neutral AI evaluation: suites, the fake adapter, Azure OpenAI, quality gates, redacted evidence, and reports. Cucumber and WebdriverIO commands stay the same. The public JavaScript contract is `1.0.0` (`aiCase`, `aiSuite`, `createAdapterRegistry`, `runAiEvaluation`). The npm package remains `6.1.0` until a `6.2.0` release is approved. See `docs/ai-evaluation-release.md`.
+
 ## [6.1.0](https://github.com/klassijs/klassi-js/compare/v6.0.1...v6.1.0) (2025-11-04)
 
 

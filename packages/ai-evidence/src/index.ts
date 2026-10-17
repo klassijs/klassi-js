@@ -1,7 +1,7 @@
 export { canonicalizeEvidence, hashEvidence } from './canonical.js';
 export { redactEvidence } from './redact.js';
 export type { RedactionOptions } from './redact.js';
-export { evidenceRunDirectory, FileEvidenceStore } from './store.js';
+export { DEFAULT_MAX_EVIDENCE_BYTES, evidenceRunDirectory, FileEvidenceStore } from './store.js';
 export type {
   CaseEvidence,
   EvaluatorEvidence,

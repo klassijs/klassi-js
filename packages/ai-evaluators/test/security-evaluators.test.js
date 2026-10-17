@@ -66,6 +66,9 @@ test('security controls map to OWASP guidance and failures keep their severity',
   assert.equal(injection.status, 'fail');
   assert.equal(injection.severity, 'critical');
   assert.equal(injection.metadata.owasp, 'LLM01:2025');
+  assert.equal(injection.metadata.alignment, 'evidence');
+  assert.match(injection.metadata.statement, /not a certification/);
+  assert.deepEqual(injection.metadata.controls.map((control) => control.framework), ['owasp-genai', 'nist-ai-rmf', 'nist-genai-profile']);
   assert.equal(disclosed.evidence[0].name, 'security-sensitive-disclosure');
   assert.equal(disclosure.severity, 'critical');
   assert.equal(tool.severity, 'high');
@@ -74,6 +77,8 @@ test('security controls map to OWASP guidance and failures keep their severity',
   assert.equal(passed.status, 'pass');
   assert.equal(passed.severity, 'info');
   assert.equal(safe.evidence[0].body.owasp.id, 'LLM01:2025');
+  assert.equal(safe.evidence[0].body.alignment, 'evidence');
+  assert.equal(safe.evidence[0].body.controls.find((control) => control.framework === 'nist-ai-rmf').id, 'MS-2.7');
 
   const decision = await evaluateQualityGate({
     gate: {

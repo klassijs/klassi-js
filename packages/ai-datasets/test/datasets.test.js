@@ -26,6 +26,17 @@ test('JSON and YAML suites load to the same canonical hash', async () => {
   assert.match(json.datasetHash, /^[a-f0-9]{64}$/);
 });
 
+test('a versioned cost table and budget limits load with the suite', async () => {
+  const suite = JSON.parse(await readFile(path.join(fixtures, 'valid-suite.json'), 'utf8'));
+  suite.qualityGate.performance = { p95LatencyMs: 1500 };
+  suite.qualityGate.budget = { maximumTotalTokens: 1000, maximumRequests: 2, maximumEstimatedCost: 0.05 };
+  suite.costTable = { version: '2026-01', currency: 'USD', prices: [{ match: 'target', inputPerMillion: 2, outputPerMillion: 8 }] };
+  const loaded = loadSuiteFromJson(JSON.stringify(suite));
+  assert.equal(loaded.suite.costTable.version, '2026-01');
+  assert.equal(loaded.suite.qualityGate.budget.maximumRequests, 2);
+  assert.equal(loaded.suite.qualityGate.performance.p95LatencyMs, 1500);
+});
+
 test('key order does not change the dataset hash', () => {
   const first = hashDataset({ id: 'suite', name: 'Suite', version: '1' });
   const second = hashDataset({ version: '1', name: 'Suite', id: 'suite' });

@@ -4,6 +4,7 @@ import type { EvidenceWriter } from './execution.js';
 import type { QualityGate } from './evaluation.js';
 import type { EvaluatorResult } from './evaluator.js';
 import { aggregateSuite, summarizeNumbers, summarizeStatuses, type AggregateStatus } from './aggregation.js';
+import { budgetTokenTotal, summarizeUsage, type CostTable } from './usage.js';
 
 /** A case is critical when its tags include this value. */
 export const CRITICAL_CASE_TAG = 'critical';
@@ -43,11 +44,12 @@ export interface QualityGateInput {
   gate: QualityGate;
   samples: readonly EvaluationSample[];
   cases?: readonly QualityGateCase[];
+  costTable?: CostTable;
   evidence?: EvidenceWriter;
 }
 
 export async function evaluateQualityGate(input: QualityGateInput): Promise<QualityGateResult> {
-  const checks = collectChecks(input.gate, input.samples, input.cases ?? []);
+  const checks = collectChecks(input.gate, input.samples, input.cases ?? [], input.costTable);
   const decision: QualityGateDecision = {
     status: checks.some((check) => check.status === 'fail') ? 'fail' : 'pass',
     checks,
@@ -60,7 +62,7 @@ export async function evaluateQualityGate(input: QualityGateInput): Promise<Qual
   return { decision, evidence };
 }
 
-function collectChecks(gate: QualityGate, samples: readonly EvaluationSample[], cases: readonly QualityGateCase[]): QualityGateCheck[] {
+function collectChecks(gate: QualityGate, samples: readonly EvaluationSample[], cases: readonly QualityGateCase[], costTable?: CostTable): QualityGateCheck[] {
   const suite = aggregateSuite(samples);
   const checks: QualityGateCheck[] = [];
   if (gate.overall?.minimumScore !== undefined) {
@@ -96,6 +98,24 @@ function collectChecks(gate: QualityGate, samples: readonly EvaluationSample[], 
   }
   if (gate.performance?.p95LatencyMs !== undefined) {
     checks.push(atMost('performance.p95LatencyMs', suite.latency.p95, gate.performance.p95LatencyMs, 'P95 latency'));
+  }
+  if (gate.budget) {
+    const usage = summarizeUsage(samples, costTable);
+    if (gate.budget.maximumTotalTokens !== undefined) {
+      checks.push(atMost('budget.maximumTotalTokens', budgetTokenTotal(usage, 'totalTokens'), gate.budget.maximumTotalTokens, 'total tokens'));
+    }
+    if (gate.budget.maximumInputTokens !== undefined) {
+      checks.push(atMost('budget.maximumInputTokens', budgetTokenTotal(usage, 'inputTokens'), gate.budget.maximumInputTokens, 'input tokens'));
+    }
+    if (gate.budget.maximumOutputTokens !== undefined) {
+      checks.push(atMost('budget.maximumOutputTokens', budgetTokenTotal(usage, 'outputTokens'), gate.budget.maximumOutputTokens, 'output tokens'));
+    }
+    if (gate.budget.maximumRequests !== undefined) {
+      checks.push(atMost('budget.maximumRequests', usage.requests, gate.budget.maximumRequests, 'request count'));
+    }
+    if (gate.budget.maximumEstimatedCost !== undefined) {
+      checks.push(atMost('budget.maximumEstimatedCost', usage.estimatedCost, gate.budget.maximumEstimatedCost, 'estimated cost'));
+    }
   }
   if (gate.stability?.minimumPassRate !== undefined) {
     checks.push(atLeast('stability.minimumPassRate', suite.counts.passRate, gate.stability.minimumPassRate, 'stability pass rate'));

@@ -11,8 +11,10 @@ import { EXIT_CODES } from './exit-codes.js';
 const REPORT_FORMATS: Record<string, ReportArtifact['format']> = {
   json: 'json',
   markdown: 'markdown',
+  html: 'html',
   cucumber: 'cucumber-json',
   junit: 'junit',
+  sarif: 'sarif',
 };
 
 export async function execute(argv: string[]): Promise<number> {
@@ -20,7 +22,7 @@ export async function execute(argv: string[]): Promise<number> {
   const program = new Command();
   program.exitOverride().name('klassi');
   addRunOptions(program.command('ai:evaluate').description('Run an AI evaluation suite'))
-    .option('--reporter <list>', 'json, markdown, cucumber, junit', 'json,markdown,cucumber,junit')
+    .option('--reporter <list>', 'json, markdown, html, cucumber, junit, sarif', 'json,markdown,html,cucumber,junit,sarif')
     .option('--output <dir>', 'directory that receives the run evidence and reports')
     .action(async (options) => {
       const outcome = await evaluateSuite(runOptions(options, parseReporters(options.reporter)));

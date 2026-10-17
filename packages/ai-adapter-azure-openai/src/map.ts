@@ -3,6 +3,7 @@ import type {
   AIExecutionRequest,
   AIMessage,
   AIToolChoice,
+  AIToolDefinition,
   AIUsage,
   NormalizedCitation,
   NormalizedSafetyResult,
@@ -70,12 +71,12 @@ export function requestHasImage(request: AIExecutionRequest): boolean {
 function responsesBody(request: AIExecutionRequest, deployment: string): Record<string, unknown> {
   return omitEmpty({
     model: deployment,
-    input: request.messages.map(responsesMessage),
+    input: request.messages.flatMap(responsesInput),
     temperature: request.temperature,
     top_p: request.topP,
     max_output_tokens: request.maxOutputTokens,
     seed: request.seed,
-    tools: request.tools?.map((tool) => omitEmpty({ type: 'function', name: tool.name, description: tool.description, parameters: tool.parameters })),
+    tools: request.tools?.map(responsesTool),
     tool_choice: responsesToolChoice(request.toolChoice),
     text: responseTextFormat(request),
     ...safeOptions(request.providerOptions),
@@ -90,28 +91,74 @@ function chatBody(request: AIExecutionRequest, deployment: string): Record<strin
     top_p: request.topP,
     max_completion_tokens: request.maxOutputTokens,
     seed: request.seed,
-    tools: request.tools?.map((tool) => ({
+    tools: request.tools?.flatMap((tool) => (tool.type === 'web_search' || tool.type === 'web_search_preview' || tool.type === 'file_search' ? [] : [{
       type: 'function',
       function: omitEmpty({ name: tool.name, description: tool.description, parameters: tool.parameters }),
-    })),
+    }])),
     tool_choice: chatToolChoice(request.toolChoice),
     response_format: chatResponseFormat(request),
     ...safeOptions(request.providerOptions),
   });
 }
 
-function responsesMessage(message: AIMessage): Record<string, unknown> {
+function responsesInput(message: AIMessage): Record<string, unknown>[] {
   if (message.role === 'tool') {
-    return { type: 'function_call_output', call_id: message.toolCallId ?? message.name ?? 'tool', output: messageText(message) };
+    return [{ type: 'function_call_output', call_id: message.toolCallId ?? message.name ?? 'tool', output: messageText(message) }];
   }
-  return { role: message.role, content: messageText(message) };
+  const calls = messageToolCalls(message);
+  if (message.role === 'assistant' && calls.length > 0) {
+    const text = messageText(message);
+    return [
+      ...(text ? [{ role: 'assistant', content: text }] : []),
+      ...calls.map((call) => ({
+        type: 'function_call',
+        call_id: call.id,
+        name: call.name,
+        arguments: typeof call.arguments === 'string' ? call.arguments : JSON.stringify(call.arguments ?? {}),
+      })),
+    ];
+  }
+  return [{ role: message.role, content: messageText(message) }];
 }
 
 function chatMessage(message: AIMessage): Record<string, unknown> {
+  const calls = messageToolCalls(message);
+  if (message.role === 'assistant' && calls.length > 0) {
+    const text = messageText(message);
+    return omitEmpty({
+      role: 'assistant',
+      content: text || null,
+      tool_calls: calls.map((call) => ({
+        id: call.id,
+        type: 'function',
+        function: {
+          name: call.name,
+          arguments: typeof call.arguments === 'string' ? call.arguments : JSON.stringify(call.arguments ?? {}),
+        },
+      })),
+    });
+  }
   return omitEmpty({
     role: message.role === 'developer' ? 'system' : message.role,
     content: messageText(message),
     ...(message.role === 'tool' ? { tool_call_id: message.toolCallId ?? message.name } : {}),
+  });
+}
+
+function messageToolCalls(message: AIMessage): Array<{ id: string; name: string; arguments?: unknown }> {
+  const value = message.metadata?.toolCalls;
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return [];
+    }
+    const call = item as { id?: unknown; name?: unknown; arguments?: unknown };
+    if (typeof call.name !== 'string' || call.name.trim().length === 0) {
+      return [];
+    }
+    return [{ id: typeof call.id === 'string' && call.id.length > 0 ? call.id : call.name, name: call.name, arguments: call.arguments }];
   });
 }
 
@@ -140,6 +187,7 @@ function mapResponsesOutput(record: Record<string, unknown>): AzureMappedOutput 
       toolCalls.push(toolCall(entry.call_id ?? entry.id, entry.name, entry.arguments));
       continue;
     }
+    citations.push(...citationsFrom(entry.annotations));
     const content = Array.isArray(entry.content) ? entry.content : [];
     for (const part of content) {
       if (!part || typeof part !== 'object') {
@@ -157,6 +205,9 @@ function mapResponsesOutput(record: Record<string, unknown>): AzureMappedOutput 
     }
   }
   const text = texts.join('') || asString(record.output_text);
+  if (structured === undefined) {
+    structured = parseJson(text);
+  }
   const safety = safetyFrom(record.content_filter_results);
   const incomplete = record.incomplete_details && typeof record.incomplete_details === 'object' ? asString((record.incomplete_details as { reason?: unknown }).reason) : undefined;
   const providerStatus = asString(record.status);
@@ -247,7 +298,7 @@ function toolCall(id: unknown, name: unknown, rawArguments: unknown): Normalized
     id: asString(id) ?? toolName,
     name: toolName,
     ...(parsed !== undefined ? { arguments: parsed } : {}),
-    status: 'completed',
+    status: 'requested',
   };
 }
 
@@ -284,12 +335,36 @@ function citationsFrom(value: unknown): NormalizedCitation[] {
     if (annotation.type !== 'url_citation' && annotation.type !== 'file_citation') {
       return [];
     }
-    return [{
-      ...(asString(annotation.id) ? { id: asString(annotation.id) } : {}),
-      ...(asString(annotation.title) ? { title: asString(annotation.title) } : {}),
-      ...(asString(annotation.url) ? { uri: asString(annotation.url) } : {}),
-    }];
+    const nested = annotation.type === 'url_citation' ? asRecord(annotation.url_citation) : asRecord(annotation.file_citation);
+    const source = { ...annotation, ...(nested ?? {}) };
+    const uri = asString(source.url) ?? asString(source.uri);
+    const title = asString(source.title) ?? asString(source.filename);
+    const id = asString(source.id) ?? asString(source.file_id);
+    const startIndex = numberOr(source.start_index);
+    const endIndex = numberOr(source.end_index);
+    const citation: NormalizedCitation = {
+      ...(id ? { id } : {}),
+      ...(title ? { title } : {}),
+      ...(uri ? { uri } : {}),
+      ...(startIndex !== undefined ? { startIndex } : {}),
+      ...(endIndex !== undefined ? { endIndex } : {}),
+    };
+    return Object.keys(citation).length > 0 ? [citation] : [];
   });
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+}
+
+function responsesTool(tool: AIToolDefinition): Record<string, unknown> {
+  if (tool.type === 'web_search' || tool.type === 'web_search_preview') {
+    return { type: tool.type };
+  }
+  if (tool.type === 'file_search') {
+    return omitEmpty({ type: 'file_search', vector_store_ids: tool.vectorStoreIds });
+  }
+  return omitEmpty({ type: 'function', name: tool.name, description: tool.description, parameters: tool.parameters });
 }
 
 function safetyFrom(value: unknown): NormalizedSafetyResult[] {
@@ -400,6 +475,13 @@ function asString(value: unknown): string | undefined {
 
 function numberOr(...values: unknown[]): number | undefined {
   return values.find((value): value is number => typeof value === 'number' && Number.isFinite(value));
+}
+
+export function isContentFilter(message: string | undefined, providerCode: string | undefined): boolean {
+  if (providerCode === 'content_filter') {
+    return true;
+  }
+  return typeof message === 'string' && /content management policy|content filter/i.test(message);
 }
 
 export function statusError(status: number): { code: AIErrorCode; retryable: boolean } {
