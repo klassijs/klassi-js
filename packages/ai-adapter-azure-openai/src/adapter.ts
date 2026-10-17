@@ -65,13 +65,18 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       return { status: 'unhealthy', checkedAt, checks };
     }
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), inspected.resolved.timeoutMs);
+    const onAbort = () => controller.abort();
+    context.signal?.addEventListener('abort', onAbort);
     try {
       const headers = await this.authorizationHeaders(inspected.resolved);
       const response = await this.#fetch(`${inspected.resolved.endpoint}/openai/v1/models`, {
         method: 'GET',
         headers,
-        signal: context.signal ?? AbortSignal.timeout(inspected.resolved.timeoutMs),
+        signal: controller.signal,
       });
+      await response.body?.cancel();
       if (response.ok) {
         checks.push({ name: 'reachability', status: 'pass', message: 'v1 models endpoint responded' });
         return { status: 'healthy', checkedAt, checks: redactChecks(checks, inspected.resolved.secrets) };
@@ -83,6 +88,9 @@ export class AzureOpenAIAdapter implements AIPlatformAdapter {
       const message = error instanceof Error ? error.message : 'Health check failed';
       checks.push({ name: 'reachability', status: 'fail', message: safeHealthMessage(message, inspected.resolved.secrets) });
       return { status: 'unhealthy', checkedAt, checks: redactChecks(checks, inspected.resolved.secrets) };
+    } finally {
+      clearTimeout(timer);
+      context.signal?.removeEventListener('abort', onAbort);
     }
   }
 
