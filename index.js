@@ -171,6 +171,8 @@ program
   .option('--reportClear', 'This to clear the "reports" folder', false)
 
 if (process.argv[2] === 'ai:evaluate' || process.argv[2] === 'ai:baseline' || process.argv[2] === 'ai:compare' || process.argv[2] === 'ai:doctor') {
+  // Built from the private workspace package; dist is not present when CI lints.
+  // eslint-disable-next-line import/no-unresolved
   import('@klassijs/ai-cli')
     .then(({ execute }) => execute(process.argv))
     .then((code) => {

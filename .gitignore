@@ -37,3 +37,5 @@ eng.traineddata
 .pnpm-store
 docs
 .pnpm-store
+
+examples/ai/TODO.md
