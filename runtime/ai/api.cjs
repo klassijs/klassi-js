@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path6) {
-      const ctrl = callVisitor(key, node, visitor, path6);
+    function visit_(key, node, visitor, path7) {
+      const ctrl = callVisitor(key, node, visitor, path7);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path6, ctrl);
-        return visit_(key, ctrl, visitor, path6);
+        replaceNode(key, path7, ctrl);
+        return visit_(key, ctrl, visitor, path7);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path6 = Object.freeze(path6.concat(node));
+          path7 = Object.freeze(path7.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path6);
+            const ci = visit_(i, node.items[i], visitor, path7);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path6 = Object.freeze(path6.concat(node));
-          const ck = visit_("key", node.key, visitor, path6);
+          path7 = Object.freeze(path7.concat(node));
+          const ck = visit_("key", node.key, visitor, path7);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path6);
+          const cv = visit_("value", node.value, visitor, path7);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path6) {
-      const ctrl = await callVisitor(key, node, visitor, path6);
+    async function visitAsync_(key, node, visitor, path7) {
+      const ctrl = await callVisitor(key, node, visitor, path7);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path6, ctrl);
-        return visitAsync_(key, ctrl, visitor, path6);
+        replaceNode(key, path7, ctrl);
+        return visitAsync_(key, ctrl, visitor, path7);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path6 = Object.freeze(path6.concat(node));
+          path7 = Object.freeze(path7.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path6);
+            const ci = await visitAsync_(i, node.items[i], visitor, path7);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path6 = Object.freeze(path6.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path6);
+          path7 = Object.freeze(path7.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path7);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path6);
+          const cv = await visitAsync_("value", node.value, visitor, path7);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path6) {
+    function callVisitor(key, node, visitor, path7) {
       if (typeof visitor === "function")
-        return visitor(key, node, path6);
+        return visitor(key, node, path7);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path6);
+        return visitor.Map?.(key, node, path7);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path6);
+        return visitor.Seq?.(key, node, path7);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path6);
+        return visitor.Pair?.(key, node, path7);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path6);
+        return visitor.Scalar?.(key, node, path7);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path6);
+        return visitor.Alias?.(key, node, path7);
       return void 0;
     }
-    function replaceNode(key, path6, node) {
-      const parent = path6[path6.length - 1];
+    function replaceNode(key, path7, node) {
+      const parent = path7[path7.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path6, value) {
+    function collectionFromPath(schema, path7, value) {
       let v = value;
-      for (let i = path6.length - 1; i >= 0; --i) {
-        const k = path6[i];
+      for (let i = path7.length - 1; i >= 0; --i) {
+        const k = path7[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path6) => path6 == null || typeof path6 === "object" && !!path6[Symbol.iterator]().next().done;
+    var isEmptyPath = (path7) => path7 == null || typeof path7 === "object" && !!path7[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path6, value) {
-        if (isEmptyPath(path6))
+      addIn(path7, value) {
+        if (isEmptyPath(path7))
           this.add(value);
         else {
-          const [key, ...rest] = path6;
+          const [key, ...rest] = path7;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path6) {
-        const [key, ...rest] = path6;
+      deleteIn(path7) {
+        const [key, ...rest] = path7;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path6, keepScalar) {
-        const [key, ...rest] = path6;
+      getIn(path7, keepScalar) {
+        const [key, ...rest] = path7;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path6) {
-        const [key, ...rest] = path6;
+      hasIn(path7) {
+        const [key, ...rest] = path7;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path6, value) {
-        const [key, ...rest] = path6;
+      setIn(path7, value) {
+        const [key, ...rest] = path7;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path6, value) {
+      addIn(path7, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path6, value);
+          this.contents.addIn(path7, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path6) {
-        if (Collection.isEmptyPath(path6)) {
+      deleteIn(path7) {
+        if (Collection.isEmptyPath(path7)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path6) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path7) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path6, keepScalar) {
-        if (Collection.isEmptyPath(path6))
+      getIn(path7, keepScalar) {
+        if (Collection.isEmptyPath(path7))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path6, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path7, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path6) {
-        if (Collection.isEmptyPath(path6))
+      hasIn(path7) {
+        if (Collection.isEmptyPath(path7))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path6) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path7) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path6, value) {
-        if (Collection.isEmptyPath(path6)) {
+      setIn(path7, value) {
+        if (Collection.isEmptyPath(path7)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path6), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path7), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path6, value);
+          this.contents.setIn(path7, value);
         }
       }
       /**
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path6) => {
+    visit.itemAtPath = (cst, path7) => {
       let item = cst;
-      for (const [field, index] of path6) {
+      for (const [field, index] of path7) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path6) => {
-      const parent = visit.itemAtPath(cst, path6.slice(0, -1));
-      const field = path6[path6.length - 1][0];
+    visit.parentCollection = (cst, path7) => {
+      const parent = visit.itemAtPath(cst, path7.slice(0, -1));
+      const field = path7[path7.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path6, item, visitor) {
-      let ctrl = visitor(item, path6);
+    function _visit(path7, item, visitor) {
+      let ctrl = visitor(item, path7);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path6.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path7.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path6);
+            ctrl = ctrl(item, path7);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path6) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path7) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -7364,9 +7364,14 @@ __export(ai_public_entry_exports, {
   aiCase: () => aiCase,
   aiSuite: () => aiSuite,
   createAdapterRegistry: () => createAdapterRegistry,
+  execute: () => execute,
   runAiEvaluation: () => runAiEvaluation
 });
 module.exports = __toCommonJS(ai_public_entry_exports);
+
+// packages/ai-cli/dist/cli.js
+var import_promises5 = require("node:fs/promises");
+var import_node_path6 = __toESM(require("node:path"), 1);
 
 // node_modules/.pnpm/commander@15.0.0/node_modules/commander/lib/error.js
 var CommanderError = class extends Error {
@@ -10479,9 +10484,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path6) {
-    if (path6 === void 0) return this._executableDir;
-    this._executableDir = path6;
+  executableDir(path7) {
+    if (path7 === void 0) return this._executableDir;
+    this._executableDir = path7;
     return this;
   }
   /**
@@ -10996,6 +11001,124 @@ function bySample(left, right) {
 }
 function isAggregateStatus(status) {
   return status === "pass" || status === "fail" || status === "error" || status === "review";
+}
+
+// packages/ai-core/dist/baseline-compare.js
+var DEFAULT_COMPARISON_THRESHOLDS = {
+  scoreDelta: 0.05,
+  passRateDelta: 0.05,
+  latencyMsDelta: 0
+};
+function createBaseline(input) {
+  const aggregate = aggregateSuite(input.samples);
+  const metrics = {};
+  if (aggregate.counts.passRate !== void 0) {
+    metrics.passRate = aggregate.counts.passRate;
+  }
+  if (aggregate.scores.mean !== void 0) {
+    metrics.meanScore = aggregate.scores.mean;
+  }
+  if (aggregate.latency.p95 !== void 0) {
+    metrics.p95LatencyMs = aggregate.latency.p95;
+  }
+  const caseResults = {};
+  for (const item of aggregate.cases) {
+    const result = { status: aggregateStatus(item.samples.map((sample) => sample.status)) };
+    if (item.scores.mean !== void 0) {
+      result.score = item.scores.mean;
+    }
+    caseResults[item.caseId] = result;
+  }
+  return {
+    id: input.id,
+    name: input.name,
+    createdAt: input.createdAt,
+    suiteId: input.suiteId,
+    suiteVersion: input.suiteVersion,
+    datasetHash: input.datasetHash,
+    sourceRunId: input.sourceRunId,
+    metrics,
+    caseResults
+  };
+}
+function compareBaselines(baseline, current, thresholds = DEFAULT_COMPARISON_THRESHOLDS) {
+  if (baseline.suiteId !== current.suiteId || baseline.datasetHash !== current.datasetHash) {
+    return {
+      verdict: "not comparable",
+      comparable: false,
+      reason: baseline.suiteId !== current.suiteId ? "suite id differs" : "dataset hash differs",
+      cases: [],
+      metrics: []
+    };
+  }
+  const caseIds = [.../* @__PURE__ */ new Set([...Object.keys(baseline.caseResults), ...Object.keys(current.caseResults)])].sort((left, right) => left.localeCompare(right));
+  const cases = caseIds.map((caseId) => compareCase(caseId, baseline.caseResults[caseId], current.caseResults[caseId], thresholds));
+  const metrics = [
+    compareMetric("passRate", baseline.metrics.passRate, current.metrics.passRate, thresholds.passRateDelta, "lower"),
+    compareMetric("meanScore", baseline.metrics.meanScore, current.metrics.meanScore, thresholds.scoreDelta, "lower"),
+    compareMetric("p95LatencyMs", baseline.metrics.p95LatencyMs, current.metrics.p95LatencyMs, thresholds.latencyMsDelta, "higher")
+  ].filter((item) => item !== void 0);
+  return {
+    verdict: overallVerdict(cases, metrics),
+    comparable: true,
+    reason: "dataset hash matches",
+    cases,
+    metrics
+  };
+}
+function compareCase(caseId, baseline, current, thresholds) {
+  if (!baseline) {
+    return { caseId, verdict: "new case", ...current ? { current } : {}, reason: "case is not in the baseline" };
+  }
+  if (!current) {
+    return { caseId, verdict: "removed case", baseline, reason: "case is not in the current run" };
+  }
+  if (baseline.status === "error" || baseline.status === "review" || current.status === "error" || current.status === "review") {
+    return { caseId, verdict: "not comparable", baseline, current, reason: "a case result is error or review" };
+  }
+  if (baseline.status === "pass" && current.status === "fail") {
+    return { caseId, verdict: "regression", baseline, current, reason: "case changed from pass to fail" };
+  }
+  if (baseline.status === "fail" && current.status === "pass") {
+    return { caseId, verdict: "improvement", baseline, current, reason: "case changed from fail to pass" };
+  }
+  if (baseline.score === void 0 || current.score === void 0) {
+    return { caseId, verdict: "not comparable", baseline, current, reason: "a case score is missing" };
+  }
+  if (baseline.score - current.score > thresholds.scoreDelta) {
+    return { caseId, verdict: "regression", baseline, current, reason: "score fell by more than the threshold" };
+  }
+  if (current.score - baseline.score > thresholds.scoreDelta) {
+    return { caseId, verdict: "improvement", baseline, current, reason: "score rose by more than the threshold" };
+  }
+  return { caseId, verdict: "no material change", baseline, current, reason: "score stayed within the threshold" };
+}
+function compareMetric(name, baseline, current, threshold, worse) {
+  if (baseline === void 0 || current === void 0) {
+    return void 0;
+  }
+  const regressed = worse === "lower" ? baseline - current > threshold : current - baseline > threshold;
+  const improved = worse === "lower" ? current - baseline > threshold : baseline - current > threshold;
+  if (regressed) {
+    return { name, verdict: "regression", baseline, current, reason: `${name} moved beyond the threshold` };
+  }
+  if (improved) {
+    return { name, verdict: "improvement", baseline, current, reason: `${name} moved beyond the threshold` };
+  }
+  return { name, verdict: "no material change", baseline, current, reason: `${name} stayed within the threshold` };
+}
+function overallVerdict(cases, metrics) {
+  const verdicts = [...cases.map((item) => item.verdict), ...metrics.map((item) => item.verdict)];
+  if (verdicts.includes("regression")) {
+    return "regression";
+  }
+  if (verdicts.includes("not comparable")) {
+    return "not comparable";
+  }
+  if (verdicts.includes("improvement")) {
+    return "improvement";
+  }
+  return "no material change";
 }
 
 // packages/ai-core/dist/telemetry.js
@@ -12279,8 +12402,8 @@ function getErrorMap() {
 
 // node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path6, errorMaps, issueData } = params;
-  const fullPath = [...path6, ...issueData.path || []];
+  const { data, path: path7, errorMaps, issueData } = params;
+  const fullPath = [...path7, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -12396,11 +12519,11 @@ var errorUtil;
 
 // node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path6, key) {
+  constructor(parent, value, path7, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path6;
+    this._path = path7;
     this._key = key;
   }
   get path() {
@@ -16048,6 +16171,9 @@ function parseEvaluationCase(value) {
 function parseEvaluationSuite(value) {
   return parseWith(evaluationSuiteSchema, value);
 }
+function parseBaseline(value) {
+  return parseWith(baselineSchema, value);
+}
 function parseJson(text) {
   try {
     return JSON.parse(text);
@@ -16638,11 +16764,11 @@ function readSetting(literal, envName2, env) {
   return { value: value.trim(), message: "configured" };
 }
 function resourceEndpoint(url) {
-  const path6 = url.pathname.replace(/\/$/, "");
-  if (path6 === "" || path6 === "/openai" || path6 === "/openai/v1" || path6 === "/openai/deployments") {
+  const path7 = url.pathname.replace(/\/$/, "");
+  if (path7 === "" || path7 === "/openai" || path7 === "/openai/v1" || path7 === "/openai/deployments") {
     return url.origin;
   }
-  return url.origin + path6;
+  return url.origin + path7;
 }
 function validateEndpoint(setting) {
   if (!setting.value) {
@@ -16716,13 +16842,18 @@ var AzureOpenAIAdapter = class {
     if (!inspected.resolved) {
       return { status: "unhealthy", checkedAt, checks };
     }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), inspected.resolved.timeoutMs);
+    const onAbort = () => controller.abort();
+    context.signal?.addEventListener("abort", onAbort);
     try {
       const headers = await this.authorizationHeaders(inspected.resolved);
       const response = await this.#fetch(`${inspected.resolved.endpoint}/openai/v1/models`, {
         method: "GET",
         headers,
-        signal: context.signal ?? AbortSignal.timeout(inspected.resolved.timeoutMs)
+        signal: controller.signal
       });
+      await response.body?.cancel();
       if (response.ok) {
         checks.push({ name: "reachability", status: "pass", message: "v1 models endpoint responded" });
         return { status: "healthy", checkedAt, checks: redactChecks(checks, inspected.resolved.secrets) };
@@ -16734,6 +16865,9 @@ var AzureOpenAIAdapter = class {
       const message = error instanceof Error ? error.message : "Health check failed";
       checks.push({ name: "reachability", status: "fail", message: safeHealthMessage(message, inspected.resolved.secrets) });
       return { status: "unhealthy", checkedAt, checks: redactChecks(checks, inspected.resolved.secrets) };
+    } finally {
+      clearTimeout(timer);
+      context.signal?.removeEventListener("abort", onAbort);
     }
   }
   async execute(request, context) {
@@ -16909,6 +17043,39 @@ function redactChecks(checks, secrets) {
 }
 
 // packages/ai-adapter-azure-openai/dist/doctor.js
+async function runAzureDoctor(options) {
+  const write = options.write ?? ((line) => console.log(line));
+  if (options.platform !== AZURE_ADAPTER_ID) {
+    write(`Unknown AI platform "${options.platform}". Supported platform: ${AZURE_ADAPTER_ID}`);
+    return 2;
+  }
+  try {
+    const adapter = new AzureOpenAIAdapter({
+      profile: options.profile ?? defaultAzureProfile,
+      env: options.env,
+      fetch: options.fetch
+    });
+    const health = await adapter.healthCheck({});
+    write(`${AZURE_ADAPTER_ID}: ${health.status}`);
+    for (const check of health.checks ?? []) {
+      write(formatCheck(check));
+    }
+    return doctorExitCode(health);
+  } catch (error) {
+    write(error instanceof AIEvaluationError ? error.message : "Azure configuration is invalid");
+    return 2;
+  }
+}
+function formatCheck(check) {
+  return check.message ? `${check.name}: ${check.status} \u2014 ${check.message}` : `${check.name}: ${check.status}`;
+}
+function doctorExitCode(health) {
+  if (health.status === "healthy") {
+    return 0;
+  }
+  const configFailed = (health.checks ?? []).some((check) => check.status === "fail" && check.name !== "reachability");
+  return configFailed ? 2 : 3;
+}
 function azureConfigurationIssues(env = process.env, profile = defaultAzureProfile) {
   try {
     const inspected = inspectAzureProfile(profile, env);
@@ -18574,6 +18741,146 @@ function isAggregateStatus3(status) {
   return status === "pass" || status === "fail" || status === "error" || status === "review";
 }
 
+// packages/ai-cli/dist/cli.js
+var REPORT_FORMATS = {
+  json: "json",
+  markdown: "markdown",
+  html: "html",
+  cucumber: "cucumber-json",
+  junit: "junit",
+  sarif: "sarif"
+};
+async function execute(argv) {
+  let code = EXIT_CODES.configurationError;
+  const program2 = new Command();
+  program2.exitOverride().name("klassi");
+  addRunOptions(program2.command("ai:evaluate").description("Run an AI evaluation suite")).option("--reporter <list>", "json, markdown, html, cucumber, junit, sarif", "json,markdown,html,cucumber,junit,sarif").option("--output <dir>", "directory that receives the run evidence and reports").action(async (options) => {
+    const outcome = await evaluateSuite(runOptions(options, parseReporters(options.reporter)));
+    code = outcome.code;
+  });
+  addRunOptions(program2.command("ai:baseline").description("Run a suite and save the result as a baseline")).requiredOption("--output <file>", "baseline JSON file").option("--name <name>", "baseline name").action(async (options) => {
+    code = await writeBaseline(options);
+  });
+  addRunOptions(program2.command("ai:compare").description("Run a suite and compare it with a baseline")).requiredOption("--baseline <file>", "baseline JSON file").option("--output <dir>", "directory that receives the run evidence and reports").option("--score-delta <number>", "absolute score change that counts as material", parseDelta).option("--pass-rate-delta <number>", "absolute pass-rate change that counts as material", parseDelta).option("--latency-delta <number>", "absolute P95 latency change, in milliseconds, that counts as material", parseDelta).action(async (options) => {
+    code = await compareRun(options);
+  });
+  program2.command("ai:doctor").description("Check AI platform configuration and connectivity").requiredOption("--platform <id>", "platform adapter id").action(async (options) => {
+    code = await runAzureDoctor({ platform: options.platform });
+  });
+  try {
+    await program2.parseAsync(argv);
+  } catch (error) {
+    if (error instanceof CommanderError) {
+      return EXIT_CODES.configurationError;
+    }
+    console.error(error instanceof Error ? error.message : String(error));
+    return EXIT_CODES.internalError;
+  }
+  return code;
+}
+function addRunOptions(command) {
+  return command.requiredOption("--suite <name>", "suite name or path").option("--case <id>", "run one case id").option("--tag <tag>", "run cases with this tag").option("--samples <count>", "override the sample count", parsePositiveInteger).option("--concurrency <count>", "override the sample concurrency", parsePositiveInteger).option("--fail-fast", "stop later cases after an infrastructure error", false).option("--platform <id>", "fake or azure-openai", "fake");
+}
+function runOptions(options, reporters) {
+  return {
+    suite: options.suite,
+    caseId: options.case,
+    tag: options.tag,
+    samples: options.samples,
+    concurrency: options.concurrency,
+    reporters,
+    output: options.output,
+    failFast: options.failFast,
+    platform: options.platform
+  };
+}
+async function writeBaseline(options) {
+  const directory = import_node_path6.default.dirname(options.output);
+  const outcome = await evaluateSuite({ ...runOptions(options, ["json"]), output: directory });
+  if (!outcome.suite || !outcome.samples || !outcome.runId || !outcome.datasetHash || outcome.code > EXIT_CODES.qualityGateFailed) {
+    return outcome.code;
+  }
+  const baseline = createBaseline({
+    id: `baseline-${outcome.runId}`,
+    name: options.name ?? outcome.suite.name,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+    suiteId: outcome.suite.id,
+    suiteVersion: outcome.suite.version,
+    datasetHash: outcome.datasetHash,
+    sourceRunId: outcome.runId,
+    samples: outcome.samples
+  });
+  await (0, import_promises5.mkdir)(directory, { recursive: true });
+  await (0, import_promises5.writeFile)(options.output, `${JSON.stringify(baseline, null, 2)}
+`, "utf8");
+  console.log(`baseline: ${options.output}`);
+  console.log(`source run: ${baseline.sourceRunId}`);
+  return EXIT_CODES.passed;
+}
+async function compareRun(options) {
+  let saved;
+  try {
+    saved = parseBaseline(JSON.parse(await (0, import_promises5.readFile)(options.baseline, "utf8")));
+  } catch (error) {
+    console.error(error instanceof DatasetValidationError || error instanceof Error ? error.message : String(error));
+    return EXIT_CODES.configurationError;
+  }
+  const outcome = await evaluateSuite({ ...runOptions(options, ["json"]), output: options.output });
+  if (!outcome.suite || !outcome.samples || !outcome.runId || !outcome.datasetHash || outcome.code > EXIT_CODES.qualityGateFailed) {
+    return outcome.code;
+  }
+  const current = createBaseline({
+    id: `current-${outcome.runId}`,
+    name: outcome.suite.name,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+    suiteId: outcome.suite.id,
+    suiteVersion: outcome.suite.version,
+    datasetHash: outcome.datasetHash,
+    sourceRunId: outcome.runId,
+    samples: outcome.samples
+  });
+  const thresholds = {
+    scoreDelta: options.scoreDelta ?? 0.05,
+    passRateDelta: options.passRateDelta ?? 0.05,
+    latencyMsDelta: options.latencyDelta ?? 0
+  };
+  const comparison = compareBaselines(saved, current, thresholds);
+  console.log(`comparison: ${comparison.verdict}`);
+  console.log(comparison.reason);
+  for (const item of comparison.cases) {
+    console.log(`${item.caseId}: ${item.verdict}`);
+  }
+  if (comparison.verdict === "regression") {
+    return EXIT_CODES.qualityGateFailed;
+  }
+  if (comparison.verdict === "not comparable") {
+    return EXIT_CODES.configurationError;
+  }
+  return EXIT_CODES.passed;
+}
+function parseDelta(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new CommanderError(EXIT_CODES.configurationError, "ai.option", `${value} must be a non-negative number`);
+  }
+  return parsed;
+}
+function parsePositiveInteger(value) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new CommanderError(EXIT_CODES.configurationError, "ai.option", `${value} must be a positive integer`);
+  }
+  return parsed;
+}
+function parseReporters(value) {
+  const formats = value.split(",").map((item) => item.trim()).filter((item) => item.length > 0);
+  const resolved = formats.map((item) => REPORT_FORMATS[item]);
+  if (resolved.length === 0 || resolved.some((item) => item === void 0)) {
+    throw new CommanderError(EXIT_CODES.configurationError, "ai.reporter", `Unknown reporter list "${value}"`);
+  }
+  return resolved;
+}
+
 // packages/ai-cli/dist/public.js
 var AI_PUBLIC_API_VERSION = "1.0.0";
 function aiCase(input) {
@@ -18589,5 +18896,6 @@ function aiSuite(input) {
   aiCase,
   aiSuite,
   createAdapterRegistry,
+  execute,
   runAiEvaluation
 });

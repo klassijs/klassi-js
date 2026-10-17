@@ -3,6 +3,7 @@ export {
   aiCase,
   aiSuite,
   createAdapterRegistry,
+  execute,
   runAiEvaluation,
 } from '@klassijs/ai-cli';
 export { FakeAIAdapter } from '@klassijs/ai-core/testing';
