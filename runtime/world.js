@@ -14,8 +14,18 @@ const getRemote = require('./getRemote');
 const data = require('./helpers');
 const { filterQuietTags } = require('../cucumber');
 const { getTagsFromFeatureFiles } = require('../index');
-const { throwCollectedErrors } = require('klassijs-soft-assert');
-const { ImageAssertion } = require('klassijs-visual-validation');
+// The project under test may depend on a different copy than klassi-js.
+// Page objects record failures on the project's copy, so the hooks must use that one.
+function requireConsumerPackage(name) {
+	try {
+		return require(require.resolve(name, { paths: [process.cwd()] }));
+	} catch (err) {
+		return require(name);
+	}
+}
+
+const { throwCollectedErrors } = requireConsumerPackage('klassijs-soft-assert');
+const { ImageAssertion } = requireConsumerPackage('klassijs-visual-validation');
 
 /**
  * This is the Global date functionality
@@ -182,7 +192,9 @@ Before(async function (scenario) {
 		const originalAttach = this.attach.bind(this);
 		const wrappedAttach = async (data, mediaType) => {
 			const attached = originalAttach(data, mediaType);
-			if (!mediaType && typeof data === 'string' && data.includes('Assertion failed')) {
+			const failureText = !mediaType && typeof data === 'string'
+				&& (data.includes('Assertion failed') || data.includes('Visual Validation:'));
+			if (failureText) {
 				await rememberFailurePage();
 			}
 			return attached;
