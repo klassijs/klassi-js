@@ -20,6 +20,11 @@ export interface TestGenieStep {
   expected: string;
 }
 
+export interface TestGenieExamples {
+  headers: string[];
+  rows: Array<Record<string, string>>;
+}
+
 export interface TestGenieFeature {
   id: string;
   title: string;
@@ -33,6 +38,7 @@ export interface TestGenieCase {
   preconditions: string[];
   steps: TestGenieStep[];
   coverage: Array<'positive' | 'negative' | 'boundary'>;
+  examples?: TestGenieExamples;
 }
 
 export interface TestGenieDocument {

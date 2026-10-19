@@ -166,7 +166,16 @@ function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; 
     `@${testCase.id.startsWith('TC-') ? testCase.id : `TC-${testCase.id}`}`,
   ];
   const steps = testCase.steps.map((step, index) => `${index === 0 ? 'When' : 'And'} ${step.action}\n    Then ${step.expected}`).join('\n    ');
-  return [`  ${tags.join(' ')}`, `  Scenario: ${testCase.title}`, `    ${steps}`].join('\n');
+  const examples = exampleTable(testCase.examples);
+  const keyword = examples ? 'Scenario Outline' : 'Scenario';
+  return [`  ${tags.join(' ')}`, `  ${keyword}: ${testCase.title}`, `    ${steps}`, examples].filter(Boolean).join('\n');
+}
+
+function exampleTable(examples: TestGenieCase['examples']): string {
+  if (!examples || examples.headers.length === 0 || examples.rows.length === 0) return '';
+  const header = `      | ${examples.headers.join(' | ')} |`;
+  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => row[name] ?? '').join(' | ')} |`);
+  return ['    Examples:', header, ...rows].join('\n');
 }
 
 function featureSteps(feature: string): StepUse[] {

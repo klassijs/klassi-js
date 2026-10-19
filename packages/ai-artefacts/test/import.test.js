@@ -81,6 +81,31 @@ test('scenarios stay inside the feature they were exported from', async () => {
   assert.doesNotMatch(second, /Scenario: Parse a date/);
 });
 
+test('examples on a test case are written into the scenario outline', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const outlined = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      title: 'Select a workflow',
+      examples: {
+        headers: ['workflow', 'pipeline'],
+        rows: [
+          { workflow: 'Journals', pipeline: 'JATS2SCJATS' },
+          { workflow: 'Books', pipeline: 'BITS' },
+        ],
+      },
+    }],
+  };
+  const result = await importTestGenieBundle(outlined, out);
+  const feature = await readFile(result.imported[0].feature, 'utf8');
+  assert.match(feature, /Scenario Outline: Select a workflow/);
+  assert.match(feature, /Examples:/);
+  assert.match(feature, /\| workflow \| pipeline \|/);
+  assert.match(feature, /\| Journals \| JATS2SCJATS \|/);
+  assert.match(feature, /\| Books \| BITS \|/);
+});
+
 test('a rejected bundle does not write Cucumber files', async () => {
   const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
   const rejected = { ...bundle, acceptanceTests: [{ id: 'AT-9', requirementId: 'missing', statement: 'orphan' }] };
