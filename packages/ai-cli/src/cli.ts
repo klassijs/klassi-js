@@ -5,6 +5,7 @@ import { compareBaselines, createBaseline, type ComparisonThresholds } from '@kl
 import { DatasetValidationError, parseBaseline } from '@klassijs/ai-datasets';
 import type { ReportArtifact } from '@klassijs/ai-reporters';
 import { runAzureDoctor } from '@klassijs/ai-adapter-azure-openai';
+import { fetchBundle, importTestGenieBundle, readBundle } from '@klassijs/ai-artefacts/import';
 import { evaluateSuite, type EvaluateOptions } from './evaluate.js';
 import { EXIT_CODES } from './exit-codes.js';
 
@@ -46,6 +47,17 @@ export async function execute(argv: string[]): Promise<number> {
   program.command('ai:doctor').description('Check AI platform configuration and connectivity').requiredOption('--platform <id>', 'platform adapter id').action(async (options: { platform: string }) => {
     code = await runAzureDoctor({ platform: options.platform });
   });
+  program
+    .command('ai:import')
+    .description('Import a verified Test Genie bundle into features, steps, and page objects')
+    .option('--file <path>', 'bundle JSON file')
+    .option('--dir <path>', 'folder that contains bundle.json')
+    .option('--from <source>', 'pull a stored bundle from Test Genie SaaS')
+    .option('--generation <id>', 'Test Genie generation id')
+    .option('--out <dir>', 'project directory that receives the Cucumber files', '.')
+    .action(async (options: { file?: string; dir?: string; from?: string; generation?: string; out: string }) => {
+      code = await importBundle(options);
+    });
 
   try {
     await program.parseAsync(argv);
@@ -160,6 +172,33 @@ async function compareRun(options: {
     return EXIT_CODES.configurationError;
   }
   return EXIT_CODES.passed;
+}
+
+async function importBundle(options: { file?: string; dir?: string; from?: string; generation?: string; out: string }): Promise<number> {
+  let payload: unknown;
+  try {
+    payload = options.from === 'test-genie'
+      ? await fetchBundle(options.generation ?? '')
+      : await readBundle(options.file ?? options.dir ?? '');
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return EXIT_CODES.configurationError;
+  }
+  let result;
+  try {
+    result = await importTestGenieBundle(payload, options.out);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return EXIT_CODES.configurationError;
+  }
+  console.log(`Test Genie ${result.generationId}: ${result.outcome}`);
+  for (const finding of result.findings) {
+    console.log(finding);
+  }
+  for (const item of result.imported) {
+    console.log(`${item.id}: ${item.feature}`);
+  }
+  return result.outcome === 'VERIFIED' ? EXIT_CODES.passed : EXIT_CODES.qualityGateFailed;
 }
 
 function parseDelta(value: string): number {

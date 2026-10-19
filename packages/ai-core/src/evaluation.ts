@@ -1,3 +1,4 @@
+import type { ArtifactType } from './artefacts.js';
 import type { AdapterId, CaseId, EvaluatorId, SuiteId } from './identifiers.js';
 import type { CostTable } from './usage.js';
 import type { AIMessage } from './messages.js';
@@ -57,6 +58,10 @@ export interface EvaluationCase {
   expectations?: EvaluationExpectations;
   evaluators: EvaluatorBinding[];
   execution?: Partial<ExecutionPolicy>;
+  /** Declares the engineering artefact the case expects the model to return. */
+  artefact?: {
+    type: ArtifactType;
+  };
   metadata?: Record<string, unknown>;
 }
 

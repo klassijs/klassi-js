@@ -10,6 +10,20 @@ export type {
 
 export type { AIContentPart, AIImagePart, AIMessage, AIMessageRole, AITextPart } from './messages.js';
 
+export { ARTIFACT_ORIGINS, ARTIFACT_TYPES, DEFAULT_ARTIFACT_EXECUTION_POLICY } from './artefacts.js';
+export type {
+  ArtifactClassifier,
+  ArtifactExecutionPolicy,
+  ArtifactExecutionSandbox,
+  ArtifactExtractor,
+  ArtifactOrigin,
+  ArtifactProvenance,
+  ArtifactType,
+  GeneratedArtifact,
+  SandboxRunRequest,
+  SandboxRunResult,
+} from './artefacts.js';
+
 export { AIEvaluationError } from './errors.js';
 export type { AIErrorCode, NormalizedExecutionError } from './errors.js';
 

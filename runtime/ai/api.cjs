@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path7) {
-      const ctrl = callVisitor(key, node, visitor, path7);
+    function visit_(key, node, visitor, path8) {
+      const ctrl = callVisitor(key, node, visitor, path8);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path7, ctrl);
-        return visit_(key, ctrl, visitor, path7);
+        replaceNode(key, path8, ctrl);
+        return visit_(key, ctrl, visitor, path8);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path7 = Object.freeze(path7.concat(node));
+          path8 = Object.freeze(path8.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path7);
+            const ci = visit_(i, node.items[i], visitor, path8);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path7 = Object.freeze(path7.concat(node));
-          const ck = visit_("key", node.key, visitor, path7);
+          path8 = Object.freeze(path8.concat(node));
+          const ck = visit_("key", node.key, visitor, path8);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path7);
+          const cv = visit_("value", node.value, visitor, path8);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path7) {
-      const ctrl = await callVisitor(key, node, visitor, path7);
+    async function visitAsync_(key, node, visitor, path8) {
+      const ctrl = await callVisitor(key, node, visitor, path8);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path7, ctrl);
-        return visitAsync_(key, ctrl, visitor, path7);
+        replaceNode(key, path8, ctrl);
+        return visitAsync_(key, ctrl, visitor, path8);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path7 = Object.freeze(path7.concat(node));
+          path8 = Object.freeze(path8.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path7);
+            const ci = await visitAsync_(i, node.items[i], visitor, path8);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path7 = Object.freeze(path7.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path7);
+          path8 = Object.freeze(path8.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path8);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path7);
+          const cv = await visitAsync_("value", node.value, visitor, path8);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path7) {
+    function callVisitor(key, node, visitor, path8) {
       if (typeof visitor === "function")
-        return visitor(key, node, path7);
+        return visitor(key, node, path8);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path7);
+        return visitor.Map?.(key, node, path8);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path7);
+        return visitor.Seq?.(key, node, path8);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path7);
+        return visitor.Pair?.(key, node, path8);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path7);
+        return visitor.Scalar?.(key, node, path8);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path7);
+        return visitor.Alias?.(key, node, path8);
       return void 0;
     }
-    function replaceNode(key, path7, node) {
-      const parent = path7[path7.length - 1];
+    function replaceNode(key, path8, node) {
+      const parent = path8[path8.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path7, value) {
+    function collectionFromPath(schema, path8, value) {
       let v = value;
-      for (let i = path7.length - 1; i >= 0; --i) {
-        const k = path7[i];
+      for (let i = path8.length - 1; i >= 0; --i) {
+        const k = path8[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path7) => path7 == null || typeof path7 === "object" && !!path7[Symbol.iterator]().next().done;
+    var isEmptyPath = (path8) => path8 == null || typeof path8 === "object" && !!path8[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path7, value) {
-        if (isEmptyPath(path7))
+      addIn(path8, value) {
+        if (isEmptyPath(path8))
           this.add(value);
         else {
-          const [key, ...rest] = path7;
+          const [key, ...rest] = path8;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path7) {
-        const [key, ...rest] = path7;
+      deleteIn(path8) {
+        const [key, ...rest] = path8;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path7, keepScalar) {
-        const [key, ...rest] = path7;
+      getIn(path8, keepScalar) {
+        const [key, ...rest] = path8;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path7) {
-        const [key, ...rest] = path7;
+      hasIn(path8) {
+        const [key, ...rest] = path8;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path7, value) {
-        const [key, ...rest] = path7;
+      setIn(path8, value) {
+        const [key, ...rest] = path8;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path7, value) {
+      addIn(path8, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path7, value);
+          this.contents.addIn(path8, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path7) {
-        if (Collection.isEmptyPath(path7)) {
+      deleteIn(path8) {
+        if (Collection.isEmptyPath(path8)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path7) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path8) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path7, keepScalar) {
-        if (Collection.isEmptyPath(path7))
+      getIn(path8, keepScalar) {
+        if (Collection.isEmptyPath(path8))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path7, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path8, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path7) {
-        if (Collection.isEmptyPath(path7))
+      hasIn(path8) {
+        if (Collection.isEmptyPath(path8))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path7) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path8) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path7, value) {
-        if (Collection.isEmptyPath(path7)) {
+      setIn(path8, value) {
+        if (Collection.isEmptyPath(path8)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path7), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path8), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path7, value);
+          this.contents.setIn(path8, value);
         }
       }
       /**
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path7) => {
+    visit.itemAtPath = (cst, path8) => {
       let item = cst;
-      for (const [field, index] of path7) {
+      for (const [field, index] of path8) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path7) => {
-      const parent = visit.itemAtPath(cst, path7.slice(0, -1));
-      const field = path7[path7.length - 1][0];
+    visit.parentCollection = (cst, path8) => {
+      const parent = visit.itemAtPath(cst, path8.slice(0, -1));
+      const field = path8[path8.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path7, item, visitor) {
-      let ctrl = visitor(item, path7);
+    function _visit(path8, item, visitor) {
+      let ctrl = visitor(item, path8);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path7.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path8.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path7);
+            ctrl = ctrl(item, path8);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path7) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path8) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -7370,8 +7370,8 @@ __export(ai_public_entry_exports, {
 module.exports = __toCommonJS(ai_public_entry_exports);
 
 // packages/ai-cli/dist/cli.js
-var import_promises5 = require("node:fs/promises");
-var import_node_path6 = __toESM(require("node:path"), 1);
+var import_promises6 = require("node:fs/promises");
+var import_node_path7 = __toESM(require("node:path"), 1);
 
 // node_modules/.pnpm/commander@15.0.0/node_modules/commander/lib/error.js
 var CommanderError = class extends Error {
@@ -10484,9 +10484,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path7) {
-    if (path7 === void 0) return this._executableDir;
-    this._executableDir = path7;
+  executableDir(path8) {
+    if (path8 === void 0) return this._executableDir;
+    this._executableDir = path8;
     return this;
   }
   /**
@@ -10740,6 +10740,25 @@ function useColor() {
 
 // node_modules/.pnpm/commander@15.0.0/node_modules/commander/index.js
 var program = new Command();
+
+// packages/ai-core/dist/artefacts.js
+var ARTIFACT_TYPES = [
+  "javascript",
+  "typescript",
+  "test",
+  "json",
+  "yaml",
+  "openapi",
+  "sql",
+  "infrastructure",
+  "documentation",
+  "requirements",
+  "architecture",
+  "gherkin",
+  "step-definition",
+  "page-object",
+  "test-case"
+];
 
 // packages/ai-core/dist/errors.js
 var AIEvaluationError = class extends Error {
@@ -12402,8 +12421,8 @@ function getErrorMap() {
 
 // node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path7, errorMaps, issueData } = params;
-  const fullPath = [...path7, ...issueData.path || []];
+  const { data, path: path8, errorMaps, issueData } = params;
+  const fullPath = [...path8, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -12519,11 +12538,11 @@ var errorUtil;
 
 // node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path7, key) {
+  constructor(parent, value, path8, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path7;
+    this._path = path8;
     this._key = key;
   }
   get path() {
@@ -16074,6 +16093,7 @@ var evaluationCaseSchema = external_exports.object({
     }).strict()).min(1)
   }).strict().optional(),
   execution: executionPolicySchema.partial().optional(),
+  artefact: external_exports.object({ type: external_exports.enum(ARTIFACT_TYPES) }).strict().optional(),
   metadata
 }).strict();
 var evaluationSuiteSchema = external_exports.object({
@@ -16764,11 +16784,11 @@ function readSetting(literal, envName2, env) {
   return { value: value.trim(), message: "configured" };
 }
 function resourceEndpoint(url) {
-  const path7 = url.pathname.replace(/\/$/, "");
-  if (path7 === "" || path7 === "/openai" || path7 === "/openai/v1" || path7 === "/openai/deployments") {
+  const path8 = url.pathname.replace(/\/$/, "");
+  if (path8 === "" || path8 === "/openai" || path8 === "/openai/v1" || path8 === "/openai/deployments") {
     return url.origin;
   }
-  return url.origin + path7;
+  return url.origin + path8;
 }
 function validateEndpoint(setting) {
   if (!setting.value) {
@@ -17085,10 +17105,197 @@ function azureConfigurationIssues(env = process.env, profile = defaultAzureProfi
   }
 }
 
+// packages/ai-artefacts/dist/import-test-genie.js
+var import_promises2 = require("node:fs/promises");
+var import_node_path3 = __toESM(require("node:path"), 1);
+
+// packages/ai-artefacts/dist/test-genie.js
+var TEST_GENIE_CONTRACT_VERSION = "1.0.0";
+var AMBIGUOUS = /^(should work|tbd|todo|n\/a)?$/i;
+var TestGenieArtifactProvider = class {
+  id = "test-genie";
+  contractVersion = TEST_GENIE_CONTRACT_VERSION;
+  load(payload) {
+    const bundle = payload;
+    if (bundle.contractVersion !== this.contractVersion) {
+      throw new Error(`Unsupported Test Genie contract version "${String(bundle.contractVersion)}"`);
+    }
+    if (!bundle.generationId || !bundle.generatedAt) {
+      throw new Error("Test Genie generation id and timestamp are required");
+    }
+    if (bundle.sourceDocument?.hash && !/^[a-f0-9]{64}$/i.test(bundle.sourceDocument.hash)) {
+      throw new Error("Source document hash must be SHA-256");
+    }
+    return {
+      contractVersion: bundle.contractVersion,
+      generationId: bundle.generationId,
+      generatedAt: bundle.generatedAt,
+      sourceSystem: bundle.sourceSystem,
+      sourceDocument: bundle.sourceDocument,
+      requirements: bundle.requirements ?? [],
+      acceptanceTests: bundle.acceptanceTests ?? [],
+      testCases: bundle.testCases ?? []
+    };
+  }
+};
+function verifyTestGenieBundle(bundle, requiredCoverage = false) {
+  const findings = [];
+  const requirementIds = new Set(bundle.requirements.map((item) => item.id));
+  const acceptanceIds = new Set(bundle.acceptanceTests.map((item) => item.id));
+  const seenCases = /* @__PURE__ */ new Set();
+  for (const acceptance of bundle.acceptanceTests) {
+    if (!requirementIds.has(acceptance.requirementId)) {
+      findings.push(`Acceptance test ${acceptance.id} has no requirement`);
+    }
+  }
+  for (const testCase of bundle.testCases) {
+    if (seenCases.has(testCase.id)) {
+      findings.push(`Duplicate test case ${testCase.id}`);
+    }
+    seenCases.add(testCase.id);
+    if (!acceptanceIds.has(testCase.acceptanceTestId)) {
+      findings.push(`Test case ${testCase.id} has no acceptance test`);
+    }
+    if (testCase.preconditions.length === 0) {
+      findings.push(`Test case ${testCase.id} has no preconditions`);
+    }
+    if (testCase.steps.length === 0 || testCase.steps.some((step) => step.action.trim().length === 0 || step.expected.trim().length === 0)) {
+      findings.push(`Test case ${testCase.id} needs steps and expected results`);
+    }
+    if (testCase.steps.some((step) => AMBIGUOUS.test(step.expected.trim()))) {
+      findings.push(`Test case ${testCase.id} has ambiguous expected behaviour`);
+    }
+    if (requiredCoverage) {
+      for (const kind of ["positive", "negative", "boundary"]) {
+        if (!testCase.coverage.includes(kind)) {
+          findings.push(`Test case ${testCase.id} is missing ${kind} coverage`);
+        }
+      }
+    }
+  }
+  const titles = bundle.testCases.map((item) => item.title.trim().toLowerCase());
+  if (new Set(titles).size !== titles.length) {
+    findings.push("Conflicting test cases share a title");
+  }
+  if (findings.some((item) => item.includes("no requirement") || item.includes("no acceptance") || item.includes("Duplicate"))) {
+    return { outcome: "REJECTED", findings };
+  }
+  if (findings.length > 0) {
+    return { outcome: "REVIEW_REQUIRED", findings };
+  }
+  return { outcome: "VERIFIED", findings: [] };
+}
+function assertReadyForCodeGeneration(verification) {
+  if (verification.outcome !== "VERIFIED") {
+    throw new Error(`Unverified artefacts cannot enter code generation (${verification.outcome})`);
+  }
+}
+
+// packages/ai-artefacts/dist/bdd.js
+var STEP_KEYWORDS = ["Given", "When", "Then", "And", "But"];
+function featureFromTestCase(testCase, verification, trace) {
+  assertReadyForCodeGeneration(verification);
+  const tags = [
+    `@${trace.requirementId.startsWith("BR-") ? trace.requirementId : `BR-${trace.requirementId}`}`,
+    `@${trace.acceptanceTestId.startsWith("AT-") ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
+    `@${testCase.id.startsWith("TC-") ? testCase.id : `TC-${testCase.id}`}`
+  ];
+  const steps = testCase.steps.map((step, index) => `${index === 0 ? "When" : "And"} ${step.action}
+    Then ${step.expected}`).join("\n    ");
+  return [`${tags.join(" ")}`, `Feature: ${testCase.title}`, "", `  Scenario: ${testCase.title}`, `    ${steps}`, ""].join("\n");
+}
+function stepsFromFeature(feature) {
+  const uses = featureSteps(feature);
+  const lines = ["const { Given, When, Then } = require('@cucumber/cucumber');", ""];
+  for (const step of uses) {
+    const keyword = step.keyword === "And" || step.keyword === "But" ? "Then" : step.keyword;
+    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, "  return undefined;", "});", "");
+  }
+  return lines.join("\n");
+}
+function pageObjectFromFeature(feature) {
+  const uses = featureSteps(feature).filter((item) => item.keyword === "When" || item.keyword === "Then");
+  const methods = uses.map((item, index) => `  // ${item.text}
+  async step${index + 1}() {
+    await global.browser.pause(0);
+  }`);
+  return `module.exports = {
+${methods.join(",\n")}
+};
+`;
+}
+function generateBdd(testCase, verification, trace) {
+  const feature = featureFromTestCase(testCase, verification, trace);
+  return { feature, steps: stepsFromFeature(feature), pageObject: pageObjectFromFeature(feature) };
+}
+function featureSteps(feature) {
+  return feature.split("\n").map((line) => line.trim()).flatMap((line) => {
+    const keyword = STEP_KEYWORDS.find((item) => line.startsWith(`${item} `));
+    return keyword ? [{ keyword, text: line.slice(keyword.length).trim() }] : [];
+  });
+}
+function escapeQuote(value) {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+// packages/ai-artefacts/dist/import-test-genie.js
+var provider = new TestGenieArtifactProvider();
+async function readBundle(fileOrDir) {
+  const info = await (0, import_promises2.stat)(fileOrDir);
+  const file = info.isDirectory() ? import_node_path3.default.join(fileOrDir, "bundle.json") : fileOrDir;
+  return JSON.parse(await (0, import_promises2.readFile)(file, "utf8"));
+}
+async function fetchBundle(generationId, env = process.env) {
+  const base = env.TEST_GENIE_URL;
+  const token = env.TEST_GENIE_TOKEN;
+  if (!base || !token) {
+    throw new Error("TEST_GENIE_URL and TEST_GENIE_TOKEN are required");
+  }
+  const url = new URL(`/v1/generations/${encodeURIComponent(generationId)}`, base.endsWith("/") ? base : `${base}/`);
+  const response = await fetch(url, { headers: { authorization: `Bearer ${token}` } });
+  if (!response.ok) {
+    throw new Error(`Test Genie returned HTTP ${response.status}`);
+  }
+  return response.json();
+}
+async function importTestGenieBundle(payload, outDir) {
+  const bundle = provider.load(payload);
+  const verification = verifyTestGenieBundle(bundle, true);
+  const imported = verification.outcome === "VERIFIED" ? await writeBundle(bundle, verification, outDir) : [];
+  await (0, import_promises2.mkdir)(import_node_path3.default.join(outDir, ".klassi", "test-genie"), { recursive: true });
+  await (0, import_promises2.writeFile)(import_node_path3.default.join(outDir, ".klassi", "test-genie", `${safeName(bundle.generationId)}.json`), JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported }, null, 2));
+  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported };
+}
+async function writeBundle(bundle, verification, outDir) {
+  const imported = [];
+  for (const testCase of bundle.testCases) {
+    const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
+    if (!acceptance) {
+      continue;
+    }
+    const plan = generateBdd(testCase, verification, { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id });
+    const name = safeName(testCase.id);
+    const feature = import_node_path3.default.join(outDir, "features", `${name}.feature`);
+    const steps = import_node_path3.default.join(outDir, "step_definitions", `${name}-steps.js`);
+    const pageObject = import_node_path3.default.join(outDir, "page-objects", `${name}.js`);
+    await (0, import_promises2.mkdir)(import_node_path3.default.dirname(feature), { recursive: true });
+    await (0, import_promises2.mkdir)(import_node_path3.default.dirname(steps), { recursive: true });
+    await (0, import_promises2.mkdir)(import_node_path3.default.dirname(pageObject), { recursive: true });
+    await (0, import_promises2.writeFile)(feature, plan.feature);
+    await (0, import_promises2.writeFile)(steps, plan.steps);
+    await (0, import_promises2.writeFile)(pageObject, plan.pageObject);
+    imported.push({ id: testCase.id, requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id, feature, steps, pageObject });
+  }
+  return imported;
+}
+function safeName(value) {
+  return value.replace(/[^A-Za-z0-9._-]/g, "_");
+}
+
 // packages/ai-cli/dist/evaluate.js
 var import_node_fs2 = require("node:fs");
-var import_promises4 = require("node:fs/promises");
-var import_node_path5 = __toESM(require("node:path"), 1);
+var import_promises5 = require("node:fs/promises");
+var import_node_path6 = __toESM(require("node:path"), 1);
 
 // packages/ai-core/dist/testing/fake-adapter.js
 var DEFAULT_CAPABILITIES = {
@@ -17311,11 +17518,11 @@ function redactValue3(value, options) {
 }
 
 // packages/ai-evidence/dist/store.js
-var import_promises2 = require("node:fs/promises");
-var import_node_path3 = __toESM(require("node:path"), 1);
+var import_promises3 = require("node:fs/promises");
+var import_node_path4 = __toESM(require("node:path"), 1);
 var DEFAULT_MAX_EVIDENCE_BYTES = 1048576;
 function evidenceRunDirectory(rootDir, runId) {
-  return import_node_path3.default.join(rootDir, ".klassi", "ai", "runs", pathSegment(runId));
+  return import_node_path4.default.join(rootDir, ".klassi", "ai", "runs", pathSegment(runId));
 }
 function pathSegment(value) {
   const cleaned = value.replace(/[^A-Za-z0-9._-]+/g, "_");
@@ -17325,10 +17532,10 @@ function pathSegment(value) {
   return cleaned;
 }
 function inside(root, ...parts) {
-  const base = import_node_path3.default.resolve(root);
-  const target = import_node_path3.default.resolve(base, ...parts);
-  const relative = import_node_path3.default.relative(base, target);
-  if (relative === "" || import_node_path3.default.isAbsolute(relative) || relative.split(import_node_path3.default.sep).includes("..")) {
+  const base = import_node_path4.default.resolve(root);
+  const target = import_node_path4.default.resolve(base, ...parts);
+  const relative = import_node_path4.default.relative(base, target);
+  if (relative === "" || import_node_path4.default.isAbsolute(relative) || relative.split(import_node_path4.default.sep).includes("..")) {
     throw new AIEvaluationError("EVIDENCE_ERROR", "Evidence path escapes the run directory");
   }
   return target;
@@ -17345,8 +17552,8 @@ var FileEvidenceStore = class {
     if (Buffer.byteLength(canonical) > this.maxBytes) {
       throw new AIEvaluationError("EVIDENCE_ERROR", `Evidence artifact exceeds ${this.maxBytes} bytes`);
     }
-    await (0, import_promises2.mkdir)(import_node_path3.default.dirname(filePath), { recursive: true });
-    await (0, import_promises2.writeFile)(filePath, `${canonical}
+    await (0, import_promises3.mkdir)(import_node_path4.default.dirname(filePath), { recursive: true });
+    await (0, import_promises3.writeFile)(filePath, `${canonical}
 `, "utf8");
     return { path: filePath, sha256: hashEvidence(body) };
   }
@@ -17367,10 +17574,10 @@ var FileEvidenceStore = class {
       evaluations.push(...recorded.evaluations);
       artifacts.push(...recorded.artifacts);
     }
-    const hashes = { algorithm: "sha256", artifacts: artifacts.map((artifact) => ({ path: import_node_path3.default.relative(runDir, artifact.path), sha256: artifact.sha256 })) };
-    const manifestPath = import_node_path3.default.join(runDir, "manifest.sha256");
+    const hashes = { algorithm: "sha256", artifacts: artifacts.map((artifact) => ({ path: import_node_path4.default.relative(runDir, artifact.path), sha256: artifact.sha256 })) };
+    const manifestPath = import_node_path4.default.join(runDir, "manifest.sha256");
     const manifestBody = hashes.artifacts.map((artifact) => `${artifact.sha256}  ${artifact.path}`).join("\n");
-    await (0, import_promises2.writeFile)(manifestPath, `${manifestBody}
+    await (0, import_promises3.writeFile)(manifestPath, `${manifestBody}
 `, "utf8");
     return {
       run: input.run,
@@ -18172,8 +18379,8 @@ function registerDeterministicEvaluators(registry = createEvaluatorRegistry()) {
 }
 
 // packages/ai-reporters/dist/index.js
-var import_promises3 = require("node:fs/promises");
-var import_node_path4 = __toESM(require("node:path"), 1);
+var import_promises4 = require("node:fs/promises");
+var import_node_path5 = __toESM(require("node:path"), 1);
 function createRunReport(input) {
   const aggregate = aggregateSuite(input.samples);
   const names = new Map(input.suite.cases.map((item) => [item.id, item.name]));
@@ -18393,7 +18600,7 @@ ${cases.join("\n")}
 `;
 }
 async function writeRunReports(report, outputDir, formats = ["json", "markdown", "html", "cucumber-json", "junit", "sarif"]) {
-  await (0, import_promises3.mkdir)(outputDir, { recursive: true });
+  await (0, import_promises4.mkdir)(outputDir, { recursive: true });
   const files = [
     ["json", "report.json", `${JSON.stringify(report, null, 2)}
 `],
@@ -18406,8 +18613,8 @@ async function writeRunReports(report, outputDir, formats = ["json", "markdown",
   const selected = new Set(formats);
   const artifacts = [];
   for (const [format, name, body] of files.filter(([format2]) => selected.has(format2))) {
-    const filePath = import_node_path4.default.join(outputDir, name);
-    await (0, import_promises3.writeFile)(filePath, body, "utf8");
+    const filePath = import_node_path5.default.join(outputDir, name);
+    await (0, import_promises4.writeFile)(filePath, body, "utf8");
     artifacts.push({ format, path: filePath });
   }
   return artifacts;
@@ -18556,7 +18763,7 @@ async function evaluatePrepared(suite, datasetHash, options) {
     });
     emitTelemetry(telemetry, { name: "gate.completed", runId: execution.run.runId, suiteId: suite.id, status: gate.decision.status });
     await writeRunReports(report, outputDir, options.reporters);
-    await (0, import_promises4.writeFile)(import_node_path5.default.join(outputDir, "telemetry.jsonl"), `${collected.events.map((event) => JSON.stringify(event)).join("\n")}
+    await (0, import_promises5.writeFile)(import_node_path6.default.join(outputDir, "telemetry.jsonl"), `${collected.events.map((event) => JSON.stringify(event)).join("\n")}
 `, "utf8");
     const code = classifyExit(samples, gate.decision.status);
     const passed = report.cases.filter((item) => item.status === "pass").length;
@@ -18564,7 +18771,7 @@ async function evaluatePrepared(suite, datasetHash, options) {
     console.log(`${report.suite.name}: ${report.status}`);
     console.log(`cases: ${passed} passed, ${failed} failed`);
     console.log(`quality gate: ${gate.decision.status}`);
-    console.log(`report: ${import_node_path5.default.join(outputDir, "report.json")}`);
+    console.log(`report: ${import_node_path6.default.join(outputDir, "report.json")}`);
     console.log(`exit: ${code}`);
     return { code, outputDir, runId: execution.run.runId, datasetHash, suite, samples };
   } catch (error) {
@@ -18623,11 +18830,11 @@ function resolveSuitePath(suite, cwd) {
   if ((0, import_node_fs2.existsSync)(suite)) {
     return suite;
   }
-  const named = import_node_path5.default.resolve(cwd, suite);
+  const named = import_node_path6.default.resolve(cwd, suite);
   if ((0, import_node_fs2.existsSync)(named)) {
     return named;
   }
-  const candidates = ["json", "yaml", "yml"].map((extension) => import_node_path5.default.resolve(cwd, "examples/ai", `${suite}.${extension}`));
+  const candidates = ["json", "yaml", "yml"].map((extension) => import_node_path6.default.resolve(cwd, "examples/ai", `${suite}.${extension}`));
   const found = candidates.find((candidate) => (0, import_node_fs2.existsSync)(candidate));
   if (!found) {
     throw new AIEvaluationError("DATASET_ERROR", `Suite "${suite}" was not found`);
@@ -18767,6 +18974,9 @@ async function execute(argv) {
   program2.command("ai:doctor").description("Check AI platform configuration and connectivity").requiredOption("--platform <id>", "platform adapter id").action(async (options) => {
     code = await runAzureDoctor({ platform: options.platform });
   });
+  program2.command("ai:import").description("Import a verified Test Genie bundle into features, steps, and page objects").option("--file <path>", "bundle JSON file").option("--dir <path>", "folder that contains bundle.json").option("--from <source>", "pull a stored bundle from Test Genie SaaS").option("--generation <id>", "Test Genie generation id").option("--out <dir>", "project directory that receives the Cucumber files", ".").action(async (options) => {
+    code = await importBundle(options);
+  });
   try {
     await program2.parseAsync(argv);
   } catch (error) {
@@ -18795,7 +19005,7 @@ function runOptions(options, reporters) {
   };
 }
 async function writeBaseline(options) {
-  const directory = import_node_path6.default.dirname(options.output);
+  const directory = import_node_path7.default.dirname(options.output);
   const outcome = await evaluateSuite({ ...runOptions(options, ["json"]), output: directory });
   if (!outcome.suite || !outcome.samples || !outcome.runId || !outcome.datasetHash || outcome.code > EXIT_CODES.qualityGateFailed) {
     return outcome.code;
@@ -18810,8 +19020,8 @@ async function writeBaseline(options) {
     sourceRunId: outcome.runId,
     samples: outcome.samples
   });
-  await (0, import_promises5.mkdir)(directory, { recursive: true });
-  await (0, import_promises5.writeFile)(options.output, `${JSON.stringify(baseline, null, 2)}
+  await (0, import_promises6.mkdir)(directory, { recursive: true });
+  await (0, import_promises6.writeFile)(options.output, `${JSON.stringify(baseline, null, 2)}
 `, "utf8");
   console.log(`baseline: ${options.output}`);
   console.log(`source run: ${baseline.sourceRunId}`);
@@ -18820,7 +19030,7 @@ async function writeBaseline(options) {
 async function compareRun(options) {
   let saved;
   try {
-    saved = parseBaseline(JSON.parse(await (0, import_promises5.readFile)(options.baseline, "utf8")));
+    saved = parseBaseline(JSON.parse(await (0, import_promises6.readFile)(options.baseline, "utf8")));
   } catch (error) {
     console.error(error instanceof DatasetValidationError || error instanceof Error ? error.message : String(error));
     return EXIT_CODES.configurationError;
@@ -18857,6 +19067,30 @@ async function compareRun(options) {
     return EXIT_CODES.configurationError;
   }
   return EXIT_CODES.passed;
+}
+async function importBundle(options) {
+  let payload;
+  try {
+    payload = options.from === "test-genie" ? await fetchBundle(options.generation ?? "") : await readBundle(options.file ?? options.dir ?? "");
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return EXIT_CODES.configurationError;
+  }
+  let result;
+  try {
+    result = await importTestGenieBundle(payload, options.out);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    return EXIT_CODES.configurationError;
+  }
+  console.log(`Test Genie ${result.generationId}: ${result.outcome}`);
+  for (const finding of result.findings) {
+    console.log(finding);
+  }
+  for (const item of result.imported) {
+    console.log(`${item.id}: ${item.feature}`);
+  }
+  return result.outcome === "VERIFIED" ? EXIT_CODES.passed : EXIT_CODES.qualityGateFailed;
 }
 function parseDelta(value) {
   const parsed = Number(value);

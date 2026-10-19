@@ -1,3 +1,4 @@
+import { ARTIFACT_TYPES } from '@klassijs/ai-core';
 import { z } from 'zod';
 
 const nonEmpty = z.string().min(1);
@@ -168,6 +169,7 @@ export const evaluationCaseSchema = z
       .strict()
       .optional(),
     execution: executionPolicySchema.partial().optional(),
+    artefact: z.object({ type: z.enum(ARTIFACT_TYPES) }).strict().optional(),
     metadata,
   })
   .strict();

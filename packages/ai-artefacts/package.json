@@ -1,0 +1,40 @@
+{
+  "name": "@klassijs/ai-artefacts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Origin-neutral verification of human and AI test artefacts",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./import": {
+      "types": "./dist/import-test-genie.d.ts",
+      "import": "./dist/import-test-genie.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "prebuild": "pnpm --filter @klassijs/ai-core build",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node ./scripts/check-no-provider-sdk.mjs",
+    "test": "pnpm build && node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@klassijs/ai-core": "workspace:*",
+    "typescript": "5.9.3",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@klassijs/ai-datasets": "workspace:*",
+    "@types/node": "22.19.1"
+  }
+}

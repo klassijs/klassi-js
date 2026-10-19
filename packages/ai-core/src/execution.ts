@@ -1,3 +1,4 @@
+import type { GeneratedArtifact } from './artefacts.js';
 import type { AdapterId, CaseId, RunId, SampleId, SuiteId } from './identifiers.js';
 import type { NormalizedExecutionError } from './errors.js';
 import type { AIMessage } from './messages.js';
@@ -104,6 +105,8 @@ export interface AIExecutionResult {
     messages?: AIMessage[];
     structured?: unknown;
   };
+  /** Engineering artefacts extracted from the reply. Evaluators may score these as well as prose. */
+  artefacts?: GeneratedArtifact[];
   toolCalls?: NormalizedToolCall[];
   citations?: NormalizedCitation[];
   usage?: AIUsage;

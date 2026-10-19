@@ -405,6 +405,35 @@ test('a configured API key echoed by the model is removed from the report and ev
   assert.equal(persisted.includes('[REDACTED]'), true);
 });
 
+test('ai:import writes Cucumber files from a wDrive bundle and exits 1 when verification fails', async () => {
+  const folder = await mkdtemp(path.join(tmpdir(), 'wdrive-'));
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const bundle = {
+    contractVersion: '1.0.0',
+    generationId: 'gen-cli',
+    generatedAt: '2026-10-19T00:00:00.000Z',
+    sourceSystem: 'test-genie-repo',
+    requirements: [{ id: 'BR-1', statement: 'The date parser accepts an ISO value.' }],
+    acceptanceTests: [{ id: 'AT-1', requirementId: 'BR-1', statement: 'A valid date is accepted.' }],
+    testCases: [{
+      id: 'TC-1',
+      acceptanceTestId: 'AT-1',
+      title: 'Parse a date',
+      preconditions: ['A date string is available'],
+      steps: [{ action: 'the user submits 2026-10-19', expected: 'the date is accepted' }],
+      coverage: ['positive', 'negative', 'boundary'],
+    }],
+  };
+  await writeFile(path.join(folder, 'bundle.json'), JSON.stringify(bundle));
+  const verified = await execute(['node', 'klassi', 'ai:import', '--dir', folder, '--out', out]);
+  const feature = await readFile(path.join(out, 'features', 'TC-1.feature'), 'utf8');
+  const missing = await execute(['node', 'klassi', 'ai:import', '--file', path.join(folder, 'missing.json'), '--out', out]);
+
+  assert.equal(verified, 0);
+  assert.match(feature, /Feature: Parse a date/);
+  assert.equal(missing, 2);
+});
+
 async function readTree(directory) {
   let text = '';
   for (const entry of await readdir(directory, { withFileTypes: true })) {

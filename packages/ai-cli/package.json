@@ -20,7 +20,7 @@
     "dist"
   ],
   "scripts": {
-    "prebuild": "pnpm --filter @klassijs/ai-core build && pnpm --filter @klassijs/ai-datasets build && pnpm --filter @klassijs/ai-evidence build && pnpm --filter @klassijs/ai-evaluators build && pnpm --filter @klassijs/ai-reporters build && pnpm --filter @klassijs/ai-adapter-azure-openai build",
+    "prebuild": "pnpm --filter @klassijs/ai-core build && pnpm --filter @klassijs/ai-datasets build && pnpm --filter @klassijs/ai-evidence build && pnpm --filter @klassijs/ai-evaluators build && pnpm --filter @klassijs/ai-reporters build && pnpm --filter @klassijs/ai-adapter-azure-openai build && pnpm --filter @klassijs/ai-artefacts build",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "node ./scripts/check-no-provider-sdk.mjs",
@@ -33,6 +33,7 @@
     "@klassijs/ai-evaluators": "workspace:*",
     "@klassijs/ai-adapter-azure-openai": "workspace:*",
     "@klassijs/ai-reporters": "workspace:*",
+    "@klassijs/ai-artefacts": "workspace:*",
     "commander": "15.0.0"
   },
   "devDependencies": {
