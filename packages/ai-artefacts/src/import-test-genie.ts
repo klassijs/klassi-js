@@ -1,6 +1,6 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { generateBdd } from './bdd.js';
+import { featureFromCases, pageObjectFromFeature, stepsFromFeature } from './bdd.js';
 import { TestGenieArtifactProvider, verifyTestGenieBundle, type TestGenieBundle, type TestGenieVerification } from './test-genie.js';
 
 export interface ImportedArtefact {
@@ -55,26 +55,62 @@ export async function importTestGenieBundle(payload: unknown, outDir: string): P
 }
 
 async function writeBundle(bundle: TestGenieBundle, verification: TestGenieVerification, outDir: string): Promise<ImportedArtefact[]> {
-  const imported: ImportedArtefact[] = [];
-  for (const testCase of bundle.testCases) {
+  const cases = bundle.testCases.flatMap((testCase) => {
     const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
-    if (!acceptance) {
-      continue;
-    }
-    const plan = generateBdd(testCase, verification, { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id });
-    const name = safeName(testCase.id);
+    return acceptance ? [{ testCase, acceptance }] : [];
+  });
+  const imported: ImportedArtefact[] = [];
+  for (const group of featureGroups(bundle, cases)) {
+    const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
+      testCase,
+      trace: { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id },
+    })), verification);
+    const name = safeName(group.id);
     const feature = path.join(outDir, 'features', `${name}.feature`);
     const steps = path.join(outDir, 'step_definitions', `${name}-steps.js`);
     const pageObject = path.join(outDir, 'page-objects', `${name}.js`);
     await mkdir(path.dirname(feature), { recursive: true });
     await mkdir(path.dirname(steps), { recursive: true });
     await mkdir(path.dirname(pageObject), { recursive: true });
-    await writeFile(feature, plan.feature);
-    await writeFile(steps, plan.steps);
-    await writeFile(pageObject, plan.pageObject);
-    imported.push({ id: testCase.id, requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id, feature, steps, pageObject });
+    await writeFile(feature, featureText);
+    await writeFile(steps, stepsFromFeature(featureText));
+    await writeFile(pageObject, pageObjectFromFeature(featureText));
+    for (const { testCase, acceptance } of group.cases) {
+      imported.push({
+        id: testCase.id,
+        requirementId: acceptance.requirementId,
+        acceptanceTestId: acceptance.id,
+        feature,
+        steps,
+        pageObject,
+      });
+    }
   }
   return imported;
+}
+
+function featureGroups(
+  bundle: TestGenieBundle,
+  cases: Array<{ testCase: TestGenieBundle['testCases'][number]; acceptance: TestGenieBundle['acceptanceTests'][number] }>,
+) {
+  const titles = new Map((bundle.features ?? []).map((feature) => [feature.id, feature.title]));
+  const groups = new Map<string, { id: string; title: string; cases: typeof cases }>();
+  const ungrouped: typeof cases = [];
+  for (const item of cases) {
+    const id = item.testCase.featureId;
+    if (!id) {
+      ungrouped.push(item);
+      continue;
+    }
+    const group = groups.get(id) ?? { id, title: titles.get(id) || id, cases: [] };
+    group.cases.push(item);
+    groups.set(id, group);
+  }
+  if (ungrouped.length > 0) {
+    const title = bundle.title?.trim() || (ungrouped.length === 1 ? ungrouped[0].testCase.title : 'Imported tests');
+    groups.set(title, { id: title, title, cases: ungrouped });
+  }
+  return [...groups.values()];
 }
 
 function safeName(value: string): string {

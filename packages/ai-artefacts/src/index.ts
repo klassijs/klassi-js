@@ -13,6 +13,7 @@ export {
 } from './test-genie.js';
 export {
   cucumberPlan,
+  featureFromCases,
   featureFromTestCase,
   generateBdd,
   pageObjectFromFeature,

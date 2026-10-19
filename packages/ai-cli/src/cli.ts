@@ -177,9 +177,15 @@ async function compareRun(options: {
 async function importBundle(options: { file?: string; dir?: string; from?: string; generation?: string; out: string }): Promise<number> {
   let payload: unknown;
   try {
-    payload = options.from === 'test-genie'
-      ? await fetchBundle(options.generation ?? '')
-      : await readBundle(options.file ?? options.dir ?? '');
+    if (options.from === 'test-genie') {
+      payload = await fetchBundle(options.generation ?? '');
+    } else {
+      const location = options.file ?? options.dir ?? process.env.KLASSI_WDRIVE ?? '';
+      if (!location.trim()) {
+        throw new Error('KLASSI_WDRIVE is not set. Pass --dir or --file, or set KLASSI_WDRIVE.');
+      }
+      payload = await readBundle(location);
+    }
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     return EXIT_CODES.configurationError;

@@ -434,6 +434,39 @@ test('ai:import writes Cucumber files from a wDrive bundle and exits 1 when veri
   assert.equal(missing, 2);
 });
 
+test('ai:import reads bundle.json from KLASSI_WDRIVE when no folder is passed', async () => {
+  const folder = await mkdtemp(path.join(tmpdir(), 'wdrive-'));
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const previous = process.env.KLASSI_WDRIVE;
+  process.env.KLASSI_WDRIVE = folder;
+  await writeFile(path.join(folder, 'bundle.json'), JSON.stringify({
+    contractVersion: '1.0.0',
+    generationId: 'gen-env',
+    generatedAt: '2026-10-19T00:00:00.000Z',
+    sourceSystem: 'test-genie-repo',
+    requirements: [{ id: 'BR-1', statement: 'The date parser accepts an ISO value.' }],
+    acceptanceTests: [{ id: 'AT-1', requirementId: 'BR-1', statement: 'A valid date is accepted.' }],
+    testCases: [{
+      id: 'TC-1',
+      acceptanceTestId: 'AT-1',
+      title: 'Parse a date',
+      preconditions: ['A date string is available'],
+      steps: [{ action: 'the user submits 2026-10-19', expected: 'the date is accepted' }],
+      coverage: ['positive', 'negative', 'boundary'],
+    }],
+  }));
+  try {
+    const verified = await execute(['node', 'klassi', 'ai:import', '--out', out]);
+    delete process.env.KLASSI_WDRIVE;
+    const missing = await execute(['node', 'klassi', 'ai:import', '--out', out]);
+    assert.equal(verified, 0);
+    assert.equal(missing, 2);
+  } finally {
+    if (previous === undefined) delete process.env.KLASSI_WDRIVE;
+    else process.env.KLASSI_WDRIVE = previous;
+  }
+});
+
 async function readTree(directory) {
   let text = '';
   for (const entry of await readdir(directory, { withFileTypes: true })) {

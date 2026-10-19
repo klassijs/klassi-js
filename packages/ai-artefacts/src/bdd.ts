@@ -16,14 +16,17 @@ export interface StepUse {
 const STEP_KEYWORDS = ['Given', 'When', 'Then', 'And', 'But'];
 
 export function featureFromTestCase(testCase: TestGenieCase, verification: TestGenieVerification, trace: { requirementId: string; acceptanceTestId: string }): string {
+  return featureFromCases(testCase.title, [{ testCase, trace }], verification);
+}
+
+export function featureFromCases(
+  title: string,
+  cases: Array<{ testCase: TestGenieCase; trace: { requirementId: string; acceptanceTestId: string } }>,
+  verification: TestGenieVerification,
+): string {
   assertReadyForCodeGeneration(verification);
-  const tags = [
-    `@${trace.requirementId.startsWith('BR-') ? trace.requirementId : `BR-${trace.requirementId}`}`,
-    `@${trace.acceptanceTestId.startsWith('AT-') ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
-    `@${testCase.id.startsWith('TC-') ? testCase.id : `TC-${testCase.id}`}`,
-  ];
-  const steps = testCase.steps.map((step, index) => `${index === 0 ? 'When' : 'And'} ${step.action}\n    Then ${step.expected}`).join('\n    ');
-  return [`${tags.join(' ')}`, `Feature: ${testCase.title}`, '', `  Scenario: ${testCase.title}`, `    ${steps}`, ''].join('\n');
+  const scenarios = cases.map(({ testCase, trace }) => scenarioBlock(testCase, trace));
+  return [`Feature: ${title}`, '', scenarios.join('\n\n'), ''].join('\n');
 }
 
 export function verifyGherkin(content: string): StaticFinding[] {
@@ -57,10 +60,15 @@ export function verifyGherkin(content: string): StaticFinding[] {
 }
 
 export function stepsFromFeature(feature: string): string {
-  const uses = featureSteps(feature);
-  const lines = ["const { Given, When, Then } = require('@cucumber/cucumber');", ''];
-  for (const step of uses) {
+  const lines = [];
+  const seen = new Set<string>();
+  for (const step of featureSteps(feature)) {
     const keyword = step.keyword === 'And' || step.keyword === 'But' ? 'Then' : step.keyword;
+    const key = `${keyword}:${step.text}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
     lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, '  return undefined;', '});', '');
   }
   return lines.join('\n');
@@ -74,7 +82,7 @@ export function pageObjectFromFeature(feature: string): string {
 
 export function verifySteps(feature: string, steps: string): StaticFinding[] {
   const findings: StaticFinding[] = [...forbiddenFindings(steps)];
-  const defined = [...steps.matchAll(/\b(Given|When|Then)\('([^']+)'/g)].map((match) => match[2] ?? '');
+  const defined = definedStepPatterns(steps);
   const used = featureSteps(feature);
   for (const step of used) {
     const matches = defined.filter((pattern) => stepMatches(pattern, step.text));
@@ -151,6 +159,16 @@ export function cucumberPlan(artefacts: GherkinArtefact): { feature: string; ste
   return { ...artefacts, runner: 'klassi-cucumber', browser: 'webdriverio-standalone' };
 }
 
+function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; acceptanceTestId: string }): string {
+  const tags = [
+    `@${trace.requirementId.startsWith('BR-') ? trace.requirementId : `BR-${trace.requirementId}`}`,
+    `@${trace.acceptanceTestId.startsWith('AT-') ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
+    `@${testCase.id.startsWith('TC-') ? testCase.id : `TC-${testCase.id}`}`,
+  ];
+  const steps = testCase.steps.map((step, index) => `${index === 0 ? 'When' : 'And'} ${step.action}\n    Then ${step.expected}`).join('\n    ');
+  return [`  ${tags.join(' ')}`, `  Scenario: ${testCase.title}`, `    ${steps}`].join('\n');
+}
+
 function featureSteps(feature: string): StepUse[] {
   return feature
     .split('\n')
@@ -159,6 +177,34 @@ function featureSteps(feature: string): StepUse[] {
       const keyword = STEP_KEYWORDS.find((item) => line.startsWith(`${item} `));
       return keyword ? [{ keyword, text: line.slice(keyword.length).trim() }] : [];
     });
+}
+
+function definedStepPatterns(steps: string): string[] {
+  const patterns: string[] = [];
+  const call = /\b(?:Given|When|Then)\(\s*(['"`])/g;
+  let match = call.exec(steps);
+  while (match) {
+    const quote = match[1] ?? "'";
+    let index = call.lastIndex;
+    let text = '';
+    while (index < steps.length) {
+      const char = steps[index] ?? '';
+      if (char === '\\') {
+        text += steps[index + 1] ?? '';
+        index += 2;
+        continue;
+      }
+      if (char === quote) {
+        patterns.push(text);
+        call.lastIndex = index + 1;
+        break;
+      }
+      text += char;
+      index += 1;
+    }
+    match = call.exec(steps);
+  }
+  return patterns;
 }
 
 function stepMatches(pattern: string, text: string): boolean {

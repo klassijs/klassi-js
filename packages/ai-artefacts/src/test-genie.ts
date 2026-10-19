@@ -20,9 +20,15 @@ export interface TestGenieStep {
   expected: string;
 }
 
+export interface TestGenieFeature {
+  id: string;
+  title: string;
+}
+
 export interface TestGenieCase {
   id: string;
   acceptanceTestId: string;
+  featureId?: string;
   title: string;
   preconditions: string[];
   steps: TestGenieStep[];
@@ -39,6 +45,8 @@ export interface TestGenieBundle {
   generationId: string;
   generatedAt: string;
   sourceSystem?: 'test-genie-repo' | 'test-genie-saas' | string;
+  title?: string;
+  features?: TestGenieFeature[];
   sourceDocument?: TestGenieDocument;
   requirements: TestGenieRequirement[];
   acceptanceTests: TestGenieAcceptanceTest[];
@@ -78,6 +86,8 @@ export class TestGenieArtifactProvider implements TestArtifactProvider {
       generationId: bundle.generationId,
       generatedAt: bundle.generatedAt,
       sourceSystem: bundle.sourceSystem,
+      title: bundle.title,
+      features: bundle.features,
       sourceDocument: bundle.sourceDocument,
       requirements: bundle.requirements ?? [],
       acceptanceTests: bundle.acceptanceTests ?? [],
