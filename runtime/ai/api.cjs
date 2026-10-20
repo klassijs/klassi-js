@@ -17106,6 +17106,7 @@ function azureConfigurationIssues(env = process.env, profile = defaultAzureProfi
 }
 
 // packages/ai-artefacts/dist/import-test-genie.js
+var import_node_fs2 = require("node:fs");
 var import_promises2 = require("node:fs/promises");
 var import_node_path3 = __toESM(require("node:path"), 1);
 
@@ -17131,6 +17132,8 @@ var TestGenieArtifactProvider = class {
       generationId: bundle.generationId,
       generatedAt: bundle.generatedAt,
       sourceSystem: bundle.sourceSystem,
+      title: bundle.title,
+      features: bundle.features,
       sourceDocument: bundle.sourceDocument,
       requirements: bundle.requirements ?? [],
       acceptanceTests: bundle.acceptanceTests ?? [],
@@ -17193,22 +17196,21 @@ function assertReadyForCodeGeneration(verification) {
 
 // packages/ai-artefacts/dist/bdd.js
 var STEP_KEYWORDS = ["Given", "When", "Then", "And", "But"];
-function featureFromTestCase(testCase, verification, trace) {
+function featureFromCases(title, cases, verification) {
   assertReadyForCodeGeneration(verification);
-  const tags = [
-    `@${trace.requirementId.startsWith("BR-") ? trace.requirementId : `BR-${trace.requirementId}`}`,
-    `@${trace.acceptanceTestId.startsWith("AT-") ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
-    `@${testCase.id.startsWith("TC-") ? testCase.id : `TC-${testCase.id}`}`
-  ];
-  const steps = testCase.steps.map((step, index) => `${index === 0 ? "When" : "And"} ${step.action}
-    Then ${step.expected}`).join("\n    ");
-  return [`${tags.join(" ")}`, `Feature: ${testCase.title}`, "", `  Scenario: ${testCase.title}`, `    ${steps}`, ""].join("\n");
+  const scenarios = cases.map(({ testCase, trace }) => scenarioBlock(testCase, trace));
+  return [`Feature: ${title}`, "", scenarios.join("\n\n"), ""].join("\n");
 }
 function stepsFromFeature(feature) {
-  const uses = featureSteps(feature);
-  const lines = ["const { Given, When, Then } = require('@cucumber/cucumber');", ""];
-  for (const step of uses) {
+  const lines = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const step of featureSteps(feature)) {
     const keyword = step.keyword === "And" || step.keyword === "But" ? "Then" : step.keyword;
+    const key = `${keyword}:${step.text}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
     lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, "  return undefined;", "});", "");
   }
   return lines.join("\n");
@@ -17224,9 +17226,24 @@ ${methods.join(",\n")}
 };
 `;
 }
-function generateBdd(testCase, verification, trace) {
-  const feature = featureFromTestCase(testCase, verification, trace);
-  return { feature, steps: stepsFromFeature(feature), pageObject: pageObjectFromFeature(feature) };
+function scenarioBlock(testCase, trace) {
+  const tags = [
+    `@${trace.requirementId.startsWith("BR-") ? trace.requirementId : `BR-${trace.requirementId}`}`,
+    `@${trace.acceptanceTestId.startsWith("AT-") ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
+    `@${testCase.id.startsWith("TC-") ? testCase.id : `TC-${testCase.id}`}`
+  ];
+  const steps = testCase.steps.map((step, index) => `${index === 0 ? "When" : "And"} ${step.action}
+    Then ${step.expected}`).join("\n    ");
+  const examples = exampleTable(testCase.examples);
+  const keyword = examples ? "Scenario Outline" : "Scenario";
+  return [`  ${tags.join(" ")}`, `  ${keyword}: ${testCase.title}`, `    ${steps}`, examples].filter(Boolean).join("\n");
+}
+function exampleTable(examples) {
+  if (!examples || examples.headers.length === 0 || examples.rows.length === 0)
+    return "";
+  const header = `      | ${examples.headers.join(" | ")} |`;
+  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => row[name] ?? "").join(" | ")} |`);
+  return ["    Examples:", header, ...rows].join("\n");
 }
 function featureSteps(feature) {
   return feature.split("\n").map((line) => line.trim()).flatMap((line) => {
@@ -17261,39 +17278,76 @@ async function fetchBundle(generationId, env = process.env) {
 async function importTestGenieBundle(payload, outDir) {
   const bundle = provider.load(payload);
   const verification = verifyTestGenieBundle(bundle, true);
-  const imported = verification.outcome === "VERIFIED" ? await writeBundle(bundle, verification, outDir) : [];
+  const written = verification.outcome === "VERIFIED" ? await writeBundle(bundle, verification, outDir) : { imported: [], skipped: [] };
   await (0, import_promises2.mkdir)(import_node_path3.default.join(outDir, ".klassi", "test-genie"), { recursive: true });
-  await (0, import_promises2.writeFile)(import_node_path3.default.join(outDir, ".klassi", "test-genie", `${safeName(bundle.generationId)}.json`), JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported }, null, 2));
-  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported };
+  await (0, import_promises2.writeFile)(import_node_path3.default.join(outDir, ".klassi", "test-genie", `${safeName(bundle.generationId)}.json`), JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped }, null, 2));
+  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped };
 }
 async function writeBundle(bundle, verification, outDir) {
-  const imported = [];
-  for (const testCase of bundle.testCases) {
+  const cases = bundle.testCases.flatMap((testCase) => {
     const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
-    if (!acceptance) {
-      continue;
-    }
-    const plan = generateBdd(testCase, verification, { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id });
-    const name = safeName(testCase.id);
+    return acceptance ? [{ testCase, acceptance }] : [];
+  });
+  const imported = [];
+  const skipped = [];
+  for (const group of featureGroups(bundle, cases)) {
+    const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
+      testCase,
+      trace: { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id }
+    })), verification);
+    const name = safeName(group.id);
     const feature = import_node_path3.default.join(outDir, "features", `${name}.feature`);
     const steps = import_node_path3.default.join(outDir, "step_definitions", `${name}-steps.js`);
     const pageObject = import_node_path3.default.join(outDir, "page-objects", `${name}.js`);
+    if ((0, import_node_fs2.existsSync)(feature) || (0, import_node_fs2.existsSync)(steps) || (0, import_node_fs2.existsSync)(pageObject)) {
+      skipped.push(group.id);
+      continue;
+    }
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(feature), { recursive: true });
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(steps), { recursive: true });
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(pageObject), { recursive: true });
-    await (0, import_promises2.writeFile)(feature, plan.feature);
-    await (0, import_promises2.writeFile)(steps, plan.steps);
-    await (0, import_promises2.writeFile)(pageObject, plan.pageObject);
-    imported.push({ id: testCase.id, requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id, feature, steps, pageObject });
+    await (0, import_promises2.writeFile)(feature, featureText);
+    await (0, import_promises2.writeFile)(steps, stepsFromFeature(featureText));
+    await (0, import_promises2.writeFile)(pageObject, pageObjectFromFeature(featureText));
+    for (const { testCase, acceptance } of group.cases) {
+      imported.push({
+        id: testCase.id,
+        requirementId: acceptance.requirementId,
+        acceptanceTestId: acceptance.id,
+        feature,
+        steps,
+        pageObject
+      });
+    }
   }
-  return imported;
+  return { imported, skipped };
+}
+function featureGroups(bundle, cases) {
+  const titles = new Map((bundle.features ?? []).map((feature) => [feature.id, feature.title]));
+  const groups = /* @__PURE__ */ new Map();
+  const ungrouped = [];
+  for (const item of cases) {
+    const id = item.testCase.featureId;
+    if (!id) {
+      ungrouped.push(item);
+      continue;
+    }
+    const group = groups.get(id) ?? { id, title: titles.get(id) || id, cases: [] };
+    group.cases.push(item);
+    groups.set(id, group);
+  }
+  if (ungrouped.length > 0) {
+    const title = bundle.title?.trim() || (ungrouped.length === 1 ? ungrouped[0].testCase.title : "Imported tests");
+    groups.set(title, { id: title, title, cases: ungrouped });
+  }
+  return [...groups.values()];
 }
 function safeName(value) {
   return value.replace(/[^A-Za-z0-9._-]/g, "_");
 }
 
 // packages/ai-cli/dist/evaluate.js
-var import_node_fs2 = require("node:fs");
+var import_node_fs3 = require("node:fs");
 var import_promises5 = require("node:fs/promises");
 var import_node_path6 = __toESM(require("node:path"), 1);
 
@@ -18827,15 +18881,15 @@ function registerPlatform(registry, suite, options) {
   throw new AIEvaluationError("CONFIG_ERROR", `Unknown AI platform "${platform}". Supported platforms: fake, azure-openai`);
 }
 function resolveSuitePath(suite, cwd) {
-  if ((0, import_node_fs2.existsSync)(suite)) {
+  if ((0, import_node_fs3.existsSync)(suite)) {
     return suite;
   }
   const named = import_node_path6.default.resolve(cwd, suite);
-  if ((0, import_node_fs2.existsSync)(named)) {
+  if ((0, import_node_fs3.existsSync)(named)) {
     return named;
   }
   const candidates = ["json", "yaml", "yml"].map((extension) => import_node_path6.default.resolve(cwd, "examples/ai", `${suite}.${extension}`));
-  const found = candidates.find((candidate) => (0, import_node_fs2.existsSync)(candidate));
+  const found = candidates.find((candidate) => (0, import_node_fs3.existsSync)(candidate));
   if (!found) {
     throw new AIEvaluationError("DATASET_ERROR", `Suite "${suite}" was not found`);
   }
@@ -19097,6 +19151,9 @@ async function importBundle(options) {
   }
   for (const item of result.imported) {
     console.log(`${item.id}: ${item.feature}`);
+  }
+  for (const id of result.skipped) {
+    console.log(`${id}: already exists, not overwritten`);
   }
   return result.outcome === "VERIFIED" ? EXIT_CODES.passed : EXIT_CODES.qualityGateFailed;
 }

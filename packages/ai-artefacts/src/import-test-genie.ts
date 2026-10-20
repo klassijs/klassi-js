@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { featureFromCases, pageObjectFromFeature, stepsFromFeature } from './bdd.js';
@@ -18,6 +19,7 @@ export interface ImportResult {
   outcome: TestGenieVerification['outcome'];
   findings: string[];
   imported: ImportedArtefact[];
+  skipped: string[];
 }
 
 const provider = new TestGenieArtifactProvider();
@@ -45,21 +47,28 @@ export async function fetchBundle(generationId: string, env: NodeJS.ProcessEnv =
 export async function importTestGenieBundle(payload: unknown, outDir: string): Promise<ImportResult> {
   const bundle = provider.load(payload);
   const verification = verifyTestGenieBundle(bundle, true);
-  const imported = verification.outcome === 'VERIFIED' ? await writeBundle(bundle, verification, outDir) : [];
+  const written = verification.outcome === 'VERIFIED'
+    ? await writeBundle(bundle, verification, outDir)
+    : { imported: [], skipped: [] };
   await mkdir(path.join(outDir, '.klassi', 'test-genie'), { recursive: true });
   await writeFile(
     path.join(outDir, '.klassi', 'test-genie', `${safeName(bundle.generationId)}.json`),
-    JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported }, null, 2),
+    JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped }, null, 2),
   );
-  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported };
+  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped };
 }
 
-async function writeBundle(bundle: TestGenieBundle, verification: TestGenieVerification, outDir: string): Promise<ImportedArtefact[]> {
+async function writeBundle(
+  bundle: TestGenieBundle,
+  verification: TestGenieVerification,
+  outDir: string,
+): Promise<{ imported: ImportedArtefact[]; skipped: string[] }> {
   const cases = bundle.testCases.flatMap((testCase) => {
     const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
     return acceptance ? [{ testCase, acceptance }] : [];
   });
   const imported: ImportedArtefact[] = [];
+  const skipped: string[] = [];
   for (const group of featureGroups(bundle, cases)) {
     const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
       testCase,
@@ -69,6 +78,10 @@ async function writeBundle(bundle: TestGenieBundle, verification: TestGenieVerif
     const feature = path.join(outDir, 'features', `${name}.feature`);
     const steps = path.join(outDir, 'step_definitions', `${name}-steps.js`);
     const pageObject = path.join(outDir, 'page-objects', `${name}.js`);
+    if (existsSync(feature) || existsSync(steps) || existsSync(pageObject)) {
+      skipped.push(group.id);
+      continue;
+    }
     await mkdir(path.dirname(feature), { recursive: true });
     await mkdir(path.dirname(steps), { recursive: true });
     await mkdir(path.dirname(pageObject), { recursive: true });
@@ -86,7 +99,7 @@ async function writeBundle(bundle: TestGenieBundle, verification: TestGenieVerif
       });
     }
   }
-  return imported;
+  return { imported, skipped };
 }
 
 function featureGroups(

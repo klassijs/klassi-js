@@ -106,6 +106,22 @@ test('examples on a test case are written into the scenario outline', async () =
   assert.match(feature, /\| Books \| BITS \|/);
 });
 
+test('an existing TG feature file is left in place', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const existing = path.join(out, 'features', 'TG-001.feature');
+  await mkdir(path.dirname(existing), { recursive: true });
+  await writeFile(existing, 'Feature: Keep this file\n');
+  const result = await importTestGenieBundle({
+    ...bundle,
+    features: [{ id: 'TG-001', title: 'TG-001' }],
+    testCases: [{ ...bundle.testCases[0], featureId: 'TG-001' }],
+  }, out);
+  assert.deepEqual(result.skipped, ['TG-001']);
+  assert.equal(result.imported.length, 0);
+  assert.equal(await readFile(existing, 'utf8'), 'Feature: Keep this file\n');
+});
+
 test('a rejected bundle does not write Cucumber files', async () => {
   const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
   const rejected = { ...bundle, acceptanceTests: [{ id: 'AT-9', requirementId: 'missing', statement: 'orphan' }] };

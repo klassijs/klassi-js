@@ -204,6 +204,9 @@ async function importBundle(options: { file?: string; dir?: string; from?: strin
   for (const item of result.imported) {
     console.log(`${item.id}: ${item.feature}`);
   }
+  for (const id of result.skipped) {
+    console.log(`${id}: already exists, not overwritten`);
+  }
   return result.outcome === 'VERIFIED' ? EXIT_CODES.passed : EXIT_CODES.qualityGateFailed;
 }
 

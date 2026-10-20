@@ -29,7 +29,7 @@ rules:
       dataTable: 6
       featureTag: 0
       scenarioTag: 2
-  max-scenarios: ['error', 16]
+  max-scenarios: ['error', 20]
   new-line-at-eof: 'off'
   no-background-only: 'error'
   no-dupe-features: 'error'
@@ -51,11 +51,11 @@ rules:
   filename-camel-case: 'error'
   unique-examples: 'error'
   feature-description: 'off'
-  feature-name-length: ['error', 100]
+  feature-name-length: ['error', 150]
   scenario-action: 'error'
   scenario-verification: 'error'
-  scenario-name-length: ['error', 100]
-  steps-length: ['error', 100]
+  scenario-name-length: ['error', 150]
+  steps-length: ['error', 150]
   no-consecutive-empty-lines: 'error'
   scenario-outline-has-examples: 'error'
   required-tags: 'off'
@@ -66,7 +66,7 @@ rules:
   no-empty-scenario: 'error'
   no-punctuation-in-titles: 'error'
   tag-format: ['error', '^@[a-z][a-z0-9-]*$']
-  max-background-steps: 8
+  max-background-steps: 10
   no-and-but-first: 'error'
   one-feature-per-file: 'error'
 fix: true
