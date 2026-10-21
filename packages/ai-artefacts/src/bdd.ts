@@ -1,6 +1,7 @@
 import type { TestGenieCase } from './test-genie.js';
 import { assertReadyForCodeGeneration, type TestGenieVerification } from './test-genie.js';
 import { forbiddenFindings, type StaticFinding } from './source-checks.js';
+import { expandUiSteps, isDisplayed, isNavigate, methodName, urlFromCase } from './uiSteps.js';
 
 export interface GherkinArtefact {
   feature: string;
@@ -74,10 +75,115 @@ export function stepsFromFeature(feature: string): string {
   return lines.join('\n');
 }
 
-export function pageObjectFromFeature(feature: string): string {
-  const uses = featureSteps(feature).filter((item) => item.keyword === 'When' || item.keyword === 'Then');
-  const methods = uses.map((item, index) => `  // ${item.text}\n  async step${index + 1}() {\n    await global.browser.pause(0);\n  }`);
-  return `module.exports = {\n${methods.join(',\n')}\n};\n`;
+export function pageObjectFromFeature(feature: string, cases: TestGenieCase[] = []): string {
+  const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
+  return `module.exports = {\n${fromCases.join(',\n')}\n};\n`;
+}
+
+export function stepsFromCases(feature: string, pageObjectPath: string, cases: TestGenieCase[] = []): string {
+  const methods = methodIndex(cases);
+  const lines = [];
+  const seen = new Set<string>();
+  for (const step of featureSteps(feature)) {
+    const keyword = step.keyword === 'And' || step.keyword === 'But' ? 'Then' : step.keyword;
+    const key = `${keyword}:${step.text}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const method = methods.get(step.text);
+    const body = method ? `  await page.${method}();` : '  return undefined;';
+    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, body, '});', '');
+  }
+  const header = methods.size > 0 ? `const page = require('${pageObjectPath}');\n\n` : '';
+  return `${header}${lines.join('\n')}`;
+}
+
+export function selectorFromTarget(target: TestGenieCase['steps'][number]['target']): string | null {
+  const by = target?.find?.by;
+  const value = String(target?.find?.value || '').trim();
+  if (!by || !value) return null;
+  if (by === 'testid') return `[data-testid="${escapeAttr(value)}"]`;
+  if (by === 'name') return `[name="${escapeAttr(value)}"]`;
+  if (by === 'id') return `#${value.replace(/[^A-Za-z0-9_-]/g, '')}`;
+  if (by === 'text') return `=${value}`;
+  return `aria/${value}`;
+}
+
+export function unboundSteps(cases: TestGenieCase[]): string[] {
+  return cases.flatMap((testCase) => expandUiSteps(testCase).steps.flatMap((step) => {
+    if (step.api) return [];
+    if (selectorFromTarget(step.target)) return [];
+    if (urlFromCase(testCase, step) && isNavigate(step.action)) return [];
+    return step.action ? [`Unbound step: ${step.action}`] : [];
+  }));
+}
+
+function pageMethodsFromCases(cases: TestGenieCase[]): string[] {
+  const methods: string[] = [];
+  const seen = new Set<string>();
+  for (const testCase of cases) {
+    expandUiSteps(testCase).steps.forEach((step) => {
+      const name = methodName(step, `step${methods.length + 1}`);
+      if (seen.has(name)) return;
+      seen.add(name);
+      const selector = selectorFromTarget(step.target);
+      const pageUrl = urlFromCase(testCase, step);
+      if (step.api) {
+        const path = step.api.path.startsWith('/') || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
+        const urlExpr = /^https?:\/\//i.test(path)
+          ? `'${escapeQuote(path)}'`
+          : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(path)}'`;
+        const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
+        methods.push(`  // ${step.action}\n  async ${name}() {\n    const response = await fetch(${urlExpr}, { method: '${escapeQuote(step.api.method || 'GET')}' });\n    if (response.status !== ${expected}) throw new Error('Expected ${expected}, got ' + response.status);\n  }`);
+        return;
+      }
+      if (pageUrl && isNavigate(step.action) && !selector) {
+        methods.push(`  // ${step.action}\n  async ${name}() {\n    await global.browser.url('${escapeQuote(pageUrl)}');\n  }`);
+        return;
+      }
+      if (!selector) {
+        methods.push(`  // unbound: ${step.action || testCase.title}\n  async ${name}() {\n    await global.browser.pause(0);\n  }`);
+        return;
+      }
+      const command = isDisplayed(`${step.action} ${step.expected}`)
+        ? 'waitForDisplayed()'
+        : step.target?.type === 'input' || step.target?.type === 'select'
+          ? `setValue('')`
+          : 'click()';
+      methods.push(`  // ${step.action}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').${command};\n  }`);
+    });
+  }
+  return methods;
+}
+
+function methodIndex(cases: TestGenieCase[]): Map<string, string> {
+  const methods = new Map<string, string>();
+  for (const testCase of cases) {
+    for (const step of expandUiSteps(testCase).steps) {
+      const name = methodName(step, '');
+      if (!name || !step.action) continue;
+      methods.set(step.action, name);
+    }
+  }
+  return methods;
+}
+
+function casesFromFeature(feature: string): TestGenieCase[] {
+  const uses = featureSteps(feature);
+  if (uses.length === 0) return [];
+  const action = uses.filter((item) => item.keyword === 'Given' || item.keyword === 'When').map((item) => item.text).join(' ');
+  const expected = uses.filter((item) => item.keyword === 'Then' || item.keyword === 'And').map((item) => item.text).join(' ');
+  return [expandUiSteps({
+    id: 'TC-feature',
+    acceptanceTestId: 'AT-feature',
+    title: 'Imported feature',
+    preconditions: ['The system is available'],
+    coverage: ['positive', 'negative', 'boundary'],
+    steps: [{ action: action || expected, expected: expected || 'the page is ready' }],
+  })];
+}
+
+function escapeAttr(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
 export function verifySteps(feature: string, steps: string): StaticFinding[] {
@@ -120,7 +226,7 @@ export function verifyPageObject(content: string): StaticFinding[] {
 
 export function generateBdd(testCase: TestGenieCase, verification: TestGenieVerification, trace: { requirementId: string; acceptanceTestId: string }): GherkinArtefact {
   const feature = featureFromTestCase(testCase, verification, trace);
-  return { feature, steps: stepsFromFeature(feature), pageObject: pageObjectFromFeature(feature) };
+  return { feature, steps: stepsFromCases(feature, '../page-objects/feature', [testCase]), pageObject: pageObjectFromFeature(feature, [testCase]) };
 }
 
 export interface ScenarioResult {
@@ -165,7 +271,11 @@ function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; 
     `@${trace.acceptanceTestId.startsWith('AT-') ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
     `@${testCase.id.startsWith('TC-') ? testCase.id : `TC-${testCase.id}`}`,
   ];
-  const steps = testCase.steps.map((step, index) => `${index === 0 ? 'When' : 'And'} ${step.action}\n    Then ${step.expected}`).join('\n    ');
+  const steps = testCase.steps.flatMap((step, index) => {
+    const assertionOnly = step.action === step.expected || (isDisplayed(step.action) && !isNavigate(step.action) && !step.api);
+    if (assertionOnly) return [`${index === 0 ? 'Then' : 'And'} ${step.expected}`];
+    return [`${index === 0 ? 'When' : 'And'} ${step.action}`, `Then ${step.expected}`];
+  }).join('\n    ');
   const examples = exampleTable(testCase.examples);
   const keyword = examples ? 'Scenario Outline' : 'Scenario';
   return [`  ${tags.join(' ')}`, `  ${keyword}: ${testCase.title}`, `    ${steps}`, examples].filter(Boolean).join('\n');

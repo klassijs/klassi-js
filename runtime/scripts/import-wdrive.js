@@ -25,7 +25,7 @@ async function main() {
 	const out = path.resolve(option('--out', process.cwd()));
 	const dir = option('--dir', process.env.KLASSI_WDRIVE || '');
 	const file = option('--file', '');
-	const args = ['ai:import', '--out', out];
+	const args = ['ai:import', '--out', out, '--bind-locators'];
 	if (file) {
 		args.push('--file', path.resolve(file));
 	} else if (dir) {

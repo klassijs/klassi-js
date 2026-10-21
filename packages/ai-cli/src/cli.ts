@@ -55,7 +55,8 @@ export async function execute(argv: string[]): Promise<number> {
     .option('--from <source>', 'pull a stored bundle from Test Genie SaaS')
     .option('--generation <id>', 'Test Genie generation id')
     .option('--out <dir>', 'project directory that receives the Cucumber files', '.')
-    .action(async (options: { file?: string; dir?: string; from?: string; generation?: string; out: string }) => {
+    .option('--bind-locators', 'open the product URL and bind locators from the live page')
+    .action(async (options: { file?: string; dir?: string; from?: string; generation?: string; out: string; bindLocators?: boolean }) => {
       code = await importBundle(options);
     });
 
@@ -174,7 +175,7 @@ async function compareRun(options: {
   return EXIT_CODES.passed;
 }
 
-async function importBundle(options: { file?: string; dir?: string; from?: string; generation?: string; out: string }): Promise<number> {
+async function importBundle(options: { file?: string; dir?: string; from?: string; generation?: string; out: string; bindLocators?: boolean }): Promise<number> {
   let payload: unknown;
   try {
     if (options.from === 'test-genie') {
@@ -192,7 +193,9 @@ async function importBundle(options: { file?: string; dir?: string; from?: strin
   }
   let result;
   try {
-    result = await importTestGenieBundle(payload, options.out);
+    result = await importTestGenieBundle(payload, options.out, {
+      bindLocators: Boolean(options.bindLocators || process.env.PRODUCT_BASE_URL),
+    });
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     return EXIT_CODES.configurationError;

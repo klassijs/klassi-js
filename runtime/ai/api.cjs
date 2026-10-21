@@ -17194,6 +17194,98 @@ function assertReadyForCodeGeneration(verification) {
   }
 }
 
+// packages/ai-artefacts/dist/uiSteps.js
+function isNavigate(text) {
+  return /\b(opens?|visits?|goes to|navigates? to|loads?)\b/i.test(text) || /https?:\/\//i.test(text);
+}
+function isDisplayed(text) {
+  return /\b(?:is|are)\s+(?:displayed|shown|visible)\b/i.test(text);
+}
+function urlFromText(text) {
+  return String(text || "").match(/https?:\/\/[^\s"'<>]+/i)?.[0] || "";
+}
+function visibleTargets(text) {
+  const targets = [];
+  const seen = /* @__PURE__ */ new Set();
+  const parts = String(text || "").split(/\s+(?:is|are)\s+(?:displayed|shown|visible)\b/i);
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    const chunk = String(parts[index] || "").replace(/\s+/g, " ").trim();
+    const match = chunk.match(/\bthe\s+((?:[A-Za-z][\w&'-]*)(?:\s+[A-Za-z][\w&'-]*){0,3})\s*$/i);
+    const noun = match ? match[1].trim() : "";
+    const key = noun.toLowerCase();
+    if (!noun || key === "page" || key === "it" || /finishes loading|page is ready/.test(key) || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    targets.push({
+      name: toName(noun) || "element",
+      type: /\b(heading|title|logo|card|image|link)\b/i.test(noun) ? "link" : "button",
+      find: { by: "text", value: noun }
+    });
+  }
+  return targets;
+}
+function urlFromCase(testCase, step) {
+  return testCase.page?.url || urlFromText(step?.action || "") || urlFromText(testCase.steps.map((item) => item.action).join(" "));
+}
+function expandUiSteps(testCase) {
+  const blob = testCase.steps.map((step) => `${step.action} ${step.expected}`).join(" ");
+  const visibles = visibleTargets(blob);
+  const url = urlFromCase(testCase);
+  const steps = [];
+  if (url && !testCase.steps.some((step) => isNavigate(step.action))) {
+    steps.push({ action: `the visitor opens ${url}`, expected: "the page is ready" });
+  }
+  for (const step of testCase.steps) {
+    if (step.api || step.target) {
+      steps.push(step);
+      continue;
+    }
+    if (isNavigate(step.action) && url) {
+      if (!steps.some((item) => isNavigate(item.action))) {
+        steps.push({
+          action: step.action.replace(/\s+the page finishes loading.*$/i, "").trim(),
+          expected: step.expected && !isDisplayed(step.expected) ? step.expected : "the page is ready"
+        });
+      }
+      continue;
+    }
+    if (visibleTargets(`${step.action} ${step.expected}`).length > 0)
+      continue;
+    steps.push(step);
+  }
+  for (const target of visibles) {
+    if (steps.some((step) => String(step.target?.find.value || "").toLowerCase() === target.find.value.toLowerCase())) {
+      continue;
+    }
+    steps.push({
+      action: `the ${target.find.value} is displayed`,
+      expected: `the ${target.find.value} is displayed`,
+      target
+    });
+  }
+  return {
+    ...testCase,
+    steps: steps.length > 0 ? steps : testCase.steps,
+    page: testCase.page || (url ? { name: "app", url } : void 0)
+  };
+}
+function methodName(step, fallback) {
+  if (step.target?.name)
+    return step.target.name;
+  if (step.api)
+    return "callApi";
+  if (isNavigate(step.action))
+    return "openPage";
+  return fallback;
+}
+function toName(label) {
+  const words = String(label || "").replace(/[^A-Za-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean).slice(0, 5);
+  if (words.length === 0)
+    return "";
+  return words[0].toLowerCase() + words.slice(1).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join("");
+}
+
 // packages/ai-artefacts/dist/bdd.js
 var STEP_KEYWORDS = ["Given", "When", "Then", "And", "But"];
 function featureFromCases(title, cases, verification) {
@@ -17201,30 +17293,132 @@ function featureFromCases(title, cases, verification) {
   const scenarios = cases.map(({ testCase, trace }) => scenarioBlock(testCase, trace));
   return [`Feature: ${title}`, "", scenarios.join("\n\n"), ""].join("\n");
 }
-function stepsFromFeature(feature) {
+function pageObjectFromFeature(feature, cases = []) {
+  const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
+  return `module.exports = {
+${fromCases.join(",\n")}
+};
+`;
+}
+function stepsFromCases(feature, pageObjectPath, cases = []) {
+  const methods = methodIndex(cases);
   const lines = [];
   const seen = /* @__PURE__ */ new Set();
   for (const step of featureSteps(feature)) {
     const keyword = step.keyword === "And" || step.keyword === "But" ? "Then" : step.keyword;
     const key = `${keyword}:${step.text}`;
-    if (seen.has(key)) {
+    if (seen.has(key))
       continue;
-    }
     seen.add(key);
-    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, "  return undefined;", "});", "");
+    const method = methods.get(step.text);
+    const body = method ? `  await page.${method}();` : "  return undefined;";
+    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, body, "});", "");
   }
-  return lines.join("\n");
+  const header = methods.size > 0 ? `const page = require('${pageObjectPath}');
+
+` : "";
+  return `${header}${lines.join("\n")}`;
 }
-function pageObjectFromFeature(feature) {
-  const uses = featureSteps(feature).filter((item) => item.keyword === "When" || item.keyword === "Then");
-  const methods = uses.map((item, index) => `  // ${item.text}
-  async step${index + 1}() {
+function selectorFromTarget(target) {
+  const by = target?.find?.by;
+  const value = String(target?.find?.value || "").trim();
+  if (!by || !value)
+    return null;
+  if (by === "testid")
+    return `[data-testid="${escapeAttr(value)}"]`;
+  if (by === "name")
+    return `[name="${escapeAttr(value)}"]`;
+  if (by === "id")
+    return `#${value.replace(/[^A-Za-z0-9_-]/g, "")}`;
+  if (by === "text")
+    return `=${value}`;
+  return `aria/${value}`;
+}
+function unboundSteps(cases) {
+  return cases.flatMap((testCase) => expandUiSteps(testCase).steps.flatMap((step) => {
+    if (step.api)
+      return [];
+    if (selectorFromTarget(step.target))
+      return [];
+    if (urlFromCase(testCase, step) && isNavigate(step.action))
+      return [];
+    return step.action ? [`Unbound step: ${step.action}`] : [];
+  }));
+}
+function pageMethodsFromCases(cases) {
+  const methods = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const testCase of cases) {
+    expandUiSteps(testCase).steps.forEach((step) => {
+      const name = methodName(step, `step${methods.length + 1}`);
+      if (seen.has(name))
+        return;
+      seen.add(name);
+      const selector = selectorFromTarget(step.target);
+      const pageUrl = urlFromCase(testCase, step);
+      if (step.api) {
+        const path8 = step.api.path.startsWith("/") || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
+        const urlExpr = /^https?:\/\//i.test(path8) ? `'${escapeQuote(path8)}'` : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(path8)}'`;
+        const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
+        methods.push(`  // ${step.action}
+  async ${name}() {
+    const response = await fetch(${urlExpr}, { method: '${escapeQuote(step.api.method || "GET")}' });
+    if (response.status !== ${expected}) throw new Error('Expected ${expected}, got ' + response.status);
+  }`);
+        return;
+      }
+      if (pageUrl && isNavigate(step.action) && !selector) {
+        methods.push(`  // ${step.action}
+  async ${name}() {
+    await global.browser.url('${escapeQuote(pageUrl)}');
+  }`);
+        return;
+      }
+      if (!selector) {
+        methods.push(`  // unbound: ${step.action || testCase.title}
+  async ${name}() {
     await global.browser.pause(0);
   }`);
-  return `module.exports = {
-${methods.join(",\n")}
-};
-`;
+        return;
+      }
+      const command = isDisplayed(`${step.action} ${step.expected}`) ? "waitForDisplayed()" : step.target?.type === "input" || step.target?.type === "select" ? `setValue('')` : "click()";
+      methods.push(`  // ${step.action}
+  async ${name}() {
+    await global.browser.$('${escapeQuote(selector)}').${command};
+  }`);
+    });
+  }
+  return methods;
+}
+function methodIndex(cases) {
+  const methods = /* @__PURE__ */ new Map();
+  for (const testCase of cases) {
+    for (const step of expandUiSteps(testCase).steps) {
+      const name = methodName(step, "");
+      if (!name || !step.action)
+        continue;
+      methods.set(step.action, name);
+    }
+  }
+  return methods;
+}
+function casesFromFeature(feature) {
+  const uses = featureSteps(feature);
+  if (uses.length === 0)
+    return [];
+  const action = uses.filter((item) => item.keyword === "Given" || item.keyword === "When").map((item) => item.text).join(" ");
+  const expected = uses.filter((item) => item.keyword === "Then" || item.keyword === "And").map((item) => item.text).join(" ");
+  return [expandUiSteps({
+    id: "TC-feature",
+    acceptanceTestId: "AT-feature",
+    title: "Imported feature",
+    preconditions: ["The system is available"],
+    coverage: ["positive", "negative", "boundary"],
+    steps: [{ action: action || expected, expected: expected || "the page is ready" }]
+  })];
+}
+function escapeAttr(value) {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 function scenarioBlock(testCase, trace) {
   const tags = [
@@ -17232,8 +17426,12 @@ function scenarioBlock(testCase, trace) {
     `@${trace.acceptanceTestId.startsWith("AT-") ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
     `@${testCase.id.startsWith("TC-") ? testCase.id : `TC-${testCase.id}`}`
   ];
-  const steps = testCase.steps.map((step, index) => `${index === 0 ? "When" : "And"} ${step.action}
-    Then ${step.expected}`).join("\n    ");
+  const steps = testCase.steps.flatMap((step, index) => {
+    const assertionOnly = step.action === step.expected || isDisplayed(step.action) && !isNavigate(step.action) && !step.api;
+    if (assertionOnly)
+      return [`${index === 0 ? "Then" : "And"} ${step.expected}`];
+    return [`${index === 0 ? "When" : "And"} ${step.action}`, `Then ${step.expected}`];
+  }).join("\n    ");
   const examples = exampleTable(testCase.examples);
   const keyword = examples ? "Scenario Outline" : "Scenario";
   return [`  ${tags.join(" ")}`, `  ${keyword}: ${testCase.title}`, `    ${steps}`, examples].filter(Boolean).join("\n");
@@ -17253,6 +17451,118 @@ function featureSteps(feature) {
 }
 function escapeQuote(value) {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+// packages/ai-artefacts/dist/locatorBind.js
+function harvestInteractiveNodes(html) {
+  const nodes = [];
+  const tagRe = /<(input|button|select|textarea|a|label|h1|h2|h3|img|article)\b([^>]*)>(?:([^<]*))?/gi;
+  let match = tagRe.exec(html);
+  while (match) {
+    const attrs = match[2] ?? "";
+    const text = String(match[3] || attr(attrs, "alt") || attr(attrs, "value") || attr(attrs, "placeholder") || "").replace(/\s+/g, " ").trim();
+    nodes.push({
+      tag: match[1]?.toLowerCase(),
+      testid: attr(attrs, "data-testid"),
+      name: attr(attrs, "name"),
+      id: attr(attrs, "id"),
+      aria: attr(attrs, "aria-label"),
+      text: text || void 0
+    });
+    match = tagRe.exec(html);
+  }
+  return nodes.filter((node) => node.testid || node.name || node.id || node.aria || node.text);
+}
+function bindCasesToNodes(cases, nodes) {
+  return cases.map((testCase) => ({
+    ...testCase,
+    steps: testCase.steps.map((step) => bindStep(step, nodes))
+  }));
+}
+function resolveProductUrl(pageUrl, env = process.env) {
+  const raw = String(pageUrl || env.PRODUCT_START_PATH || "/").trim();
+  if (/^https?:\/\//i.test(raw))
+    return raw;
+  const base = String(env.PRODUCT_BASE_URL || "").replace(/\/+$/, "");
+  if (!base)
+    return null;
+  return `${base}${raw.startsWith("/") ? raw : `/${raw}`}`;
+}
+async function loginProduct(env, fetchImpl = fetch) {
+  const loginUrl = String(env.PRODUCT_LOGIN_URL || "").trim();
+  const user = String(env.PRODUCT_USER || "").trim();
+  const password = String(env.PRODUCT_PASSWORD || "").trim();
+  if (!loginUrl || !user || !password)
+    return "";
+  const response = await fetchImpl(loginUrl, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ username: user, email: user, password }).toString(),
+    redirect: "manual"
+  });
+  return cookieHeader(response);
+}
+async function fetchProductHtml(url, cookie, fetchImpl = fetch) {
+  const response = await fetchImpl(url, { headers: cookie ? { cookie } : void 0 });
+  if (!response.ok) {
+    throw new Error(`Product page returned HTTP ${response.status}`);
+  }
+  return response.text();
+}
+function bindStep(step, nodes) {
+  if (step.api)
+    return step;
+  const needle = normalize(step.target?.find.value || "");
+  if (!needle)
+    return step;
+  const hit = nodes.map((node) => ({ node, score: matchScore(node, needle) })).filter((item) => item.score > 0).sort((left, right) => right.score - left.score)[0]?.node;
+  if (!hit)
+    return step;
+  const find = preferFind(hit);
+  if (!find)
+    return step;
+  const target = {
+    name: step.target?.name || "element",
+    type: step.target?.type || (hit.tag === "input" || hit.tag === "textarea" || hit.tag === "select" ? "input" : "button"),
+    find
+  };
+  return { ...step, target };
+}
+function preferFind(node) {
+  if (node.testid)
+    return { by: "testid", value: node.testid };
+  if (node.aria)
+    return { by: "label", value: node.aria };
+  if (node.name)
+    return { by: "name", value: node.name };
+  if (node.id)
+    return { by: "id", value: node.id };
+  if (node.text)
+    return { by: "text", value: node.text };
+  return null;
+}
+function matchScore(node, needle) {
+  const fields = [node.testid, node.aria, node.text, node.name, node.id].map(normalize).filter(Boolean);
+  if (fields.includes(needle))
+    return 2;
+  if (fields.some((field) => field.includes(needle) || needle.includes(field)))
+    return 1;
+  return 0;
+}
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
+function attr(attrs, name) {
+  const match = attrs.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i"));
+  return match?.[1];
+}
+function cookieHeader(response) {
+  const many = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];
+  if (many.length > 0) {
+    return many.map((item) => item.split(";", 1)[0]).filter(Boolean).join("; ");
+  }
+  const single = response.headers.get("set-cookie");
+  return single ? single.split(";", 1)[0] : "";
 }
 
 // packages/ai-artefacts/dist/import-test-genie.js
@@ -17275,13 +17585,23 @@ async function fetchBundle(generationId, env = process.env) {
   }
   return response.json();
 }
-async function importTestGenieBundle(payload, outDir) {
+async function importTestGenieBundle(payload, outDir, options = {}) {
   const bundle = provider.load(payload);
-  const verification = verifyTestGenieBundle(bundle, true);
-  const written = verification.outcome === "VERIFIED" ? await writeBundle(bundle, verification, outDir) : { imported: [], skipped: [] };
+  const env = options.env ?? process.env;
+  const shouldBind = options.bindLocators === true;
+  let boundCases = bundle.testCases.map(expandUiSteps);
+  const bindFindings = [];
+  if (shouldBind) {
+    const bound = await bindBundleToProduct(boundCases, env, options.fetch ?? fetch);
+    boundCases = bound.cases;
+    bindFindings.push(...bound.findings);
+  }
+  const verification = verifyTestGenieBundle({ ...bundle, testCases: boundCases }, true);
+  const written = verification.outcome === "VERIFIED" ? await writeBundle({ ...bundle, testCases: boundCases }, verification, outDir) : { imported: [], skipped: [], unbound: [] };
+  const findings = [...verification.findings, ...bindFindings, ...written.unbound];
   await (0, import_promises2.mkdir)(import_node_path3.default.join(outDir, ".klassi", "test-genie"), { recursive: true });
-  await (0, import_promises2.writeFile)(import_node_path3.default.join(outDir, ".klassi", "test-genie", `${safeName(bundle.generationId)}.json`), JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped }, null, 2));
-  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped };
+  await (0, import_promises2.writeFile)(import_node_path3.default.join(outDir, ".klassi", "test-genie", `${safeName(bundle.generationId)}.json`), JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings, imported: written.imported, skipped: written.skipped }, null, 2));
+  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings, imported: written.imported, skipped: written.skipped };
 }
 async function writeBundle(bundle, verification, outDir) {
   const cases = bundle.testCases.flatMap((testCase) => {
@@ -17290,6 +17610,7 @@ async function writeBundle(bundle, verification, outDir) {
   });
   const imported = [];
   const skipped = [];
+  const unbound = [];
   for (const group of featureGroups(bundle, cases)) {
     const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
       testCase,
@@ -17306,9 +17627,11 @@ async function writeBundle(bundle, verification, outDir) {
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(feature), { recursive: true });
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(steps), { recursive: true });
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(pageObject), { recursive: true });
+    const caseList = group.cases.map(({ testCase }) => testCase);
     await (0, import_promises2.writeFile)(feature, featureText);
-    await (0, import_promises2.writeFile)(steps, stepsFromFeature(featureText));
-    await (0, import_promises2.writeFile)(pageObject, pageObjectFromFeature(featureText));
+    await (0, import_promises2.writeFile)(steps, stepsFromCases(featureText, `../page-objects/${name}`, caseList));
+    await (0, import_promises2.writeFile)(pageObject, pageObjectFromFeature(featureText, caseList));
+    unbound.push(...unboundSteps(caseList));
     for (const { testCase, acceptance } of group.cases) {
       imported.push({
         id: testCase.id,
@@ -17320,7 +17643,7 @@ async function writeBundle(bundle, verification, outDir) {
       });
     }
   }
-  return { imported, skipped };
+  return { imported, skipped, unbound };
 }
 function featureGroups(bundle, cases) {
   const titles = new Map((bundle.features ?? []).map((feature) => [feature.id, feature.title]));
@@ -17344,6 +17667,21 @@ function featureGroups(bundle, cases) {
 }
 function safeName(value) {
   return value.replace(/[^A-Za-z0-9._-]/g, "_");
+}
+async function bindBundleToProduct(cases, env, fetchImpl) {
+  const urls = [...new Set(cases.map((item) => resolveProductUrl(item.page?.url, env)).filter((item) => Boolean(item)))];
+  if (urls.length === 0) {
+    return { cases, findings: ["Product URL is missing; locators were not harvested"] };
+  }
+  const findings = [];
+  try {
+    const cookie = await loginProduct(env, fetchImpl);
+    const html = (await Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)))).join("\n");
+    return { cases: bindCasesToNodes(cases, harvestInteractiveNodes(html)), findings };
+  } catch (error) {
+    findings.push(error instanceof Error ? error.message : String(error));
+    return { cases, findings };
+  }
 }
 
 // packages/ai-cli/dist/evaluate.js
@@ -19028,7 +19366,7 @@ async function execute(argv) {
   program2.command("ai:doctor").description("Check AI platform configuration and connectivity").requiredOption("--platform <id>", "platform adapter id").action(async (options) => {
     code = await runAzureDoctor({ platform: options.platform });
   });
-  program2.command("ai:import").description("Import a verified Test Genie bundle into features, steps, and page objects").option("--file <path>", "bundle JSON file").option("--dir <path>", "folder that contains bundle.json").option("--from <source>", "pull a stored bundle from Test Genie SaaS").option("--generation <id>", "Test Genie generation id").option("--out <dir>", "project directory that receives the Cucumber files", ".").action(async (options) => {
+  program2.command("ai:import").description("Import a verified Test Genie bundle into features, steps, and page objects").option("--file <path>", "bundle JSON file").option("--dir <path>", "folder that contains bundle.json").option("--from <source>", "pull a stored bundle from Test Genie SaaS").option("--generation <id>", "Test Genie generation id").option("--out <dir>", "project directory that receives the Cucumber files", ".").option("--bind-locators", "open the product URL and bind locators from the live page").action(async (options) => {
     code = await importBundle(options);
   });
   try {
@@ -19140,7 +19478,9 @@ async function importBundle(options) {
   }
   let result;
   try {
-    result = await importTestGenieBundle(payload, options.out);
+    result = await importTestGenieBundle(payload, options.out, {
+      bindLocators: Boolean(options.bindLocators || process.env.PRODUCT_BASE_URL)
+    });
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     return EXIT_CODES.configurationError;

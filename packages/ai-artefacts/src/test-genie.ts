@@ -15,9 +15,34 @@ export interface TestGenieAcceptanceTest {
   statement: string;
 }
 
+export interface TestGenieFind {
+  by: 'testid' | 'label' | 'text' | 'name' | 'id';
+  value: string;
+}
+
+export interface TestGenieTarget {
+  name: string;
+  type: 'input' | 'button' | 'select' | 'checkbox' | 'link';
+  find: TestGenieFind;
+}
+
+export interface TestGenieApiCall {
+  method: string;
+  path: string;
+  payload?: unknown;
+  expectedStatus?: number;
+}
+
+export interface TestGeniePage {
+  name: string;
+  url: string;
+}
+
 export interface TestGenieStep {
   action: string;
   expected: string;
+  target?: TestGenieTarget;
+  api?: TestGenieApiCall;
 }
 
 export interface TestGenieExamples {
@@ -39,6 +64,7 @@ export interface TestGenieCase {
   steps: TestGenieStep[];
   coverage: Array<'positive' | 'negative' | 'boundary'>;
   examples?: TestGenieExamples;
+  page?: TestGeniePage;
 }
 
 export interface TestGenieDocument {

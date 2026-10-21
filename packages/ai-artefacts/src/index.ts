@@ -17,12 +17,16 @@ export {
   featureFromTestCase,
   generateBdd,
   pageObjectFromFeature,
+  selectorFromTarget,
+  stepsFromCases,
   stepsFromFeature,
+  unboundSteps,
   traceExecution,
   verifyGherkin,
   verifyPageObject,
   verifySteps,
 } from './bdd.js';
 export { artefactBaseline, bddFromVerified, reportByType, sameRulesRegardlessOfOrigin, traceSuite, verifyArtefact, verifyExistingSuite } from './verify.js';
+export { bindCasesToNodes, harvestInteractiveNodes, resolveProductUrl } from './locatorBind.js';
 export { fetchBundle, importTestGenieBundle, readBundle } from './import-test-genie.js';
 export { artefactEvaluator, registerArtefactEvaluators } from './evaluator.js';

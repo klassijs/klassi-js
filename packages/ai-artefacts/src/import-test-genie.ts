@@ -1,8 +1,10 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { featureFromCases, pageObjectFromFeature, stepsFromFeature } from './bdd.js';
-import { TestGenieArtifactProvider, verifyTestGenieBundle, type TestGenieBundle, type TestGenieVerification } from './test-genie.js';
+import { featureFromCases, pageObjectFromFeature, stepsFromCases, unboundSteps } from './bdd.js';
+import { expandUiSteps } from './uiSteps.js';
+import { bindCasesToNodes, fetchProductHtml, harvestInteractiveNodes, loginProduct, resolveProductUrl } from './locatorBind.js';
+import { TestGenieArtifactProvider, verifyTestGenieBundle, type TestGenieBundle, type TestGenieCase, type TestGenieVerification } from './test-genie.js';
 
 export interface ImportedArtefact {
   id: string;
@@ -44,31 +46,46 @@ export async function fetchBundle(generationId: string, env: NodeJS.ProcessEnv =
   return response.json() as Promise<unknown>;
 }
 
-export async function importTestGenieBundle(payload: unknown, outDir: string): Promise<ImportResult> {
+export async function importTestGenieBundle(
+  payload: unknown,
+  outDir: string,
+  options: { bindLocators?: boolean; env?: NodeJS.ProcessEnv; fetch?: typeof fetch } = {},
+): Promise<ImportResult> {
   const bundle = provider.load(payload);
-  const verification = verifyTestGenieBundle(bundle, true);
+  const env = options.env ?? process.env;
+  const shouldBind = options.bindLocators === true;
+  let boundCases = bundle.testCases.map(expandUiSteps);
+  const bindFindings: string[] = [];
+  if (shouldBind) {
+    const bound = await bindBundleToProduct(boundCases, env, options.fetch ?? fetch);
+    boundCases = bound.cases;
+    bindFindings.push(...bound.findings);
+  }
+  const verification = verifyTestGenieBundle({ ...bundle, testCases: boundCases }, true);
   const written = verification.outcome === 'VERIFIED'
-    ? await writeBundle(bundle, verification, outDir)
-    : { imported: [], skipped: [] };
+    ? await writeBundle({ ...bundle, testCases: boundCases }, verification, outDir)
+    : { imported: [], skipped: [], unbound: [] };
+  const findings = [...verification.findings, ...bindFindings, ...written.unbound];
   await mkdir(path.join(outDir, '.klassi', 'test-genie'), { recursive: true });
   await writeFile(
     path.join(outDir, '.klassi', 'test-genie', `${safeName(bundle.generationId)}.json`),
-    JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped }, null, 2),
+    JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings, imported: written.imported, skipped: written.skipped }, null, 2),
   );
-  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings: verification.findings, imported: written.imported, skipped: written.skipped };
+  return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings, imported: written.imported, skipped: written.skipped };
 }
 
 async function writeBundle(
   bundle: TestGenieBundle,
   verification: TestGenieVerification,
   outDir: string,
-): Promise<{ imported: ImportedArtefact[]; skipped: string[] }> {
+): Promise<{ imported: ImportedArtefact[]; skipped: string[]; unbound: string[] }> {
   const cases = bundle.testCases.flatMap((testCase) => {
     const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
     return acceptance ? [{ testCase, acceptance }] : [];
   });
   const imported: ImportedArtefact[] = [];
   const skipped: string[] = [];
+  const unbound: string[] = [];
   for (const group of featureGroups(bundle, cases)) {
     const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
       testCase,
@@ -85,9 +102,11 @@ async function writeBundle(
     await mkdir(path.dirname(feature), { recursive: true });
     await mkdir(path.dirname(steps), { recursive: true });
     await mkdir(path.dirname(pageObject), { recursive: true });
+    const caseList = group.cases.map(({ testCase }) => testCase);
     await writeFile(feature, featureText);
-    await writeFile(steps, stepsFromFeature(featureText));
-    await writeFile(pageObject, pageObjectFromFeature(featureText));
+    await writeFile(steps, stepsFromCases(featureText, `../page-objects/${name}`, caseList));
+    await writeFile(pageObject, pageObjectFromFeature(featureText, caseList));
+    unbound.push(...unboundSteps(caseList));
     for (const { testCase, acceptance } of group.cases) {
       imported.push({
         id: testCase.id,
@@ -99,7 +118,7 @@ async function writeBundle(
       });
     }
   }
-  return { imported, skipped };
+  return { imported, skipped, unbound };
 }
 
 function featureGroups(
@@ -128,4 +147,24 @@ function featureGroups(
 
 function safeName(value: string): string {
   return value.replace(/[^A-Za-z0-9._-]/g, '_');
+}
+
+async function bindBundleToProduct(
+  cases: TestGenieCase[],
+  env: NodeJS.ProcessEnv,
+  fetchImpl: typeof fetch,
+): Promise<{ cases: TestGenieCase[]; findings: string[] }> {
+  const urls = [...new Set(cases.map((item) => resolveProductUrl(item.page?.url, env)).filter((item): item is string => Boolean(item)))];
+  if (urls.length === 0) {
+    return { cases, findings: ['Product URL is missing; locators were not harvested'] };
+  }
+  const findings: string[] = [];
+  try {
+    const cookie = await loginProduct(env, fetchImpl);
+    const html = (await Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)))).join('\n');
+    return { cases: bindCasesToNodes(cases, harvestInteractiveNodes(html)), findings };
+  } catch (error) {
+    findings.push(error instanceof Error ? error.message : String(error));
+    return { cases, findings };
+  }
 }

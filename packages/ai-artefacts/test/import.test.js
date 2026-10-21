@@ -106,6 +106,106 @@ test('examples on a test case are written into the scenario outline', async () =
   assert.match(feature, /\| Books \| BITS \|/);
 });
 
+test('a bound target is written into the page object and step def', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const bound = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      page: { name: 'app', url: 'https://app.example.com/login' },
+      steps: [{
+        action: 'the user clicks the login button',
+        expected: 'the dashboard is shown',
+        target: { name: 'loginButton', type: 'button', find: { by: 'testid', value: 'login-submit' } },
+      }],
+    }],
+  };
+  const result = await importTestGenieBundle(bound, out);
+  const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
+  const steps = await readFile(result.imported[0].steps, 'utf8');
+  assert.match(pageObject, /\[data-testid="login-submit"\]/);
+  assert.match(steps, /page\.loginButton/);
+  assert.equal(result.findings.some((item) => item.startsWith('Unbound step:')), false);
+});
+
+test('an unbound UI step is reported and stays a stub', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const result = await importTestGenieBundle(bundle, out);
+  assert.equal(result.findings.some((item) => item.startsWith('Unbound step:')), true);
+  assert.match(await readFile(result.imported[0].pageObject, 'utf8'), /unbound:/);
+});
+
+test('an API step does not invent a locator', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const api = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      title: 'Create an order',
+      steps: [{
+        action: 'I send a POST request to /orders',
+        expected: 'the response status should be 201',
+        api: { method: 'POST', path: '/orders', expectedStatus: 201 },
+      }],
+    }],
+  };
+  const result = await importTestGenieBundle(api, out);
+  const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
+  assert.equal(result.findings.some((item) => item.startsWith('Unbound step:')), false);
+  assert.match(pageObject, /fetch\(/);
+  assert.match(pageObject, /POST/);
+  assert.match(pageObject, /\/orders/);
+  assert.doesNotMatch(pageObject, /data-testid|aria\//);
+});
+
+test('live bind upgrades a label target from the product HTML', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const html = '<button data-testid="login-submit" aria-label="login">Sign in</button>';
+  const fetchImpl = async (url) => {
+    assert.match(String(url), /login/);
+    return new Response(html, { status: 200 });
+  };
+  const labelled = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      page: { name: 'app', url: '/login' },
+      steps: [{
+        action: 'the user clicks the login button',
+        expected: 'the dashboard is shown',
+        target: { name: 'loginButton', type: 'button', find: { by: 'label', value: 'login' } },
+      }],
+    }],
+  };
+  const result = await importTestGenieBundle(labelled, out, {
+    bindLocators: true,
+    env: { PRODUCT_BASE_URL: 'https://app.example.com' },
+    fetch: fetchImpl,
+  });
+  assert.match(await readFile(result.imported[0].pageObject, 'utf8'), /\[data-testid="login-submit"\]/);
+});
+
+test('a homepage open and displayed steps become a url and waitForDisplayed', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const home = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      title: 'Visitor sees the home page',
+      steps: [{
+        action: 'a visitor opens https://klassi.co.uk the page finishes loading',
+        expected: 'the Klassi logo is displayed the welcome heading is displayed the KlassiTech card is displayed the TestGenie card is displayed there is no blank page or application error',
+      }],
+    }],
+  };
+  const result = await importTestGenieBundle(home, out);
+  const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
+  assert.match(pageObject, /browser\.url\('https:\/\/klassi\.co\.uk'\)/);
+  assert.match(pageObject, /='=Klassi logo'|="=Klassi logo"|\$\('=Klassi logo'\)/);
+  assert.match(pageObject, /waitForDisplayed/);
+  assert.doesNotMatch(pageObject, /async step1\(\)/);
+});
+
 test('an existing TG feature file is left in place', async () => {
   const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
   const { mkdir, writeFile } = await import('node:fs/promises');
