@@ -52,11 +52,11 @@ test('bind keeps method names and uses DOM locators for heading and cards', () =
   assert.equal(bound.steps[0].target.name, 'klassiLogo');
   assert.deepEqual(bound.steps[0].target.find, { by: 'css', value: 'img[alt="Klassi trademark logo"]', fromDom: true });
   assert.equal(bound.steps[1].target.name, 'welcomeHeading');
-  assert.deepEqual(bound.steps[1].target.find, { by: 'css', value: 'h1=Welcome to the Klassi Brand', fromDom: true });
+  assert.deepEqual(bound.steps[1].target.find, { by: 'xpath', value: '//h1[normalize-space()="Welcome to the Klassi Brand"]', fromDom: true });
   assert.equal(bound.steps[2].target.name, 'klassitechCard');
-  assert.deepEqual(bound.steps[2].target.find, { by: 'css', value: 'h3=KlassiTech', fromDom: true });
+  assert.deepEqual(bound.steps[2].target.find, { by: 'xpath', value: '//h3[normalize-space()="KlassiTech"]', fromDom: true });
   assert.equal(bound.steps[3].target.name, 'testgenieCard');
-  assert.deepEqual(bound.steps[3].target.find, { by: 'css', value: 'h3=TestGenie', fromDom: true });
+  assert.deepEqual(bound.steps[3].target.find, { by: 'xpath', value: '//h3[normalize-space()="TestGenie"]', fromDom: true });
 });
 
 test('harvest reads headings and image alt text', () => {
@@ -69,9 +69,9 @@ test('harvest reads headings and image alt text', () => {
 test('the standard locator order uses ID then name then unique content, never a shared class', () => {
   assert.deepEqual(findFromNode({ id: 'contact', name: 'contact', className: 'nav-item', tag: 'a', text: 'Contact Us' }), { by: 'id', value: 'contact' });
   assert.deepEqual(findFromNode({ name: 'email', tag: 'input' }), { by: 'name', value: 'email' });
-  assert.deepEqual(findFromNode({ className: 'display-4 fw-bold text-light', tag: 'h1', text: 'About Us' }), { by: 'css', value: 'h1=About Us' });
-  assert.deepEqual(findFromNode({ className: 'hero-title', tag: 'h1', text: 'Welcome' }), { by: 'css', value: 'h1=Welcome' });
-  assert.deepEqual(findFromNode({ tag: 'a', text: 'Contact Us', href: '/contact' }), { by: 'link', value: 'Contact Us' });
+  assert.deepEqual(findFromNode({ className: 'display-4 fw-bold text-light', tag: 'h1', text: 'About Us' }), { by: 'xpath', value: '//h1[normalize-space()="About Us"]' });
+  assert.deepEqual(findFromNode({ className: 'hero-title', tag: 'h1', text: 'Welcome' }), { by: 'xpath', value: '//h1[normalize-space()="Welcome"]' });
+  assert.deepEqual(findFromNode({ tag: 'a', text: 'Contact Us', href: '/contact', inNav: true }), { by: 'css', value: 'nav a[href="/contact"]' });
   assert.deepEqual(findFromNode({ tag: 'img', alt: 'klassi trademark logo' }), { by: 'css', value: 'img[alt="klassi trademark logo"]' });
   assert.deepEqual(findFromNode({ tag: 'article', text: 'KlassiTech' }), { by: 'xpath', value: '//article[normalize-space()="KlassiTech"]' });
 });

@@ -150,7 +150,7 @@ function isMenuLink(node: DomNode): boolean {
   const text = String(node.text || '').replace(/\s+/g, ' ').trim();
   const href = String(node.href || '').trim();
   if (!text || text.length > 48) return false;
-  if (SKIP_LINK.test(text) || /logo/i.test(text)) return false;
+  if (SKIP_LINK.test(text) || /logo|trademark|[™®]/.test(text)) return false;
   if (SKIP_HREF.test(href) || href === '#' || href.startsWith('#') || href.startsWith('?')) return false;
   return Boolean(href || node.inNav);
 }

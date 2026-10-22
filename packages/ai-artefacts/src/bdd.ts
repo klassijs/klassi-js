@@ -136,12 +136,13 @@ export function selectorFromTarget(target: TestGenieCase['steps'][number]['targe
   if (by === 'name') return `[name="${escapeAttr(value)}"]`;
   if (by === 'class') return `.${value.replace(/[^\w-]/g, '')}`;
   if (by === 'tag') return value.replace(/[^a-z0-9]/gi, '');
-  if (by === 'link' || by === 'text') return `=${value}`;
-  if (by === 'partialLink') return `*=${value}`;
+  if (by === 'link' || by === 'text') return `//a[normalize-space()="${escapeAttr(value)}"]`;
+  if (by === 'partialLink') return `//a[contains(normalize-space(), "${escapeAttr(value)}")]`;
   if (by === 'css') return value;
   if (by === 'xpath') return value;
   if (by === 'testid') return `[data-testid="${escapeAttr(value)}"]`;
-  return `aria/${value}`;
+  if (by === 'label') return `[aria-label="${escapeAttr(value)}"]`;
+  return null;
 }
 
 export function unboundSteps(cases: TestGenieCase[]): string[] {

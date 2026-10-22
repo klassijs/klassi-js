@@ -36,16 +36,16 @@ test('a nav outline stays one scenario outline with locators from the DOM', () =
     { ...navCase, id: 'TC-7', title: 'Visitor attempts to select a navigation link that is not available' },
   ], nodes, rows);
   assert.equal(realized.length, 1);
-  assert.equal(realized[0].title, 'Visitor opens <navigation_link> from the menu');
+  assert.equal(realized[0].title, 'Visitor selects a navigation link from the menu');
   assert.deepEqual(realized[0].examples?.headers, ['navigation_link', 'heading']);
   assert.deepEqual(realized[0].examples?.rows, [
     { navigation_link: 'Home', heading: 'Welcome to the Klassi Brand' },
     { navigation_link: 'Contact Us', heading: 'Get in Touch' },
   ]);
-  assert.equal(realized[0].locators?.menus.Home, '=Home');
-  assert.equal(realized[0].locators?.menus['Contact Us'], '=Contact Us');
-  assert.equal(realized[0].locators?.headings['Get in Touch'], 'h1=Get in Touch');
-  assert.equal(realized[0].locators?.headings['Welcome to the Klassi Brand'], 'h1=Welcome to the Klassi Brand');
+  assert.equal(realized[0].locators?.menus.Home, 'nav a[href="/"]');
+  assert.equal(realized[0].locators?.menus['Contact Us'], 'nav a[href="/contact"]');
+  assert.equal(realized[0].locators?.headings['Get in Touch'], '//h1[normalize-space()="Get in Touch"]');
+  assert.equal(realized[0].locators?.headings['Welcome to the Klassi Brand'], '//h1[normalize-space()="Welcome to the Klassi Brand"]');
 });
 
 test('invented failure cases are not written from the DOM', () => {
@@ -62,6 +62,8 @@ test('invented failure cases are not written from the DOM', () => {
 test('synthetic suites are the dummy outline and unbound stubs', () => {
   assert.equal(isSyntheticSuite('Examples:\n      | example1 | example2 | example3 |\n'), true);
   assert.equal(isSyntheticSuite('', '', '  // unbound: click the link\n  async step1() {\n    await global.browser.pause(0);\n  }'), true);
-  assert.equal(isSyntheticSuite('Feature: Home\n  Scenario Outline: Visitor opens <navigation_link> from the menu\n    Examples:\n      | Home | Welcome |\n'), false);
+  assert.equal(isSyntheticSuite('Feature: Home\n  Scenario: Visitor opens Contact Us from the menu\n'), true);
+  assert.equal(isSyntheticSuite('', '', '  async welcomeHeading() {\n    await global.browser.$(\'.display-4\').waitForDisplayed();\n  }'), true);
+  assert.equal(isSyntheticSuite('Feature: Home\n  Scenario Outline: Visitor selects a navigation link from the menu\n    Examples:\n      | Home | Welcome |\n'), false);
   assert.equal(isSyntheticSuite('Feature: Home\n  Scenario: Visitor sees the logo\n    Then the Klassi logo is displayed\n'), false);
 });

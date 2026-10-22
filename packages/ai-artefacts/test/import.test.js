@@ -116,7 +116,7 @@ test('placeholder navigation examples are replaced from the harvested menu', asy
   const feature = await readFile(result.imported[0].feature, 'utf8');
   const steps = await readFile(result.imported[0].steps, 'utf8');
   const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
-  assert.match(feature, /Scenario Outline: Visitor opens <navigation_link> from the menu/);
+  assert.match(feature, /Scenario Outline: Visitor selects a navigation link from the menu/);
   assert.match(feature, /When the visitor selects the "<navigation_link>" navigation link/);
   assert.match(feature, /Then the "<heading>" heading is displayed/);
   assert.match(feature, /\| Contact Us \| Get in Touch \|/);
@@ -124,8 +124,8 @@ test('placeholder navigation examples are replaced from the harvested menu', asy
   assert.doesNotMatch(feature, /page opens|example1|example2|example3|any public page/);
   assert.match(steps, /the visitor selects the \{string\} navigation link/);
   assert.match(steps, /page\.selectNavigation/);
-  assert.match(pageObject, /"=Contact Us"/);
-  assert.match(pageObject, /"h1=Get in Touch"/);
+  assert.match(pageObject, /nav a\[href=\\"\/contact\\"\]/);
+  assert.match(pageObject, /\/\/h1\[normalize-space\(\)=\\"Get in Touch\\"\]/);
   assert.match(pageObject, /selectNavigation/);
   assert.doesNotMatch(pageObject, /unbound:|pause\(0\)|\.display-4/);
   assert.equal(result.findings.some((item) => item.includes('menu test')), true);
@@ -362,7 +362,7 @@ test('an existing synthetic outline is rewritten from the live menu', async () =
   assert.equal(result.skipped.length, 0);
   assert.equal(result.imported.length, 1);
   const rewritten = await readFile(existing, 'utf8');
-  assert.match(rewritten, /Scenario Outline: Visitor opens <navigation_link> from the menu/);
+  assert.match(rewritten, /Scenario Outline: Visitor selects a navigation link from the menu/);
   assert.match(rewritten, /When the visitor selects the "<navigation_link>" navigation link/);
   assert.match(rewritten, /Then the "<heading>" heading is displayed/);
   assert.match(rewritten, /\| Contact Us \| Get in Touch \|/);

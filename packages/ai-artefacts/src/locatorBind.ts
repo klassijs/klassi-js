@@ -143,14 +143,6 @@ export function findFromNode(node: DomNode): TestGenieFind | null {
   if (node.aria) return { by: 'label', value: node.aria };
   const css = cssFromNode(node);
   if (css) return { by: 'css', value: css };
-  if (node.tag === 'a') {
-    const link = String(node.text || '').replace(/\s+/g, ' ').trim();
-    if (link && link.length > 40) return { by: 'partialLink', value: link.slice(0, 24).trim() };
-    if (link) {
-      const plain = link.replace(/[™®©]/g, '').replace(/\s+/g, ' ').trim();
-      return plain !== link ? { by: 'partialLink', value: plain } : { by: 'link', value: link };
-    }
-  }
   const xpath = xpathFromNode(node);
   if (xpath) return { by: 'xpath', value: xpath };
   const className = usefulClass(node.className);
@@ -173,12 +165,9 @@ function usefulClass(className: string | undefined): string | undefined {
 function cssFromNode(node: DomNode): string | undefined {
   const alt = node.alt || (node.tag === 'img' ? node.text : undefined);
   if (node.tag === 'img' && alt) return `img[alt="${escapeAttr(alt)}"]`;
-  if (node.tag && /^h[1-6]$/.test(node.tag) && node.text) {
-    const plain = node.text.replace(/[™®©]/g, '').replace(/\s+/g, ' ').trim();
-    return plain !== node.text ? `${node.tag}*=${plain}` : `${node.tag}=${node.text}`;
-  }
-  if (node.tag === 'a' && node.href && !/^https?:\/\//i.test(node.href) && node.href !== '#' && !String(node.text || '').trim()) {
-    return `a[href="${escapeAttr(node.href)}"]`;
+  if (node.tag === 'a') {
+    const href = hrefFromNode(node);
+    if (href) return `${node.inNav ? 'nav a' : 'a'}[href="${escapeAttr(href)}"]`;
   }
   return undefined;
 }
@@ -186,15 +175,32 @@ function cssFromNode(node: DomNode): string | undefined {
 function xpathFromNode(node: DomNode): string | undefined {
   const text = String(node.text || '').replace(/\s+/g, ' ').trim();
   const tag = node.tag || '*';
+  const scope = node.inNav && tag === 'a' ? '//nav//' : '//';
   if (text) {
     const plain = text.replace(/[™®©]/g, '').replace(/"/g, '');
-    if (plain !== text) return `//${tag}[contains(normalize-space(), "${escapeAttr(plain)}")]`;
-    return `//${tag}[normalize-space()="${escapeAttr(text)}"]`;
+    if (plain !== text) return `${scope}${tag}[contains(normalize-space(), "${escapeAttr(plain)}")]`;
+    return `${scope}${tag}[normalize-space()="${escapeAttr(text)}"]`;
   }
-  if (node.alt) return `//${tag}[@alt="${escapeAttr(node.alt)}"]`;
-  if (node.href) return `//${tag}[@href="${escapeAttr(node.href)}"]`;
+  if (node.alt) return `${scope}${tag}[@alt="${escapeAttr(node.alt)}"]`;
+  const href = hrefFromNode(node);
+  if (href) return `${scope}${tag}[@href="${escapeAttr(href)}"]`;
   return undefined;
 }
+
+function hrefFromNode(node: DomNode): string | undefined {
+  const href = String(node.href || '').trim();
+  if (!href || href === '#' || SKIP_HREF.test(href)) return undefined;
+  if (/^https?:\/\//i.test(href)) {
+    try {
+      return new URL(href).pathname || '/';
+    } catch {
+      return href;
+    }
+  }
+  return href;
+}
+
+const SKIP_HREF = /^(mailto:|tel:|javascript:)/i;
 
 export function matchScore(node: DomNode, needle: string): number {
   const fields = [node.testid, node.aria, node.alt, node.text, node.name, node.id, node.className].map(normalize).filter(Boolean);

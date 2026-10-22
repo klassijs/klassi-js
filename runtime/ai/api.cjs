@@ -7468,27 +7468,22 @@ function findFromNode(node) {
   const id = String(node.id || "").trim();
   if (node.testid)
     return { by: "testid", value: node.testid };
-  if (id)
+  if (id && !AUTO_ID.test(id))
     return { by: "id", value: id };
   const name = String(node.name || "").trim();
   if (name)
     return { by: "name", value: name };
-  const className = usefulClass(node.className);
-  if (className)
-    return { by: "class", value: className };
-  if (node.tag === "a") {
-    const link = String(node.text || "").replace(/\s+/g, " ").trim();
-    if (link && link.length > 40)
-      return { by: "partialLink", value: link.slice(0, 24).trim() };
-    if (link)
-      return { by: "link", value: link };
-  }
+  if (node.aria)
+    return { by: "label", value: node.aria };
   const css = cssFromNode(node);
   if (css)
     return { by: "css", value: css };
   const xpath = xpathFromNode(node);
   if (xpath)
     return { by: "xpath", value: xpath };
+  const className = usefulClass(node.className);
+  if (className)
+    return { by: "class", value: className };
   if (node.tag && !GENERIC_TAGS.has(node.tag))
     return { by: "tag", value: node.tag };
   return null;
@@ -7500,31 +7495,42 @@ function cssFromNode(node) {
   const alt = node.alt || (node.tag === "img" ? node.text : void 0);
   if (node.tag === "img" && alt)
     return `img[alt="${escapeAttr2(alt)}"]`;
-  if (node.tag && /^h[1-6]$/.test(node.tag) && node.text) {
-    const plain = node.text.replace(/[™®©]/g, "").replace(/\s+/g, " ").trim();
-    return plain !== node.text ? `${node.tag}*=${plain}` : `${node.tag}=${node.text}`;
-  }
-  if (node.aria)
-    return `[aria-label="${escapeAttr2(node.aria)}"]`;
-  if (node.tag === "a" && node.href && !/^https?:\/\//i.test(node.href) && node.href !== "#") {
-    return `a[href="${escapeAttr2(node.href)}"]`;
+  if (node.tag === "a") {
+    const href = hrefFromNode(node);
+    if (href)
+      return `${node.inNav ? "nav a" : "a"}[href="${escapeAttr2(href)}"]`;
   }
   return void 0;
 }
 function xpathFromNode(node) {
   const text = String(node.text || "").replace(/\s+/g, " ").trim();
   const tag = node.tag || "*";
+  const scope = node.inNav && tag === "a" ? "//nav//" : "//";
   if (text) {
     const plain = text.replace(/[™®©]/g, "").replace(/"/g, "");
     if (plain !== text)
-      return `//${tag}[contains(normalize-space(), "${escapeAttr2(plain)}")]`;
-    return `//${tag}[normalize-space()="${escapeAttr2(text)}"]`;
+      return `${scope}${tag}[contains(normalize-space(), "${escapeAttr2(plain)}")]`;
+    return `${scope}${tag}[normalize-space()="${escapeAttr2(text)}"]`;
   }
   if (node.alt)
-    return `//${tag}[@alt="${escapeAttr2(node.alt)}"]`;
-  if (node.href)
-    return `//${tag}[@href="${escapeAttr2(node.href)}"]`;
+    return `${scope}${tag}[@alt="${escapeAttr2(node.alt)}"]`;
+  const href = hrefFromNode(node);
+  if (href)
+    return `${scope}${tag}[@href="${escapeAttr2(href)}"]`;
   return void 0;
+}
+function hrefFromNode(node) {
+  const href = String(node.href || "").trim();
+  if (!href || href === "#" || SKIP_HREF.test(href))
+    return void 0;
+  if (/^https?:\/\//i.test(href)) {
+    try {
+      return new URL(href).pathname || "/";
+    } catch {
+      return href;
+    }
+  }
+  return href;
 }
 function matchScore(node, needle) {
   const fields = [node.testid, node.aria, node.alt, node.text, node.name, node.id, node.className].map(normalize).filter(Boolean);
@@ -7567,12 +7573,14 @@ function cookieHeader(response) {
   const single = response.headers.get("set-cookie");
   return single ? single.split(";", 1)[0] : "";
 }
-var GENERIC_TAGS, UTILITY_CLASS, STOP, ROLE_TAGS;
+var GENERIC_TAGS, AUTO_ID, UTILITY_CLASS, SKIP_HREF, STOP, ROLE_TAGS;
 var init_locatorBind = __esm({
   "packages/ai-artefacts/dist/locatorBind.js"() {
     "use strict";
     GENERIC_TAGS = /* @__PURE__ */ new Set(["a", "div", "span", "p", "li", "ul", "section", "article", "img", "svg", "label"]);
-    UTILITY_CLASS = /^(text-|mb-|mt-|ml-|mr-|ms-|me-|p-|px-|py-|pt-|pb-|pl-|pr-|d-|col-|row-|w-|h-|flex|justify-|align-|container$|col$|row$|show$|hide$|active$|collapsed$)/i;
+    AUTO_ID = /^(ember|react|vue|ng-|:)/i;
+    UTILITY_CLASS = /^(text-|mb-|mt-|ml-|mr-|ms-|me-|p-|px-|py-|pt-|pb-|pl-|pr-|d-|col-|row-|w-|h-|flex|justify-|align-|container$|col$|row$|show$|hide$|active$|collapsed$|display-|fw-|fs-|lh-|btn|nav-link|nav-item|navbar-|form-|card|badge|alert|rounded|shadow|border|bg-|img-|visually-|sr-only|fade$|offcanvas|dropdown|list-group|sticky-|fixed-|position-|overflow-)/i;
+    SKIP_HREF = /^(mailto:|tel:|javascript:)/i;
     STOP = /* @__PURE__ */ new Set(["the", "a", "an", "is", "are", "and", "of", "for"]);
     ROLE_TAGS = {
       logo: ["img", "svg"],
@@ -7681,9 +7689,9 @@ function isMenuLink(node) {
   const href = String(node.href || "").trim();
   if (!text || text.length > 48)
     return false;
-  if (SKIP_LINK.test(text) || /logo/i.test(text))
+  if (SKIP_LINK.test(text) || /logo|trademark|[™®]/.test(text))
     return false;
-  if (SKIP_HREF.test(href) || href === "#" || href.startsWith("#") || href.startsWith("?"))
+  if (SKIP_HREF2.test(href) || href === "#" || href.startsWith("#") || href.startsWith("?"))
     return false;
   return Boolean(href || node.inNav);
 }
@@ -7697,13 +7705,13 @@ function sameOrigin(url, base) {
 function normalize2(value) {
   return String(value || "").trim().toLowerCase();
 }
-var MAX_NAV, SKIP_LINK, SKIP_HREF;
+var MAX_NAV, SKIP_LINK, SKIP_HREF2;
 var init_outlineExamples = __esm({
   "packages/ai-artefacts/dist/outlineExamples.js"() {
     "use strict";
     MAX_NAV = 8;
     SKIP_LINK = /^(skip|cookie|privacy|terms|login|log in|sign in|sign up|register|twitter|x|linkedin|facebook|instagram|youtube|github|email|mail|rss)$/i;
-    SKIP_HREF = /^(mailto:|tel:|javascript:)/i;
+    SKIP_HREF2 = /^(mailto:|tel:|javascript:)/i;
   }
 });
 
@@ -17733,7 +17741,7 @@ function expandUiSteps(testCase) {
     steps.push({ action: OPEN_WEBSITE_STEP, expected: "the page is ready" });
   }
   for (const step of testCase.steps) {
-    if (step.api || step.target) {
+    if (step.api || step.target || /<[^>]+>/.test(`${step.action} ${step.expected}`)) {
       steps.push(step);
       continue;
     }
@@ -17844,6 +17852,10 @@ function featureFromCases(title, cases, verification, options = {}) {
   return lines.join("\n");
 }
 function pageObjectFromFeature(feature, cases = []) {
+  const locators = mergeLocators(cases);
+  if (locators) {
+    return locatorMapPageObject(locators);
+  }
   const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
   if (fromCases.length === 0) {
     return "module.exports = {};\n";
@@ -17865,17 +17877,22 @@ function stepsFromCases(feature, pageObjectPath, cases = []) {
     if (seen.has(key))
       continue;
     seen.add(key);
+    const parameterized = parameterizeStep(step.text);
     const matched = caseStepForText(resolved, step.text);
     const helper = matched ? helperForStep(matched.step, matched.testCase, selectorFromTarget(matched.step.target)) : null;
     const method = methods.get(step.text);
     let body = "  return undefined;";
     if (helper) {
       body = `  ${helper.expression};`;
+    } else if (parameterized.lookup) {
+      usesPage = true;
+      body = `  await page.${parameterized.lookup}(${parameterized.names[0]});`;
     } else if (method) {
       usesPage = true;
       body = `  await page.${method}();`;
     }
-    lines.push(`${keyword}('${escapeQuote2(step.text)}', async function () {`, body, "});", "");
+    const args = parameterized.names.join(", ");
+    lines.push(`${keyword}('${escapeQuote2(parameterized.pattern)}', async function (${args}) {`, body, "});", "");
   }
   const header = usesPage ? `const page = require('${pageObjectPath}');
 
@@ -17896,20 +17913,26 @@ function selectorFromTarget(target) {
   if (by === "tag")
     return value.replace(/[^a-z0-9]/gi, "");
   if (by === "link" || by === "text")
-    return `=${value}`;
+    return `//a[normalize-space()="${escapeAttr(value)}"]`;
   if (by === "partialLink")
-    return `*=${value}`;
+    return `//a[contains(normalize-space(), "${escapeAttr(value)}")]`;
   if (by === "css")
     return value;
   if (by === "xpath")
     return value;
   if (by === "testid")
     return `[data-testid="${escapeAttr(value)}"]`;
-  return `aria/${value}`;
+  if (by === "label")
+    return `[aria-label="${escapeAttr(value)}"]`;
+  return null;
 }
 function unboundSteps(cases) {
   return cases.flatMap((testCase) => expandUiSteps(testCase).steps.flatMap((step) => {
     if (step.api)
+      return [];
+    if (testCase.locators)
+      return [];
+    if (/<[^>]+>/.test(step.action))
       return [];
     if (selectorFromTarget(step.target))
       return [];
@@ -17945,6 +17968,56 @@ function pageMethodsFromCases(cases) {
     });
   }
   return methods;
+}
+function mergeLocators(cases) {
+  const menus = {};
+  const headings = {};
+  for (const testCase of cases) {
+    Object.assign(menus, testCase.locators?.menus);
+    Object.assign(headings, testCase.locators?.headings);
+  }
+  if (Object.keys(menus).length === 0 && Object.keys(headings).length === 0)
+    return null;
+  return { menus, headings };
+}
+function locatorMapPageObject(locators) {
+  return [
+    `const locators = ${JSON.stringify(locators, null, 2)};`,
+    "",
+    "function locator(group, name) {",
+    "  const selector = locators[group] && locators[group][name];",
+    "  if (!selector) {",
+    '    throw new Error(`No ${group} locator for "${name}"`);',
+    "  }",
+    "  return selector;",
+    "}",
+    "",
+    "module.exports = {",
+    "  async selectNavigation(name) {",
+    "    await helpers.waitAndClick(locator('menus', name));",
+    "  },",
+    "  async headingIsDisplayed(name) {",
+    "    await global.browser.$(locator('headings', name)).waitForDisplayed();",
+    "  },",
+    "};",
+    ""
+  ].join("\n");
+}
+function parameterizeStep(text) {
+  const names = [];
+  const pattern = String(text || "").replace(/"<([^>]+)>"/g, (_, raw) => {
+    names.push(toName(raw) || "value");
+    return "{string}";
+  }).replace(/<([^>]+)>/g, (_, raw) => {
+    names.push(toName(raw) || "value");
+    return "{string}";
+  });
+  let lookup = "";
+  if (names.length > 0 && /navigation link/i.test(text))
+    lookup = "selectNavigation";
+  else if (names.length > 0 && /heading is displayed/i.test(text))
+    lookup = "headingIsDisplayed";
+  return { pattern, names, lookup };
 }
 function methodIndex(cases) {
   const methods = /* @__PURE__ */ new Map();
@@ -18059,7 +18132,7 @@ function isNavCase(testCase) {
   const blob = caseBlob(testCase);
   if (isNegativeDomGuess(blob))
     return false;
-  return /navigation link|nav link|\bmenu\b|main heading/i.test(blob) || Boolean(testCase.examples?.headers.some((header) => /nav|link|page_name|main_heading/i.test(header)));
+  return /navigation link|nav link|\bmenu\b|main heading/i.test(blob) || Boolean(testCase.examples?.headers.some((header) => /nav|link|page_name|main_heading|heading/i.test(header)));
 }
 function isUnverifiableFromDom(testCase) {
   return isNegativeDomGuess(caseBlob(testCase));
@@ -18073,7 +18146,7 @@ function realizeCasesFromDom(cases, nodes, rows) {
       if (wroteNav)
         return [];
       wroteNav = true;
-      return rows.map((row, index) => navCaseFromRow(testCase, row, nodes, index));
+      return [navOutlineFromRows(testCase, rows, nodes)];
     }
     return [testCase];
   });
@@ -18082,52 +18155,61 @@ function isSyntheticSuite(feature, steps = "", pageObject = "") {
   const blob = `${feature}
 ${steps}
 ${pageObject}`;
-  return /\|\s*example\d+\s*\|/i.test(blob) || /unbound:/i.test(blob) || /pause\(0\)/.test(blob) || /a visitor is on any public page/i.test(blob) || /selects the "<navigation_link>"/i.test(blob);
+  const individualMenu = /Scenario: Visitor opens .+ from the menu/.test(feature) || /Scenario Outline: Visitor opens <navigation_link> from the menu/.test(feature);
+  return /\|\s*example\d+\s*\|/i.test(blob) || /unbound:/i.test(pageObject) || /pause\(0\)/.test(pageObject) || /a visitor is on any public page/i.test(blob) || /": "=[^"]+"/.test(pageObject) || /h[1-6]\*?=/.test(pageObject) || /\.display-/.test(pageObject) || individualMenu;
 }
-function navCaseFromRow(testCase, row, nodes, index) {
-  const link = navLinksFromNodes(nodes).find((node) => normalize3(node.text) === normalize3(row.navigation_link));
-  const destNodes = nodes.filter((node) => node.pageUrl && normalizeHref(node.pageUrl) === normalizeHref(row.href));
-  const headingNode = destNodes.find((node) => node.text && normalize3(node.text) === normalize3(row.main_heading) && /^h[1-6]$/.test(node.tag || "")) || destNodes.find((node) => node.tag === "h1" || node.tag === "h2");
-  const clickFind = link && findFromNode(link) || { by: "text", value: row.navigation_link };
-  const headingFind = headingNode && findFromNode(headingNode) || {
-    by: "css",
-    value: `h1*=${stripMarks(row.main_heading)},h2*=${stripMarks(row.main_heading)}`
-  };
+function navOutlineFromRows(testCase, rows, nodes) {
+  const locators = locatorsFromHarvest(rows, nodes);
   return {
     ...testCase,
-    id: index === 0 ? testCase.id : `${testCase.id}-${String(index + 1).padStart(2, "0")}`,
-    title: `Visitor opens ${row.page_name} from the menu`,
-    examples: void 0,
+    title: "Visitor selects a navigation link from the menu",
+    locators,
     steps: [
       {
-        action: `the visitor selects the ${row.navigation_link} navigation link`,
-        expected: `the ${row.page_name} page opens`,
-        target: {
-          name: toName(row.navigation_link) || "navLink",
-          type: "link",
-          find: { ...clickFind, fromDom: true }
-        }
-      },
-      {
-        action: `the ${row.main_heading} heading is displayed`,
-        expected: `the ${row.main_heading} heading is displayed`,
-        target: {
-          name: toName(`${row.main_heading} heading`) || "mainHeading",
-          type: "link",
-          find: { ...headingFind, fromDom: true }
-        }
+        action: 'the visitor selects the "<navigation_link>" navigation link',
+        expected: 'the "<heading>" heading is displayed'
       }
-    ]
+    ],
+    examples: {
+      headers: ["navigation_link", "heading"],
+      rows: rows.map((row) => ({ navigation_link: row.navigation_link, heading: row.main_heading })).filter((row) => locators.menus?.[row.navigation_link] && locators.headings?.[row.heading])
+    }
   };
+}
+function locatorsFromHarvest(rows, nodes) {
+  const links = navLinksFromNodes(nodes);
+  const menus = {};
+  const headings = {};
+  for (const row of rows) {
+    const link = links.find((node) => normalize3(node.text) === normalize3(row.navigation_link));
+    const menu = locatorFromHarvestedNode(link);
+    if (menu)
+      menus[row.navigation_link] = menu;
+    const destNodes = nodes.filter((node) => node.pageUrl && normalizeHref(node.pageUrl) === normalizeHref(row.href));
+    const headingNode = destNodes.find((node) => node.text && normalize3(node.text) === normalize3(row.main_heading) && /^h[1-6]$/.test(node.tag || "")) || destNodes.find((node) => node.tag === "h1" || node.tag === "h2");
+    const heading = locatorFromHarvestedNode(headingNode);
+    if (heading)
+      headings[row.main_heading] = heading;
+  }
+  return { menus, headings };
+}
+function locatorFromHarvestedNode(node) {
+  if (!node)
+    return "";
+  const find = findFromNode(node);
+  if (!find)
+    return "";
+  return selectorFromTarget({
+    name: "element",
+    type: node.tag === "a" ? "link" : "button",
+    find: { ...find, fromDom: true }
+  }) || "";
 }
 function caseBlob(testCase) {
   return [testCase.title, ...testCase.steps.map((step) => `${step.action} ${step.expected}`)].join(" ");
 }
 function isNegativeDomGuess(blob) {
   return /\b(fail|fails|failed|error|unavailable|not available|network issues?|blank page|application error)\b/i.test(blob);
-}
-function stripMarks(value) {
-  return String(value || "").replace(/[™®©]/g, "").replace(/\s+/g, " ").trim();
 }
 function normalize3(value) {
   return String(value || "").trim().toLowerCase();
