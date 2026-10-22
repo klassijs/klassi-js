@@ -26,6 +26,7 @@ export {
   verifyPageObject,
   verifySteps,
 } from './bdd.js';
+export { helperForStep } from './klassiHelpers.js';
 export { artefactBaseline, bddFromVerified, reportByType, sameRulesRegardlessOfOrigin, traceSuite, verifyArtefact, verifyExistingSuite } from './verify.js';
 export { bindCasesToNodes, harvestInteractiveNodes, resolveProductUrl } from './locatorBind.js';
 export { fetchBundle, importTestGenieBundle, readBundle } from './import-test-genie.js';

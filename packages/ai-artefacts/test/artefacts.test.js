@@ -133,7 +133,7 @@ test('Test Genie artefacts are verified before BDD generation and stay traceable
   assert.equal(plan.browser, 'webdriverio-standalone');
   assert.match(plan.feature, /@BR-1 @AT-1 @TC-1/);
   assert.match(plan.steps, /async function/);
-  assert.match(plan.pageObject, /global\.browser/);
+  assert.match(plan.pageObject, /global\.browser|helpers\.|module\.exports = \{\s*\}/);
   assert.doesNotMatch(plan.pageObject, /wdio\.conf/);
   const trace = traceSuite([{ name: 'Parse a date', status: 'fail', tags: ['BR-1', 'AT-1', 'TC-1'] }]);
   assert.equal(trace.byRequirement('BR-1')[0].testCaseId, 'TC-1');

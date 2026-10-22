@@ -17288,10 +17288,18 @@ function toName(label) {
 
 // packages/ai-artefacts/dist/bdd.js
 var STEP_KEYWORDS = ["Given", "When", "Then", "And", "But"];
-function featureFromCases(title, cases, verification) {
+function featureFromCases(title, cases, verification, options = {}) {
   assertReadyForCodeGeneration(verification);
-  const scenarios = cases.map(({ testCase, trace }) => scenarioBlock(testCase, trace));
-  return [`Feature: ${title}`, "", scenarios.join("\n\n"), ""].join("\n");
+  const expanded = cases.map(({ testCase, trace }) => ({ testCase: expandUiSteps(testCase), trace }));
+  const productUrl = productUrlFromCases(expanded.map((item) => item.testCase), options.productUrl);
+  const openAction = openPageAction(expanded.map((item) => item.testCase), productUrl);
+  const scenarios = expanded.map(({ testCase, trace }) => scenarioBlock(testCase, trace, Boolean(productUrl)));
+  const lines = [`Feature: ${title}`, ""];
+  if (productUrl) {
+    lines.push("  Background:", `    Given ${openAction}`, "");
+  }
+  lines.push(scenarios.join("\n\n"), "");
+  return lines.join("\n");
 }
 function pageObjectFromFeature(feature, cases = []) {
   const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
@@ -17370,6 +17378,8 @@ function pageMethodsFromCases(cases) {
       if (pageUrl && isNavigate(step.action) && !selector) {
         methods.push(`  // ${step.action}
   async ${name}() {
+    await global.browser.url('about:blank');
+    if (typeof global.browser.deleteCookies === 'function') await global.browser.deleteCookies();
     await global.browser.url('${escapeQuote(pageUrl)}');
   }`);
         return;
@@ -17420,16 +17430,36 @@ function casesFromFeature(feature) {
 function escapeAttr(value) {
   return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
-function scenarioBlock(testCase, trace) {
+function productUrlFromCases(cases, fallback = "") {
+  for (const testCase of cases) {
+    const url = urlFromCase(testCase);
+    if (url)
+      return url;
+  }
+  return String(fallback || "").replace(/\/+$/, "");
+}
+function openPageAction(cases, url) {
+  for (const testCase of cases) {
+    const nav = testCase.steps.find((step) => isNavigate(step.action) && !step.target && !step.api);
+    if (nav?.action)
+      return nav.action;
+  }
+  return `a visitor opens ${url}`;
+}
+function scenarioBlock(testCase, trace, hoistOpenPage = false) {
   const tags = [
     `@${trace.requirementId.startsWith("BR-") ? trace.requirementId : `BR-${trace.requirementId}`}`,
     `@${trace.acceptanceTestId.startsWith("AT-") ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
     `@${testCase.id.startsWith("TC-") ? testCase.id : `TC-${testCase.id}`}`
   ];
-  const steps = testCase.steps.flatMap((step, index) => {
+  const remaining = hoistOpenPage ? testCase.steps.filter((step) => !isNavigate(step.action) || step.target || step.api) : testCase.steps;
+  const steps = (remaining.length > 0 ? remaining : testCase.steps.slice(-1)).flatMap((step, index) => {
     const assertionOnly = step.action === step.expected || isDisplayed(step.action) && !isNavigate(step.action) && !step.api;
     if (assertionOnly)
       return [`${index === 0 ? "Then" : "And"} ${step.expected}`];
+    if (hoistOpenPage && isNavigate(step.action) && !step.target && !step.api) {
+      return [`Then ${step.expected}`];
+    }
     return [`${index === 0 ? "When" : "And"} ${step.action}`, `Then ${step.expected}`];
   }).join("\n    ");
   const examples = exampleTable(testCase.examples);
@@ -17590,6 +17620,10 @@ async function importTestGenieBundle(payload, outDir, options = {}) {
   const env = options.env ?? process.env;
   const shouldBind = options.bindLocators === true;
   let boundCases = bundle.testCases.map(expandUiSteps);
+  const productUrl = boundCases.map((testCase) => urlFromCase(testCase)).find(Boolean) || String(env.PRODUCT_BASE_URL || "").replace(/\/+$/, "");
+  if (productUrl) {
+    boundCases = boundCases.map((testCase) => testCase.page || testCase.steps.every((step) => step.api) ? testCase : expandUiSteps({ ...testCase, page: { name: "app", url: productUrl } }));
+  }
   const bindFindings = [];
   if (shouldBind) {
     const bound = await bindBundleToProduct(boundCases, env, options.fetch ?? fetch);
@@ -17597,25 +17631,27 @@ async function importTestGenieBundle(payload, outDir, options = {}) {
     bindFindings.push(...bound.findings);
   }
   const verification = verifyTestGenieBundle({ ...bundle, testCases: boundCases }, true);
-  const written = verification.outcome === "VERIFIED" ? await writeBundle({ ...bundle, testCases: boundCases }, verification, outDir) : { imported: [], skipped: [], unbound: [] };
+  const written = verification.outcome === "VERIFIED" ? await writeBundle({ ...bundle, testCases: boundCases }, verification, outDir, env.PRODUCT_BASE_URL || "") : { imported: [], skipped: [], unbound: [] };
   const findings = [...verification.findings, ...bindFindings, ...written.unbound];
   await (0, import_promises2.mkdir)(import_node_path3.default.join(outDir, ".klassi", "test-genie"), { recursive: true });
   await (0, import_promises2.writeFile)(import_node_path3.default.join(outDir, ".klassi", "test-genie", `${safeName(bundle.generationId)}.json`), JSON.stringify({ generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings, imported: written.imported, skipped: written.skipped }, null, 2));
   return { generationId: bundle.generationId, sourceSystem: bundle.sourceSystem, outcome: verification.outcome, findings, imported: written.imported, skipped: written.skipped };
 }
-async function writeBundle(bundle, verification, outDir) {
+async function writeBundle(bundle, verification, outDir, fallbackUrl = "") {
   const cases = bundle.testCases.flatMap((testCase) => {
     const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
     return acceptance ? [{ testCase, acceptance }] : [];
   });
+  const productUrl = cases.map(({ testCase }) => urlFromCase(expandUiSteps(testCase))).find(Boolean) || String(fallbackUrl || "").replace(/\/+$/, "");
   const imported = [];
   const skipped = [];
   const unbound = [];
   for (const group of featureGroups(bundle, cases)) {
+    const uiUrl = group.cases.every(({ testCase }) => testCase.steps.length > 0 && testCase.steps.every((step) => step.api)) ? "" : productUrl;
     const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
       testCase,
       trace: { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id }
-    })), verification);
+    })), verification, { productUrl: uiUrl });
     const name = safeName(group.id);
     const feature = import_node_path3.default.join(outDir, "features", `${name}.feature`);
     const steps = import_node_path3.default.join(outDir, "step_definitions", `${name}-steps.js`);

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { featureFromCases, pageObjectFromFeature, stepsFromCases, unboundSteps } from './bdd.js';
-import { expandUiSteps } from './uiSteps.js';
+import { expandUiSteps, urlFromCase } from './uiSteps.js';
 import { bindCasesToNodes, fetchProductHtml, harvestInteractiveNodes, loginProduct, resolveProductUrl } from './locatorBind.js';
 import { TestGenieArtifactProvider, verifyTestGenieBundle, type TestGenieBundle, type TestGenieCase, type TestGenieVerification } from './test-genie.js';
 
@@ -55,6 +55,14 @@ export async function importTestGenieBundle(
   const env = options.env ?? process.env;
   const shouldBind = options.bindLocators === true;
   let boundCases = bundle.testCases.map(expandUiSteps);
+  const productUrl = boundCases.map((testCase) => urlFromCase(testCase)).find(Boolean) || String(env.PRODUCT_BASE_URL || '').replace(/\/+$/, '');
+  if (productUrl) {
+    boundCases = boundCases.map((testCase) => (
+      testCase.page || testCase.steps.every((step) => step.api)
+        ? testCase
+        : expandUiSteps({ ...testCase, page: { name: 'app', url: productUrl } })
+    ));
+  }
   const bindFindings: string[] = [];
   if (shouldBind) {
     const bound = await bindBundleToProduct(boundCases, env, options.fetch ?? fetch);
@@ -63,7 +71,7 @@ export async function importTestGenieBundle(
   }
   const verification = verifyTestGenieBundle({ ...bundle, testCases: boundCases }, true);
   const written = verification.outcome === 'VERIFIED'
-    ? await writeBundle({ ...bundle, testCases: boundCases }, verification, outDir)
+    ? await writeBundle({ ...bundle, testCases: boundCases }, verification, outDir, env.PRODUCT_BASE_URL || '')
     : { imported: [], skipped: [], unbound: [] };
   const findings = [...verification.findings, ...bindFindings, ...written.unbound];
   await mkdir(path.join(outDir, '.klassi', 'test-genie'), { recursive: true });
@@ -78,19 +86,24 @@ async function writeBundle(
   bundle: TestGenieBundle,
   verification: TestGenieVerification,
   outDir: string,
+  fallbackUrl = '',
 ): Promise<{ imported: ImportedArtefact[]; skipped: string[]; unbound: string[] }> {
   const cases = bundle.testCases.flatMap((testCase) => {
     const acceptance = bundle.acceptanceTests.find((item) => item.id === testCase.acceptanceTestId);
     return acceptance ? [{ testCase, acceptance }] : [];
   });
+  const productUrl = cases.map(({ testCase }) => urlFromCase(expandUiSteps(testCase))).find(Boolean) || String(fallbackUrl || '').replace(/\/+$/, '');
   const imported: ImportedArtefact[] = [];
   const skipped: string[] = [];
   const unbound: string[] = [];
   for (const group of featureGroups(bundle, cases)) {
+    const uiUrl = group.cases.every(({ testCase }) => testCase.steps.length > 0 && testCase.steps.every((step) => step.api))
+      ? ''
+      : productUrl;
     const featureText = featureFromCases(group.title, group.cases.map(({ testCase, acceptance }) => ({
       testCase,
       trace: { requirementId: acceptance.requirementId, acceptanceTestId: acceptance.id },
-    })), verification);
+    })), verification, { productUrl: uiUrl });
     const name = safeName(group.id);
     const feature = path.join(outDir, 'features', `${name}.feature`);
     const steps = path.join(outDir, 'step_definitions', `${name}-steps.js`);

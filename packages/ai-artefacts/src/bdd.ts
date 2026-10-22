@@ -1,6 +1,7 @@
 import type { TestGenieCase } from './test-genie.js';
 import { assertReadyForCodeGeneration, type TestGenieVerification } from './test-genie.js';
 import { forbiddenFindings, type StaticFinding } from './source-checks.js';
+import { helperForStep } from './klassiHelpers.js';
 import { expandUiSteps, isDisplayed, isNavigate, methodName, urlFromCase } from './uiSteps.js';
 
 export interface GherkinArtefact {
@@ -24,10 +25,19 @@ export function featureFromCases(
   title: string,
   cases: Array<{ testCase: TestGenieCase; trace: { requirementId: string; acceptanceTestId: string } }>,
   verification: TestGenieVerification,
+  options: { productUrl?: string } = {},
 ): string {
   assertReadyForCodeGeneration(verification);
-  const scenarios = cases.map(({ testCase, trace }) => scenarioBlock(testCase, trace));
-  return [`Feature: ${title}`, '', scenarios.join('\n\n'), ''].join('\n');
+  const expanded = cases.map(({ testCase, trace }) => ({ testCase: expandUiSteps(testCase), trace }));
+  const productUrl = productUrlFromCases(expanded.map((item) => item.testCase), options.productUrl);
+  const openAction = openPageAction(expanded.map((item) => item.testCase), productUrl);
+  const scenarios = expanded.map(({ testCase, trace }) => scenarioBlock(testCase, trace, Boolean(productUrl)));
+  const lines = [`Feature: ${title}`, ''];
+  if (productUrl) {
+    lines.push('  Background:', `    Given ${openAction}`, '');
+  }
+  lines.push(scenarios.join('\n\n'), '');
+  return lines.join('\n');
 }
 
 export function verifyGherkin(content: string): StaticFinding[] {
@@ -77,23 +87,36 @@ export function stepsFromFeature(feature: string): string {
 
 export function pageObjectFromFeature(feature: string, cases: TestGenieCase[] = []): string {
   const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
+  if (fromCases.length === 0) {
+    return 'module.exports = {};\n';
+  }
   return `module.exports = {\n${fromCases.join(',\n')}\n};\n`;
 }
 
 export function stepsFromCases(feature: string, pageObjectPath: string, cases: TestGenieCase[] = []): string {
-  const methods = methodIndex(cases);
+  const resolved = cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature);
+  const methods = methodIndex(resolved);
   const lines = [];
   const seen = new Set<string>();
+  let usesPage = false;
   for (const step of featureSteps(feature)) {
     const keyword = step.keyword === 'And' || step.keyword === 'But' ? 'Then' : step.keyword;
     const key = `${keyword}:${step.text}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    const matched = caseStepForText(resolved, step.text);
+    const helper = matched ? helperForStep(matched.step, matched.testCase, selectorFromTarget(matched.step.target)) : null;
     const method = methods.get(step.text);
-    const body = method ? `  await page.${method}();` : '  return undefined;';
+    let body = '  return undefined;';
+    if (helper) {
+      body = `  ${helper.expression};`;
+    } else if (method) {
+      usesPage = true;
+      body = `  await page.${method}();`;
+    }
     lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, body, '});', '');
   }
-  const header = methods.size > 0 ? `const page = require('${pageObjectPath}');\n\n` : '';
+  const header = usesPage ? `const page = require('${pageObjectPath}');\n\n` : '';
   return `${header}${lines.join('\n')}`;
 }
 
@@ -122,34 +145,18 @@ function pageMethodsFromCases(cases: TestGenieCase[]): string[] {
   const seen = new Set<string>();
   for (const testCase of cases) {
     expandUiSteps(testCase).steps.forEach((step) => {
+      const selector = selectorFromTarget(step.target);
+      if (helperForStep(step, testCase, selector)) {
+        return;
+      }
       const name = methodName(step, `step${methods.length + 1}`);
       if (seen.has(name)) return;
       seen.add(name);
-      const selector = selectorFromTarget(step.target);
-      const pageUrl = urlFromCase(testCase, step);
-      if (step.api) {
-        const path = step.api.path.startsWith('/') || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
-        const urlExpr = /^https?:\/\//i.test(path)
-          ? `'${escapeQuote(path)}'`
-          : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(path)}'`;
-        const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
-        methods.push(`  // ${step.action}\n  async ${name}() {\n    const response = await fetch(${urlExpr}, { method: '${escapeQuote(step.api.method || 'GET')}' });\n    if (response.status !== ${expected}) throw new Error('Expected ${expected}, got ' + response.status);\n  }`);
-        return;
-      }
-      if (pageUrl && isNavigate(step.action) && !selector) {
-        methods.push(`  // ${step.action}\n  async ${name}() {\n    await global.browser.url('${escapeQuote(pageUrl)}');\n  }`);
-        return;
-      }
       if (!selector) {
         methods.push(`  // unbound: ${step.action || testCase.title}\n  async ${name}() {\n    await global.browser.pause(0);\n  }`);
         return;
       }
-      const command = isDisplayed(`${step.action} ${step.expected}`)
-        ? 'waitForDisplayed()'
-        : step.target?.type === 'input' || step.target?.type === 'select'
-          ? `setValue('')`
-          : 'click()';
-      methods.push(`  // ${step.action}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').${command};\n  }`);
+      methods.push(`  // ${step.action}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').waitForDisplayed();\n  }`);
     });
   }
   return methods;
@@ -159,12 +166,31 @@ function methodIndex(cases: TestGenieCase[]): Map<string, string> {
   const methods = new Map<string, string>();
   for (const testCase of cases) {
     for (const step of expandUiSteps(testCase).steps) {
+      if (helperForStep(step, testCase, selectorFromTarget(step.target))) continue;
       const name = methodName(step, '');
       if (!name || !step.action) continue;
       methods.set(step.action, name);
     }
   }
   return methods;
+}
+
+function caseStepForText(cases: TestGenieCase[], text: string) {
+  for (const testCase of cases) {
+    for (const step of expandUiSteps(testCase).steps) {
+      if (step.action === text || step.expected === text) {
+        return { testCase, step };
+      }
+    }
+  }
+  for (const testCase of cases) {
+    for (const step of expandUiSteps(testCase).steps) {
+      if (step.action && (text.includes(step.action) || step.action.includes(text))) {
+        return { testCase, step };
+      }
+    }
+  }
+  return null;
 }
 
 function casesFromFeature(feature: string): TestGenieCase[] {
@@ -218,8 +244,8 @@ export function verifyPageObject(content: string): StaticFinding[] {
   if (/\b(Given|When|Then)\s*\(/.test(content)) {
     findings.push({ code: 'page-object', severity: 'medium', message: 'Page Object must not declare Cucumber steps', deterministic: true });
   }
-  if (!/global\.browser/.test(content)) {
-    findings.push({ code: 'page-object', severity: 'high', message: 'Page Object must use the Klassi browser abstraction', deterministic: true });
+  if (!/global\.browser|helpers\.|module\.exports = \{\s*\}/.test(content)) {
+    findings.push({ code: 'page-object', severity: 'high', message: 'Page Object must use Klassi helpers or the browser abstraction', deterministic: true });
   }
   return findings;
 }
@@ -265,15 +291,37 @@ export function cucumberPlan(artefacts: GherkinArtefact): { feature: string; ste
   return { ...artefacts, runner: 'klassi-cucumber', browser: 'webdriverio-standalone' };
 }
 
-function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; acceptanceTestId: string }): string {
+function productUrlFromCases(cases: TestGenieCase[], fallback = ''): string {
+  for (const testCase of cases) {
+    const url = urlFromCase(testCase);
+    if (url) return url;
+  }
+  return String(fallback || '').replace(/\/+$/, '');
+}
+
+function openPageAction(cases: TestGenieCase[], url: string): string {
+  for (const testCase of cases) {
+    const nav = testCase.steps.find((step) => isNavigate(step.action) && !step.target && !step.api);
+    if (nav?.action) return nav.action;
+  }
+  return `a visitor opens ${url}`;
+}
+
+function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; acceptanceTestId: string }, hoistOpenPage = false): string {
   const tags = [
     `@${trace.requirementId.startsWith('BR-') ? trace.requirementId : `BR-${trace.requirementId}`}`,
     `@${trace.acceptanceTestId.startsWith('AT-') ? trace.acceptanceTestId : `AT-${trace.acceptanceTestId}`}`,
     `@${testCase.id.startsWith('TC-') ? testCase.id : `TC-${testCase.id}`}`,
   ];
-  const steps = testCase.steps.flatMap((step, index) => {
+  const remaining = hoistOpenPage
+    ? testCase.steps.filter((step) => !isNavigate(step.action) || step.target || step.api)
+    : testCase.steps;
+  const steps = (remaining.length > 0 ? remaining : testCase.steps.slice(-1)).flatMap((step, index) => {
     const assertionOnly = step.action === step.expected || (isDisplayed(step.action) && !isNavigate(step.action) && !step.api);
     if (assertionOnly) return [`${index === 0 ? 'Then' : 'And'} ${step.expected}`];
+    if (hoistOpenPage && isNavigate(step.action) && !step.target && !step.api) {
+      return [`Then ${step.expected}`];
+    }
     return [`${index === 0 ? 'When' : 'And'} ${step.action}`, `Then ${step.expected}`];
   }).join('\n    ');
   const examples = exampleTable(testCase.examples);

@@ -33,7 +33,7 @@ test('a folder bundle is verified and written as Cucumber files', async () => {
   assert.equal(result.sourceSystem, 'test-genie-repo');
   assert.match(await readFile(result.imported[0].feature, 'utf8'), /Feature: Parse a date/);
   assert.match(await readFile(result.imported[0].steps, 'utf8'), /async function/);
-  assert.match(await readFile(result.imported[0].pageObject, 'utf8'), /global\.browser/);
+  assert.match(await readFile(result.imported[0].pageObject, 'utf8'), /unbound:/);
 });
 
 test('every scenario in a bundle is written into one feature file', async () => {
@@ -123,8 +123,8 @@ test('a bound target is written into the page object and step def', async () => 
   const result = await importTestGenieBundle(bound, out);
   const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
   const steps = await readFile(result.imported[0].steps, 'utf8');
-  assert.match(pageObject, /\[data-testid="login-submit"\]/);
-  assert.match(steps, /page\.loginButton/);
+  assert.doesNotMatch(pageObject, /async loginButton\(|waitAndClick/);
+  assert.match(steps, /helpers\.waitAndClick\('\[data-testid="login-submit"\]'\)/);
   assert.equal(result.findings.some((item) => item.startsWith('Unbound step:')), false);
 });
 
@@ -152,9 +152,10 @@ test('an API step does not invent a locator', async () => {
   const result = await importTestGenieBundle(api, out);
   const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
   assert.equal(result.findings.some((item) => item.startsWith('Unbound step:')), false);
-  assert.match(pageObject, /fetch\(/);
-  assert.match(pageObject, /POST/);
-  assert.match(pageObject, /\/orders/);
+  assert.doesNotMatch(pageObject, /fetch\(|apiCall/);
+  assert.match(await readFile(result.imported[0].steps, 'utf8'), /helpers\.apiCall\(/);
+  assert.match(await readFile(result.imported[0].steps, 'utf8'), /POST/);
+  assert.match(await readFile(result.imported[0].steps, 'utf8'), /\/orders/);
   assert.doesNotMatch(pageObject, /data-testid|aria\//);
 });
 
@@ -182,7 +183,7 @@ test('live bind upgrades a label target from the product HTML', async () => {
     env: { PRODUCT_BASE_URL: 'https://app.example.com' },
     fetch: fetchImpl,
   });
-  assert.match(await readFile(result.imported[0].pageObject, 'utf8'), /\[data-testid="login-submit"\]/);
+  assert.match(await readFile(result.imported[0].steps, 'utf8'), /helpers\.waitAndClick\('\[data-testid="login-submit"\]'\)/);
 });
 
 test('a homepage open and displayed steps become a url and waitForDisplayed', async () => {
@@ -199,8 +200,15 @@ test('a homepage open and displayed steps become a url and waitForDisplayed', as
     }],
   };
   const result = await importTestGenieBundle(home, out);
+  const feature = await readFile(result.imported[0].feature, 'utf8');
   const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
-  assert.match(pageObject, /browser\.url\('https:\/\/klassi\.co\.uk'\)/);
+  const steps = await readFile(result.imported[0].steps, 'utf8');
+  assert.match(feature, /Background:\s*\n\s*Given a visitor opens https:\/\/klassi\.co\.uk/);
+  assert.doesNotMatch(feature.split('Scenario:')[1] || '', /When a visitor opens/);
+  assert.match(steps, /Given\('a visitor opens https:\/\/klassi\.co\.uk'/);
+  assert.match(steps, /helpers\.loadPage\('https:\/\/klassi\.co\.uk'\)/);
+  assert.doesNotMatch(steps, /page\.openPage|helpers\.loadPage.*openPage/);
+  assert.doesNotMatch(pageObject, /async openPage\(|deleteCookies|browser\.url\(/);
   assert.match(pageObject, /='=Klassi logo'|="=Klassi logo"|\$\('=Klassi logo'\)/);
   assert.match(pageObject, /waitForDisplayed/);
   assert.doesNotMatch(pageObject, /async step1\(\)/);
