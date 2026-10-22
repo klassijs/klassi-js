@@ -8,7 +8,7 @@ try {
 	// dotenv optional; .env can be loaded by app or shell
 }
 
-const { setDefaultTimeout, Before, AfterStep } = require('@cucumber/cucumber');
+const { setDefaultTimeout, Before, After, AfterStep } = require('@cucumber/cucumber');
 const { astellen } = require('klassijs-astellen');
 const getRemote = require('./getRemote');
 const data = require('./helpers');
@@ -229,6 +229,22 @@ Before((scenario) => {
 });
 
 /**
+ * LambdaTest Only
+ * executed ONLY on failure of a scenario to get the video link
+ * from lambdatest when it fails for the report
+ */
+After(async (scenario) => {
+	if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
+		await helpers.ltVideo();
+		// eslint-disable-next-line no-undef
+		const vidLink = await videoLib.getVideoId();
+		cucumberThis.attach(
+			`video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`,
+		);
+	}
+});
+
+/**
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void>|*}
  */
@@ -277,24 +293,11 @@ After(async (scenario) => {
 			} else if (scenario.result.status === Status.PENDING) {
 				await browser.executeScript('lambda-status=skipped', []);
 			}
-			if (scenario.result.status === Status.FAILED) {
-				await attachLambdaTestVideo();
-			}
 			return await browserOpen();
 		}
 	}
 	return await browserOpen();
 });
-
-async function attachLambdaTestVideo() {
-	await helpers.ltVideo();
-	const video = await videoLib.getVideoId();
-	const mp4 = await videoLib.downloadMp4(video);
-	const html = videoLib.reportHtml(video, mp4);
-	if (html) {
-		cucumberThis.attach(html);
-	}
-}
 
 /**
  * A thrown step stops on the page where it failed. Capture that page
