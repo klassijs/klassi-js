@@ -17286,6 +17286,36 @@ function toName(label) {
   return words[0].toLowerCase() + words.slice(1).map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join("");
 }
 
+// packages/ai-artefacts/dist/klassiHelpers.js
+function helperForStep(step, testCase, selector) {
+  if (step.api) {
+    const route = step.api.path.startsWith("/") || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
+    const urlExpr = /^https?:\/\//i.test(route) ? `'${escapeQuote(route)}'` : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(route)}'`;
+    const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
+    return {
+      name: "apiCall",
+      expression: `await helpers.apiCall(${urlExpr}, '${escapeQuote(step.api.method || "GET")}', null, null, null, ${expected})`
+    };
+  }
+  const pageUrl = urlFromCase(testCase, step);
+  if (pageUrl && isNavigate(step.action) && !selector) {
+    return { name: "loadPage", expression: `await helpers.loadPage('${escapeQuote(pageUrl)}')` };
+  }
+  if (!selector) {
+    return null;
+  }
+  if (isDisplayed(step.action)) {
+    return null;
+  }
+  if (step.target?.type === "input" || step.target?.type === "select") {
+    return { name: "waitAndSetValue", expression: `await helpers.waitAndSetValue('${escapeQuote(selector)}', '')` };
+  }
+  return { name: "waitAndClick", expression: `await helpers.waitAndClick('${escapeQuote(selector)}')` };
+}
+function escapeQuote(value) {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
 // packages/ai-artefacts/dist/bdd.js
 var STEP_KEYWORDS = ["Given", "When", "Then", "And", "But"];
 function featureFromCases(title, cases, verification, options = {}) {
@@ -17303,26 +17333,39 @@ function featureFromCases(title, cases, verification, options = {}) {
 }
 function pageObjectFromFeature(feature, cases = []) {
   const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
+  if (fromCases.length === 0) {
+    return "module.exports = {};\n";
+  }
   return `module.exports = {
 ${fromCases.join(",\n")}
 };
 `;
 }
 function stepsFromCases(feature, pageObjectPath, cases = []) {
-  const methods = methodIndex(cases);
+  const resolved = cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature);
+  const methods = methodIndex(resolved);
   const lines = [];
   const seen = /* @__PURE__ */ new Set();
+  let usesPage = false;
   for (const step of featureSteps(feature)) {
     const keyword = step.keyword === "And" || step.keyword === "But" ? "Then" : step.keyword;
     const key = `${keyword}:${step.text}`;
     if (seen.has(key))
       continue;
     seen.add(key);
+    const matched = caseStepForText(resolved, step.text);
+    const helper = matched ? helperForStep(matched.step, matched.testCase, selectorFromTarget(matched.step.target)) : null;
     const method = methods.get(step.text);
-    const body = method ? `  await page.${method}();` : "  return undefined;";
-    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, body, "});", "");
+    let body = "  return undefined;";
+    if (helper) {
+      body = `  ${helper.expression};`;
+    } else if (method) {
+      usesPage = true;
+      body = `  await page.${method}();`;
+    }
+    lines.push(`${keyword}('${escapeQuote2(step.text)}', async function () {`, body, "});", "");
   }
-  const header = methods.size > 0 ? `const page = require('${pageObjectPath}');
+  const header = usesPage ? `const page = require('${pageObjectPath}');
 
 ` : "";
   return `${header}${lines.join("\n")}`;
@@ -17358,32 +17401,14 @@ function pageMethodsFromCases(cases) {
   const seen = /* @__PURE__ */ new Set();
   for (const testCase of cases) {
     expandUiSteps(testCase).steps.forEach((step) => {
+      const selector = selectorFromTarget(step.target);
+      if (helperForStep(step, testCase, selector)) {
+        return;
+      }
       const name = methodName(step, `step${methods.length + 1}`);
       if (seen.has(name))
         return;
       seen.add(name);
-      const selector = selectorFromTarget(step.target);
-      const pageUrl = urlFromCase(testCase, step);
-      if (step.api) {
-        const path8 = step.api.path.startsWith("/") || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
-        const urlExpr = /^https?:\/\//i.test(path8) ? `'${escapeQuote(path8)}'` : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(path8)}'`;
-        const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
-        methods.push(`  // ${step.action}
-  async ${name}() {
-    const response = await fetch(${urlExpr}, { method: '${escapeQuote(step.api.method || "GET")}' });
-    if (response.status !== ${expected}) throw new Error('Expected ${expected}, got ' + response.status);
-  }`);
-        return;
-      }
-      if (pageUrl && isNavigate(step.action) && !selector) {
-        methods.push(`  // ${step.action}
-  async ${name}() {
-    await global.browser.url('about:blank');
-    if (typeof global.browser.deleteCookies === 'function') await global.browser.deleteCookies();
-    await global.browser.url('${escapeQuote(pageUrl)}');
-  }`);
-        return;
-      }
       if (!selector) {
         methods.push(`  // unbound: ${step.action || testCase.title}
   async ${name}() {
@@ -17391,10 +17416,9 @@ function pageMethodsFromCases(cases) {
   }`);
         return;
       }
-      const command = isDisplayed(`${step.action} ${step.expected}`) ? "waitForDisplayed()" : step.target?.type === "input" || step.target?.type === "select" ? `setValue('')` : "click()";
       methods.push(`  // ${step.action}
   async ${name}() {
-    await global.browser.$('${escapeQuote(selector)}').${command};
+    await global.browser.$('${escapeQuote2(selector)}').waitForDisplayed();
   }`);
     });
   }
@@ -17404,6 +17428,8 @@ function methodIndex(cases) {
   const methods = /* @__PURE__ */ new Map();
   for (const testCase of cases) {
     for (const step of expandUiSteps(testCase).steps) {
+      if (helperForStep(step, testCase, selectorFromTarget(step.target)))
+        continue;
       const name = methodName(step, "");
       if (!name || !step.action)
         continue;
@@ -17411,6 +17437,23 @@ function methodIndex(cases) {
     }
   }
   return methods;
+}
+function caseStepForText(cases, text) {
+  for (const testCase of cases) {
+    for (const step of expandUiSteps(testCase).steps) {
+      if (step.action === text || step.expected === text) {
+        return { testCase, step };
+      }
+    }
+  }
+  for (const testCase of cases) {
+    for (const step of expandUiSteps(testCase).steps) {
+      if (step.action && (text.includes(step.action) || step.action.includes(text))) {
+        return { testCase, step };
+      }
+    }
+  }
+  return null;
 }
 function casesFromFeature(feature) {
   const uses = featureSteps(feature);
@@ -17479,7 +17522,7 @@ function featureSteps(feature) {
     return keyword ? [{ keyword, text: line.slice(keyword.length).trim() }] : [];
   });
 }
-function escapeQuote(value) {
+function escapeQuote2(value) {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
