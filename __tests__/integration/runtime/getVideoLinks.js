@@ -54,7 +54,7 @@ describe('getVideoLinks', () => {
     });
   });
 
-  it('embeds a public mp4 and links a credentialed LambdaTest url', () => {
+  it('embeds a public mp4 and opens a credentialed LambdaTest url in a popup', () => {
     expect(reportHtml({
       url: 'https://cdn.example/video.mp4',
       viewUrl: 'https://automation.lambdatest.com/logs',
@@ -63,7 +63,9 @@ describe('getVideoLinks', () => {
       url: 'https://user:secret@api.lambdatest.com/automation/api/v1/bundler/session/video.mp4',
       viewUrl: 'https://automation.lambdatest.com/logs',
     });
-    expect(html).toBe('video: <a href="https://automation.lambdatest.com/logs">Open session video</a>');
+    expect(html).toMatch(/Play session video/);
+    expect(html).toMatch(/window\.open\(this\.href,'lt-session-video'/);
+    expect(html).toMatch(/target="lt-session-video"/);
     expect(html).not.toMatch(/secret|user:|@api\.lambdatest/);
   });
 });

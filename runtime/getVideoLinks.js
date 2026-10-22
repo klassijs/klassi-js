@@ -63,11 +63,16 @@ function reportHtml(video) {
   if (!video || !video.url) return '';
   const canEmbed = /\.mp4(\?|$)/i.test(video.url) && !hasUserinfo(video.url);
   if (canEmbed) {
-    return `video:\n <video width='320' height='240' controls autoplay> <source src=${video.url} type=video/mp4> </video>`;
+    return `video:\n <video width='640' height='360' controls> <source src=${video.url} type=video/mp4> </video>`;
   }
   const href = video.viewUrl && !hasUserinfo(video.viewUrl) ? video.viewUrl : '';
   if (!href) return '';
-  return `video: <a href="${href}">Open session video</a>`;
+  return [
+    'video: ',
+    `<a href="${href}" target="lt-session-video" rel="noopener noreferrer" `,
+    `onclick="window.open(this.href,'lt-session-video','popup=yes,width=1024,height=640,scrollbars=yes,resizable=yes');return false;">`,
+    'Play session video</a>',
+  ].join('');
 }
 
 module.exports = {
