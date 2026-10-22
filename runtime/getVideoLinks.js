@@ -24,7 +24,7 @@ module.exports = {
       );
       return null;
     }
-    url = `https://${ltUrl}/sessions?limit=50`;
+    url = `https://${ltUrl}/sessions/${sessionId}/video`;
     res = await pactumJs
       .spec()
       .get(url)
@@ -32,9 +32,7 @@ module.exports = {
       .withRequestTimeout(15000)
       .expectStatus(200)
       .toss();
-    const rows = (res.body && res.body.data) || [];
-    const match = rows.find((row) => row.session_id === sessionId || row.test_id === sessionId);
-    videoID = match && match.video_url;
+    videoID = res.body.url;
     return videoID;
   },
 

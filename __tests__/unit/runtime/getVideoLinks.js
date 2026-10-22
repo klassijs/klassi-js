@@ -11,9 +11,7 @@ jest.mock('pactum', () => ({
   withHeaders: jest.fn().mockReturnThis(),
   withRequestTimeout: jest.fn().mockReturnThis(),
   expectStatus: jest.fn().mockReturnThis(),
-  toss: jest.fn().mockResolvedValue({
-    body: { data: [{ session_id: 'mockSessionId', video_url: 'mockVideoUrl' }] },
-  }),
+  toss: jest.fn().mockResolvedValue({ body: { url: 'mockVideoUrl' } }),
 }));
 
 describe('getVideoLinks', () => {
@@ -36,7 +34,7 @@ describe('getVideoLinks', () => {
 
     expect(pactumJs.spec).toHaveBeenCalled();
     expect(pactumJs.get).toHaveBeenCalledWith(
-      `https://${process.env.LAMBDATEST_API_URL}/sessions?limit=50`
+      `https://${process.env.LAMBDATEST_API_URL}/sessions/${global.browser.sessionId}/video`
     );
     expect(pactumJs.withHeaders).toHaveBeenCalledWith(
       'Authorization',

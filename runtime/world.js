@@ -242,13 +242,8 @@ After(async (scenario) => {
 		if (!vidLink) {
 			return;
 		}
-		const safeLink = String(vidLink).replace(/"/g, '&quot;');
 		cucumberThis.attach(
-			`video:<br>` +
-				`<div style="width:960px;max-width:100%;aspect-ratio:16/9;background:#111">` +
-				`<iframe src="${safeLink}" sandbox="allow-scripts allow-same-origin allow-presentation" ` +
-				`style="width:100%;height:100%;border:0;display:block"></iframe>` +
-				`</div>`,
+			`video:\n <video width='320' height='240' controls autoplay> <source src="${vidLink}" type=video/mp4> </video>`,
 			'text/html',
 		);
 	}
