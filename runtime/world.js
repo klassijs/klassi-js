@@ -244,7 +244,7 @@ After(async (scenario) => {
 		}
 		const safeLink = String(vidLink).replace(/"/g, '&quot;');
 		cucumberThis.attach(
-			`video:<br><iframe src="${safeLink}" width="640" height="360" allow="autoplay; fullscreen" allowfullscreen></iframe><br><a href="${safeLink}" target="_blank" rel="noopener">Open video</a>`,
+			`video:<br><iframe src="${safeLink}" width="320" height="240" allow="autoplay; fullscreen" allowfullscreen></iframe><br><a href="${safeLink}" target="_blank" rel="noopener">Open video</a>`,
 			'text/html',
 		);
 	}
