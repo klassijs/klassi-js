@@ -10,12 +10,17 @@ jest.mock('pactum', () => ({
   get: jest.fn().mockReturnThis(),
   withAuth: jest.fn().mockReturnThis(),
   expectStatus: jest.fn().mockReturnThis(),
-  toss: jest.fn().mockResolvedValue({ body: { url: 'mockVideoUrl' } }),
+  toss: jest.fn().mockResolvedValue({
+    body: { data: [{ session_id: 'mockSessionId', video_url: 'mockVideoUrl' }] },
+  }),
 }));
 
 describe('getVideoLinks', () => {
   beforeEach(() => {
     global.browser = { sessionId: 'mockSessionId' };
+    process.env.LAMBDATEST_API_URL = 'mockApiUrl';
+    process.env.LAMBDATEST_USERNAME = 'mockUsername';
+    process.env.LAMBDATEST_ACCESS_KEY = 'mockAccessKey';
   });
 
   afterEach(() => {
@@ -30,10 +35,7 @@ describe('getVideoLinks', () => {
 
     expect(pactumJs.spec).toHaveBeenCalled();
     expect(pactumJs.get).toHaveBeenCalledWith(
-      `https://${process.env.LAMBDATEST_API_URL}/sessions/${global.browser.sessionId}/video`
-    );
-    expect(pactumJs.withAuth).toHaveBeenCalledWith(
-      `${process.env.LAMBDATEST_USERNAME}`, `${process.env.LAMBDATEST_ACCESS_KEY}`
+      `https://${process.env.LAMBDATEST_USERNAME}:${process.env.LAMBDATEST_ACCESS_KEY}@${process.env.LAMBDATEST_API_URL}/sessions?limit=50`
     );
     expect(pactumJs.expectStatus).toHaveBeenCalledWith(200);
     expect(videoID).toBe('mockVideoUrl');

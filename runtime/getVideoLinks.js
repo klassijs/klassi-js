@@ -4,13 +4,6 @@
  */
 const pactumJs = require('pactum');
 
-/**
- * setting the envConfig variables for file list
- */
-const ltUrl = process.env.LAMBDATEST_API_URL;
-const ltUsername = process.env.LAMBDATEST_USERNAME;
-const ltKey = process.env.LAMBDATEST_ACCESS_KEY;
-
 let res;
 let videoID;
 let url;
@@ -22,9 +15,14 @@ module.exports = {
       return null;
     }
     const { sessionId } = global.browser;
-    url = `https://${ltUrl}/sessions/${sessionId}/video`;
-    res = await pactumJs.spec().get(url).withAuth(ltUsername, ltKey).expectStatus(200).toss();
-    videoID = res.body.url;
+    const user = String(process.env.LAMBDATEST_USERNAME || '').trim();
+    const key = String(process.env.LAMBDATEST_ACCESS_KEY || '').trim();
+    const ltUrl = String(process.env.LAMBDATEST_API_URL || '').trim();
+    url = `https://${user}:${key}@${ltUrl}/sessions?limit=50`;
+    res = await pactumJs.spec().get(url).expectStatus(200).toss();
+    const rows = (res.body && res.body.data) || [];
+    const match = rows.find((row) => row.session_id === sessionId || row.test_id === sessionId);
+    videoID = match && match.video_url;
     return videoID;
   },
 
