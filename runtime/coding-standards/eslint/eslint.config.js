@@ -145,6 +145,7 @@ module.exports = [
         test: true,
         Response: true,
         videoLib: true,
+        fetch: true,
       },
     },
   },

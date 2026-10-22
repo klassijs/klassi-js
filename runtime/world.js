@@ -229,21 +229,6 @@ Before((scenario) => {
 });
 
 /**
- * LambdaTest Only
- * executed ONLY on failure of a scenario to get the video link
- * from lambdatest when it fails for the report
- */
-After(async (scenario) => {
-	if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
-		await helpers.ltVideo();
-		const html = videoLib.reportHtml(await videoLib.getVideoId());
-		if (html) {
-			cucumberThis.attach(html);
-		}
-	}
-});
-
-/**
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void>|*}
  */
@@ -277,7 +262,7 @@ After(async (scenario) => {
 	) {
 		if (remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
 			const { browser } = global;
-			if (scenario.result.status === 'FAILED') {
+			if (scenario.result.status === Status.FAILED) {
 				await browser.executeScript('lambda-status=failed', []);
 			} else if (scenario.result.status === Status.PASSED) {
 				await browser.executeScript('lambda-status=passed', []);
@@ -292,11 +277,24 @@ After(async (scenario) => {
 			} else if (scenario.result.status === Status.PENDING) {
 				await browser.executeScript('lambda-status=skipped', []);
 			}
+			if (scenario.result.status === Status.FAILED) {
+				await attachLambdaTestVideo();
+			}
 			return await browserOpen();
 		}
 	}
 	return await browserOpen();
 });
+
+async function attachLambdaTestVideo() {
+	await helpers.ltVideo();
+	const video = await videoLib.getVideoId();
+	const mp4 = await videoLib.downloadMp4(video);
+	const html = videoLib.reportHtml(video, mp4);
+	if (html) {
+		cucumberThis.attach(html);
+	}
+}
 
 /**
  * A thrown step stops on the page where it failed. Capture that page

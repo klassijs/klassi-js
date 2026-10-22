@@ -43,6 +43,7 @@ describe('getVideoLinks', () => {
     expect(video).toEqual({
       url: 'https://cdn.example/video.mp4',
       viewUrl: 'https://automation.lambdatest.com/video',
+      sessionId: 'mockSessionId',
     });
   });
 
@@ -51,21 +52,26 @@ describe('getVideoLinks', () => {
     await expect(getVideoId()).resolves.toEqual({
       url: 'https://cdn.example/video.mp4',
       viewUrl: 'https://automation.lambdatest.com/video',
+      sessionId: 'mockSessionId',
     });
   });
 
-  it('embeds a public mp4 and opens a credentialed LambdaTest url in a popup', () => {
+  it('embeds a public mp4 and always keeps a popup when the file url has credentials', () => {
     expect(reportHtml({
       url: 'https://cdn.example/video.mp4',
       viewUrl: 'https://automation.lambdatest.com/logs',
     })).toMatch(/source src=https:\/\/cdn.example\/video.mp4/);
     const html = reportHtml({
-      url: 'https://user:secret@api.lambdatest.com/automation/api/v1/bundler/session/video.mp4',
-      viewUrl: 'https://automation.lambdatest.com/logs',
+      url: 'https://user:secret@api.lambdatest.com/automation/api/v1/bundler/DA-WIN-1/video.mp4',
     });
     expect(html).toMatch(/Play session video/);
+    expect(html).toMatch(/testID=DA-WIN-1/);
     expect(html).toMatch(/window\.open\(this\.href,'lt-session-video'/);
-    expect(html).toMatch(/target="lt-session-video"/);
     expect(html).not.toMatch(/secret|user:|@api\.lambdatest/);
+    const embedded = reportHtml({
+      url: 'https://user:secret@api.lambdatest.com/automation/api/v1/bundler/DA-WIN-1/video.mp4',
+    }, Buffer.from('fake-mp4'));
+    expect(embedded).toMatch(/data:video\/mp4;base64,/);
+    expect(embedded).not.toMatch(/secret|user:/);
   });
 });
