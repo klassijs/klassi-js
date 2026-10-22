@@ -2,7 +2,7 @@ import type { TestGenieCase } from './test-genie.js';
 import { assertReadyForCodeGeneration, type TestGenieVerification } from './test-genie.js';
 import { forbiddenFindings, type StaticFinding } from './source-checks.js';
 import { helperForStep } from './klassiHelpers.js';
-import { expandUiSteps, hideProductUrl, isDisplayed, isNavigate, methodName, OPEN_WEBSITE_STEP, toName, urlFromCase } from './uiSteps.js';
+import { expandUiSteps, isDisplayed, isNavigate, methodName, OPEN_WEBSITE_STEP, stripProductUrls, toName, urlFromCase } from './uiSteps.js';
 
 export interface GherkinArtefact {
   feature: string;
@@ -31,7 +31,7 @@ export function featureFromCases(
   const expanded = cases.map(({ testCase, trace }) => ({ testCase: expandUiSteps(testCase), trace }));
   const productUrl = productUrlFromCases(expanded.map((item) => item.testCase), options.productUrl);
   const scenarios = expanded.map(({ testCase, trace }) => scenarioBlock(testCase, trace, Boolean(productUrl)));
-  const lines = [`Feature: ${hideProductUrl(title)}`, ''];
+  const lines = [`Feature: ${stripProductUrls(title)}`, ''];
   if (productUrl) {
     lines.push('  Background:', `    Given ${OPEN_WEBSITE_STEP}`, '');
   }
@@ -67,21 +67,6 @@ export function verifyGherkin(content: string): StaticFinding[] {
     findings.push({ code: 'gherkin', severity: 'high', message: 'Scenario has no Then step', deterministic: true });
   }
   return findings;
-}
-
-export function stepsFromFeature(feature: string): string {
-  const lines = [];
-  const seen = new Set<string>();
-  for (const step of featureSteps(feature)) {
-    const keyword = step.keyword === 'And' || step.keyword === 'But' ? 'Then' : step.keyword;
-    const key = `${keyword}:${step.text}`;
-    if (seen.has(key)) {
-      continue;
-    }
-    seen.add(key);
-    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, '  return undefined;', '});', '');
-  }
-  return lines.join('\n');
 }
 
 export function pageObjectFromFeature(feature: string, cases: TestGenieCase[] = []): string {
@@ -169,10 +154,10 @@ function pageMethodsFromCases(cases: TestGenieCase[]): string[] {
       if (seen.has(name)) return;
       seen.add(name);
       if (!selector) {
-        methods.push(`  // unbound: ${hideProductUrl(step.action || testCase.title)}\n  async ${name}() {\n    await global.browser.pause(0);\n  }`);
+        methods.push(`  // unbound: ${stripProductUrls(step.action || testCase.title)}\n  async ${name}() {\n    await global.browser.pause(0);\n  }`);
         return;
       }
-      methods.push(`  // ${hideProductUrl(step.action)}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').waitForDisplayed();\n  }`);
+      methods.push(`  // ${stripProductUrls(step.action)}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').waitForDisplayed();\n  }`);
     });
   }
   return methods;
@@ -377,8 +362,8 @@ function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; 
     ? testCase.steps.filter((step) => !isNavigate(step.action) || step.target || step.api)
     : testCase.steps;
   const steps = (remaining.length > 0 ? remaining : testCase.steps.slice(-1)).flatMap((step, index) => {
-    const action = hideProductUrl(step.action);
-    const expected = hideProductUrl(step.expected);
+    const action = stripProductUrls(step.action);
+    const expected = stripProductUrls(step.expected);
     const assertionOnly = action === expected || (isDisplayed(action) && !isNavigate(action) && !step.api);
     if (assertionOnly) return [`${index === 0 ? 'Then' : 'And'} ${expected}`];
     if (hoistOpenPage && isNavigate(action) && !step.target && !step.api) {
@@ -394,13 +379,13 @@ function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; 
   }).join('\n    ');
   const examples = exampleTable(testCase.examples);
   const keyword = examples ? 'Scenario Outline' : 'Scenario';
-  return [`  ${tags.join(' ')}`, `  ${keyword}: ${hideProductUrl(testCase.title)}`, `    ${steps}`, examples].filter(Boolean).join('\n');
+  return [`  ${tags.join(' ')}`, `  ${keyword}: ${stripProductUrls(testCase.title)}`, `    ${steps}`, examples].filter(Boolean).join('\n');
 }
 
 function exampleTable(examples: TestGenieCase['examples']): string {
   if (!examples || examples.headers.length === 0 || examples.rows.length === 0) return '';
-  const header = `      | ${examples.headers.map((name) => hideProductUrl(name)).join(' | ')} |`;
-  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => hideProductUrl(row[name] ?? '')).join(' | ')} |`);
+  const header = `      | ${examples.headers.map((name) => stripProductUrls(name)).join(' | ')} |`;
+  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => stripProductUrls(row[name] ?? '')).join(' | ')} |`);
   return ['    Examples:', header, ...rows].join('\n');
 }
 

@@ -19,7 +19,6 @@ export {
   pageObjectFromFeature,
   selectorFromTarget,
   stepsFromCases,
-  stepsFromFeature,
   unboundSteps,
   traceExecution,
   verifyGherkin,

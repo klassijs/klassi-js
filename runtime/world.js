@@ -236,10 +236,16 @@ Before((scenario) => {
 After(async (scenario) => {
 	if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
 		await helpers.ltVideo();
-		// eslint-disable-next-line no-undef
-		const vidLink = await videoLib.getVideoId();
+		const video = await videoLib.getVideoId();
+		if (!video || !video.url) {
+			return;
+		}
+		if (/\.m3u8(\?|$)/i.test(video.url)) {
+			cucumberThis.attach(`video: <a href="${video.viewUrl}">Open session video</a>`);
+			return;
+		}
 		cucumberThis.attach(
-			`video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`,
+			`video:\n <video width='320' height='240' controls autoplay> <source src=${video.url} type=video/mp4> </video>`,
 		);
 	}
 });

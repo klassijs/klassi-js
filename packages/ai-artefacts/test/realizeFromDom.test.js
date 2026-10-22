@@ -19,8 +19,8 @@ const navCase = {
 };
 
 const rows = [
-  { navigation_link: 'Home', page_name: 'Home', main_heading: 'Welcome to the Klassi Brand', href: 'https://klassi.co.uk/' },
-  { navigation_link: 'Contact Us', page_name: 'Contact Us', main_heading: 'Get in Touch', href: 'https://klassi.co.uk/contact' },
+  { navigation_link: 'Home', main_heading: 'Welcome to the Klassi Brand', href: 'https://klassi.co.uk/' },
+  { navigation_link: 'Contact Us', main_heading: 'Get in Touch', href: 'https://klassi.co.uk/contact' },
 ];
 
 const nodes = [

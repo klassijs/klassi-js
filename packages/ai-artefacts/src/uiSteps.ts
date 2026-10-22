@@ -14,10 +14,6 @@ export function urlFromText(text: string): string {
   return String(text || '').match(/https?:\/\/[^\s"'<>]+/i)?.[0] || '';
 }
 
-export function hideProductUrl(text: string): string {
-  return stripProductUrls(String(text || ''));
-}
-
 export function stripProductUrls(text: string): string {
   return String(text || '')
     .replace(/\b(?:a visitor |the user |I )?(?:opens?|visits?|goes to|navigates? to|loads?)\s+https?:\/\/[^\s"'<>]+/gi, OPEN_WEBSITE_STEP)

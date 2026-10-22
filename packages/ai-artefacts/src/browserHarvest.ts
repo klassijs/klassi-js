@@ -1,4 +1,4 @@
-import { harvestInteractiveNodes, type DomNode } from './locatorBind.js';
+import type { DomNode } from './locatorBind.js';
 import { extraNavUrls } from './outlineExamples.js';
 
 export interface BrowserSession {
@@ -152,8 +152,4 @@ async function waitForPage(browser: BrowserSession, timeoutMs: number): Promise<
   if (browser.pause) {
     await browser.pause(400);
   }
-}
-
-export function nodesFromHtml(html: string): DomNode[] {
-  return harvestInteractiveNodes(html);
 }

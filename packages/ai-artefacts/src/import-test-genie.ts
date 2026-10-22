@@ -4,7 +4,7 @@ import path from 'node:path';
 import { featureFromCases, pageObjectFromFeature, stepsFromCases, unboundSteps } from './bdd.js';
 import { expandUiSteps, stripProductUrls, urlFromCase } from './uiSteps.js';
 import { bindCasesToNodes, fetchProductHtml, harvestInteractiveNodes, loginProduct, resolveProductUrl } from './locatorBind.js';
-import { extraNavUrls, mergeDomExamples, navRowsFromNodes, normalizeHref } from './outlineExamples.js';
+import { extraNavUrls, navRowsFromNodes, normalizeHref } from './outlineExamples.js';
 import { isSyntheticSuite, realizeCasesFromDom } from './realizeFromDom.js';
 import { TestGenieArtifactProvider, verifyTestGenieBundle, type TestGenieBundle, type TestGenieCase, type TestGenieVerification } from './test-genie.js';
 
@@ -122,7 +122,7 @@ async function writeBundle(
         existsSync(pageObject) ? await readFile(pageObject, 'utf8') : '',
       ];
       if (!isSyntheticSuite(existing[0], existing[1], existing[2])) {
-        await refreshExistingFeature(feature, featureText);
+        await stripUrlsInFile(feature);
         await stripUrlsInFile(steps);
         await stripUrlsInFile(pageObject);
         skipped.push(group.id);
@@ -177,15 +177,6 @@ function featureGroups(
 
 function safeName(value: string): string {
   return value.replace(/[^A-Za-z0-9._-]/g, '_');
-}
-
-async function refreshExistingFeature(file: string, featureText: string): Promise<void> {
-  if (!existsSync(file)) return;
-  const current = await readFile(file, 'utf8');
-  const next = stripProductUrls(mergeDomExamples(current, featureText));
-  if (next !== current) {
-    await writeFile(file, next);
-  }
 }
 
 async function stripUrlsInFile(file: string): Promise<void> {
