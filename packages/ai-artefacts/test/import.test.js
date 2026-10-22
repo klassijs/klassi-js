@@ -159,6 +159,34 @@ test('an API step does not invent a locator', async () => {
   assert.doesNotMatch(pageObject, /data-testid|aria\//);
 });
 
+test('browser harvest binds the displayed logo from the rendered DOM', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const home = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      title: 'Visitor sees the home page',
+      page: { name: 'app', url: 'https://klassi.co.uk' },
+      steps: [{
+        action: 'a visitor opens the website',
+        expected: 'the Klassi logo is displayed',
+      }],
+    }],
+  };
+  const result = await importTestGenieBundle(home, out, {
+    bindLocators: true,
+    env: { PRODUCT_BASE_URL: 'https://klassi.co.uk' },
+    harvestDom: async (urls) => {
+      assert.equal(urls[0], 'https://klassi.co.uk');
+      return [{ tag: 'img', text: 'klassi trademark logo' }];
+    },
+  });
+  const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
+  assert.match(pageObject, /klassi trademark logo/);
+  assert.match(pageObject, /waitForDisplayed/);
+  assert.equal(result.findings.some((item) => item.includes('Harvested 1 DOM node')), true);
+});
+
 test('live bind upgrades a label target from the product HTML', async () => {
   const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
   const html = '<button data-testid="login-submit" aria-label="login">Sign in</button>';
@@ -203,10 +231,11 @@ test('a homepage open and displayed steps become a url and waitForDisplayed', as
   const feature = await readFile(result.imported[0].feature, 'utf8');
   const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
   const steps = await readFile(result.imported[0].steps, 'utf8');
-  assert.match(feature, /Background:\s*\n\s*Given a visitor opens https:\/\/klassi\.co\.uk/);
+  assert.match(feature, /Background:\s*\n\s*Given a visitor opens the website/);
+  assert.doesNotMatch(feature, /https:\/\//);
   assert.doesNotMatch(feature.split('Scenario:')[1] || '', /When a visitor opens/);
-  assert.match(steps, /Given\('a visitor opens https:\/\/klassi\.co\.uk'/);
-  assert.match(steps, /helpers\.loadPage\('https:\/\/klassi\.co\.uk'\)/);
+  assert.match(steps, /Given\('a visitor opens the website'/);
+  assert.match(steps, /helpers\.loadPage\(env\.base_url\)/);
   assert.doesNotMatch(steps, /page\.openPage|helpers\.loadPage.*openPage/);
   assert.doesNotMatch(pageObject, /async openPage\(|deleteCookies|browser\.url\(/);
   assert.match(pageObject, /='=Klassi logo'|="=Klassi logo"|\$\('=Klassi logo'\)/);

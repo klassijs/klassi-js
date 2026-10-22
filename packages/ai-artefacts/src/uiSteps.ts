@@ -1,5 +1,7 @@
 import type { TestGenieCase, TestGenieStep, TestGenieTarget } from './test-genie.js';
 
+export const OPEN_WEBSITE_STEP = 'a visitor opens the website';
+
 export function isNavigate(text: string): boolean {
   return /\b(opens?|visits?|goes to|navigates? to|loads?)\b/i.test(text) || /https?:\/\//i.test(text);
 }
@@ -18,7 +20,7 @@ export function visibleTargets(text: string): TestGenieTarget[] {
   const parts = String(text || '').split(/\s+(?:is|are)\s+(?:displayed|shown|visible)\b/i);
   for (let index = 0; index < parts.length - 1; index += 1) {
     const chunk = String(parts[index] || '').replace(/\s+/g, ' ').trim();
-    const match = chunk.match(/\bthe\s+((?:[A-Za-z][\w&'-]*)(?:\s+[A-Za-z][\w&'-]*){0,3})\s*$/i);
+    const match = chunk.match(/.*\bthe\s+((?:[A-Za-z][\w&'-]*)(?:\s+[A-Za-z][\w&'-]*){0,2})\s*$/i);
     const noun = match ? match[1].trim() : '';
     const key = noun.toLowerCase();
     if (!noun || key === 'page' || key === 'it' || /finishes loading|page is ready/.test(key) || seen.has(key)) {
@@ -44,7 +46,7 @@ export function expandUiSteps(testCase: TestGenieCase): TestGenieCase {
   const url = urlFromCase(testCase);
   const steps: TestGenieStep[] = [];
   if (url && !testCase.steps.some((step) => isNavigate(step.action))) {
-    steps.push({ action: `the visitor opens ${url}`, expected: 'the page is ready' });
+    steps.push({ action: OPEN_WEBSITE_STEP, expected: 'the page is ready' });
   }
   for (const step of testCase.steps) {
     if (step.api || step.target) {
@@ -54,7 +56,7 @@ export function expandUiSteps(testCase: TestGenieCase): TestGenieCase {
     if (isNavigate(step.action) && url) {
       if (!steps.some((item) => isNavigate(item.action))) {
         steps.push({
-          action: step.action.replace(/\s+the page finishes loading.*$/i, '').trim(),
+          action: OPEN_WEBSITE_STEP,
           expected: step.expected && !isDisplayed(step.expected) ? step.expected : 'the page is ready',
         });
       }

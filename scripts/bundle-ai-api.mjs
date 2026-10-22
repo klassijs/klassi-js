@@ -8,4 +8,5 @@ await build({
   outfile: 'runtime/ai/api.cjs',
   target: 'node22',
   legalComments: 'none',
+  external: ['webdriverio'],
 });

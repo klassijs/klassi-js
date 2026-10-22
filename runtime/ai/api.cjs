@@ -4,6 +4,9 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
@@ -3765,7 +3768,7 @@ ${pointer}
 var require_resolve_props = __commonJS({
   "node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js"(exports2) {
     "use strict";
-    function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
+    function resolveProps(tokens2, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
       let spaceBefore = false;
       let atNewline = startOnNewline;
       let hasSpace = startOnNewline;
@@ -3780,7 +3783,7 @@ var require_resolve_props = __commonJS({
       let comma = null;
       let found = null;
       let start = null;
-      for (const token of tokens) {
+      for (const token of tokens2) {
         if (reqSpace) {
           if (token.type !== "space" && token.type !== "newline" && token.type !== "comma")
             onError(token.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
@@ -3871,7 +3874,7 @@ var require_resolve_props = __commonJS({
             hasSpace = false;
         }
       }
-      const last = tokens[tokens.length - 1];
+      const last = tokens2[tokens2.length - 1];
       const end = last ? last.offset + last.source.length : offset;
       if (reqSpace && next && next.type !== "space" && next.type !== "newline" && next.type !== "comma" && (next.type !== "scalar" || next.source !== "")) {
         onError(next.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
@@ -5210,8 +5213,8 @@ ${cb}` : comment;
        * @param forceDoc - If the stream contains no document, still emit a final document including any comments and directives that would be applied to a subsequent document.
        * @param endOffset - Should be set if `forceDoc` is also set, to set the document range end and to indicate errors correctly.
        */
-      *compose(tokens, forceDoc = false, endOffset = -1) {
-        for (const token of tokens)
+      *compose(tokens2, forceDoc = false, endOffset = -1) {
+        for (const token of tokens2)
           yield* this.next(token);
         yield* this.end(forceDoc, endOffset);
       }
@@ -7353,6 +7356,251 @@ var require_dist = __commonJS({
     exports2.stringify = publicApi.stringify;
     exports2.visit = visit.visit;
     exports2.visitAsync = visit.visitAsync;
+  }
+});
+
+// packages/ai-artefacts/dist/locatorBind.js
+function harvestInteractiveNodes(html) {
+  const nodes = [];
+  const tagRe = /<(input|button|select|textarea|a|label|h1|h2|h3|img|article)\b([^>]*)>(?:([^<]*))?/gi;
+  let match = tagRe.exec(html);
+  while (match) {
+    const attrs = match[2] ?? "";
+    const text = String(match[3] || attr(attrs, "alt") || attr(attrs, "value") || attr(attrs, "placeholder") || "").replace(/\s+/g, " ").trim();
+    nodes.push({
+      tag: match[1]?.toLowerCase(),
+      testid: attr(attrs, "data-testid"),
+      name: attr(attrs, "name"),
+      id: attr(attrs, "id"),
+      aria: attr(attrs, "aria-label"),
+      text: text || void 0
+    });
+    match = tagRe.exec(html);
+  }
+  return nodes.filter((node) => node.testid || node.name || node.id || node.aria || node.text);
+}
+function bindCasesToNodes(cases, nodes) {
+  return cases.map((testCase) => ({
+    ...testCase,
+    steps: testCase.steps.map((step) => bindStep(step, nodes))
+  }));
+}
+function resolveProductUrl(pageUrl, env = process.env) {
+  const raw = String(pageUrl || env.PRODUCT_START_PATH || "/").trim();
+  if (/^https?:\/\//i.test(raw))
+    return raw;
+  const base = String(env.PRODUCT_BASE_URL || "").replace(/\/+$/, "");
+  if (!base)
+    return null;
+  return `${base}${raw.startsWith("/") ? raw : `/${raw}`}`;
+}
+async function loginProduct(env, fetchImpl = fetch) {
+  const loginUrl = String(env.PRODUCT_LOGIN_URL || "").trim();
+  const user = String(env.PRODUCT_USER || "").trim();
+  const password = String(env.PRODUCT_PASSWORD || "").trim();
+  if (!loginUrl || !user || !password)
+    return "";
+  const response = await fetchImpl(loginUrl, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ username: user, email: user, password }).toString(),
+    redirect: "manual"
+  });
+  return cookieHeader(response);
+}
+async function fetchProductHtml(url, cookie, fetchImpl = fetch) {
+  const response = await fetchImpl(url, { headers: cookie ? { cookie } : void 0 });
+  if (!response.ok) {
+    throw new Error(`Product page returned HTTP ${response.status}`);
+  }
+  return response.text();
+}
+function bindStep(step, nodes) {
+  if (step.api)
+    return step;
+  const needle = normalize(step.target?.find.value || "");
+  if (!needle)
+    return step;
+  const hit = nodes.map((node) => ({ node, score: matchScore(node, needle) })).filter((item) => item.score > 0).sort((left, right) => right.score - left.score)[0]?.node;
+  if (!hit)
+    return step;
+  const find = preferFind(hit);
+  if (!find)
+    return step;
+  const target = {
+    name: step.target?.name || "element",
+    type: step.target?.type || (hit.tag === "input" || hit.tag === "textarea" || hit.tag === "select" ? "input" : "button"),
+    find
+  };
+  return { ...step, target };
+}
+function preferFind(node) {
+  if (node.testid)
+    return { by: "testid", value: node.testid };
+  if (node.aria)
+    return { by: "label", value: node.aria };
+  if (node.name)
+    return { by: "name", value: node.name };
+  if (node.id)
+    return { by: "id", value: node.id };
+  if (node.text)
+    return { by: "text", value: node.text };
+  return null;
+}
+function matchScore(node, needle) {
+  const fields = [node.testid, node.aria, node.text, node.name, node.id].map(normalize).filter(Boolean);
+  if (fields.includes(needle))
+    return 3;
+  const wanted = tokens(needle);
+  if (wanted.length > 0 && fields.some((field) => wanted.every((token) => tokens(field).includes(token))))
+    return 2;
+  if (fields.some((field) => field.includes(needle) || needle.includes(field)))
+    return 1;
+  return 0;
+}
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
+function tokens(value) {
+  return normalize(value).split(/[^a-z0-9]+/).filter((token) => token.length > 1 && !STOP.has(token));
+}
+function attr(attrs, name) {
+  const match = attrs.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i"));
+  return match?.[1];
+}
+function cookieHeader(response) {
+  const many = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];
+  if (many.length > 0) {
+    return many.map((item) => item.split(";", 1)[0]).filter(Boolean).join("; ");
+  }
+  const single = response.headers.get("set-cookie");
+  return single ? single.split(";", 1)[0] : "";
+}
+var STOP;
+var init_locatorBind = __esm({
+  "packages/ai-artefacts/dist/locatorBind.js"() {
+    "use strict";
+    STOP = /* @__PURE__ */ new Set(["the", "a", "an", "is", "are", "and", "of", "for"]);
+  }
+});
+
+// packages/ai-artefacts/dist/browserHarvest.js
+var browserHarvest_exports = {};
+__export(browserHarvest_exports, {
+  harvestProductWithBrowser: () => harvestProductWithBrowser,
+  harvestRenderedNodes: () => harvestRenderedNodes,
+  nodesFromHtml: () => nodesFromHtml,
+  startChrome: () => startChrome
+});
+function collectVisibleNodes() {
+  const nodes = [];
+  const seen = /* @__PURE__ */ new Set();
+  const root = globalThis;
+  const list = root.document.querySelectorAll("a,button,input,select,textarea,label,h1,h2,h3,h4,img,article,svg,[role],[data-testid],[aria-label],[alt],[title]");
+  for (const el of list) {
+    const text = String(el.getAttribute("alt") || el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent || "").replace(/\s+/g, " ").trim();
+    const node = {
+      tag: String(el.tagName || "").toLowerCase(),
+      testid: el.getAttribute("data-testid") || void 0,
+      name: el.getAttribute("name") || void 0,
+      id: el.id || void 0,
+      aria: el.getAttribute("aria-label") || void 0,
+      text: text || void 0
+    };
+    const key = [node.tag, node.testid, node.name, node.id, node.aria, node.text].join("|");
+    if (seen.has(key) || !(node.testid || node.name || node.id || node.aria || node.text))
+      continue;
+    seen.add(key);
+    nodes.push(node);
+  }
+  return nodes;
+}
+async function harvestRenderedNodes(browser) {
+  const nodes = await browser.execute(collectVisibleNodes);
+  return Array.isArray(nodes) ? nodes.filter((node) => node && (node.testid || node.name || node.id || node.aria || node.text)) : [];
+}
+async function harvestProductWithBrowser(urls, options = {}) {
+  const env = options.env ?? process.env;
+  const timeoutMs = options.timeoutMs ?? Number(env.PRODUCT_BIND_TIMEOUT_MS || 2e4);
+  const browser = options.openBrowser ? await options.openBrowser(env) : await startChrome(env);
+  const nodes = [];
+  try {
+    await loginInBrowser(browser, env);
+    for (const url of urls) {
+      await browser.url(url);
+      await waitForPage(browser, timeoutMs);
+      nodes.push(...await harvestRenderedNodes(browser));
+    }
+  } finally {
+    if (browser.deleteSession) {
+      await browser.deleteSession().catch(() => void 0);
+    }
+  }
+  return nodes;
+}
+async function startChrome(env = process.env) {
+  const { remote } = await import("webdriverio");
+  const chromeOptions = {
+    args: ["--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--window-size=1280,1024"]
+  };
+  if (env.CHROME_BINARY) {
+    chromeOptions.binary = env.CHROME_BINARY;
+  }
+  return await remote({
+    logLevel: "error",
+    capabilities: {
+      browserName: "chrome",
+      "goog:chromeOptions": chromeOptions
+    }
+  });
+}
+async function loginInBrowser(browser, env) {
+  const loginUrl = String(env.PRODUCT_LOGIN_URL || "").trim();
+  const user = String(env.PRODUCT_USER || "").trim();
+  const password = String(env.PRODUCT_PASSWORD || "").trim();
+  if (!loginUrl || !user || !password || !browser.$)
+    return;
+  await browser.url(loginUrl);
+  await waitForPage(browser, Number(env.PRODUCT_BIND_TIMEOUT_MS || 2e4));
+  const userField = await firstExisting(browser, ['input[type="email"]', 'input[name="email"]', 'input[name="username"]', 'input[type="text"]']);
+  const passField = await firstExisting(browser, ['input[type="password"]']);
+  if (userField)
+    await userField.setValue(user);
+  if (passField)
+    await passField.setValue(password);
+  const submit = await firstExisting(browser, ['button[type="submit"]', 'input[type="submit"]', "button"]);
+  if (submit)
+    await submit.click();
+  await waitForPage(browser, Number(env.PRODUCT_BIND_TIMEOUT_MS || 2e4));
+}
+async function firstExisting(browser, selectors) {
+  if (!browser.$)
+    return null;
+  for (const selector of selectors) {
+    const element = await browser.$(selector);
+    if (await element.isExisting())
+      return element;
+  }
+  return null;
+}
+async function waitForPage(browser, timeoutMs) {
+  if (browser.waitUntil) {
+    await browser.waitUntil(async () => {
+      const state = await browser.execute(() => globalThis.document?.readyState);
+      return state === "complete";
+    }, { timeout: timeoutMs });
+  }
+  if (browser.pause) {
+    await browser.pause(400);
+  }
+}
+function nodesFromHtml(html) {
+  return harvestInteractiveNodes(html);
+}
+var init_browserHarvest = __esm({
+  "packages/ai-artefacts/dist/browserHarvest.js"() {
+    "use strict";
+    init_locatorBind();
   }
 });
 
@@ -17195,6 +17443,7 @@ function assertReadyForCodeGeneration(verification) {
 }
 
 // packages/ai-artefacts/dist/uiSteps.js
+var OPEN_WEBSITE_STEP = "a visitor opens the website";
 function isNavigate(text) {
   return /\b(opens?|visits?|goes to|navigates? to|loads?)\b/i.test(text) || /https?:\/\//i.test(text);
 }
@@ -17210,7 +17459,7 @@ function visibleTargets(text) {
   const parts = String(text || "").split(/\s+(?:is|are)\s+(?:displayed|shown|visible)\b/i);
   for (let index = 0; index < parts.length - 1; index += 1) {
     const chunk = String(parts[index] || "").replace(/\s+/g, " ").trim();
-    const match = chunk.match(/\bthe\s+((?:[A-Za-z][\w&'-]*)(?:\s+[A-Za-z][\w&'-]*){0,3})\s*$/i);
+    const match = chunk.match(/.*\bthe\s+((?:[A-Za-z][\w&'-]*)(?:\s+[A-Za-z][\w&'-]*){0,2})\s*$/i);
     const noun = match ? match[1].trim() : "";
     const key = noun.toLowerCase();
     if (!noun || key === "page" || key === "it" || /finishes loading|page is ready/.test(key) || seen.has(key)) {
@@ -17234,7 +17483,7 @@ function expandUiSteps(testCase) {
   const url = urlFromCase(testCase);
   const steps = [];
   if (url && !testCase.steps.some((step) => isNavigate(step.action))) {
-    steps.push({ action: `the visitor opens ${url}`, expected: "the page is ready" });
+    steps.push({ action: OPEN_WEBSITE_STEP, expected: "the page is ready" });
   }
   for (const step of testCase.steps) {
     if (step.api || step.target) {
@@ -17244,7 +17493,7 @@ function expandUiSteps(testCase) {
     if (isNavigate(step.action) && url) {
       if (!steps.some((item) => isNavigate(item.action))) {
         steps.push({
-          action: step.action.replace(/\s+the page finishes loading.*$/i, "").trim(),
+          action: OPEN_WEBSITE_STEP,
           expected: step.expected && !isDisplayed(step.expected) ? step.expected : "the page is ready"
         });
       }
@@ -17299,7 +17548,7 @@ function helperForStep(step, testCase, selector) {
   }
   const pageUrl = urlFromCase(testCase, step);
   if (pageUrl && isNavigate(step.action) && !selector) {
-    return { name: "loadPage", expression: `await helpers.loadPage('${escapeQuote(pageUrl)}')` };
+    return { name: "loadPage", expression: "await helpers.loadPage(env.base_url)" };
   }
   if (!selector) {
     return null;
@@ -17441,14 +17690,14 @@ function methodIndex(cases) {
 function caseStepForText(cases, text) {
   for (const testCase of cases) {
     for (const step of expandUiSteps(testCase).steps) {
-      if (step.action === text || step.expected === text) {
+      if (step.action === text) {
         return { testCase, step };
       }
     }
   }
   for (const testCase of cases) {
     for (const step of expandUiSteps(testCase).steps) {
-      if (step.action && (text.includes(step.action) || step.action.includes(text))) {
+      if (step.expected === text && !isNavigate(step.action)) {
         return { testCase, step };
       }
     }
@@ -17481,13 +17730,13 @@ function productUrlFromCases(cases, fallback = "") {
   }
   return String(fallback || "").replace(/\/+$/, "");
 }
-function openPageAction(cases, url) {
+function openPageAction(cases, _url) {
   for (const testCase of cases) {
     const nav = testCase.steps.find((step) => isNavigate(step.action) && !step.target && !step.api);
     if (nav?.action)
       return nav.action;
   }
-  return `a visitor opens ${url}`;
+  return OPEN_WEBSITE_STEP;
 }
 function scenarioBlock(testCase, trace, hoistOpenPage = false) {
   const tags = [
@@ -17502,6 +17751,9 @@ function scenarioBlock(testCase, trace, hoistOpenPage = false) {
       return [`${index === 0 ? "Then" : "And"} ${step.expected}`];
     if (hoistOpenPage && isNavigate(step.action) && !step.target && !step.api) {
       return [`Then ${step.expected}`];
+    }
+    if (isNavigate(step.action) && !step.target && !step.api) {
+      return [`${index === 0 ? "When" : "And"} ${OPEN_WEBSITE_STEP}`, `Then ${step.expected}`];
     }
     return [`${index === 0 ? "When" : "And"} ${step.action}`, `Then ${step.expected}`];
   }).join("\n    ");
@@ -17526,119 +17778,8 @@ function escapeQuote2(value) {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
-// packages/ai-artefacts/dist/locatorBind.js
-function harvestInteractiveNodes(html) {
-  const nodes = [];
-  const tagRe = /<(input|button|select|textarea|a|label|h1|h2|h3|img|article)\b([^>]*)>(?:([^<]*))?/gi;
-  let match = tagRe.exec(html);
-  while (match) {
-    const attrs = match[2] ?? "";
-    const text = String(match[3] || attr(attrs, "alt") || attr(attrs, "value") || attr(attrs, "placeholder") || "").replace(/\s+/g, " ").trim();
-    nodes.push({
-      tag: match[1]?.toLowerCase(),
-      testid: attr(attrs, "data-testid"),
-      name: attr(attrs, "name"),
-      id: attr(attrs, "id"),
-      aria: attr(attrs, "aria-label"),
-      text: text || void 0
-    });
-    match = tagRe.exec(html);
-  }
-  return nodes.filter((node) => node.testid || node.name || node.id || node.aria || node.text);
-}
-function bindCasesToNodes(cases, nodes) {
-  return cases.map((testCase) => ({
-    ...testCase,
-    steps: testCase.steps.map((step) => bindStep(step, nodes))
-  }));
-}
-function resolveProductUrl(pageUrl, env = process.env) {
-  const raw = String(pageUrl || env.PRODUCT_START_PATH || "/").trim();
-  if (/^https?:\/\//i.test(raw))
-    return raw;
-  const base = String(env.PRODUCT_BASE_URL || "").replace(/\/+$/, "");
-  if (!base)
-    return null;
-  return `${base}${raw.startsWith("/") ? raw : `/${raw}`}`;
-}
-async function loginProduct(env, fetchImpl = fetch) {
-  const loginUrl = String(env.PRODUCT_LOGIN_URL || "").trim();
-  const user = String(env.PRODUCT_USER || "").trim();
-  const password = String(env.PRODUCT_PASSWORD || "").trim();
-  if (!loginUrl || !user || !password)
-    return "";
-  const response = await fetchImpl(loginUrl, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ username: user, email: user, password }).toString(),
-    redirect: "manual"
-  });
-  return cookieHeader(response);
-}
-async function fetchProductHtml(url, cookie, fetchImpl = fetch) {
-  const response = await fetchImpl(url, { headers: cookie ? { cookie } : void 0 });
-  if (!response.ok) {
-    throw new Error(`Product page returned HTTP ${response.status}`);
-  }
-  return response.text();
-}
-function bindStep(step, nodes) {
-  if (step.api)
-    return step;
-  const needle = normalize(step.target?.find.value || "");
-  if (!needle)
-    return step;
-  const hit = nodes.map((node) => ({ node, score: matchScore(node, needle) })).filter((item) => item.score > 0).sort((left, right) => right.score - left.score)[0]?.node;
-  if (!hit)
-    return step;
-  const find = preferFind(hit);
-  if (!find)
-    return step;
-  const target = {
-    name: step.target?.name || "element",
-    type: step.target?.type || (hit.tag === "input" || hit.tag === "textarea" || hit.tag === "select" ? "input" : "button"),
-    find
-  };
-  return { ...step, target };
-}
-function preferFind(node) {
-  if (node.testid)
-    return { by: "testid", value: node.testid };
-  if (node.aria)
-    return { by: "label", value: node.aria };
-  if (node.name)
-    return { by: "name", value: node.name };
-  if (node.id)
-    return { by: "id", value: node.id };
-  if (node.text)
-    return { by: "text", value: node.text };
-  return null;
-}
-function matchScore(node, needle) {
-  const fields = [node.testid, node.aria, node.text, node.name, node.id].map(normalize).filter(Boolean);
-  if (fields.includes(needle))
-    return 2;
-  if (fields.some((field) => field.includes(needle) || needle.includes(field)))
-    return 1;
-  return 0;
-}
-function normalize(value) {
-  return String(value || "").trim().toLowerCase();
-}
-function attr(attrs, name) {
-  const match = attrs.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i"));
-  return match?.[1];
-}
-function cookieHeader(response) {
-  const many = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];
-  if (many.length > 0) {
-    return many.map((item) => item.split(";", 1)[0]).filter(Boolean).join("; ");
-  }
-  const single = response.headers.get("set-cookie");
-  return single ? single.split(";", 1)[0] : "";
-}
-
 // packages/ai-artefacts/dist/import-test-genie.js
+init_locatorBind();
 var provider = new TestGenieArtifactProvider();
 async function readBundle(fileOrDir) {
   const info = await (0, import_promises2.stat)(fileOrDir);
@@ -17669,7 +17810,7 @@ async function importTestGenieBundle(payload, outDir, options = {}) {
   }
   const bindFindings = [];
   if (shouldBind) {
-    const bound = await bindBundleToProduct(boundCases, env, options.fetch ?? fetch);
+    const bound = await bindBundleToProduct(boundCases, env, options);
     boundCases = bound.cases;
     bindFindings.push(...bound.findings);
   }
@@ -17747,20 +17888,28 @@ function featureGroups(bundle, cases) {
 function safeName(value) {
   return value.replace(/[^A-Za-z0-9._-]/g, "_");
 }
-async function bindBundleToProduct(cases, env, fetchImpl) {
+async function bindBundleToProduct(cases, env, options) {
   const urls = [...new Set(cases.map((item) => resolveProductUrl(item.page?.url, env)).filter((item) => Boolean(item)))];
   if (urls.length === 0) {
     return { cases, findings: ["Product URL is missing; locators were not harvested"] };
   }
   const findings = [];
   try {
-    const cookie = await loginProduct(env, fetchImpl);
-    const html = (await Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)))).join("\n");
-    return { cases: bindCasesToNodes(cases, harvestInteractiveNodes(html)), findings };
+    const nodes = options.harvestDom ? await options.harvestDom(urls, env) : options.fetch ? harvestInteractiveNodes((await withHtml(urls, env, options.fetch)).join("\n")) : await harvestFromBrowser(urls, env);
+    findings.push(`Harvested ${nodes.length} DOM node${nodes.length === 1 ? "" : "s"} from ${urls.length} page${urls.length === 1 ? "" : "s"}`);
+    return { cases: bindCasesToNodes(cases, nodes), findings };
   } catch (error) {
     findings.push(error instanceof Error ? error.message : String(error));
     return { cases, findings };
   }
+}
+async function withHtml(urls, env, fetchImpl) {
+  const cookie = await loginProduct(env, fetchImpl);
+  return Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)));
+}
+async function harvestFromBrowser(urls, env) {
+  const { harvestProductWithBrowser: harvestProductWithBrowser2 } = await Promise.resolve().then(() => (init_browserHarvest(), browserHarvest_exports));
+  return harvestProductWithBrowser2(urls, { env });
 }
 
 // packages/ai-cli/dist/evaluate.js
@@ -18222,9 +18371,9 @@ function readPath(value, expression) {
   if (!expression.startsWith("$")) {
     return { found: false };
   }
-  const tokens = expression.slice(1).split(/\.|\[|\]/).map((token) => token.trim()).filter((token) => token.length > 0);
+  const tokens2 = expression.slice(1).split(/\.|\[|\]/).map((token) => token.trim()).filter((token) => token.length > 0);
   let current = value;
-  for (const token of tokens) {
+  for (const token of tokens2) {
     if (current === null || current === void 0) {
       return { found: false };
     }

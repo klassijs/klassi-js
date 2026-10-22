@@ -28,6 +28,7 @@ export {
 } from './bdd.js';
 export { helperForStep } from './klassiHelpers.js';
 export { artefactBaseline, bddFromVerified, reportByType, sameRulesRegardlessOfOrigin, traceSuite, verifyArtefact, verifyExistingSuite } from './verify.js';
-export { bindCasesToNodes, harvestInteractiveNodes, resolveProductUrl } from './locatorBind.js';
+export { bindCasesToNodes, harvestInteractiveNodes, matchScore, resolveProductUrl } from './locatorBind.js';
+export { harvestRenderedNodes } from './browserHarvest.js';
 export { fetchBundle, importTestGenieBundle, readBundle } from './import-test-genie.js';
 export { artefactEvaluator, registerArtefactEvaluators } from './evaluator.js';

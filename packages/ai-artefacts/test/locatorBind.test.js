@@ -8,6 +8,23 @@ test('harvest prefers data-testid on interactive nodes', () => {
   assert.equal(nodes[0].aria, 'login');
 });
 
+test('bind matches Klassi logo to trademark alt text in the DOM', () => {
+  const nodes = harvestInteractiveNodes('<img alt="klassi trademark logo" />');
+  const [bound] = bindCasesToNodes([{
+    id: 'TC-1',
+    acceptanceTestId: 'AT-1',
+    title: 'Home',
+    preconditions: ['ready'],
+    coverage: ['positive', 'negative', 'boundary'],
+    steps: [{
+      action: 'the Klassi logo is displayed',
+      expected: 'the Klassi logo is displayed',
+      target: { name: 'klassiLogo', type: 'link', find: { by: 'text', value: 'Klassi logo' } },
+    }],
+  }], nodes);
+  assert.deepEqual(bound.steps[0].target.find, { by: 'text', value: 'klassi trademark logo' });
+});
+
 test('harvest reads headings and image alt text', () => {
   const nodes = harvestInteractiveNodes('<h1>Welcome</h1><img alt="Klassi logo" /><article>KlassiTech</article>');
   assert.equal(nodes.some((node) => node.text === 'Welcome'), true);

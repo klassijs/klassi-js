@@ -15,7 +15,7 @@ const testCase = {
 test('a navigate step uses helpers.loadPage and does not need a page-object method', () => {
   const helper = helperForStep({ action: 'a visitor opens https://klassi.co.uk', expected: 'the page is ready' }, testCase, null);
   assert.equal(helper.name, 'loadPage');
-  assert.equal(helper.expression, "await helpers.loadPage('https://klassi.co.uk')");
+  assert.equal(helper.expression, 'await helpers.loadPage(env.base_url)');
 });
 
 test('a click step uses helpers.waitAndClick', () => {

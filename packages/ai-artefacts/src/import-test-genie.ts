@@ -49,7 +49,12 @@ export async function fetchBundle(generationId: string, env: NodeJS.ProcessEnv =
 export async function importTestGenieBundle(
   payload: unknown,
   outDir: string,
-  options: { bindLocators?: boolean; env?: NodeJS.ProcessEnv; fetch?: typeof fetch } = {},
+  options: {
+    bindLocators?: boolean;
+    env?: NodeJS.ProcessEnv;
+    fetch?: typeof fetch;
+    harvestDom?: (urls: string[], env: NodeJS.ProcessEnv) => Promise<import('./locatorBind.js').DomNode[]>;
+  } = {},
 ): Promise<ImportResult> {
   const bundle = provider.load(payload);
   const env = options.env ?? process.env;
@@ -65,7 +70,7 @@ export async function importTestGenieBundle(
   }
   const bindFindings: string[] = [];
   if (shouldBind) {
-    const bound = await bindBundleToProduct(boundCases, env, options.fetch ?? fetch);
+    const bound = await bindBundleToProduct(boundCases, env, options);
     boundCases = bound.cases;
     bindFindings.push(...bound.findings);
   }
@@ -165,7 +170,10 @@ function safeName(value: string): string {
 async function bindBundleToProduct(
   cases: TestGenieCase[],
   env: NodeJS.ProcessEnv,
-  fetchImpl: typeof fetch,
+  options: {
+    fetch?: typeof fetch;
+    harvestDom?: (urls: string[], env: NodeJS.ProcessEnv) => Promise<import('./locatorBind.js').DomNode[]>;
+  },
 ): Promise<{ cases: TestGenieCase[]; findings: string[] }> {
   const urls = [...new Set(cases.map((item) => resolveProductUrl(item.page?.url, env)).filter((item): item is string => Boolean(item)))];
   if (urls.length === 0) {
@@ -173,11 +181,25 @@ async function bindBundleToProduct(
   }
   const findings: string[] = [];
   try {
-    const cookie = await loginProduct(env, fetchImpl);
-    const html = (await Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)))).join('\n');
-    return { cases: bindCasesToNodes(cases, harvestInteractiveNodes(html)), findings };
+    const nodes = options.harvestDom
+      ? await options.harvestDom(urls, env)
+      : options.fetch
+        ? harvestInteractiveNodes((await withHtml(urls, env, options.fetch)).join('\n'))
+        : await harvestFromBrowser(urls, env);
+    findings.push(`Harvested ${nodes.length} DOM node${nodes.length === 1 ? '' : 's'} from ${urls.length} page${urls.length === 1 ? '' : 's'}`);
+    return { cases: bindCasesToNodes(cases, nodes), findings };
   } catch (error) {
     findings.push(error instanceof Error ? error.message : String(error));
     return { cases, findings };
   }
+}
+
+async function withHtml(urls: string[], env: NodeJS.ProcessEnv, fetchImpl: typeof fetch): Promise<string[]> {
+  const cookie = await loginProduct(env, fetchImpl);
+  return Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)));
+}
+
+async function harvestFromBrowser(urls: string[], env: NodeJS.ProcessEnv) {
+  const { harvestProductWithBrowser } = await import('./browserHarvest.js');
+  return harvestProductWithBrowser(urls, { env });
 }

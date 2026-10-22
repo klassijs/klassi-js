@@ -2,7 +2,7 @@ import type { TestGenieCase } from './test-genie.js';
 import { assertReadyForCodeGeneration, type TestGenieVerification } from './test-genie.js';
 import { forbiddenFindings, type StaticFinding } from './source-checks.js';
 import { helperForStep } from './klassiHelpers.js';
-import { expandUiSteps, isDisplayed, isNavigate, methodName, urlFromCase } from './uiSteps.js';
+import { expandUiSteps, isDisplayed, isNavigate, methodName, OPEN_WEBSITE_STEP, urlFromCase } from './uiSteps.js';
 
 export interface GherkinArtefact {
   feature: string;
@@ -178,14 +178,14 @@ function methodIndex(cases: TestGenieCase[]): Map<string, string> {
 function caseStepForText(cases: TestGenieCase[], text: string) {
   for (const testCase of cases) {
     for (const step of expandUiSteps(testCase).steps) {
-      if (step.action === text || step.expected === text) {
+      if (step.action === text) {
         return { testCase, step };
       }
     }
   }
   for (const testCase of cases) {
     for (const step of expandUiSteps(testCase).steps) {
-      if (step.action && (text.includes(step.action) || step.action.includes(text))) {
+      if (step.expected === text && !isNavigate(step.action)) {
         return { testCase, step };
       }
     }
@@ -299,12 +299,12 @@ function productUrlFromCases(cases: TestGenieCase[], fallback = ''): string {
   return String(fallback || '').replace(/\/+$/, '');
 }
 
-function openPageAction(cases: TestGenieCase[], url: string): string {
+function openPageAction(cases: TestGenieCase[], _url: string): string {
   for (const testCase of cases) {
     const nav = testCase.steps.find((step) => isNavigate(step.action) && !step.target && !step.api);
     if (nav?.action) return nav.action;
   }
-  return `a visitor opens ${url}`;
+  return OPEN_WEBSITE_STEP;
 }
 
 function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; acceptanceTestId: string }, hoistOpenPage = false): string {
@@ -321,6 +321,9 @@ function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; 
     if (assertionOnly) return [`${index === 0 ? 'Then' : 'And'} ${step.expected}`];
     if (hoistOpenPage && isNavigate(step.action) && !step.target && !step.api) {
       return [`Then ${step.expected}`];
+    }
+    if (isNavigate(step.action) && !step.target && !step.api) {
+      return [`${index === 0 ? 'When' : 'And'} ${OPEN_WEBSITE_STEP}`, `Then ${step.expected}`];
     }
     return [`${index === 0 ? 'When' : 'And'} ${step.action}`, `Then ${step.expected}`];
   }).join('\n    ');

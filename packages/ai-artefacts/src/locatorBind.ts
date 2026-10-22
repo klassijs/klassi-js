@@ -100,15 +100,25 @@ function preferFind(node: DomNode): TestGenieFind | null {
   return null;
 }
 
-function matchScore(node: DomNode, needle: string): number {
+export function matchScore(node: DomNode, needle: string): number {
   const fields = [node.testid, node.aria, node.text, node.name, node.id].map(normalize).filter(Boolean);
-  if (fields.includes(needle)) return 2;
+  if (fields.includes(needle)) return 3;
+  const wanted = tokens(needle);
+  if (wanted.length > 0 && fields.some((field) => wanted.every((token) => tokens(field).includes(token)))) return 2;
   if (fields.some((field) => field.includes(needle) || needle.includes(field))) return 1;
   return 0;
 }
 
 function normalize(value: string | undefined): string {
   return String(value || '').trim().toLowerCase();
+}
+
+const STOP = new Set(['the', 'a', 'an', 'is', 'are', 'and', 'of', 'for']);
+
+function tokens(value: string): string[] {
+  return normalize(value)
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 1 && !STOP.has(token));
 }
 
 function attr(attrs: string, name: string): string | undefined {

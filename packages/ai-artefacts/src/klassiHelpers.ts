@@ -24,7 +24,7 @@ export function helperForStep(
   }
   const pageUrl = urlFromCase(testCase, step);
   if (pageUrl && isNavigate(step.action) && !selector) {
-    return { name: 'loadPage', expression: `await helpers.loadPage('${escapeQuote(pageUrl)}')` };
+    return { name: 'loadPage', expression: 'await helpers.loadPage(env.base_url)' };
   }
   if (!selector) {
     return null;
