@@ -55,7 +55,23 @@ async function getVideoId() {
   return lastVideo;
 }
 
+function hasUserinfo(value) {
+  return /https?:\/\/[^/?#]+@/.test(String(value || ''));
+}
+
+function reportHtml(video) {
+  if (!video || !video.url) return '';
+  const canEmbed = /\.mp4(\?|$)/i.test(video.url) && !hasUserinfo(video.url);
+  if (canEmbed) {
+    return `video:\n <video width='320' height='240' controls autoplay> <source src=${video.url} type=video/mp4> </video>`;
+  }
+  const href = video.viewUrl && !hasUserinfo(video.viewUrl) ? video.viewUrl : '';
+  if (!href) return '';
+  return `video: <a href="${href}">Open session video</a>`;
+}
+
 module.exports = {
   getVideoList,
   getVideoId,
+  reportHtml,
 };

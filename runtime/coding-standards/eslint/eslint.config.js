@@ -144,6 +144,7 @@ module.exports = [
         afterAll: true,
         test: true,
         Response: true,
+        videoLib: true,
       },
     },
   },

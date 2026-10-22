@@ -3,7 +3,7 @@ process.env.LAMBDATEST_USERNAME = 'mockUsername';
 process.env.LAMBDATEST_ACCESS_KEY = 'mockAccessKey';
 
 const pactumJs = require('pactum');
-const { getVideoList, getVideoId } = require('../../../runtime/getVideoLinks');
+const { getVideoList, getVideoId, reportHtml } = require('../../../runtime/getVideoLinks');
 
 jest.mock('pactum', () => ({
   spec: jest.fn().mockReturnThis(),
@@ -52,5 +52,18 @@ describe('getVideoLinks', () => {
       url: 'https://cdn.example/video.mp4',
       viewUrl: 'https://automation.lambdatest.com/video',
     });
+  });
+
+  it('embeds a public mp4 and links a credentialed LambdaTest url', () => {
+    expect(reportHtml({
+      url: 'https://cdn.example/video.mp4',
+      viewUrl: 'https://automation.lambdatest.com/logs',
+    })).toMatch(/source src=https:\/\/cdn.example\/video.mp4/);
+    const html = reportHtml({
+      url: 'https://user:secret@api.lambdatest.com/automation/api/v1/bundler/session/video.mp4',
+      viewUrl: 'https://automation.lambdatest.com/logs',
+    });
+    expect(html).toBe('video: <a href="https://automation.lambdatest.com/logs">Open session video</a>');
+    expect(html).not.toMatch(/secret|user:|@api\.lambdatest/);
   });
 });
