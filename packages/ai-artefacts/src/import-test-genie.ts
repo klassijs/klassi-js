@@ -2,8 +2,10 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { featureFromCases, pageObjectFromFeature, stepsFromCases, unboundSteps } from './bdd.js';
-import { expandUiSteps, urlFromCase } from './uiSteps.js';
+import { expandUiSteps, stripProductUrls, urlFromCase } from './uiSteps.js';
 import { bindCasesToNodes, fetchProductHtml, harvestInteractiveNodes, loginProduct, resolveProductUrl } from './locatorBind.js';
+import { extraNavUrls, mergeDomExamples, navRowsFromNodes, normalizeHref } from './outlineExamples.js';
+import { isSyntheticSuite, realizeCasesFromDom } from './realizeFromDom.js';
 import { TestGenieArtifactProvider, verifyTestGenieBundle, type TestGenieBundle, type TestGenieCase, type TestGenieVerification } from './test-genie.js';
 
 export interface ImportedArtefact {
@@ -114,16 +116,26 @@ async function writeBundle(
     const steps = path.join(outDir, 'step_definitions', `${name}-steps.js`);
     const pageObject = path.join(outDir, 'page-objects', `${name}.js`);
     if (existsSync(feature) || existsSync(steps) || existsSync(pageObject)) {
-      skipped.push(group.id);
-      continue;
+      const existing = [
+        existsSync(feature) ? await readFile(feature, 'utf8') : '',
+        existsSync(steps) ? await readFile(steps, 'utf8') : '',
+        existsSync(pageObject) ? await readFile(pageObject, 'utf8') : '',
+      ];
+      if (!isSyntheticSuite(existing[0], existing[1], existing[2])) {
+        await refreshExistingFeature(feature, featureText);
+        await stripUrlsInFile(steps);
+        await stripUrlsInFile(pageObject);
+        skipped.push(group.id);
+        continue;
+      }
     }
     await mkdir(path.dirname(feature), { recursive: true });
     await mkdir(path.dirname(steps), { recursive: true });
     await mkdir(path.dirname(pageObject), { recursive: true });
     const caseList = group.cases.map(({ testCase }) => testCase);
-    await writeFile(feature, featureText);
-    await writeFile(steps, stepsFromCases(featureText, `../page-objects/${name}`, caseList));
-    await writeFile(pageObject, pageObjectFromFeature(featureText, caseList));
+    await writeFile(feature, stripProductUrls(featureText));
+    await writeFile(steps, stripProductUrls(stepsFromCases(featureText, `../page-objects/${name}`, caseList)));
+    await writeFile(pageObject, stripProductUrls(pageObjectFromFeature(featureText, caseList)));
     unbound.push(...unboundSteps(caseList));
     for (const { testCase, acceptance } of group.cases) {
       imported.push({
@@ -167,6 +179,24 @@ function safeName(value: string): string {
   return value.replace(/[^A-Za-z0-9._-]/g, '_');
 }
 
+async function refreshExistingFeature(file: string, featureText: string): Promise<void> {
+  if (!existsSync(file)) return;
+  const current = await readFile(file, 'utf8');
+  const next = stripProductUrls(mergeDomExamples(current, featureText));
+  if (next !== current) {
+    await writeFile(file, next);
+  }
+}
+
+async function stripUrlsInFile(file: string): Promise<void> {
+  if (!existsSync(file)) return;
+  const current = await readFile(file, 'utf8');
+  const next = stripProductUrls(current);
+  if (next !== current) {
+    await writeFile(file, next);
+  }
+}
+
 async function bindBundleToProduct(
   cases: TestGenieCase[],
   env: NodeJS.ProcessEnv,
@@ -181,25 +211,63 @@ async function bindBundleToProduct(
   }
   const findings: string[] = [];
   try {
-    const nodes = options.harvestDom
-      ? await options.harvestDom(urls, env)
-      : options.fetch
-        ? harvestInteractiveNodes((await withHtml(urls, env, options.fetch)).join('\n'))
-        : await harvestFromBrowser(urls, env);
-    findings.push(`Harvested ${nodes.length} DOM node${nodes.length === 1 ? '' : 's'} from ${urls.length} page${urls.length === 1 ? '' : 's'}`);
-    return { cases: bindCasesToNodes(cases, nodes), findings };
+    const nodes = await harvestPages(urls, env, options, true);
+    const allNodes = await withNavPages(nodes, urls, env, options);
+    const rows = navRowsFromNodes(allNodes, urls[0] || '');
+    const bound = realizeCasesFromDom(bindCasesToNodes(cases, allNodes), allNodes, rows);
+    findings.push(`Harvested ${allNodes.length} DOM node${allNodes.length === 1 ? '' : 's'} from ${urls.length} page${urls.length === 1 ? '' : 's'}`);
+    if (rows.length > 0) {
+      findings.push(`Wrote ${rows.length} menu test${rows.length === 1 ? '' : 's'} from the live DOM`);
+    }
+    return { cases: bound, findings };
   } catch (error) {
     findings.push(error instanceof Error ? error.message : String(error));
     return { cases, findings };
   }
 }
 
-async function withHtml(urls: string[], env: NodeJS.ProcessEnv, fetchImpl: typeof fetch): Promise<string[]> {
-  const cookie = await loginProduct(env, fetchImpl);
-  return Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)));
+async function harvestPages(
+  urls: string[],
+  env: NodeJS.ProcessEnv,
+  options: {
+    fetch?: typeof fetch;
+    harvestDom?: (urls: string[], env: NodeJS.ProcessEnv) => Promise<import('./locatorBind.js').DomNode[]>;
+  },
+  followNav = false,
+): Promise<import('./locatorBind.js').DomNode[]> {
+  if (options.harvestDom) {
+    const nodes = [];
+    for (const url of urls) {
+      nodes.push(...(await options.harvestDom([url], env)).map((node) => ({ ...node, pageUrl: node.pageUrl || url })));
+    }
+    return nodes;
+  }
+  if (options.fetch) {
+    const cookie = await loginProduct(env, options.fetch);
+    const nodes = [];
+    for (const url of urls) {
+      nodes.push(...harvestInteractiveNodes(await fetchProductHtml(url, cookie, options.fetch)).map((node) => ({ ...node, pageUrl: url })));
+    }
+    return nodes;
+  }
+  return harvestFromBrowser(urls, env, followNav);
 }
 
-async function harvestFromBrowser(urls: string[], env: NodeJS.ProcessEnv) {
+async function withNavPages(
+  nodes: import('./locatorBind.js').DomNode[],
+  urls: string[],
+  env: NodeJS.ProcessEnv,
+  options: {
+    fetch?: typeof fetch;
+    harvestDom?: (urls: string[], env: NodeJS.ProcessEnv) => Promise<import('./locatorBind.js').DomNode[]>;
+  },
+): Promise<import('./locatorBind.js').DomNode[]> {
+  const extras = extraNavUrls(nodes, urls).filter((url) => !nodes.some((node) => normalizeHref(node.pageUrl) === normalizeHref(url)));
+  if (extras.length === 0) return nodes;
+  return [...nodes, ...await harvestPages(extras, env, options)];
+}
+
+async function harvestFromBrowser(urls: string[], env: NodeJS.ProcessEnv, followNav = false) {
   const { harvestProductWithBrowser } = await import('./browserHarvest.js');
-  return harvestProductWithBrowser(urls, { env });
+  return harvestProductWithBrowser(urls, { env, followNav });
 }

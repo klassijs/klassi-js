@@ -15,8 +15,10 @@ export interface TestGenieAcceptanceTest {
   statement: string;
 }
 
+export type LocatorStrategy = 'id' | 'name' | 'class' | 'tag' | 'link' | 'partialLink' | 'css' | 'xpath' | 'testid' | 'label' | 'text';
+
 export interface TestGenieFind {
-  by: 'testid' | 'label' | 'text' | 'name' | 'id' | 'css';
+  by: LocatorStrategy;
   value: string;
   fromDom?: boolean;
 }
@@ -66,6 +68,10 @@ export interface TestGenieCase {
   coverage: Array<'positive' | 'negative' | 'boundary'>;
   examples?: TestGenieExamples;
   page?: TestGeniePage;
+  locators?: {
+    menus?: Record<string, string>;
+    headings?: Record<string, string>;
+  };
 }
 
 export interface TestGenieDocument {

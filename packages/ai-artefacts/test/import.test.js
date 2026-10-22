@@ -81,6 +81,56 @@ test('scenarios stay inside the feature they were exported from', async () => {
   assert.doesNotMatch(second, /Scenario: Parse a date/);
 });
 
+test('placeholder navigation examples are replaced from the harvested menu', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const outlined = {
+    ...bundle,
+    testCases: [{
+      ...bundle.testCases[0],
+      title: 'Visitor selects a navigation link and opens the corresponding page displaying the correct main heading',
+      page: { name: 'app', url: 'https://klassi.co.uk' },
+      steps: [{
+        action: 'a visitor is on any public page the visitor selects the "<navigation_link>" navigation link',
+        expected: 'the corresponding "<page_name>" page opens and displays its correct main heading as "<main_heading>"',
+      }],
+      examples: {
+        headers: ['navigation_link', 'page_name', 'main_heading'],
+        rows: [{ navigation_link: 'example1', page_name: 'example2', main_heading: 'example3' }],
+      },
+    }],
+  };
+  const result = await importTestGenieBundle(outlined, out, {
+    bindLocators: true,
+    env: { PRODUCT_BASE_URL: 'https://klassi.co.uk' },
+    harvestDom: async (urls) => {
+      if (String(urls[0]).includes('/contact')) {
+        return [{ tag: 'h1', text: 'Get in Touch' }, { tag: 'a', text: 'Contact Us', href: '/contact', inNav: true }];
+      }
+      return [
+        { tag: 'h1', text: 'Welcome to the Klassi Brand' },
+        { tag: 'a', text: 'Contact Us', href: '/contact', inNav: true },
+        { tag: 'a', text: 'Home', href: '/', inNav: true },
+      ];
+    },
+  });
+  const feature = await readFile(result.imported[0].feature, 'utf8');
+  const steps = await readFile(result.imported[0].steps, 'utf8');
+  const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
+  assert.match(feature, /Scenario Outline: Visitor opens <navigation_link> from the menu/);
+  assert.match(feature, /When the visitor selects the "<navigation_link>" navigation link/);
+  assert.match(feature, /Then the "<heading>" heading is displayed/);
+  assert.match(feature, /\| Contact Us \| Get in Touch \|/);
+  assert.match(feature, /\| Home \| Welcome to the Klassi Brand \|/);
+  assert.doesNotMatch(feature, /page opens|example1|example2|example3|any public page/);
+  assert.match(steps, /the visitor selects the \{string\} navigation link/);
+  assert.match(steps, /page\.selectNavigation/);
+  assert.match(pageObject, /"=Contact Us"/);
+  assert.match(pageObject, /"h1=Get in Touch"/);
+  assert.match(pageObject, /selectNavigation/);
+  assert.doesNotMatch(pageObject, /unbound:|pause\(0\)|\.display-4/);
+  assert.equal(result.findings.some((item) => item.includes('menu test')), true);
+});
+
 test('examples on a test case are written into the scenario outline', async () => {
   const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
   const outlined = {
@@ -235,6 +285,8 @@ test('a homepage open and displayed steps become a url and waitForDisplayed', as
   const steps = await readFile(result.imported[0].steps, 'utf8');
   assert.match(feature, /Background:\s*\n\s*Given a visitor opens the website/);
   assert.doesNotMatch(feature, /https:\/\//);
+  assert.doesNotMatch(steps, /https:\/\//);
+  assert.doesNotMatch(pageObject, /https:\/\//);
   assert.doesNotMatch(feature.split('Scenario:')[1] || '', /When a visitor opens/);
   assert.match(steps, /Given\('a visitor opens the website'/);
   assert.match(steps, /helpers\.loadPage\(env\.base_url\)/);
@@ -243,6 +295,78 @@ test('a homepage open and displayed steps become a url and waitForDisplayed', as
   assert.doesNotMatch(pageObject, /\$\('=Klassi logo'\)/);
   assert.match(pageObject, /async klassiLogo\(/);
   assert.doesNotMatch(pageObject, /async step1\(\)/);
+});
+
+test('an existing feature keeps its cases but loses the product URL', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const existing = path.join(out, 'features', 'TG-001.feature');
+  await mkdir(path.dirname(existing), { recursive: true });
+  await writeFile(existing, 'Feature: Home\n  Background:\n    Given a visitor opens https://klassi.co.uk\n');
+  const result = await importTestGenieBundle({
+    ...bundle,
+    features: [{ id: 'TG-001', title: 'TG-001' }],
+    testCases: [{ ...bundle.testCases[0], featureId: 'TG-001' }],
+  }, out);
+  assert.deepEqual(result.skipped, ['TG-001']);
+  const kept = await readFile(existing, 'utf8');
+  assert.match(kept, /Given a visitor opens the website/);
+  assert.doesNotMatch(kept, /https:\/\//);
+});
+
+test('an existing synthetic outline is rewritten from the live menu', async () => {
+  const out = await mkdtemp(path.join(tmpdir(), 'klassi-import-'));
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const existing = path.join(out, 'features', 'TG-001.feature');
+  await mkdir(path.dirname(existing), { recursive: true });
+  await writeFile(existing, [
+    'Feature: Home',
+    '  Scenario Outline: Visitor selects a navigation link',
+    '    When a visitor is on any public page the visitor selects the "<navigation_link>" navigation link',
+    '    Then the corresponding "<page_name>" page opens and displays its correct main heading as "<main_heading>"',
+    '    Examples:',
+    '      | navigation_link | page_name | main_heading |',
+    '      | example1 | example2 | example3 |',
+    '',
+  ].join('\n'));
+  const result = await importTestGenieBundle({
+    ...bundle,
+    features: [{ id: 'TG-001', title: 'TG-001' }],
+    testCases: [{
+      ...bundle.testCases[0],
+      featureId: 'TG-001',
+      title: 'Visitor selects a navigation link',
+      page: { name: 'app', url: 'https://klassi.co.uk' },
+      steps: [{
+        action: 'a visitor is on any public page the visitor selects the "<navigation_link>" navigation link',
+        expected: 'the corresponding "<page_name>" page opens and displays its correct main heading as "<main_heading>"',
+      }],
+      examples: {
+        headers: ['navigation_link', 'page_name', 'main_heading'],
+        rows: [{ navigation_link: 'example1', page_name: 'example2', main_heading: 'example3' }],
+      },
+    }],
+  }, out, {
+    bindLocators: true,
+    env: { PRODUCT_BASE_URL: 'https://klassi.co.uk' },
+    harvestDom: async (urls) => {
+      if (String(urls[0]).includes('/contact')) {
+        return [{ tag: 'h1', text: 'Get in Touch' }];
+      }
+      return [
+        { tag: 'h1', text: 'Welcome to the Klassi Brand' },
+        { tag: 'a', text: 'Contact Us', href: '/contact', inNav: true },
+      ];
+    },
+  });
+  assert.equal(result.skipped.length, 0);
+  assert.equal(result.imported.length, 1);
+  const rewritten = await readFile(existing, 'utf8');
+  assert.match(rewritten, /Scenario Outline: Visitor opens <navigation_link> from the menu/);
+  assert.match(rewritten, /When the visitor selects the "<navigation_link>" navigation link/);
+  assert.match(rewritten, /Then the "<heading>" heading is displayed/);
+  assert.match(rewritten, /\| Contact Us \| Get in Touch \|/);
+  assert.doesNotMatch(rewritten, /page opens|example1|any public page/);
 });
 
 test('an existing TG feature file is left in place', async () => {

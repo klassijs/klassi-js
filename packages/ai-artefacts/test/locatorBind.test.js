@@ -1,11 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bindCasesToNodes, harvestInteractiveNodes, loginProduct, resolveProductUrl } from '../dist/locatorBind.js';
+import { bindCasesToNodes, findFromNode, harvestInteractiveNodes, loginProduct, resolveProductUrl } from '../dist/locatorBind.js';
 
 test('harvest prefers data-testid on interactive nodes', () => {
   const nodes = harvestInteractiveNodes('<form><button data-testid="login-submit" aria-label="login">Sign in</button></form>');
   assert.equal(nodes[0].testid, 'login-submit');
   assert.equal(nodes[0].aria, 'login');
+});
+
+test('harvest reads menu links from nav', () => {
+  const nodes = harvestInteractiveNodes('<header><nav><a href="/">Home</a><a href="/contact">Contact Us</a></nav></header><h1>Welcome</h1><footer><a href="https://linkedin.com">LinkedIn</a></footer>');
+  const contact = nodes.find((node) => node.text === 'Contact Us');
+  assert.equal(contact.href, '/contact');
+  assert.equal(contact.inNav, true);
+  assert.equal(nodes.find((node) => node.text === 'LinkedIn')?.inNav, false);
 });
 
 test('bind matches Klassi logo to trademark alt text in the DOM', () => {
@@ -58,6 +66,16 @@ test('harvest reads headings and image alt text', () => {
   assert.equal(nodes.some((node) => node.text === 'KlassiTech'), true);
 });
 
+test('the standard locator order uses ID then name then unique content, never a shared class', () => {
+  assert.deepEqual(findFromNode({ id: 'contact', name: 'contact', className: 'nav-item', tag: 'a', text: 'Contact Us' }), { by: 'id', value: 'contact' });
+  assert.deepEqual(findFromNode({ name: 'email', tag: 'input' }), { by: 'name', value: 'email' });
+  assert.deepEqual(findFromNode({ className: 'display-4 fw-bold text-light', tag: 'h1', text: 'About Us' }), { by: 'css', value: 'h1=About Us' });
+  assert.deepEqual(findFromNode({ className: 'hero-title', tag: 'h1', text: 'Welcome' }), { by: 'css', value: 'h1=Welcome' });
+  assert.deepEqual(findFromNode({ tag: 'a', text: 'Contact Us', href: '/contact' }), { by: 'link', value: 'Contact Us' });
+  assert.deepEqual(findFromNode({ tag: 'img', alt: 'klassi trademark logo' }), { by: 'css', value: 'img[alt="klassi trademark logo"]' });
+  assert.deepEqual(findFromNode({ tag: 'article', text: 'KlassiTech' }), { by: 'xpath', value: '//article[normalize-space()="KlassiTech"]' });
+});
+
 test('bind upgrades a matching label to data-testid', () => {
   const nodes = harvestInteractiveNodes('<button data-testid="login-submit" aria-label="login">Sign in</button>');
   const [bound] = bindCasesToNodes([{
@@ -72,7 +90,7 @@ test('bind upgrades a matching label to data-testid', () => {
       target: { name: 'loginButton', type: 'button', find: { by: 'label', value: 'login' } },
     }],
   }], nodes);
-  assert.deepEqual(bound.steps[0].target.find, { by: 'testid', value: 'login-submit' });
+  assert.deepEqual(bound.steps[0].target.find, { by: 'testid', value: 'login-submit', fromDom: true });
 });
 
 test('resolveProductUrl joins the product base', () => {

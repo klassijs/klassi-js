@@ -7361,6 +7361,10 @@ var require_dist = __commonJS({
 
 // packages/ai-artefacts/dist/locatorBind.js
 function harvestInteractiveNodes(html) {
+  const navKeys = new Set(navSections(html).flatMap((section) => readNodes(section).filter((node) => node.tag === "a").map(navKey)));
+  return readNodes(html).map((node) => node.tag === "a" ? { ...node, inNav: navKeys.has(navKey(node)) } : node);
+}
+function readNodes(html) {
   const nodes = [];
   const tagRe = /<(input|button|select|textarea|a|label|h1|h2|h3|img|article)\b([^>]*)>(?:([^<]*))?/gi;
   let match = tagRe.exec(html);
@@ -7372,12 +7376,34 @@ function harvestInteractiveNodes(html) {
       testid: attr(attrs, "data-testid"),
       name: attr(attrs, "name"),
       id: attr(attrs, "id"),
+      className: attr(attrs, "class"),
       aria: attr(attrs, "aria-label"),
-      text: text || void 0
+      alt: attr(attrs, "alt"),
+      text: text || void 0,
+      href: match[1]?.toLowerCase() === "a" ? attr(attrs, "href") : void 0
     });
     match = tagRe.exec(html);
   }
-  return nodes.filter((node) => node.testid || node.name || node.id || node.aria || node.text);
+  return nodes.filter((node) => node.testid || node.name || node.id || node.className || node.aria || node.text || node.href);
+}
+function navSections(html) {
+  const sections = [];
+  const named = /<(nav|header)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  let match = named.exec(html);
+  while (match) {
+    sections.push(match[2] || "");
+    match = named.exec(html);
+  }
+  const role = /<[^>]+role=["']navigation["'][^>]*>([\s\S]*?)<\/[a-z0-9]+>/gi;
+  match = role.exec(html);
+  while (match) {
+    sections.push(match[1] || "");
+    match = role.exec(html);
+  }
+  return sections;
+}
+function navKey(node) {
+  return `${String(node.href || "").trim().toLowerCase()}|${String(node.text || "").trim().toLowerCase()}`;
 }
 function bindCasesToNodes(cases, nodes) {
   return cases.map((testCase) => ({
@@ -7422,47 +7448,112 @@ function bindStep(step, nodes) {
   if (!needle)
     return step;
   const hit = nodes.map((node) => ({ node, score: matchScore(node, needle) })).filter((item) => item.score > 0).sort((left, right) => right.score - left.score)[0]?.node;
-  if (!hit)
+  if (!hit) {
+    if (step.target?.find.fromDom === false) {
+      return { ...step, target: { ...step.target, find: { by: "text", value: "", fromDom: false } } };
+    }
     return step;
-  const find = preferFind(hit);
+  }
+  const find = findFromNode(hit);
   if (!find)
     return step;
   const target = {
     name: step.target?.name || "element",
     type: step.target?.type || (hit.tag === "input" || hit.tag === "textarea" || hit.tag === "select" ? "input" : "button"),
-    find
+    find: { ...find, fromDom: true }
   };
   return { ...step, target };
 }
-function preferFind(node) {
+function findFromNode(node) {
+  const id = String(node.id || "").trim();
   if (node.testid)
     return { by: "testid", value: node.testid };
-  if (node.aria)
-    return { by: "label", value: node.aria };
-  if (node.name)
-    return { by: "name", value: node.name };
-  if (node.id)
-    return { by: "id", value: node.id };
-  if (node.text)
-    return { by: "text", value: node.text };
+  if (id)
+    return { by: "id", value: id };
+  const name = String(node.name || "").trim();
+  if (name)
+    return { by: "name", value: name };
+  const className = usefulClass(node.className);
+  if (className)
+    return { by: "class", value: className };
+  if (node.tag === "a") {
+    const link = String(node.text || "").replace(/\s+/g, " ").trim();
+    if (link && link.length > 40)
+      return { by: "partialLink", value: link.slice(0, 24).trim() };
+    if (link)
+      return { by: "link", value: link };
+  }
+  const css = cssFromNode(node);
+  if (css)
+    return { by: "css", value: css };
+  const xpath = xpathFromNode(node);
+  if (xpath)
+    return { by: "xpath", value: xpath };
+  if (node.tag && !GENERIC_TAGS.has(node.tag))
+    return { by: "tag", value: node.tag };
   return null;
 }
+function usefulClass(className) {
+  return String(className || "").split(/\s+/).map((item) => item.trim()).find((item) => item.length > 1 && !UTILITY_CLASS.test(item) && !/[:/]/.test(item));
+}
+function cssFromNode(node) {
+  const alt = node.alt || (node.tag === "img" ? node.text : void 0);
+  if (node.tag === "img" && alt)
+    return `img[alt="${escapeAttr2(alt)}"]`;
+  if (node.tag && /^h[1-6]$/.test(node.tag) && node.text) {
+    const plain = node.text.replace(/[™®©]/g, "").replace(/\s+/g, " ").trim();
+    return plain !== node.text ? `${node.tag}*=${plain}` : `${node.tag}=${node.text}`;
+  }
+  if (node.aria)
+    return `[aria-label="${escapeAttr2(node.aria)}"]`;
+  if (node.tag === "a" && node.href && !/^https?:\/\//i.test(node.href) && node.href !== "#") {
+    return `a[href="${escapeAttr2(node.href)}"]`;
+  }
+  return void 0;
+}
+function xpathFromNode(node) {
+  const text = String(node.text || "").replace(/\s+/g, " ").trim();
+  const tag = node.tag || "*";
+  if (text) {
+    const plain = text.replace(/[™®©]/g, "").replace(/"/g, "");
+    if (plain !== text)
+      return `//${tag}[contains(normalize-space(), "${escapeAttr2(plain)}")]`;
+    return `//${tag}[normalize-space()="${escapeAttr2(text)}"]`;
+  }
+  if (node.alt)
+    return `//${tag}[@alt="${escapeAttr2(node.alt)}"]`;
+  if (node.href)
+    return `//${tag}[@href="${escapeAttr2(node.href)}"]`;
+  return void 0;
+}
 function matchScore(node, needle) {
-  const fields = [node.testid, node.aria, node.text, node.name, node.id].map(normalize).filter(Boolean);
-  if (fields.includes(needle))
-    return 3;
-  const wanted = tokens(needle);
-  if (wanted.length > 0 && fields.some((field) => wanted.every((token) => tokens(field).includes(token))))
-    return 2;
-  if (fields.some((field) => field.includes(needle) || needle.includes(field)))
-    return 1;
-  return 0;
+  const fields = [node.testid, node.aria, node.alt, node.text, node.name, node.id, node.className].map(normalize).filter(Boolean);
+  if (fields.includes(normalize(needle)))
+    return 4;
+  const wanted = contentTokens(needle);
+  const role = tokens(needle).find((token) => Boolean(ROLE_TAGS[token]));
+  let score2 = 0;
+  if (wanted.length > 0 && fields.some((field) => wanted.every((token) => tokens(field).includes(token) || field.includes(token)))) {
+    score2 += 2;
+  } else if (wanted.length > 0 && fields.some((field) => wanted.some((token) => field.includes(token)))) {
+    score2 += 1;
+  }
+  if (role && ROLE_TAGS[role].includes(node.tag || "")) {
+    score2 += 1;
+  }
+  return score2;
 }
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
 }
+function contentTokens(value) {
+  return tokens(value).filter((token) => !ROLE_TAGS[token]);
+}
 function tokens(value) {
   return normalize(value).split(/[^a-z0-9]+/).filter((token) => token.length > 1 && !STOP.has(token));
+}
+function escapeAttr2(value) {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 function attr(attrs, name) {
   const match = attrs.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i"));
@@ -7476,11 +7567,143 @@ function cookieHeader(response) {
   const single = response.headers.get("set-cookie");
   return single ? single.split(";", 1)[0] : "";
 }
-var STOP;
+var GENERIC_TAGS, UTILITY_CLASS, STOP, ROLE_TAGS;
 var init_locatorBind = __esm({
   "packages/ai-artefacts/dist/locatorBind.js"() {
     "use strict";
+    GENERIC_TAGS = /* @__PURE__ */ new Set(["a", "div", "span", "p", "li", "ul", "section", "article", "img", "svg", "label"]);
+    UTILITY_CLASS = /^(text-|mb-|mt-|ml-|mr-|ms-|me-|p-|px-|py-|pt-|pb-|pl-|pr-|d-|col-|row-|w-|h-|flex|justify-|align-|container$|col$|row$|show$|hide$|active$|collapsed$)/i;
     STOP = /* @__PURE__ */ new Set(["the", "a", "an", "is", "are", "and", "of", "for"]);
+    ROLE_TAGS = {
+      logo: ["img", "svg"],
+      heading: ["h1", "h2", "h3", "h4"],
+      title: ["h1", "h2"],
+      card: ["article", "h3", "section", "img"],
+      image: ["img", "svg"],
+      button: ["button"],
+      link: ["a"]
+    };
+  }
+});
+
+// packages/ai-artefacts/dist/outlineExamples.js
+function headingFromNodes(nodes) {
+  const heading = nodes.find((node) => node.tag === "h1" && node.text) || nodes.find((node) => node.tag === "h2" && node.text);
+  return String(heading?.text || "").replace(/\s+/g, " ").trim();
+}
+function navLinksFromNodes(nodes) {
+  const links = nodes.filter(isMenuLink);
+  const inMenu = links.filter((node) => node.inNav);
+  const chosen = inMenu.length > 0 ? inMenu : links;
+  const seen = /* @__PURE__ */ new Set();
+  const unique = [];
+  for (const node of chosen) {
+    const key = `${normalize2(node.text)}|${normalizeHref(node.href)}`;
+    if (seen.has(key))
+      continue;
+    seen.add(key);
+    unique.push(node);
+    if (unique.length >= MAX_NAV)
+      break;
+  }
+  return unique;
+}
+function extraNavUrls(nodes, homeUrls) {
+  const home = homeUrls[0] || "";
+  const known = new Set(homeUrls.map(normalizeHref).filter(Boolean));
+  const extras = [];
+  for (const link of navLinksFromNodes(nodes)) {
+    const href = resolveHref(link.href || "", home);
+    if (!href || known.has(normalizeHref(href)))
+      continue;
+    if (home && !sameOrigin(href, home))
+      continue;
+    extras.push(href);
+    known.add(normalizeHref(href));
+  }
+  return extras;
+}
+function navRowsFromNodes(nodes, homeUrl) {
+  return navLinksFromNodes(nodes).map((link) => {
+    const name = String(link.text || "").replace(/\s+/g, " ").trim();
+    const href = resolveHref(link.href || "", homeUrl);
+    return {
+      navigation_link: name,
+      page_name: name,
+      main_heading: headingFor(nodes, href, homeUrl) || name,
+      href
+    };
+  });
+}
+function resolveHref(href, base) {
+  const raw = String(href || "").trim();
+  if (!raw)
+    return "";
+  try {
+    return new URL(raw, base || "https://example.invalid/").toString();
+  } catch {
+    return raw;
+  }
+}
+function mergeDomExamples(current, next) {
+  if (!hasDummyExampleCells(current))
+    return current;
+  const tables = [...next.matchAll(/[ \t]*Examples:\n(?:[ \t]*\|.+\|\n)+/g)].map((match) => match[0]);
+  if (tables.length === 0 || tables.every((table) => hasDummyExampleCells(table)))
+    return current;
+  let index = 0;
+  return current.replace(/[ \t]*Examples:\n(?:[ \t]*\|.+\|\n)+/g, (block) => {
+    if (!hasDummyExampleCells(block))
+      return block;
+    return tables[index++] || block;
+  });
+}
+function hasDummyExampleCells(text) {
+  return /\|\s*example\d+\s*\|/i.test(text);
+}
+function normalizeHref(value) {
+  return String(value || "").trim().replace(/\/+$/, "").toLowerCase();
+}
+function headingFor(nodes, href, homeUrl) {
+  const dest = normalizeHref(href);
+  const home = normalizeHref(homeUrl);
+  const scoped = nodes.filter((node) => node.pageUrl && normalizeHref(node.pageUrl) === dest);
+  if (scoped.length > 0)
+    return headingFromNodes(scoped);
+  if (dest && dest === home)
+    return headingFromNodes(nodes.filter((node) => !node.pageUrl || normalizeHref(node.pageUrl) === home));
+  return "";
+}
+function isMenuLink(node) {
+  if (node.tag !== "a")
+    return false;
+  const text = String(node.text || "").replace(/\s+/g, " ").trim();
+  const href = String(node.href || "").trim();
+  if (!text || text.length > 48)
+    return false;
+  if (SKIP_LINK.test(text) || /logo/i.test(text))
+    return false;
+  if (SKIP_HREF.test(href) || href === "#" || href.startsWith("#") || href.startsWith("?"))
+    return false;
+  return Boolean(href || node.inNav);
+}
+function sameOrigin(url, base) {
+  try {
+    return new URL(url).origin === new URL(base).origin;
+  } catch {
+    return false;
+  }
+}
+function normalize2(value) {
+  return String(value || "").trim().toLowerCase();
+}
+var MAX_NAV, SKIP_LINK, SKIP_HREF;
+var init_outlineExamples = __esm({
+  "packages/ai-artefacts/dist/outlineExamples.js"() {
+    "use strict";
+    MAX_NAV = 8;
+    SKIP_LINK = /^(skip|cookie|privacy|terms|login|log in|sign in|sign up|register|twitter|x|linkedin|facebook|instagram|youtube|github|email|mail|rss)$/i;
+    SKIP_HREF = /^(mailto:|tel:|javascript:)/i;
   }
 });
 
@@ -7498,17 +7721,24 @@ function collectVisibleNodes() {
   const root = globalThis;
   const list = root.document.querySelectorAll("a,button,input,select,textarea,label,h1,h2,h3,h4,img,article,svg,[role],[data-testid],[aria-label],[alt],[title]");
   for (const el of list) {
-    const text = String(el.getAttribute("alt") || el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent || "").replace(/\s+/g, " ").trim();
+    const alt = el.getAttribute("alt") || void 0;
+    const href = el.getAttribute("href") || void 0;
+    const text = String(alt || el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent || "").replace(/\s+/g, " ").trim();
+    const closest = el.closest;
     const node = {
       tag: String(el.tagName || "").toLowerCase(),
       testid: el.getAttribute("data-testid") || void 0,
       name: el.getAttribute("name") || void 0,
       id: el.id || void 0,
+      className: el.getAttribute("class") || void 0,
       aria: el.getAttribute("aria-label") || void 0,
-      text: text || void 0
+      alt,
+      text: text || void 0,
+      href,
+      inNav: Boolean(closest?.call(el, 'nav, header, [role="navigation"]'))
     };
-    const key = [node.tag, node.testid, node.name, node.id, node.aria, node.text].join("|");
-    if (seen.has(key) || !(node.testid || node.name || node.id || node.aria || node.text))
+    const key = [node.tag, node.testid, node.name, node.id, node.className, node.aria, node.text].join("|");
+    if (seen.has(key) || !(node.testid || node.name || node.id || node.className || node.aria || node.text || node.href))
       continue;
     seen.add(key);
     nodes.push(node);
@@ -7529,7 +7759,14 @@ async function harvestProductWithBrowser(urls, options = {}) {
     for (const url of urls) {
       await browser.url(url);
       await waitForPage(browser, timeoutMs);
-      nodes.push(...await harvestRenderedNodes(browser));
+      nodes.push(...(await harvestRenderedNodes(browser)).map((node) => ({ ...node, pageUrl: url })));
+    }
+    if (options.followNav) {
+      for (const extra of extraNavUrls(nodes, urls)) {
+        await browser.url(extra);
+        await waitForPage(browser, timeoutMs);
+        nodes.push(...(await harvestRenderedNodes(browser)).map((node) => ({ ...node, pageUrl: extra })));
+      }
     }
   } finally {
     if (browser.deleteSession) {
@@ -7589,6 +7826,9 @@ async function waitForPage(browser, timeoutMs) {
       const state = await browser.execute(() => globalThis.document?.readyState);
       return state === "complete";
     }, { timeout: timeoutMs });
+    await browser.waitUntil(async () => {
+      return browser.execute(() => Boolean(globalThis.document?.querySelector?.("h1, img[alt], [data-testid], [aria-label]")));
+    }, { timeout: Math.min(8e3, timeoutMs) }).catch(() => void 0);
   }
   if (browser.pause) {
     await browser.pause(400);
@@ -7601,6 +7841,7 @@ var init_browserHarvest = __esm({
   "packages/ai-artefacts/dist/browserHarvest.js"() {
     "use strict";
     init_locatorBind();
+    init_outlineExamples();
   }
 });
 
@@ -17453,6 +17694,12 @@ function isDisplayed(text) {
 function urlFromText(text) {
   return String(text || "").match(/https?:\/\/[^\s"'<>]+/i)?.[0] || "";
 }
+function hideProductUrl(text) {
+  return stripProductUrls(String(text || ""));
+}
+function stripProductUrls(text) {
+  return String(text || "").replace(/\b(?:a visitor |the user |I )?(?:opens?|visits?|goes to|navigates? to|loads?)\s+https?:\/\/[^\s"'<>]+/gi, OPEN_WEBSITE_STEP).replace(/https?:\/\/[^\s"'<>]+/gi, "the website").replace(/([^ \n]) {2,}/g, "$1 ").replace(/[ \t]+\n/g, "\n");
+}
 function visibleTargets(text) {
   const targets = [];
   const seen = /* @__PURE__ */ new Set();
@@ -17469,7 +17716,7 @@ function visibleTargets(text) {
     targets.push({
       name: toName(noun) || "element",
       type: /\b(heading|title|logo|card|image|link)\b/i.test(noun) ? "link" : "button",
-      find: { by: "text", value: noun }
+      find: { by: "text", value: noun, fromDom: false }
     });
   }
   return targets;
@@ -17478,7 +17725,7 @@ function urlFromCase(testCase, step) {
   return testCase.page?.url || urlFromText(step?.action || "") || urlFromText(testCase.steps.map((item) => item.action).join(" "));
 }
 function expandUiSteps(testCase) {
-  const blob = testCase.steps.map((step) => `${step.action} ${step.expected}`).join(" ");
+  const blob = testCase.steps.filter((step) => !step.target && !step.api).map((step) => `${step.action} ${step.expected}`).join(" ");
   const visibles = visibleTargets(blob);
   const url = urlFromCase(testCase);
   const steps = [];
@@ -17504,7 +17751,12 @@ function expandUiSteps(testCase) {
     steps.push(step);
   }
   for (const target of visibles) {
-    if (steps.some((step) => String(step.target?.find.value || "").toLowerCase() === target.find.value.toLowerCase())) {
+    if (steps.some((step) => {
+      const name = String(step.target?.name || "").toLowerCase();
+      const value = String(step.target?.find.value || "").toLowerCase();
+      const action = String(step.action || "").toLowerCase();
+      return name === target.name.toLowerCase() || value === target.find.value.toLowerCase() || action.includes(target.find.value.toLowerCase());
+    })) {
       continue;
     }
     steps.push({
@@ -17538,8 +17790,8 @@ function toName(label) {
 // packages/ai-artefacts/dist/klassiHelpers.js
 function helperForStep(step, testCase, selector) {
   if (step.api) {
-    const route = step.api.path.startsWith("/") || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
-    const urlExpr = /^https?:\/\//i.test(route) ? `'${escapeQuote(route)}'` : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(route)}'`;
+    const route = apiPathOnly(step.api.path);
+    const urlExpr = `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(route)}'`;
     const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
     return {
       name: "apiCall",
@@ -17561,6 +17813,18 @@ function helperForStep(step, testCase, selector) {
   }
   return { name: "waitAndClick", expression: `await helpers.waitAndClick('${escapeQuote(selector)}')` };
 }
+function apiPathOnly(path8) {
+  const raw = String(path8 || "").trim();
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw);
+      return `${parsed.pathname}${parsed.search}` || "/";
+    } catch {
+      return "/";
+    }
+  }
+  return raw.startsWith("/") ? raw : `/${raw}`;
+}
 function escapeQuote(value) {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
@@ -17571,11 +17835,10 @@ function featureFromCases(title, cases, verification, options = {}) {
   assertReadyForCodeGeneration(verification);
   const expanded = cases.map(({ testCase, trace }) => ({ testCase: expandUiSteps(testCase), trace }));
   const productUrl = productUrlFromCases(expanded.map((item) => item.testCase), options.productUrl);
-  const openAction = openPageAction(expanded.map((item) => item.testCase), productUrl);
   const scenarios = expanded.map(({ testCase, trace }) => scenarioBlock(testCase, trace, Boolean(productUrl)));
-  const lines = [`Feature: ${title}`, ""];
+  const lines = [`Feature: ${hideProductUrl(title)}`, ""];
   if (productUrl) {
-    lines.push("  Background:", `    Given ${openAction}`, "");
+    lines.push("  Background:", `    Given ${OPEN_WEBSITE_STEP}`, "");
   }
   lines.push(scenarios.join("\n\n"), "");
   return lines.join("\n");
@@ -17622,16 +17885,26 @@ function stepsFromCases(feature, pageObjectPath, cases = []) {
 function selectorFromTarget(target) {
   const by = target?.find?.by;
   const value = String(target?.find?.value || "").trim();
-  if (!by || !value)
+  if (!by || !value || target?.find.fromDom === false)
     return null;
-  if (by === "testid")
-    return `[data-testid="${escapeAttr(value)}"]`;
-  if (by === "name")
-    return `[name="${escapeAttr(value)}"]`;
   if (by === "id")
     return `#${value.replace(/[^A-Za-z0-9_-]/g, "")}`;
-  if (by === "text")
+  if (by === "name")
+    return `[name="${escapeAttr(value)}"]`;
+  if (by === "class")
+    return `.${value.replace(/[^\w-]/g, "")}`;
+  if (by === "tag")
+    return value.replace(/[^a-z0-9]/gi, "");
+  if (by === "link" || by === "text")
     return `=${value}`;
+  if (by === "partialLink")
+    return `*=${value}`;
+  if (by === "css")
+    return value;
+  if (by === "xpath")
+    return value;
+  if (by === "testid")
+    return `[data-testid="${escapeAttr(value)}"]`;
   return `aria/${value}`;
 }
 function unboundSteps(cases) {
@@ -17659,13 +17932,13 @@ function pageMethodsFromCases(cases) {
         return;
       seen.add(name);
       if (!selector) {
-        methods.push(`  // unbound: ${step.action || testCase.title}
+        methods.push(`  // unbound: ${hideProductUrl(step.action || testCase.title)}
   async ${name}() {
     await global.browser.pause(0);
   }`);
         return;
       }
-      methods.push(`  // ${step.action}
+      methods.push(`  // ${hideProductUrl(step.action)}
   async ${name}() {
     await global.browser.$('${escapeQuote2(selector)}').waitForDisplayed();
   }`);
@@ -17730,14 +18003,6 @@ function productUrlFromCases(cases, fallback = "") {
   }
   return String(fallback || "").replace(/\/+$/, "");
 }
-function openPageAction(cases, _url) {
-  for (const testCase of cases) {
-    const nav = testCase.steps.find((step) => isNavigate(step.action) && !step.target && !step.api);
-    if (nav?.action)
-      return nav.action;
-  }
-  return OPEN_WEBSITE_STEP;
-}
 function scenarioBlock(testCase, trace, hoistOpenPage = false) {
   const tags = [
     `@${trace.requirementId.startsWith("BR-") ? trace.requirementId : `BR-${trace.requirementId}`}`,
@@ -17746,26 +18011,31 @@ function scenarioBlock(testCase, trace, hoistOpenPage = false) {
   ];
   const remaining = hoistOpenPage ? testCase.steps.filter((step) => !isNavigate(step.action) || step.target || step.api) : testCase.steps;
   const steps = (remaining.length > 0 ? remaining : testCase.steps.slice(-1)).flatMap((step, index) => {
-    const assertionOnly = step.action === step.expected || isDisplayed(step.action) && !isNavigate(step.action) && !step.api;
+    const action = hideProductUrl(step.action);
+    const expected = hideProductUrl(step.expected);
+    const assertionOnly = action === expected || isDisplayed(action) && !isNavigate(action) && !step.api;
     if (assertionOnly)
-      return [`${index === 0 ? "Then" : "And"} ${step.expected}`];
-    if (hoistOpenPage && isNavigate(step.action) && !step.target && !step.api) {
-      return [`Then ${step.expected}`];
+      return [`${index === 0 ? "Then" : "And"} ${expected}`];
+    if (hoistOpenPage && isNavigate(action) && !step.target && !step.api) {
+      return [`Then ${expected}`];
     }
-    if (isNavigate(step.action) && !step.target && !step.api) {
-      return [`${index === 0 ? "When" : "And"} ${OPEN_WEBSITE_STEP}`, `Then ${step.expected}`];
+    if (isNavigate(action) && !step.target && !step.api) {
+      return [`${index === 0 ? "When" : "And"} ${OPEN_WEBSITE_STEP}`, `Then ${expected}`];
     }
-    return [`${index === 0 ? "When" : "And"} ${step.action}`, `Then ${step.expected}`];
+    if (step.target && !isDisplayed(action) && / page opens$/i.test(expected)) {
+      return [`${index === 0 ? "When" : "And"} ${action}`];
+    }
+    return [`${index === 0 ? "When" : "And"} ${action}`, `Then ${expected}`];
   }).join("\n    ");
   const examples = exampleTable(testCase.examples);
   const keyword = examples ? "Scenario Outline" : "Scenario";
-  return [`  ${tags.join(" ")}`, `  ${keyword}: ${testCase.title}`, `    ${steps}`, examples].filter(Boolean).join("\n");
+  return [`  ${tags.join(" ")}`, `  ${keyword}: ${hideProductUrl(testCase.title)}`, `    ${steps}`, examples].filter(Boolean).join("\n");
 }
 function exampleTable(examples) {
   if (!examples || examples.headers.length === 0 || examples.rows.length === 0)
     return "";
-  const header = `      | ${examples.headers.join(" | ")} |`;
-  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => row[name] ?? "").join(" | ")} |`);
+  const header = `      | ${examples.headers.map((name) => hideProductUrl(name)).join(" | ")} |`;
+  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => hideProductUrl(row[name] ?? "")).join(" | ")} |`);
   return ["    Examples:", header, ...rows].join("\n");
 }
 function featureSteps(feature) {
@@ -17780,6 +18050,90 @@ function escapeQuote2(value) {
 
 // packages/ai-artefacts/dist/import-test-genie.js
 init_locatorBind();
+init_outlineExamples();
+
+// packages/ai-artefacts/dist/realizeFromDom.js
+init_locatorBind();
+init_outlineExamples();
+function isNavCase(testCase) {
+  const blob = caseBlob(testCase);
+  if (isNegativeDomGuess(blob))
+    return false;
+  return /navigation link|nav link|\bmenu\b|main heading/i.test(blob) || Boolean(testCase.examples?.headers.some((header) => /nav|link|page_name|main_heading/i.test(header)));
+}
+function isUnverifiableFromDom(testCase) {
+  return isNegativeDomGuess(caseBlob(testCase));
+}
+function realizeCasesFromDom(cases, nodes, rows) {
+  let wroteNav = false;
+  return cases.flatMap((testCase) => {
+    if (isUnverifiableFromDom(testCase))
+      return [];
+    if (isNavCase(testCase) && rows.length > 0) {
+      if (wroteNav)
+        return [];
+      wroteNav = true;
+      return rows.map((row, index) => navCaseFromRow(testCase, row, nodes, index));
+    }
+    return [testCase];
+  });
+}
+function isSyntheticSuite(feature, steps = "", pageObject = "") {
+  const blob = `${feature}
+${steps}
+${pageObject}`;
+  return /\|\s*example\d+\s*\|/i.test(blob) || /unbound:/i.test(blob) || /pause\(0\)/.test(blob) || /a visitor is on any public page/i.test(blob) || /selects the "<navigation_link>"/i.test(blob);
+}
+function navCaseFromRow(testCase, row, nodes, index) {
+  const link = navLinksFromNodes(nodes).find((node) => normalize3(node.text) === normalize3(row.navigation_link));
+  const destNodes = nodes.filter((node) => node.pageUrl && normalizeHref(node.pageUrl) === normalizeHref(row.href));
+  const headingNode = destNodes.find((node) => node.text && normalize3(node.text) === normalize3(row.main_heading) && /^h[1-6]$/.test(node.tag || "")) || destNodes.find((node) => node.tag === "h1" || node.tag === "h2");
+  const clickFind = link && findFromNode(link) || { by: "text", value: row.navigation_link };
+  const headingFind = headingNode && findFromNode(headingNode) || {
+    by: "css",
+    value: `h1*=${stripMarks(row.main_heading)},h2*=${stripMarks(row.main_heading)}`
+  };
+  return {
+    ...testCase,
+    id: index === 0 ? testCase.id : `${testCase.id}-${String(index + 1).padStart(2, "0")}`,
+    title: `Visitor opens ${row.page_name} from the menu`,
+    examples: void 0,
+    steps: [
+      {
+        action: `the visitor selects the ${row.navigation_link} navigation link`,
+        expected: `the ${row.page_name} page opens`,
+        target: {
+          name: toName(row.navigation_link) || "navLink",
+          type: "link",
+          find: { ...clickFind, fromDom: true }
+        }
+      },
+      {
+        action: `the ${row.main_heading} heading is displayed`,
+        expected: `the ${row.main_heading} heading is displayed`,
+        target: {
+          name: toName(`${row.main_heading} heading`) || "mainHeading",
+          type: "link",
+          find: { ...headingFind, fromDom: true }
+        }
+      }
+    ]
+  };
+}
+function caseBlob(testCase) {
+  return [testCase.title, ...testCase.steps.map((step) => `${step.action} ${step.expected}`)].join(" ");
+}
+function isNegativeDomGuess(blob) {
+  return /\b(fail|fails|failed|error|unavailable|not available|network issues?|blank page|application error)\b/i.test(blob);
+}
+function stripMarks(value) {
+  return String(value || "").replace(/[™®©]/g, "").replace(/\s+/g, " ").trim();
+}
+function normalize3(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+// packages/ai-artefacts/dist/import-test-genie.js
 var provider = new TestGenieArtifactProvider();
 async function readBundle(fileOrDir) {
   const info = await (0, import_promises2.stat)(fileOrDir);
@@ -17841,16 +18195,26 @@ async function writeBundle(bundle, verification, outDir, fallbackUrl = "") {
     const steps = import_node_path3.default.join(outDir, "step_definitions", `${name}-steps.js`);
     const pageObject = import_node_path3.default.join(outDir, "page-objects", `${name}.js`);
     if ((0, import_node_fs2.existsSync)(feature) || (0, import_node_fs2.existsSync)(steps) || (0, import_node_fs2.existsSync)(pageObject)) {
-      skipped.push(group.id);
-      continue;
+      const existing = [
+        (0, import_node_fs2.existsSync)(feature) ? await (0, import_promises2.readFile)(feature, "utf8") : "",
+        (0, import_node_fs2.existsSync)(steps) ? await (0, import_promises2.readFile)(steps, "utf8") : "",
+        (0, import_node_fs2.existsSync)(pageObject) ? await (0, import_promises2.readFile)(pageObject, "utf8") : ""
+      ];
+      if (!isSyntheticSuite(existing[0], existing[1], existing[2])) {
+        await refreshExistingFeature(feature, featureText);
+        await stripUrlsInFile(steps);
+        await stripUrlsInFile(pageObject);
+        skipped.push(group.id);
+        continue;
+      }
     }
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(feature), { recursive: true });
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(steps), { recursive: true });
     await (0, import_promises2.mkdir)(import_node_path3.default.dirname(pageObject), { recursive: true });
     const caseList = group.cases.map(({ testCase }) => testCase);
-    await (0, import_promises2.writeFile)(feature, featureText);
-    await (0, import_promises2.writeFile)(steps, stepsFromCases(featureText, `../page-objects/${name}`, caseList));
-    await (0, import_promises2.writeFile)(pageObject, pageObjectFromFeature(featureText, caseList));
+    await (0, import_promises2.writeFile)(feature, stripProductUrls(featureText));
+    await (0, import_promises2.writeFile)(steps, stripProductUrls(stepsFromCases(featureText, `../page-objects/${name}`, caseList)));
+    await (0, import_promises2.writeFile)(pageObject, stripProductUrls(pageObjectFromFeature(featureText, caseList)));
     unbound.push(...unboundSteps(caseList));
     for (const { testCase, acceptance } of group.cases) {
       imported.push({
@@ -17888,6 +18252,24 @@ function featureGroups(bundle, cases) {
 function safeName(value) {
   return value.replace(/[^A-Za-z0-9._-]/g, "_");
 }
+async function refreshExistingFeature(file, featureText) {
+  if (!(0, import_node_fs2.existsSync)(file))
+    return;
+  const current = await (0, import_promises2.readFile)(file, "utf8");
+  const next = stripProductUrls(mergeDomExamples(current, featureText));
+  if (next !== current) {
+    await (0, import_promises2.writeFile)(file, next);
+  }
+}
+async function stripUrlsInFile(file) {
+  if (!(0, import_node_fs2.existsSync)(file))
+    return;
+  const current = await (0, import_promises2.readFile)(file, "utf8");
+  const next = stripProductUrls(current);
+  if (next !== current) {
+    await (0, import_promises2.writeFile)(file, next);
+  }
+}
 async function bindBundleToProduct(cases, env, options) {
   const urls = [...new Set(cases.map((item) => resolveProductUrl(item.page?.url, env)).filter((item) => Boolean(item)))];
   if (urls.length === 0) {
@@ -17895,21 +18277,47 @@ async function bindBundleToProduct(cases, env, options) {
   }
   const findings = [];
   try {
-    const nodes = options.harvestDom ? await options.harvestDom(urls, env) : options.fetch ? harvestInteractiveNodes((await withHtml(urls, env, options.fetch)).join("\n")) : await harvestFromBrowser(urls, env);
-    findings.push(`Harvested ${nodes.length} DOM node${nodes.length === 1 ? "" : "s"} from ${urls.length} page${urls.length === 1 ? "" : "s"}`);
-    return { cases: bindCasesToNodes(cases, nodes), findings };
+    const nodes = await harvestPages(urls, env, options, true);
+    const allNodes = await withNavPages(nodes, urls, env, options);
+    const rows = navRowsFromNodes(allNodes, urls[0] || "");
+    const bound = realizeCasesFromDom(bindCasesToNodes(cases, allNodes), allNodes, rows);
+    findings.push(`Harvested ${allNodes.length} DOM node${allNodes.length === 1 ? "" : "s"} from ${urls.length} page${urls.length === 1 ? "" : "s"}`);
+    if (rows.length > 0) {
+      findings.push(`Wrote ${rows.length} menu test${rows.length === 1 ? "" : "s"} from the live DOM`);
+    }
+    return { cases: bound, findings };
   } catch (error) {
     findings.push(error instanceof Error ? error.message : String(error));
     return { cases, findings };
   }
 }
-async function withHtml(urls, env, fetchImpl) {
-  const cookie = await loginProduct(env, fetchImpl);
-  return Promise.all(urls.map((url) => fetchProductHtml(url, cookie, fetchImpl)));
+async function harvestPages(urls, env, options, followNav = false) {
+  if (options.harvestDom) {
+    const nodes = [];
+    for (const url of urls) {
+      nodes.push(...(await options.harvestDom([url], env)).map((node) => ({ ...node, pageUrl: node.pageUrl || url })));
+    }
+    return nodes;
+  }
+  if (options.fetch) {
+    const cookie = await loginProduct(env, options.fetch);
+    const nodes = [];
+    for (const url of urls) {
+      nodes.push(...harvestInteractiveNodes(await fetchProductHtml(url, cookie, options.fetch)).map((node) => ({ ...node, pageUrl: url })));
+    }
+    return nodes;
+  }
+  return harvestFromBrowser(urls, env, followNav);
 }
-async function harvestFromBrowser(urls, env) {
+async function withNavPages(nodes, urls, env, options) {
+  const extras = extraNavUrls(nodes, urls).filter((url) => !nodes.some((node) => normalizeHref(node.pageUrl) === normalizeHref(url)));
+  if (extras.length === 0)
+    return nodes;
+  return [...nodes, ...await harvestPages(extras, env, options)];
+}
+async function harvestFromBrowser(urls, env, followNav = false) {
   const { harvestProductWithBrowser: harvestProductWithBrowser2 } = await Promise.resolve().then(() => (init_browserHarvest(), browserHarvest_exports));
-  return harvestProductWithBrowser2(urls, { env });
+  return harvestProductWithBrowser2(urls, { env, followNav });
 }
 
 // packages/ai-cli/dist/evaluate.js

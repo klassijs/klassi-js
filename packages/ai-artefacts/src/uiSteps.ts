@@ -14,6 +14,18 @@ export function urlFromText(text: string): string {
   return String(text || '').match(/https?:\/\/[^\s"'<>]+/i)?.[0] || '';
 }
 
+export function hideProductUrl(text: string): string {
+  return stripProductUrls(String(text || ''));
+}
+
+export function stripProductUrls(text: string): string {
+  return String(text || '')
+    .replace(/\b(?:a visitor |the user |I )?(?:opens?|visits?|goes to|navigates? to|loads?)\s+https?:\/\/[^\s"'<>]+/gi, OPEN_WEBSITE_STEP)
+    .replace(/https?:\/\/[^\s"'<>]+/gi, 'the website')
+    .replace(/([^ \n]) {2,}/g, '$1 ')
+    .replace(/[ \t]+\n/g, '\n');
+}
+
 export function visibleTargets(text: string): TestGenieTarget[] {
   const targets: TestGenieTarget[] = [];
   const seen = new Set<string>();
@@ -41,7 +53,10 @@ export function urlFromCase(testCase: TestGenieCase, step?: TestGenieStep): stri
 }
 
 export function expandUiSteps(testCase: TestGenieCase): TestGenieCase {
-  const blob = testCase.steps.map((step) => `${step.action} ${step.expected}`).join(' ');
+  const blob = testCase.steps
+    .filter((step) => !step.target && !step.api)
+    .map((step) => `${step.action} ${step.expected}`)
+    .join(' ');
   const visibles = visibleTargets(blob);
   const url = urlFromCase(testCase);
   const steps: TestGenieStep[] = [];
@@ -49,7 +64,7 @@ export function expandUiSteps(testCase: TestGenieCase): TestGenieCase {
     steps.push({ action: OPEN_WEBSITE_STEP, expected: 'the page is ready' });
   }
   for (const step of testCase.steps) {
-    if (step.api || step.target) {
+    if (step.api || step.target || /<[^>]+>/.test(`${step.action} ${step.expected}`)) {
       steps.push(step);
       continue;
     }
@@ -96,7 +111,7 @@ export function methodName(step: TestGenieStep, fallback: string): string {
   return fallback;
 }
 
-function toName(label: string): string {
+export function toName(label: string): string {
   const words = String(label || '')
     .replace(/[^A-Za-z0-9]+/g, ' ')
     .trim()

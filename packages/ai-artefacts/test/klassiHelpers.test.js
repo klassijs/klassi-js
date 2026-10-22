@@ -38,6 +38,16 @@ test('an API step uses helpers.apiCall', () => {
   assert.match(helper.expression, /helpers\.apiCall\(/);
 });
 
+test('an API step never writes the product URL into the test', () => {
+  const helper = helperForStep({
+    action: 'I send a GET request',
+    expected: '200',
+    api: { method: 'GET', path: 'https://klassi.co.uk/orders', expectedStatus: 200 },
+  }, testCase, null);
+  assert.match(helper.expression, /\/orders/);
+  assert.doesNotMatch(helper.expression, /https:\/\//);
+});
+
 test('a displayed check has no helper so a page-object method can be created', () => {
   const helper = helperForStep({
     action: 'the Klassi logo is displayed',

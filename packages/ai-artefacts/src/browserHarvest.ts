@@ -1,4 +1,5 @@
 import { harvestInteractiveNodes, type DomNode } from './locatorBind.js';
+import { extraNavUrls } from './outlineExamples.js';
 
 export interface BrowserSession {
   url(target: string): Promise<unknown>;
@@ -16,6 +17,7 @@ export interface BrowserSession {
 export interface HarvestBrowserOptions {
   env?: NodeJS.ProcessEnv;
   timeoutMs?: number;
+  followNav?: boolean;
   openBrowser?: (env: NodeJS.ProcessEnv) => Promise<BrowserSession>;
 }
 
@@ -35,20 +37,25 @@ function collectVisibleNodes(): DomNode[] {
   const list = root.document.querySelectorAll('a,button,input,select,textarea,label,h1,h2,h3,h4,img,article,svg,[role],[data-testid],[aria-label],[alt],[title]');
   for (const el of list) {
     const alt = el.getAttribute('alt') || undefined;
+    const href = el.getAttribute('href') || undefined;
     const text = String(alt || el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || '')
       .replace(/\s+/g, ' ')
       .trim();
+    const closest = (el as { closest?: (selector: string) => unknown }).closest;
     const node = {
       tag: String(el.tagName || '').toLowerCase(),
       testid: el.getAttribute('data-testid') || undefined,
       name: el.getAttribute('name') || undefined,
       id: el.id || undefined,
+      className: el.getAttribute('class') || undefined,
       aria: el.getAttribute('aria-label') || undefined,
       alt,
       text: text || undefined,
+      href,
+      inNav: Boolean(closest?.call(el, 'nav, header, [role="navigation"]')),
     };
-    const key = [node.tag, node.testid, node.name, node.id, node.aria, node.text].join('|');
-    if (seen.has(key) || !(node.testid || node.name || node.id || node.aria || node.text)) continue;
+    const key = [node.tag, node.testid, node.name, node.id, node.className, node.aria, node.text].join('|');
+    if (seen.has(key) || !(node.testid || node.name || node.id || node.className || node.aria || node.text || node.href)) continue;
     seen.add(key);
     nodes.push(node);
   }
@@ -73,7 +80,14 @@ export async function harvestProductWithBrowser(
     for (const url of urls) {
       await browser.url(url);
       await waitForPage(browser, timeoutMs);
-      nodes.push(...await harvestRenderedNodes(browser));
+      nodes.push(...(await harvestRenderedNodes(browser)).map((node) => ({ ...node, pageUrl: url })));
+    }
+    if (options.followNav) {
+      for (const extra of extraNavUrls(nodes, urls)) {
+        await browser.url(extra);
+        await waitForPage(browser, timeoutMs);
+        nodes.push(...(await harvestRenderedNodes(browser)).map((node) => ({ ...node, pageUrl: extra })));
+      }
     }
   } finally {
     if (browser.deleteSession) {

@@ -12,10 +12,8 @@ export function helperForStep(
   selector: string | null,
 ): KlassiHelperCall | null {
   if (step.api) {
-    const route = step.api.path.startsWith('/') || /^https?:\/\//i.test(step.api.path) ? step.api.path : `/${step.api.path}`;
-    const urlExpr = /^https?:\/\//i.test(route)
-      ? `'${escapeQuote(route)}'`
-      : `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(route)}'`;
+    const route = apiPathOnly(step.api.path);
+    const urlExpr = `(process.env.PRODUCT_API_URL || '') + '${escapeQuote(route)}'`;
     const expected = Number.isFinite(step.api.expectedStatus) ? step.api.expectedStatus : 200;
     return {
       name: 'apiCall',
@@ -36,6 +34,19 @@ export function helperForStep(
     return { name: 'waitAndSetValue', expression: `await helpers.waitAndSetValue('${escapeQuote(selector)}', '')` };
   }
   return { name: 'waitAndClick', expression: `await helpers.waitAndClick('${escapeQuote(selector)}')` };
+}
+
+function apiPathOnly(path: string): string {
+  const raw = String(path || '').trim();
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw);
+      return `${parsed.pathname}${parsed.search}` || '/';
+    } catch {
+      return '/';
+    }
+  }
+  return raw.startsWith('/') ? raw : `/${raw}`;
 }
 
 function escapeQuote(value: string): string {

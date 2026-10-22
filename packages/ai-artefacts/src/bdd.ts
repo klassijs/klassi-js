@@ -2,7 +2,7 @@ import type { TestGenieCase } from './test-genie.js';
 import { assertReadyForCodeGeneration, type TestGenieVerification } from './test-genie.js';
 import { forbiddenFindings, type StaticFinding } from './source-checks.js';
 import { helperForStep } from './klassiHelpers.js';
-import { expandUiSteps, isDisplayed, isNavigate, methodName, OPEN_WEBSITE_STEP, urlFromCase } from './uiSteps.js';
+import { expandUiSteps, hideProductUrl, isDisplayed, isNavigate, methodName, OPEN_WEBSITE_STEP, toName, urlFromCase } from './uiSteps.js';
 
 export interface GherkinArtefact {
   feature: string;
@@ -30,11 +30,10 @@ export function featureFromCases(
   assertReadyForCodeGeneration(verification);
   const expanded = cases.map(({ testCase, trace }) => ({ testCase: expandUiSteps(testCase), trace }));
   const productUrl = productUrlFromCases(expanded.map((item) => item.testCase), options.productUrl);
-  const openAction = openPageAction(expanded.map((item) => item.testCase), productUrl);
   const scenarios = expanded.map(({ testCase, trace }) => scenarioBlock(testCase, trace, Boolean(productUrl)));
-  const lines = [`Feature: ${title}`, ''];
+  const lines = [`Feature: ${hideProductUrl(title)}`, ''];
   if (productUrl) {
-    lines.push('  Background:', `    Given ${openAction}`, '');
+    lines.push('  Background:', `    Given ${OPEN_WEBSITE_STEP}`, '');
   }
   lines.push(scenarios.join('\n\n'), '');
   return lines.join('\n');
@@ -86,6 +85,10 @@ export function stepsFromFeature(feature: string): string {
 }
 
 export function pageObjectFromFeature(feature: string, cases: TestGenieCase[] = []): string {
+  const locators = mergeLocators(cases);
+  if (locators) {
+    return locatorMapPageObject(locators);
+  }
   const fromCases = pageMethodsFromCases(cases.length > 0 ? cases.map(expandUiSteps) : casesFromFeature(feature));
   if (fromCases.length === 0) {
     return 'module.exports = {};\n';
@@ -104,17 +107,22 @@ export function stepsFromCases(feature: string, pageObjectPath: string, cases: T
     const key = `${keyword}:${step.text}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    const parameterized = parameterizeStep(step.text);
     const matched = caseStepForText(resolved, step.text);
     const helper = matched ? helperForStep(matched.step, matched.testCase, selectorFromTarget(matched.step.target)) : null;
     const method = methods.get(step.text);
     let body = '  return undefined;';
     if (helper) {
       body = `  ${helper.expression};`;
+    } else if (parameterized.lookup) {
+      usesPage = true;
+      body = `  await page.${parameterized.lookup}(${parameterized.names[0]});`;
     } else if (method) {
       usesPage = true;
       body = `  await page.${method}();`;
     }
-    lines.push(`${keyword}('${escapeQuote(step.text)}', async function () {`, body, '});', '');
+    const args = parameterized.names.join(', ');
+    lines.push(`${keyword}('${escapeQuote(parameterized.pattern)}', async function (${args}) {`, body, '});', '');
   }
   const header = usesPage ? `const page = require('${pageObjectPath}');\n\n` : '';
   return `${header}${lines.join('\n')}`;
@@ -124,17 +132,23 @@ export function selectorFromTarget(target: TestGenieCase['steps'][number]['targe
   const by = target?.find?.by;
   const value = String(target?.find?.value || '').trim();
   if (!by || !value || target?.find.fromDom === false) return null;
-  if (by === 'css') return value;
-  if (by === 'testid') return `[data-testid="${escapeAttr(value)}"]`;
-  if (by === 'name') return `[name="${escapeAttr(value)}"]`;
   if (by === 'id') return `#${value.replace(/[^A-Za-z0-9_-]/g, '')}`;
-  if (by === 'text') return `=${value}`;
+  if (by === 'name') return `[name="${escapeAttr(value)}"]`;
+  if (by === 'class') return `.${value.replace(/[^\w-]/g, '')}`;
+  if (by === 'tag') return value.replace(/[^a-z0-9]/gi, '');
+  if (by === 'link' || by === 'text') return `=${value}`;
+  if (by === 'partialLink') return `*=${value}`;
+  if (by === 'css') return value;
+  if (by === 'xpath') return value;
+  if (by === 'testid') return `[data-testid="${escapeAttr(value)}"]`;
   return `aria/${value}`;
 }
 
 export function unboundSteps(cases: TestGenieCase[]): string[] {
   return cases.flatMap((testCase) => expandUiSteps(testCase).steps.flatMap((step) => {
     if (step.api) return [];
+    if (testCase.locators) return [];
+    if (/<[^>]+>/.test(step.action)) return [];
     if (selectorFromTarget(step.target)) return [];
     if (urlFromCase(testCase, step) && isNavigate(step.action)) return [];
     return step.action ? [`Unbound step: ${step.action}`] : [];
@@ -154,13 +168,65 @@ function pageMethodsFromCases(cases: TestGenieCase[]): string[] {
       if (seen.has(name)) return;
       seen.add(name);
       if (!selector) {
-        methods.push(`  // unbound: ${step.action || testCase.title}\n  async ${name}() {\n    await global.browser.pause(0);\n  }`);
+        methods.push(`  // unbound: ${hideProductUrl(step.action || testCase.title)}\n  async ${name}() {\n    await global.browser.pause(0);\n  }`);
         return;
       }
-      methods.push(`  // ${step.action}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').waitForDisplayed();\n  }`);
+      methods.push(`  // ${hideProductUrl(step.action)}\n  async ${name}() {\n    await global.browser.$('${escapeQuote(selector)}').waitForDisplayed();\n  }`);
     });
   }
   return methods;
+}
+
+function mergeLocators(cases: TestGenieCase[]): TestGenieCase['locators'] | null {
+  const menus: Record<string, string> = {};
+  const headings: Record<string, string> = {};
+  for (const testCase of cases) {
+    Object.assign(menus, testCase.locators?.menus);
+    Object.assign(headings, testCase.locators?.headings);
+  }
+  if (Object.keys(menus).length === 0 && Object.keys(headings).length === 0) return null;
+  return { menus, headings };
+}
+
+function locatorMapPageObject(locators: NonNullable<TestGenieCase['locators']>): string {
+  return [
+    `const locators = ${JSON.stringify(locators, null, 2)};`,
+    '',
+    'function locator(group, name) {',
+    '  const selector = locators[group] && locators[group][name];',
+    '  if (!selector) {',
+    '    throw new Error(`No ${group} locator for "${name}"`);',
+    '  }',
+    '  return selector;',
+    '}',
+    '',
+    'module.exports = {',
+    '  async selectNavigation(name) {',
+    '    await helpers.waitAndClick(locator(\'menus\', name));',
+    '  },',
+    '  async headingIsDisplayed(name) {',
+    '    await global.browser.$(locator(\'headings\', name)).waitForDisplayed();',
+    '  },',
+    '};',
+    '',
+  ].join('\n');
+}
+
+function parameterizeStep(text: string): { pattern: string; names: string[]; lookup: string } {
+  const names: string[] = [];
+  const pattern = String(text || '')
+    .replace(/"<([^>]+)>"/g, (_, raw) => {
+      names.push(toName(raw) || 'value');
+      return '{string}';
+    })
+    .replace(/<([^>]+)>/g, (_, raw) => {
+      names.push(toName(raw) || 'value');
+      return '{string}';
+    });
+  let lookup = '';
+  if (names.length > 0 && /navigation link/i.test(text)) lookup = 'selectNavigation';
+  else if (names.length > 0 && /heading is displayed/i.test(text)) lookup = 'headingIsDisplayed';
+  return { pattern, names, lookup };
 }
 
 function methodIndex(cases: TestGenieCase[]): Map<string, string> {
@@ -300,14 +366,6 @@ function productUrlFromCases(cases: TestGenieCase[], fallback = ''): string {
   return String(fallback || '').replace(/\/+$/, '');
 }
 
-function openPageAction(cases: TestGenieCase[], _url: string): string {
-  for (const testCase of cases) {
-    const nav = testCase.steps.find((step) => isNavigate(step.action) && !step.target && !step.api);
-    if (nav?.action) return nav.action;
-  }
-  return OPEN_WEBSITE_STEP;
-}
-
 function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; acceptanceTestId: string }, hoistOpenPage = false): string {
   const tags = [
     `@${trace.requirementId.startsWith('BR-') ? trace.requirementId : `BR-${trace.requirementId}`}`,
@@ -318,25 +376,30 @@ function scenarioBlock(testCase: TestGenieCase, trace: { requirementId: string; 
     ? testCase.steps.filter((step) => !isNavigate(step.action) || step.target || step.api)
     : testCase.steps;
   const steps = (remaining.length > 0 ? remaining : testCase.steps.slice(-1)).flatMap((step, index) => {
-    const assertionOnly = step.action === step.expected || (isDisplayed(step.action) && !isNavigate(step.action) && !step.api);
-    if (assertionOnly) return [`${index === 0 ? 'Then' : 'And'} ${step.expected}`];
-    if (hoistOpenPage && isNavigate(step.action) && !step.target && !step.api) {
-      return [`Then ${step.expected}`];
+    const action = hideProductUrl(step.action);
+    const expected = hideProductUrl(step.expected);
+    const assertionOnly = action === expected || (isDisplayed(action) && !isNavigate(action) && !step.api);
+    if (assertionOnly) return [`${index === 0 ? 'Then' : 'And'} ${expected}`];
+    if (hoistOpenPage && isNavigate(action) && !step.target && !step.api) {
+      return [`Then ${expected}`];
     }
-    if (isNavigate(step.action) && !step.target && !step.api) {
-      return [`${index === 0 ? 'When' : 'And'} ${OPEN_WEBSITE_STEP}`, `Then ${step.expected}`];
+    if (isNavigate(action) && !step.target && !step.api) {
+      return [`${index === 0 ? 'When' : 'And'} ${OPEN_WEBSITE_STEP}`, `Then ${expected}`];
     }
-    return [`${index === 0 ? 'When' : 'And'} ${step.action}`, `Then ${step.expected}`];
+    if (step.target && !isDisplayed(action) && / page opens$/i.test(expected)) {
+      return [`${index === 0 ? 'When' : 'And'} ${action}`];
+    }
+    return [`${index === 0 ? 'When' : 'And'} ${action}`, `Then ${expected}`];
   }).join('\n    ');
   const examples = exampleTable(testCase.examples);
   const keyword = examples ? 'Scenario Outline' : 'Scenario';
-  return [`  ${tags.join(' ')}`, `  ${keyword}: ${testCase.title}`, `    ${steps}`, examples].filter(Boolean).join('\n');
+  return [`  ${tags.join(' ')}`, `  ${keyword}: ${hideProductUrl(testCase.title)}`, `    ${steps}`, examples].filter(Boolean).join('\n');
 }
 
 function exampleTable(examples: TestGenieCase['examples']): string {
   if (!examples || examples.headers.length === 0 || examples.rows.length === 0) return '';
-  const header = `      | ${examples.headers.join(' | ')} |`;
-  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => row[name] ?? '').join(' | ')} |`);
+  const header = `      | ${examples.headers.map((name) => hideProductUrl(name)).join(' | ')} |`;
+  const rows = examples.rows.map((row) => `      | ${examples.headers.map((name) => hideProductUrl(row[name] ?? '')).join(' | ')} |`);
   return ['    Examples:', header, ...rows].join('\n');
 }
 

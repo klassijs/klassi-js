@@ -5,12 +5,25 @@ export interface DomNode {
   testid?: string;
   name?: string;
   id?: string;
+  className?: string;
   aria?: string;
   alt?: string;
   text?: string;
+  href?: string;
+  inNav?: boolean;
+  pageUrl?: string;
 }
 
 export function harvestInteractiveNodes(html: string): DomNode[] {
+  const navKeys = new Set(
+    navSections(html).flatMap((section) => readNodes(section).filter((node) => node.tag === 'a').map(navKey)),
+  );
+  return readNodes(html).map((node) => (
+    node.tag === 'a' ? { ...node, inNav: navKeys.has(navKey(node)) } : node
+  ));
+}
+
+function readNodes(html: string): DomNode[] {
   const nodes: DomNode[] = [];
   const tagRe = /<(input|button|select|textarea|a|label|h1|h2|h3|img|article)\b([^>]*)>(?:([^<]*))?/gi;
   let match = tagRe.exec(html);
@@ -24,13 +37,36 @@ export function harvestInteractiveNodes(html: string): DomNode[] {
       testid: attr(attrs, 'data-testid'),
       name: attr(attrs, 'name'),
       id: attr(attrs, 'id'),
+      className: attr(attrs, 'class'),
       aria: attr(attrs, 'aria-label'),
       alt: attr(attrs, 'alt'),
       text: text || undefined,
+      href: match[1]?.toLowerCase() === 'a' ? attr(attrs, 'href') : undefined,
     });
     match = tagRe.exec(html);
   }
-  return nodes.filter((node) => node.testid || node.name || node.id || node.aria || node.text);
+  return nodes.filter((node) => node.testid || node.name || node.id || node.className || node.aria || node.text || node.href);
+}
+
+function navSections(html: string): string[] {
+  const sections: string[] = [];
+  const named = /<(nav|header)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  let match = named.exec(html);
+  while (match) {
+    sections.push(match[2] || '');
+    match = named.exec(html);
+  }
+  const role = /<[^>]+role=["']navigation["'][^>]*>([\s\S]*?)<\/[a-z0-9]+>/gi;
+  match = role.exec(html);
+  while (match) {
+    sections.push(match[1] || '');
+    match = role.exec(html);
+  }
+  return sections;
+}
+
+function navKey(node: DomNode): string {
+  return `${String(node.href || '').trim().toLowerCase()}|${String(node.text || '').trim().toLowerCase()}`;
 }
 
 export function bindCasesToNodes(cases: TestGenieCase[], nodes: DomNode[]): TestGenieCase[] {
@@ -88,7 +124,7 @@ function bindStep(step: TestGenieStep, nodes: DomNode[]): TestGenieStep {
     }
     return step;
   }
-  const find = preferFind(hit);
+  const find = findFromNode(hit);
   if (!find) return step;
   const target: TestGenieTarget = {
     name: step.target?.name || 'element',
@@ -98,26 +134,70 @@ function bindStep(step: TestGenieStep, nodes: DomNode[]): TestGenieStep {
   return { ...step, target };
 }
 
-function preferFind(node: DomNode): TestGenieFind | null {
+export function findFromNode(node: DomNode): TestGenieFind | null {
+  const id = String(node.id || '').trim();
   if (node.testid) return { by: 'testid', value: node.testid };
-  const alt = node.alt || (node.tag === 'img' ? node.text : undefined);
-  if (node.tag === 'img' && alt) {
-    return { by: 'css', value: `img[alt="${escapeAttr(alt)}"]` };
-  }
-  if (node.tag && /^h[1-6]$/.test(node.tag) && node.text) {
-    const plain = node.text.replace(/[™®©]/g, '').replace(/\s+/g, ' ').trim();
-    const selector = plain !== node.text ? `${node.tag}*=${plain}` : `${node.tag}=${node.text}`;
-    return { by: 'css', value: selector };
-  }
+  if (id && !AUTO_ID.test(id)) return { by: 'id', value: id };
+  const name = String(node.name || '').trim();
+  if (name) return { by: 'name', value: name };
   if (node.aria) return { by: 'label', value: node.aria };
-  if (node.name) return { by: 'name', value: node.name };
-  if (node.id) return { by: 'id', value: node.id };
-  if (node.text) return { by: 'text', value: node.text };
+  const css = cssFromNode(node);
+  if (css) return { by: 'css', value: css };
+  if (node.tag === 'a') {
+    const link = String(node.text || '').replace(/\s+/g, ' ').trim();
+    if (link && link.length > 40) return { by: 'partialLink', value: link.slice(0, 24).trim() };
+    if (link) {
+      const plain = link.replace(/[™®©]/g, '').replace(/\s+/g, ' ').trim();
+      return plain !== link ? { by: 'partialLink', value: plain } : { by: 'link', value: link };
+    }
+  }
+  const xpath = xpathFromNode(node);
+  if (xpath) return { by: 'xpath', value: xpath };
+  const className = usefulClass(node.className);
+  if (className) return { by: 'class', value: className };
+  if (node.tag && !GENERIC_TAGS.has(node.tag)) return { by: 'tag', value: node.tag };
   return null;
 }
 
+const GENERIC_TAGS = new Set(['a', 'div', 'span', 'p', 'li', 'ul', 'section', 'article', 'img', 'svg', 'label']);
+const AUTO_ID = /^(ember|react|vue|ng-|:)/i;
+const UTILITY_CLASS = /^(text-|mb-|mt-|ml-|mr-|ms-|me-|p-|px-|py-|pt-|pb-|pl-|pr-|d-|col-|row-|w-|h-|flex|justify-|align-|container$|col$|row$|show$|hide$|active$|collapsed$|display-|fw-|fs-|lh-|btn|nav-link|nav-item|navbar-|form-|card|badge|alert|rounded|shadow|border|bg-|img-|visually-|sr-only|fade$|offcanvas|dropdown|list-group|sticky-|fixed-|position-|overflow-)/i;
+
+function usefulClass(className: string | undefined): string | undefined {
+  return String(className || '')
+    .split(/\s+/)
+    .map((item) => item.trim())
+    .find((item) => item.length > 1 && !UTILITY_CLASS.test(item) && !/[:/]/.test(item));
+}
+
+function cssFromNode(node: DomNode): string | undefined {
+  const alt = node.alt || (node.tag === 'img' ? node.text : undefined);
+  if (node.tag === 'img' && alt) return `img[alt="${escapeAttr(alt)}"]`;
+  if (node.tag && /^h[1-6]$/.test(node.tag) && node.text) {
+    const plain = node.text.replace(/[™®©]/g, '').replace(/\s+/g, ' ').trim();
+    return plain !== node.text ? `${node.tag}*=${plain}` : `${node.tag}=${node.text}`;
+  }
+  if (node.tag === 'a' && node.href && !/^https?:\/\//i.test(node.href) && node.href !== '#' && !String(node.text || '').trim()) {
+    return `a[href="${escapeAttr(node.href)}"]`;
+  }
+  return undefined;
+}
+
+function xpathFromNode(node: DomNode): string | undefined {
+  const text = String(node.text || '').replace(/\s+/g, ' ').trim();
+  const tag = node.tag || '*';
+  if (text) {
+    const plain = text.replace(/[™®©]/g, '').replace(/"/g, '');
+    if (plain !== text) return `//${tag}[contains(normalize-space(), "${escapeAttr(plain)}")]`;
+    return `//${tag}[normalize-space()="${escapeAttr(text)}"]`;
+  }
+  if (node.alt) return `//${tag}[@alt="${escapeAttr(node.alt)}"]`;
+  if (node.href) return `//${tag}[@href="${escapeAttr(node.href)}"]`;
+  return undefined;
+}
+
 export function matchScore(node: DomNode, needle: string): number {
-  const fields = [node.testid, node.aria, node.alt, node.text, node.name, node.id].map(normalize).filter(Boolean);
+  const fields = [node.testid, node.aria, node.alt, node.text, node.name, node.id, node.className].map(normalize).filter(Boolean);
   if (fields.includes(normalize(needle))) return 4;
   const wanted = contentTokens(needle);
   const role = tokens(needle).find((token) => Boolean(ROLE_TAGS[token]));
