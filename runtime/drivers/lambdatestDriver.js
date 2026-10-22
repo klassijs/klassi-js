@@ -197,6 +197,9 @@ const browserExecute = async (options, configTypeA) => {
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 		try {
 			global.browser = await remote(options);
+			if (typeof global.browser.maximizeWindow === 'function') {
+				await global.browser.maximizeWindow();
+			}
 			return global.browser;
 		} catch (error) {
 			const canRetry = attempt < maxAttempts && isRetryable(error);
