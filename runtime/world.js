@@ -239,8 +239,13 @@ After(async (scenario) => {
 		await helpers.ltVideo();
 		// eslint-disable-next-line no-undef
 		const vidLink = await videoLib.getVideoId();
+		if (!vidLink) {
+			return;
+		}
+		const safeLink = String(vidLink).replace(/"/g, '&quot;');
 		cucumberThis.attach(
-			`video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`,
+			`video:<br><iframe src="${safeLink}" width="640" height="360" allow="autoplay; fullscreen" allowfullscreen></iframe><br><a href="${safeLink}" target="_blank" rel="noopener">Open video</a>`,
+			'text/html',
 		);
 	}
 });
