@@ -4,7 +4,16 @@
  */
 const pactumJs = require('pactum');
 
+/**
+ * setting the envConfig variables for file list
+ */
+const ltUrl = process.env.LAMBDATEST_API_URL;
+const ltUsername = process.env.LAMBDATEST_USERNAME;
+const ltKey = process.env.LAMBDATEST_ACCESS_KEY;
+
+let res;
 let videoID;
+let url;
 
 module.exports = {
   getVideoList: async () => {
@@ -13,20 +22,14 @@ module.exports = {
       return null;
     }
     const { sessionId } = global.browser;
-    const base = String(process.env.LAMBDATEST_API_URL || '').trim();
-    const user = process.env.LAMBDATEST_USERNAME;
-    const key = process.env.LAMBDATEST_ACCESS_KEY;
-    if (!base) {
-      console.warn('LAMBDATEST_API_URL is not set, skipping video link retrieval');
-      return null;
-    }
-    const url = `https://${base}/sessions/${sessionId}/video`;
-    const res = await pactumJs.spec().get(url).withAuth(user, key).expectStatus(200).toss();
+    url = `https://${ltUrl}/sessions/${sessionId}/video`;
+    res = await pactumJs.spec().get(url).withAuth(ltUsername, ltKey).expectStatus(200).toss();
     videoID = res.body.url;
     return videoID;
   },
 
   getVideoId: async () => {
+    console.log('this is the failed test video link ', videoID);
     return videoID;
   },
 };

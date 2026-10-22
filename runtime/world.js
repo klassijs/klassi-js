@@ -229,22 +229,6 @@ Before((scenario) => {
 });
 
 /**
- * LambdaTest Only
- * executed ONLY on failure of a scenario to get the video link
- * from lambdatest when it fails for the report
- */
-After(async (scenario) => {
-	if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
-		await helpers.ltVideo();
-		// eslint-disable-next-line no-undef
-		const vidLink = await videoLib.getVideoId();
-		cucumberThis.attach(
-			`video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`,
-		);
-	}
-});
-
-/**
  * This is to control closing the browser or keeping it open after each scenario
  * @returns {Promise<void>|*}
  */
@@ -368,5 +352,22 @@ function skipTagValidation() {
 	}
 	return correctTags.length !== 0 ? correctTags : null;
 }
+
+/**
+ * LambdaTest Only
+ * executed ONLY on failure of a scenario to get the video link
+ * from lambdatest when it fails for the report.
+ * Registered last so Cucumber runs it first, while the session is still open.
+ */
+After(async (scenario) => {
+	if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
+		await helpers.ltVideo();
+		// eslint-disable-next-line no-undef
+		const vidLink = await videoLib.getVideoId();
+		cucumberThis.attach(
+			`video:\n <video width='320' height='240' controls autoplay> <source src=${vidLink} type=video/mp4> </video>`,
+		);
+	}
+});
 
 module.exports = { skipTagValidation };
