@@ -123,7 +123,8 @@ export function stepsFromCases(feature: string, pageObjectPath: string, cases: T
 export function selectorFromTarget(target: TestGenieCase['steps'][number]['target']): string | null {
   const by = target?.find?.by;
   const value = String(target?.find?.value || '').trim();
-  if (!by || !value) return null;
+  if (!by || !value || target?.find.fromDom === false) return null;
+  if (by === 'css') return value;
   if (by === 'testid') return `[data-testid="${escapeAttr(value)}"]`;
   if (by === 'name') return `[name="${escapeAttr(value)}"]`;
   if (by === 'id') return `#${value.replace(/[^A-Za-z0-9_-]/g, '')}`;

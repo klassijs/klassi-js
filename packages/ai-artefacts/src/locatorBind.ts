@@ -6,6 +6,7 @@ export interface DomNode {
   name?: string;
   id?: string;
   aria?: string;
+  alt?: string;
   text?: string;
 }
 
@@ -24,6 +25,7 @@ export function harvestInteractiveNodes(html: string): DomNode[] {
       name: attr(attrs, 'name'),
       id: attr(attrs, 'id'),
       aria: attr(attrs, 'aria-label'),
+      alt: attr(attrs, 'alt'),
       text: text || undefined,
     });
     match = tagRe.exec(html);
@@ -80,19 +82,33 @@ function bindStep(step: TestGenieStep, nodes: DomNode[]): TestGenieStep {
     .map((node) => ({ node, score: matchScore(node, needle) }))
     .filter((item) => item.score > 0)
     .sort((left, right) => right.score - left.score)[0]?.node;
-  if (!hit) return step;
+  if (!hit) {
+    if (step.target?.find.fromDom === false) {
+      return { ...step, target: { ...step.target, find: { by: 'text', value: '', fromDom: false } } };
+    }
+    return step;
+  }
   const find = preferFind(hit);
   if (!find) return step;
   const target: TestGenieTarget = {
     name: step.target?.name || 'element',
     type: step.target?.type || (hit.tag === 'input' || hit.tag === 'textarea' || hit.tag === 'select' ? 'input' : 'button'),
-    find,
+    find: { ...find, fromDom: true },
   };
   return { ...step, target };
 }
 
 function preferFind(node: DomNode): TestGenieFind | null {
   if (node.testid) return { by: 'testid', value: node.testid };
+  const alt = node.alt || (node.tag === 'img' ? node.text : undefined);
+  if (node.tag === 'img' && alt) {
+    return { by: 'css', value: `img[alt="${escapeAttr(alt)}"]` };
+  }
+  if (node.tag && /^h[1-6]$/.test(node.tag) && node.text) {
+    const plain = node.text.replace(/[™®©]/g, '').replace(/\s+/g, ' ').trim();
+    const selector = plain !== node.text ? `${node.tag}*=${plain}` : `${node.tag}=${node.text}`;
+    return { by: 'css', value: selector };
+  }
   if (node.aria) return { by: 'label', value: node.aria };
   if (node.name) return { by: 'name', value: node.name };
   if (node.id) return { by: 'id', value: node.id };
@@ -101,12 +117,20 @@ function preferFind(node: DomNode): TestGenieFind | null {
 }
 
 export function matchScore(node: DomNode, needle: string): number {
-  const fields = [node.testid, node.aria, node.text, node.name, node.id].map(normalize).filter(Boolean);
-  if (fields.includes(needle)) return 3;
-  const wanted = tokens(needle);
-  if (wanted.length > 0 && fields.some((field) => wanted.every((token) => tokens(field).includes(token)))) return 2;
-  if (fields.some((field) => field.includes(needle) || needle.includes(field))) return 1;
-  return 0;
+  const fields = [node.testid, node.aria, node.alt, node.text, node.name, node.id].map(normalize).filter(Boolean);
+  if (fields.includes(normalize(needle))) return 4;
+  const wanted = contentTokens(needle);
+  const role = tokens(needle).find((token) => Boolean(ROLE_TAGS[token]));
+  let score = 0;
+  if (wanted.length > 0 && fields.some((field) => wanted.every((token) => tokens(field).includes(token) || field.includes(token)))) {
+    score += 2;
+  } else if (wanted.length > 0 && fields.some((field) => wanted.some((token) => field.includes(token)))) {
+    score += 1;
+  }
+  if (role && ROLE_TAGS[role].includes(node.tag || '')) {
+    score += 1;
+  }
+  return score;
 }
 
 function normalize(value: string | undefined): string {
@@ -114,11 +138,28 @@ function normalize(value: string | undefined): string {
 }
 
 const STOP = new Set(['the', 'a', 'an', 'is', 'are', 'and', 'of', 'for']);
+const ROLE_TAGS: Record<string, string[]> = {
+  logo: ['img', 'svg'],
+  heading: ['h1', 'h2', 'h3', 'h4'],
+  title: ['h1', 'h2'],
+  card: ['article', 'h3', 'section', 'img'],
+  image: ['img', 'svg'],
+  button: ['button'],
+  link: ['a'],
+};
+
+function contentTokens(value: string): string[] {
+  return tokens(value).filter((token) => !ROLE_TAGS[token]);
+}
 
 function tokens(value: string): string[] {
   return normalize(value)
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length > 1 && !STOP.has(token));
+}
+
+function escapeAttr(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
 function attr(attrs: string, name: string): string | undefined {

@@ -182,7 +182,9 @@ test('browser harvest binds the displayed logo from the rendered DOM', async () 
     },
   });
   const pageObject = await readFile(result.imported[0].pageObject, 'utf8');
-  assert.match(pageObject, /klassi trademark logo/);
+  assert.match(pageObject, /async klassiLogo\(/);
+  assert.match(pageObject, /img\[alt="klassi trademark logo"\]/);
+  assert.doesNotMatch(pageObject, /\$\('=Klassi logo'\)/);
   assert.match(pageObject, /waitForDisplayed/);
   assert.equal(result.findings.some((item) => item.includes('Harvested 1 DOM node')), true);
 });
@@ -238,8 +240,8 @@ test('a homepage open and displayed steps become a url and waitForDisplayed', as
   assert.match(steps, /helpers\.loadPage\(env\.base_url\)/);
   assert.doesNotMatch(steps, /page\.openPage|helpers\.loadPage.*openPage/);
   assert.doesNotMatch(pageObject, /async openPage\(|deleteCookies|browser\.url\(/);
-  assert.match(pageObject, /='=Klassi logo'|="=Klassi logo"|\$\('=Klassi logo'\)/);
-  assert.match(pageObject, /waitForDisplayed/);
+  assert.doesNotMatch(pageObject, /\$\('=Klassi logo'\)/);
+  assert.match(pageObject, /async klassiLogo\(/);
   assert.doesNotMatch(pageObject, /async step1\(\)/);
 });
 

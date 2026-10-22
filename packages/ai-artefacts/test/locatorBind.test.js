@@ -22,7 +22,33 @@ test('bind matches Klassi logo to trademark alt text in the DOM', () => {
       target: { name: 'klassiLogo', type: 'link', find: { by: 'text', value: 'Klassi logo' } },
     }],
   }], nodes);
-  assert.deepEqual(bound.steps[0].target.find, { by: 'text', value: 'klassi trademark logo' });
+  assert.deepEqual(bound.steps[0].target.find, { by: 'css', value: 'img[alt="klassi trademark logo"]', fromDom: true });
+  assert.equal(bound.steps[0].target.name, 'klassiLogo');
+});
+
+test('bind keeps method names and uses DOM locators for heading and cards', () => {
+  const nodes = harvestInteractiveNodes('<h1>Welcome to the Klassi Brand</h1><img alt="Klassi trademark logo" /><h3>KlassiTech</h3><h3>TestGenie</h3>');
+  const [bound] = bindCasesToNodes([{
+    id: 'TC-1',
+    acceptanceTestId: 'AT-1',
+    title: 'Home',
+    preconditions: ['ready'],
+    coverage: ['positive', 'negative', 'boundary'],
+    steps: [
+      { action: 'the Klassi logo is displayed', expected: 'the Klassi logo is displayed', target: { name: 'klassiLogo', type: 'link', find: { by: 'text', value: 'Klassi logo', fromDom: false } } },
+      { action: 'the welcome heading is displayed', expected: 'the welcome heading is displayed', target: { name: 'welcomeHeading', type: 'link', find: { by: 'text', value: 'welcome heading', fromDom: false } } },
+      { action: 'the KlassiTech card is displayed', expected: 'the KlassiTech card is displayed', target: { name: 'klassitechCard', type: 'link', find: { by: 'text', value: 'KlassiTech card', fromDom: false } } },
+      { action: 'the TestGenie card is displayed', expected: 'the TestGenie card is displayed', target: { name: 'testgenieCard', type: 'link', find: { by: 'text', value: 'TestGenie card', fromDom: false } } },
+    ],
+  }], nodes);
+  assert.equal(bound.steps[0].target.name, 'klassiLogo');
+  assert.deepEqual(bound.steps[0].target.find, { by: 'css', value: 'img[alt="Klassi trademark logo"]', fromDom: true });
+  assert.equal(bound.steps[1].target.name, 'welcomeHeading');
+  assert.deepEqual(bound.steps[1].target.find, { by: 'css', value: 'h1=Welcome to the Klassi Brand', fromDom: true });
+  assert.equal(bound.steps[2].target.name, 'klassitechCard');
+  assert.deepEqual(bound.steps[2].target.find, { by: 'css', value: 'h3=KlassiTech', fromDom: true });
+  assert.equal(bound.steps[3].target.name, 'testgenieCard');
+  assert.deepEqual(bound.steps[3].target.find, { by: 'css', value: 'h3=TestGenie', fromDom: true });
 });
 
 test('harvest reads headings and image alt text', () => {

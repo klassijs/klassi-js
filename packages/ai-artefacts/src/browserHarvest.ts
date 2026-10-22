@@ -34,7 +34,8 @@ function collectVisibleNodes(): DomNode[] {
   };
   const list = root.document.querySelectorAll('a,button,input,select,textarea,label,h1,h2,h3,h4,img,article,svg,[role],[data-testid],[aria-label],[alt],[title]');
   for (const el of list) {
-    const text = String(el.getAttribute('alt') || el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || '')
+    const alt = el.getAttribute('alt') || undefined;
+    const text = String(alt || el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || '')
       .replace(/\s+/g, ' ')
       .trim();
     const node = {
@@ -43,6 +44,7 @@ function collectVisibleNodes(): DomNode[] {
       name: el.getAttribute('name') || undefined,
       id: el.id || undefined,
       aria: el.getAttribute('aria-label') || undefined,
+      alt,
       text: text || undefined,
     };
     const key = [node.tag, node.testid, node.name, node.id, node.aria, node.text].join('|');
@@ -129,6 +131,9 @@ async function waitForPage(browser: BrowserSession, timeoutMs: number): Promise<
       const state = await browser.execute(() => (globalThis as { document?: { readyState?: string } }).document?.readyState);
       return state === 'complete';
     }, { timeout: timeoutMs });
+    await browser.waitUntil(async () => {
+      return browser.execute(() => Boolean((globalThis as { document?: { querySelector?: (s: string) => unknown } }).document?.querySelector?.('h1, img[alt], [data-testid], [aria-label]')));
+    }, { timeout: Math.min(8000, timeoutMs) }).catch(() => undefined);
   }
   if (browser.pause) {
     await browser.pause(400);

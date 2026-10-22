@@ -16,8 +16,9 @@ export interface TestGenieAcceptanceTest {
 }
 
 export interface TestGenieFind {
-  by: 'testid' | 'label' | 'text' | 'name' | 'id';
+  by: 'testid' | 'label' | 'text' | 'name' | 'id' | 'css';
   value: string;
+  fromDom?: boolean;
 }
 
 export interface TestGenieTarget {

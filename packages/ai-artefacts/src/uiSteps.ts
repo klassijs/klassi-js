@@ -30,7 +30,7 @@ export function visibleTargets(text: string): TestGenieTarget[] {
     targets.push({
       name: toName(noun) || 'element',
       type: /\b(heading|title|logo|card|image|link)\b/i.test(noun) ? 'link' : 'button',
-      find: { by: 'text', value: noun },
+      find: { by: 'text', value: noun, fromDom: false },
     });
   }
   return targets;
@@ -66,7 +66,14 @@ export function expandUiSteps(testCase: TestGenieCase): TestGenieCase {
     steps.push(step);
   }
   for (const target of visibles) {
-    if (steps.some((step) => String(step.target?.find.value || '').toLowerCase() === target.find.value.toLowerCase())) {
+    if (steps.some((step) => {
+      const name = String(step.target?.name || '').toLowerCase();
+      const value = String(step.target?.find.value || '').toLowerCase();
+      const action = String(step.action || '').toLowerCase();
+      return name === target.name.toLowerCase()
+        || value === target.find.value.toLowerCase()
+        || action.includes(target.find.value.toLowerCase());
+    })) {
       continue;
     }
     steps.push({
