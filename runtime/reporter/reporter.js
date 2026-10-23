@@ -224,7 +224,7 @@ module.exports = {
 		global.endDateTime = helpers.getEndDateTime();
 
 		const reportOptions = {
-			theme: 'bootstrap',
+			theme: 'mosaic',
 			jsonDir: jsonComDir,
 			output: path.resolve(
 				paths.reports,

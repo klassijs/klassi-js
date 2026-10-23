@@ -4,9 +4,16 @@
  */
 const pactumJs = require('pactum');
 
-let res;
 let videoID;
-let url;
+
+function ltGet(url, user, key) {
+  return pactumJs
+    .spec()
+    .get(url)
+    .withHeaders('Authorization', `Basic ${Buffer.from(`${user}:${key}`).toString('base64')}`)
+    .withRequestTimeout(15000)
+    .toss();
+}
 
 module.exports = {
   getVideoList: async () => {
@@ -24,20 +31,31 @@ module.exports = {
       );
       return null;
     }
-    url = `https://${ltUrl}/sessions/${sessionId}/video`;
-    res = await pactumJs
-      .spec()
-      .get(url)
-      .withHeaders('Authorization', `Basic ${Buffer.from(`${user}:${key}`).toString('base64')}`)
-      .withRequestTimeout(15000)
-      .expectStatus(200)
-      .toss();
-    videoID = res.body.url;
-    return videoID;
+
+    try {
+      for (let attempt = 1; attempt <= 4; attempt++) {
+        const listRes = await ltGet(`https://${ltUrl}/sessions?limit=50`, user, key);
+        const rows = (listRes.body && listRes.body.data) || [];
+        const match = rows.find((row) => row.session_id === sessionId || row.test_id === sessionId);
+        if (match && match.video_url) {
+          videoID = match.video_url;
+          return videoID;
+        }
+        if (attempt < 4) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+      videoID = null;
+      return null;
+    } catch (err) {
+      console.warn('LambdaTest video lookup failed');
+      videoID = null;
+      return null;
+    }
   },
 
   getVideoId: async () => {
-    console.log('this is the failed test video link ', videoID);
+    // console.log('this is the failed test video link ', videoID);
     return videoID;
   },
 };

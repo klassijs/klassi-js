@@ -84,7 +84,7 @@
     "is-ci": "4.1.0",
     "klassijs-a11y-validator": "1.1.0",
     "klassijs-astellen": "1.0.1",
-    "klassijs-cucumber-html-reporter": "6.1.0",
+    "klassijs-cucumber-html-reporter": "github:klassijs/klassijs-cucumber-html-reporter#feature/newtheme",
     "klassijs-smart-ocr": "github:klassijs/klassijs-smart-ocr",
     "klassijs-soft-assert": "1.3.0",
     "klassijs-visual-validation": "1.2.4",

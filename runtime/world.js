@@ -236,16 +236,18 @@ Before((scenario) => {
  */
 After(async (scenario) => {
 	if (scenario.result.status === Status.FAILED && remoteService && remoteService.type === 'lambdatest' && typeof global.browser !== 'undefined') {
-		await helpers.ltVideo();
-		// eslint-disable-next-line no-undef
-		const vidLink = await videoLib.getVideoId();
-		if (!vidLink) {
-			return;
+		try {
+			await helpers.ltVideo();
+			// eslint-disable-next-line no-undef
+			const vidLink = await videoLib.getVideoId();
+			if (!vidLink) {
+				cucumberThis.attach('LambdaTest video URL was not available for this session');
+				return;
+			}
+			cucumberThis.attach(`[[LT_VIDEO]]${vidLink}`);
+		} catch (err) {
+			console.warn('LambdaTest video was not attached to the report');
 		}
-		cucumberThis.attach(
-			`video:\n <video width='320' height='240' controls autoplay> <source src="${vidLink}" type=video/mp4> </video>`,
-			'text/html',
-		);
 	}
 });
 
