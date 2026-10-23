@@ -70,7 +70,7 @@ importers:
         version: 1.0.1
       klassijs-cucumber-html-reporter:
         specifier: github:klassijs/klassijs-cucumber-html-reporter#feature/newtheme
-        version: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/0fd2da648d4fe55ec71b8261d6fd54f4312b93fe
+        version: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323
       klassijs-smart-ocr:
         specifier: github:klassijs/klassijs-smart-ocr
         version: https://codeload.github.com/klassijs/klassijs-smart-ocr/tar.gz/400d553af8cf1940eaa25d104f3a704de07ea18e
@@ -1333,8 +1333,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@puppeteer/browsers@3.2.5':
-    resolution: {integrity: sha512-UoCo3Pynbm37aLEEoydSiG+t24ui7sLD40+07CKxzxNy4PpSowJMkvlLIiV67XjP1lMVynhQVnuwlTABqBH8LQ==}
+  '@puppeteer/browsers@3.2.6':
+    resolution: {integrity: sha512-MJP29gVoHznmqmwhH1tlZqzfeQ3aylTpSSa6WKZXtkwYUH02i9imBmWGTyZrbnAou5paX78SE4jMAUqnEPf8ug==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -2605,9 +2605,6 @@ packages:
     engines: {node: '>=20.0.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.452:
-    resolution: {integrity: sha512-cVvk1YBSj6571VmV6hdJTqj94Y79xSu8cj6Y9t6ae4Y4431z8/7EJFvu3rVp90xhfuv9BpPKUmaLfTo4+FOGBg==}
-
   electron-to-chromium@1.5.463:
     resolution: {integrity: sha512-nVWNU6ltFjopvOdD44J4zoBkgO0M+WZiFKKFV7EjebOH9z0KNphk6bCEjplXtJofL21ARIuuwWOCsFkBVklm6w==}
 
@@ -3713,8 +3710,8 @@ packages:
   klassijs-astellen@1.0.1:
     resolution: {integrity: sha512-rCBPnhzNdjmKb9RqPqMldP8PGZg+slJjRtIJIKIo8GuC1Byf5PDBzsDxLvFYB9xmtyquUCRa7YQqUjcJCcPLLQ==}
 
-  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/0fd2da648d4fe55ec71b8261d6fd54f4312b93fe:
-    resolution: {gitHosted: true, integrity: sha512-k/AP4UHIu/IheEsRtYssqb+aZoHjepRplM9Ks9uh3zCMvh5Vczz8UasQdOXQFSjwZWqHpwRxyTpGQZuP7VTSsQ==, tarball: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/0fd2da648d4fe55ec71b8261d6fd54f4312b93fe}
+  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323:
+    resolution: {gitHosted: true, integrity: sha512-RgkgwO03bdErnC2gHpxMcUqqD8r4pIgFmpRNFHp8mJSM3BZoRFlpCjBHr06GYrI+DLisG+DP0LW/54yJIGCIeQ==, tarball: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323}
     version: 6.1.0
 
   klassijs-resemblejs@https://codeload.github.com/klassijs/klassijs-resembleJs/tar.gz/6bc556a2d80128f36aebeae54f1ed6fe9ceefb34:
@@ -6412,7 +6409,7 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@puppeteer/browsers@3.2.5(yauzl@2.10.0)':
+  '@puppeteer/browsers@3.2.6(yauzl@2.10.0)':
     dependencies:
       modern-tar: 0.8.6
       yargs: 18.2.0
@@ -6794,7 +6791,7 @@ snapshots:
 
   '@wdio/utils@10.0.1(yauzl@2.10.0)':
     dependencies:
-      '@puppeteer/browsers': 3.2.5(yauzl@2.10.0)
+      '@puppeteer/browsers': 3.2.6(yauzl@2.10.0)
       '@types/split2': 4.2.3
       '@wdio/logger': 10.0.0
       '@wdio/types': 10.0.1
@@ -7155,7 +7152,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.28
       caniuse-lite: 1.0.30001815
-      electron-to-chromium: 1.5.452
+      electron-to-chromium: 1.5.463
       node-releases: 2.0.58
       update-browserslist-db: 1.3.4(browserslist@4.29.3)
 
@@ -7731,8 +7728,6 @@ snapshots:
       which: 6.0.1
     transitivePeerDependencies:
       - supports-color
-
-  electron-to-chromium@1.5.452: {}
 
   electron-to-chromium@1.5.463: {}
 
@@ -9141,7 +9136,7 @@ snapshots:
 
   klassijs-astellen@1.0.1: {}
 
-  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/0fd2da648d4fe55ec71b8261d6fd54f4312b93fe:
+  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323:
     dependencies:
       chalk: 6.0.1
       find: 0.3.0
