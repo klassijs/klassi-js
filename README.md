@@ -30,13 +30,114 @@ pnpm add klassi-js
 node ./node_modules/klassi-js/index.js
 ```
 
-## AI evaluation
+## AI
 
-Klassi can score model behaviour without starting Cucumber. The guide is [docs/ai-evaluation.md](docs/ai-evaluation.md). A local run uses the fake adapter:
+The AI in Klassi does two jobs. It does not run your browser tests for you, and it does not replace Cucumber or WebdriverIO.
+
+### 1. Turn Test Genie output into runnable tests
+
+Test Genie (or a matching bundle on wDrive) produces a pack of intended scenarios: Gherkin, notes, and locator hints. `ai:import` reads that bundle, checks it, opens the real product in Chrome, binds locators from the live DOM, and writes normal Klassi files (`features/`, steps, page objects). You then run those tests the usual way.
+
+```bash
+pnpm klassi ai:import --out .
+```
+
+Set `KLASSI_WDRIVE` to the folder that contains `bundle.json`, and `PRODUCT_BASE_URL` to the site to open. Do not commit secrets.
+
+### 2. Treat the model as the system under test
+
+`ai:evaluate` asks a model questions (through an **adapter**), scores the replies (**evaluators**), and fails the build if a **quality gate** is missed. That is how you regression-test an assistant: exact wording, required or forbidden phrases, a second “judge” model, and security checks such as prompt injection.
+
+This command runs **before** Cucumber. Browser tests are unchanged.
+
+Locally, a fake adapter needs no API key:
 
 ```bash
 pnpm klassi ai:evaluate --suite example
 ```
+
+Exit `0` means the gate passed. Exit `1` means the run finished and the gate failed.
+
+Against Azure OpenAI:
+
+```bash
+pnpm klassi ai:doctor --platform azure-openai
+pnpm klassi ai:evaluate --suite azure-openai --platform azure-openai
+```
+
+Set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_DEPLOYMENT` in the environment (or `.env`). Do not commit real values.
+
+Save a baseline and compare a later run when you want to see if answers got worse:
+
+```bash
+pnpm klassi ai:baseline --suite example --output ai-reports/baseline.json
+pnpm klassi ai:compare --suite example --baseline ai-reports/baseline.json
+```
+
+### Commands
+
+| Command | What it does |
+| --- | --- |
+| `ai:import` | Read a Test Genie / wDrive bundle and write Cucumber files. wDrive is an input (`--dir`, `KLASSI_WDRIVE`, or `--file`), not a separate command. `--from` pulls a stored Test Genie bundle. |
+| `ai:evaluate` | Run a suite against a model and apply the quality gate |
+| `ai:doctor` | Check platform config (for example Azure) without scoring cases |
+| `ai:baseline` | Run a suite and save the result as a baseline |
+| `ai:compare` | Run again and diff against that baseline |
+
+`runtime/scripts/import-wdrive.js` is only a wrapper around `ai:import --out … --bind-locators`.
+
+These flags belong to the AI commands only. They are not Cucumber flags such as `--browserOpen`. `pnpm klassi <command> --help` prints the same list.
+
+**`ai:evaluate`, `ai:baseline`, and `ai:compare` share:**
+
+| Flag | What it does |
+| --- | --- |
+| `--suite <name>` | Suite name or path (required) |
+| `--case <id>` | Run one case id |
+| `--tag <tag>` | Run cases with this tag |
+| `--samples <count>` | Override how many samples to run |
+| `--concurrency <count>` | Override sample concurrency |
+| `--fail-fast` | Stop later cases after an infrastructure error |
+| `--platform <id>` | `fake` (default) or `azure-openai` |
+
+**Plus, on each command:**
+
+| Command | Flag | What it does |
+| --- | --- | --- |
+| `ai:evaluate` | `--output <dir>` | Directory for run evidence and reports |
+| `ai:evaluate` | `--reporter <list>` | `json`, `markdown`, `html`, `cucumber`, `junit`, `sarif` (comma-separated) |
+| `ai:baseline` | `--output <file>` | Baseline JSON file (required) |
+| `ai:baseline` | `--name <name>` | Baseline name |
+| `ai:compare` | `--baseline <file>` | Baseline JSON file to compare against (required) |
+| `ai:compare` | `--output <dir>` | Directory for the new run evidence and reports |
+| `ai:compare` | `--score-delta <number>` | Absolute score change that counts as material |
+| `ai:compare` | `--pass-rate-delta <number>` | Absolute pass-rate change that counts as material |
+| `ai:compare` | `--latency-delta <number>` | Absolute P95 latency change, in milliseconds, that counts as material |
+| `ai:doctor` | `--platform <id>` | Platform adapter id (required) |
+| `ai:import` | `--file <path>` | Bundle JSON file |
+| `ai:import` | `--dir <path>` | Folder that contains `bundle.json` |
+| `ai:import` | `--from <source>` | Pull a stored bundle from Test Genie |
+| `ai:import` | `--generation <id>` | Test Genie generation id |
+| `ai:import` | `--out <dir>` | Project directory that receives the Cucumber files (default `.`) |
+| `ai:import` | `--bind-locators` | Open the product URL and bind locators from the live page |
+
+### JavaScript API
+
+The same evaluate path can be called from code, without the CLI. `@klassijs/ai-cli` exports `aiCase`, `aiSuite`, `createAdapterRegistry`, and `runAiEvaluation` (contract `1.0.0`). Those names do not name a model provider. You build a suite, register an adapter, and run it. `examples/ai/evaluate.mjs` does this in memory with `FakeAIAdapter`.
+
+```javascript
+import { aiCase, aiSuite, createAdapterRegistry, runAiEvaluation } from '@klassijs/ai-cli';
+
+const registry = createAdapterRegistry();
+registry.register(adapter);
+const outcome = await runAiEvaluation({ suite, registry, reporters: ['json'] });
+```
+
+```bash
+node examples/ai/evaluate.mjs
+```
+
+The full evaluation guide (suite format, evaluators, judges, security, CI exit codes, and writing your own adapter) is [ai-evaluation](runtime/docs/ai-evaluation.md).
 
 ## Options
 
@@ -72,8 +173,6 @@ pnpm klassi ai:evaluate --suite example
   --featureFiles features/utam.feature,features/getMethod.feature || provide specific feature files containing the scenarios to be executed. If multiple are necessary, separate them with a comma (no blank space in between).
   --browser firefox,chrome || will execute the tests in the browser specified. To run tests in parallel use multiple browsers, separate them with a comma (no blank space in between).
 ```
-## Upgrading to klassi-js v6
-To upgrade existing projects for use with klassi-js v6, please follow these few steps [HERE](runtime/docs/klassi-js-v6-Upgrade.md)
 
 ## Directory Structure
 You can use the framework without any command line arguments if your application uses the following folder structure, to help with the built in functionality usage, we have added a .envConfigrc.js file at the base of the project which will contain all your env configs . You can check out the working [TEMPLATE HERE](https://github.com/klassijs/klassijs-example-project)
