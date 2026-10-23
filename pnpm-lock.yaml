@@ -70,7 +70,7 @@ importers:
         version: 1.0.1
       klassijs-cucumber-html-reporter:
         specifier: github:klassijs/klassijs-cucumber-html-reporter#feature/newtheme
-        version: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323
+        version: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/ec79cfa738d6ac1e57aa0e4903c03e6762314e0f
       klassijs-smart-ocr:
         specifier: github:klassijs/klassijs-smart-ocr
         version: https://codeload.github.com/klassijs/klassijs-smart-ocr/tar.gz/400d553af8cf1940eaa25d104f3a704de07ea18e
@@ -3710,8 +3710,8 @@ packages:
   klassijs-astellen@1.0.1:
     resolution: {integrity: sha512-rCBPnhzNdjmKb9RqPqMldP8PGZg+slJjRtIJIKIo8GuC1Byf5PDBzsDxLvFYB9xmtyquUCRa7YQqUjcJCcPLLQ==}
 
-  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323:
-    resolution: {gitHosted: true, integrity: sha512-RgkgwO03bdErnC2gHpxMcUqqD8r4pIgFmpRNFHp8mJSM3BZoRFlpCjBHr06GYrI+DLisG+DP0LW/54yJIGCIeQ==, tarball: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323}
+  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/ec79cfa738d6ac1e57aa0e4903c03e6762314e0f:
+    resolution: {gitHosted: true, integrity: sha512-Ekhx6C41FWJHugxjZYush5mcIxSVaG51yVhBDXGCD0JJp2iRxbA4QJoOUlb8WuHJjRP6f9aFtBh58XWZDTm/JA==, tarball: https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/ec79cfa738d6ac1e57aa0e4903c03e6762314e0f}
     version: 6.1.0
 
   klassijs-resemblejs@https://codeload.github.com/klassijs/klassijs-resembleJs/tar.gz/6bc556a2d80128f36aebeae54f1ed6fe9ceefb34:
@@ -9136,7 +9136,7 @@ snapshots:
 
   klassijs-astellen@1.0.1: {}
 
-  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/acf6a35938d382b9191fb5ce4686e76ff9788323:
+  klassijs-cucumber-html-reporter@https://codeload.github.com/klassijs/klassijs-cucumber-html-reporter/tar.gz/ec79cfa738d6ac1e57aa0e4903c03e6762314e0f:
     dependencies:
       chalk: 6.0.1
       find: 0.3.0
