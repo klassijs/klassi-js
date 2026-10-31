@@ -82,7 +82,7 @@
     "klassijs-visual-validation": "1.2.4",
     "lint-staged": "17.6.0",
     "merge": "2.1.1",
-    "nodemailer": "10.1.0",
+    "nodemailer": "10.1.4",
     "pactum": "3.9.1",
     "prettier": "3.9.10",
     "recursive-readdir": "2.2.3",
